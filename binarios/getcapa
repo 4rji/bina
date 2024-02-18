@@ -1,0 +1,54 @@
+#!/bin/bash
+
+set_python_capabilities() {
+    system=$(uname -s)
+    python_version=$(python3 --version | cut -d' ' -f2 | cut -d. -f1,2)
+
+    if [ "$system" == "Linux" ]; then
+        read -p "¿Desea cambiar los permisos de cap para Python $python_version? (s/n): " response
+        if [ "$response" == "s" ]; then
+            if sudo setcap cap_setuid+ep "$(command -v python$python_version)"; then
+                echo "Se han configurado correctamente los privilegios de usuario para Python $python_version."
+            else
+                echo "Error al configurar los privilegios de usuario para Python $python_version."
+            fi
+        else
+            echo "No se realizarán cambios en los permisos de cap de Python."
+        fi
+    else
+        echo "Este script solo es compatible con sistemas Linux."
+    fi
+}
+
+# Llamar a la función para configurar los privilegios de Python
+set_python_capabilities
+
+
+
+
+
+# Preguntar al usuario si desea probar python
+read -p "¿Quieres probar python [s/n]? " respuesta
+
+# Verificar la respuesta del usuario
+if [ "$respuesta" == "s" ]; then
+    # Ejecutar el binario pythonroot
+    pythonroot
+elif [ "$respuesta" == "n" ] || [ -z "$respuesta" ]; then
+    echo "Terminando..."
+else
+    echo "Respuesta no válida."
+fi
+
+
+
+# Agregar un salto de línea para separar
+echo ""
+echo "Los comandos siguientes se ejecutaron:"
+echo "sudo setcap cap_setuid+ep /usr/bin/python3.11"
+
+echo "para quitarselos:"
+echo "sudo setcap -r $(command -v python$python_version)"
+
+echo "Para verificar"
+echo "getcap -r / 2>/dev/null"

@@ -1,21 +1,26 @@
-#!/bin/bash
-
-echo " Los comadnos y explicaciones adentro del script."
+#!/usr/bin/env python3
 
 import os
+import subprocess
 
+def obtener_nombre_usuario():
+    return os.getlogin()
+
+def spawn_interactive_shell():
+    # Inicia una shell interactiva utilizando subprocess
+    subprocess.call(["sh"])
+
+nombre_usuario = obtener_nombre_usuario()
+print("El nombre de usuario actual es:", nombre_usuario)
+
+# Ejecutar algunos comandos antes de la shell interactiva
 os.system('id')
-
-#el usuario a modificar
-os.system('jack')
-
-#este lo cambia a root
+os.system('sudo -u {} id'.format(nombre_usuario))
 os.setuid(0)
-
-
-#deberia mostrar root este comando:
 os.system('whoami')
 
+# Llama a la función para iniciar la shell interactiva
+spawn_interactive_shell()
 
-os.system('sh')
-
+# Después de que la shell interactiva ha terminado, se imprimirá un mensaje
+print("Shell interactiva cerrada. Continuando con el script...")
