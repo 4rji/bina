@@ -1,0 +1,40 @@
+#!/usr/bin/env python3
+
+import os
+import subprocess
+import tempfile
+
+# Definir las funciones como cadenas
+bash_functions = """
+# Functions added by Python script
+function mkt(){
+    mkdir "$1" && cd "$1" && mkdir nmap && mkdir content && mkdir exploits && mkdir scripts && echo "nuevo directorio" && pwd && ls
+}
+
+function mktem() {
+    new_dir=$(mktemp -d)
+    echo "Directorio creado en: $new_dir"
+    cd "$new_dir" || return
+    echo "Cambiado al directorio: $PWD"
+}
+
+function rmk(){
+    scrub -p dod $1
+    shred -zun 10 -v $1
+}
+"""
+
+def append_functions_to_shell_configs(functions):
+    home_dir = os.path.expanduser('~')  # Obtener el directorio home del usuario
+    bashrc_path = os.path.join(home_dir, '.bashrc')
+    zshrc_path = os.path.join(home_dir, '.zshrc')
+
+    # Agregar las funciones a .bashrc y .zshrc
+    for config_path in [bashrc_path, zshrc_path]:
+        with open(config_path, 'a') as config_file:
+            config_file.write(functions)
+            print(f"Funciones agregadas a {config_path}")
+
+# Llamar a la función para agregar las funciones a los archivos de configuración
+append_functions_to_shell_configs(bash_functions)
+
