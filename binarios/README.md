@@ -293,3 +293,4 @@ mapa                Busca un proceso despues del script y lo mata ps aux
 ippsec              Script de ippsec de ssh, aun no lo pruebo
 pythonroot          Usa getcap para tener una consola interactiva en python
 getcapa             Da permisos de getcap a python y corre pythonroot
+scados              Un dos con scapy, pruebas exitosas, hpyng3 manda mas.
