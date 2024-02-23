@@ -47,8 +47,9 @@ echo ""
 
 
 # Preguntar si desea ver el archivo con tshark o el resumen con python
-read -p "¿Desea ver el archivo con tshark o el resumen con python? "
-echo "[t] para tshark, [p] Python Resument /Enter para cancelar]: " choice
+echo "[t] para tshark, [p] Python Resument /Enter para cancelar]: " 
+
+read -p "¿Ver captura con tshark o con python? " choice
 case "$choice" in
   t|T)
     tshark -r "$new_filename"
@@ -61,7 +62,9 @@ case "$choice" in
     ;;
 esac
 
-
+echo ""
+echo "tshark -r captura.cap"
+echo "NetworkMonitoring"
 
 
 
