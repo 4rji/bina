@@ -276,7 +276,7 @@ kittyinst           Instala kitty y baja su configuracion
 pyreque             Instala los requirements para python
 trafico             Genera trafico falso de varios sitios
 NetworkMonitoring   Muestra captura.cap en colores con python, integrado en chismes
-
+autorun-no          Crea un archivo para usb, autorun. NO funcional yet.
 
 
 
