@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
-import random, requests
+import random
+import requests
 from time import sleep, time
 
 # Sitios web comunes de redes sociales y correos electrónicos
@@ -28,6 +29,7 @@ def browsingSession(duration):
             break
         url = getURL()
         makeRequest(url)
+        print(f"\033[1;34m{url}\033[0m")  # Nombre del sitio en azul
         sleep(random.randint(1, 3)) # Cambiado para variar el tiempo de espera
 
 clickthrough = 0.5
@@ -47,4 +49,3 @@ if duration == 0:
 else:
     print(f"Ejecutando por {duration} minutos.")
     browsingSession(duration)
-
