@@ -1,8 +1,8 @@
-#!/bin/zsh
-
+#!/bin/bash
+echo ""
 # Verificar si se proporcionó el nombre del archivo como argumento
 if [[ -z "$1" ]]; then
-  echo "Por favor, proporcione el nombre del archivo como argumento."
+  echo -e "\e[91mPor favor, proporcione el nombre del archivo como argumento.\e[0m"
   exit 1
 fi
 
@@ -12,14 +12,19 @@ filename="$1"
 # Obtener la ruta completa del archivo utilizando readlink
 filepath=$(readlink -f "$filename")
 
+# Mostrar la ruta del archivo en la terminal en letras azules y en otro renglón
+echo -e "\e[33mFile path:\e[0m"
+echo -e "\e[34m$filepath\e[0m"
+
 # Verificar si el comando pbcopy está disponible (en macOS) o utilizar xclip (en Linux)
 if command -v pbcopy &>/dev/null; then
   echo "$filepath" | pbcopy
-  echo "La ruta del archivo '$filename' se ha copiado en el portapapeles."
+  echo -e "\e[92mFile path '$filename' se ha copiado en el portapapeles.\e[0m"
 elif command -v xclip &>/dev/null; then
   echo "$filepath" | xclip -selection clipboard
-  echo "La ruta del archivo '$filename' se ha copiado en el portapapeles."
+  echo ""
+  echo -e "\e[92mFile path '$filename' se ha copiado en el portapapeles.\e[0m"
 else
-  echo "No se pudo encontrar el comando necesario para copiar al portapapeles."
+  echo -e "\e[91mNo se pudo encontrar el comando necesario para copiar al portapapeles.\e[0m"
   exit 1
 fi

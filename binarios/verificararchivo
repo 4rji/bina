@@ -1,0 +1,45 @@
+#!/usr/bin/env python
+
+import os
+import time
+
+def getTimestamps(filename):
+    fname = os.path.expanduser(filename)
+    stats = os.stat(fname)
+    if not os.path.exists(fname): # File deleted
+        return []
+    return (int(stats.st_ctime), int(stats.st_mtime), int(stats.st_atime))
+
+def checkTimestamps(filename, create, modify, access):
+    stats = getTimestamps(filename)
+    if len(stats) == 0:
+        return False # File deleted
+    (ctime, mtime, atime) = stats
+    # Convertir las marcas de tiempo de cadena a entero
+    create_time = int(time.mktime(time.strptime(create, "%a %b %d %H:%M:%S %Y")))
+    modify_time = int(time.mktime(time.strptime(modify, "%a %b %d %H:%M:%S %Y")))
+    access_time = int(time.mktime(time.strptime(access, "%a %b %d %H:%M:%S %Y")))
+    # Comparar las marcas de tiempo
+    if create_time != ctime:
+        return False    # File creation time is incorrect
+    elif modify_time != mtime:
+        return False    # File modify time is incorrect
+    elif access_time != atime:
+        return False    # File access time is incorrect
+    return True
+
+def main():
+    # Leer la lista de archivos decoy del archivo decoys.txt
+    decoys_txt_path = "/opt/decoys/decoys.txt"
+    with open(decoys_txt_path, "r") as f:
+        for line in f:
+            vals = line.strip().split(",")
+            filename = vals[0]
+            create = vals[1]
+            modify = vals[2]
+            access = vals[3]
+            if not checkTimestamps(filename, create, modify, access):
+                print("El archivo {} ha sido modificado.".format(filename))
+
+if __name__ == "__main__":
+    main()

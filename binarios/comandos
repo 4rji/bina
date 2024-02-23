@@ -46,3 +46,7 @@ netdiscover -i wlan0
 
 #para evitar que ssh se duerma en conexiones
 ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=3 usuario@servidor
+
+
+#para mover todos los archivos, en este caso *.py a la carpeta actual:
+find . -mindepth 2 -type f -name "*.py" -exec mv {} . \;

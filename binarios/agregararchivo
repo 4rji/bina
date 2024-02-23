@@ -1,0 +1,57 @@
+#!/usr/bin/env python
+
+import os
+import time
+
+def getTimestamps(filename):
+    fname = os.path.expanduser(filename)
+    stats = os.stat(fname)
+    if not os.path.exists(fname): # File deleted
+        return []
+    return (stats.st_ctime, stats.st_mtime, stats.st_atime)
+
+def checkTimestamps(filename, create, modify, access):
+    stats = getTimestamps(filename)
+    if len(stats) == 0:
+        return False # File deleted
+    (ctime, mtime, atime) = stats
+    if float(create) != float(ctime):
+        return False    # File creation time is incorrect
+    elif float(modify) != float(mtime):
+        return False    # File modify time is incorrect
+    elif float(access) != float(atime):
+        return False    # File access time is incorrect
+    return True
+
+def addDecoyToDecoysTxt(filename, create, modify, access):
+    decoys_dir = "/opt/decoys/"
+    decoys_txt_path = os.path.join(decoys_dir, "decoys.txt")
+
+    # Crear el directorio si no existe
+    if not os.path.exists(decoys_dir):
+        os.makedirs(decoys_dir)
+
+    with open(decoys_txt_path, "a") as f:
+        f.write("{},{},{},{}\n".format(filename, create, modify, access))
+
+def main():
+    # Solicitar al usuario el archivo que desea verificar
+    file_to_check = input("Ingrese la ruta del archivo que desea verificar: ")
+
+    # Obtener las marcas de tiempo del archivo
+    ctime = os.path.getctime(file_to_check)
+    mtime = os.path.getmtime(file_to_check)
+    atime = os.path.getatime(file_to_check)
+
+    # Convertir las marcas de tiempo a formato legible
+    ctime_str = time.ctime(ctime)
+    mtime_str = time.ctime(mtime)
+    atime_str = time.ctime(atime)
+
+    # Agregar el archivo a la lista en decoys.txt
+    addDecoyToDecoysTxt(file_to_check, ctime_str, mtime_str, atime_str)
+
+    print("Archivo agregado a decoys.txt en /opt/decoys/.")
+
+if __name__ == "__main__":
+    main()
