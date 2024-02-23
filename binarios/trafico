@@ -1,0 +1,50 @@
+#!/usr/bin/env python
+
+import random, requests
+from time import sleep, time
+
+# Sitios web comunes de redes sociales y correos electrónicos
+sites = [
+    "https://www.facebook.com",
+    "https://www.twitter.com",
+    "https://www.instagram.com",
+    "https://www.linkedin.com",
+    "https://www.gmail.com",
+    "https://www.outlook.com",
+    "https://www.yahoo.com"
+]
+
+def makeRequest(url):
+    _ = requests.get(url)
+    return
+
+def getURL():
+    return sites[random.randint(0, len(sites)-1)]
+
+def browsingSession(duration):
+    start_time = time()
+    while True:
+        if 0 < duration < (time() - start_time) / 60:
+            break
+        url = getURL()
+        makeRequest(url)
+        sleep(random.randint(1, 3)) # Cambiado para variar el tiempo de espera
+
+clickthrough = 0.5
+sleeptime = 1
+
+# Preguntar al usuario por el tiempo de ejecución
+duration = input("Ingrese la duración de la sesión en minutos (0 para infinito): ")
+try:
+    duration = int(duration)
+except ValueError:
+    print("Por favor, ingrese un número válido.")
+    exit()
+
+if duration == 0:
+    print("Ejecutando sin límite de tiempo.")
+    browsingSession(float('inf'))
+else:
+    print(f"Ejecutando por {duration} minutos.")
+    browsingSession(duration)
+

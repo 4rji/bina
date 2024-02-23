@@ -273,6 +273,16 @@ kittyinst           Instala kitty y baja su configuracion
 
 
 #python herramientas
+trafico             Genera trafico falso de varios sitios
+
+
+
+
+
+
+
+
+#Redstuff
 proxyvery           Verifica si funcionan los proxies de una lista
 chismes             Ejecuta tcpdump y tshark para ver la red, captura wireshark
 proxylocomenu       Menu para descargar, el primero
