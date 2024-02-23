@@ -2,6 +2,7 @@
 
 #alias para iniciar
 echo "alias splunk='sudo /opt/splunk/bin/splunk start'"  >> ~/.zshrc
+echo "alias splunk='sudo /opt/splunk/bin/splunk start'"  >> ~/.bashrc
 
 # Navegar al directorio /opt
 cd /opt
@@ -22,3 +23,4 @@ sudo ./splunk start
 
 # Recargar el archivo .bashrc para aplicar los cambios
 source ~/.zshrc
+source ~/.bashrc
