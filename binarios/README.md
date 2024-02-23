@@ -273,8 +273,9 @@ kittyinst           Instala kitty y baja su configuracion
 
 
 #python herramientas
+pyreque             Instala los requirements para python
 trafico             Genera trafico falso de varios sitios
-
+NetworkMonitoring   Muestra captura.cap en colores con python, integrado en chismes
 
 
 
@@ -284,7 +285,7 @@ trafico             Genera trafico falso de varios sitios
 
 #Redstuff
 proxyvery           Verifica si funcionan los proxies de una lista
-chismes             Ejecuta tcpdump y tshark para ver la red, captura wireshark
+chismes             Ejecuta tcpdump y tshark para ver la red, captura wireshark -add NetworkMonitoring
 proxylocomenu       Menu para descargar, el primero
 proxyloco           Instala el proxy, interface e inicia
 proxylococ          Comandos para su ejecucion de proxy loco reverse shell
