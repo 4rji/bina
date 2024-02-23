@@ -297,6 +297,7 @@ sheldon             reverse shell easy, pide todos los datos preguntas
 sheldonf            Usa sheldon para enviar un archivo, ejecutar sheldonf help
 sheldono            while loop con ip integrada a servidor nube
 sheldonos           Sin el loop, el mismo que arriba
+sheldonsafe         Otra version de sheldono, de el curso python
 nala                Esconde cualquier proceso, como sheldon
 simbo               Es el CTL Trabaja con sheldono, y nala para esconderme sheldongo
 psss                Escanea por conexiones lsof netstat, mi bebe

