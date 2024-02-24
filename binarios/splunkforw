@@ -1,20 +1,25 @@
 #!/bin/bash
 
-cd /tmp
+echo ""
+echo -e "\033[34m_________________________________________________________\033[0m"
+echo ""
 
 echo -e "\033[34mSelect the operating system for Splunk Universal Forwarder 9.1.2:\033[0m"
+echo ""
 echo -e "1. \033[36mWindows\033[0m"
 echo -e "2. \033[36mLinux\033[0m"
 echo -e "3. \033[36mMac\033[0m"
 echo -e "4. \033[36mFreeBSD\033[0m"
-read -p "Enter your choice (1/2/3/4): " os_choice
+echo ""
+read -n1 -p "Enter your choice (1/2/3/4): " os_choice
 
 case $os_choice in
     1) # Windows
         echo -e "\033[34mSelect the architecture for Windows:\033[0m"
         echo -e "1. \033[36m64-bit\033[0m"
         echo -e "2. \033[36m32-bit\033[0m"
-        read -p "Enter your choice (1/2): " win_arch
+        echo ""
+        read -n1 -p "Enter your choice (1/2): " win_arch
 
         case $win_arch in
             1) wget -O splunkforwarder-9.1.2-b6b9c8185839-x64-release.msi "https://download.splunk.com/products/universalforwarder/releases/9.1.2/windows/splunkforwarder-9.1.2-b6b9c8185839-x64-release.msi";;
@@ -30,7 +35,8 @@ case $os_choice in
         echo -e "3. \033[36m64-bit tgz\033[0m"
         echo -e "4. \033[36mARM deb\033[0m"
         echo -e "5. \033[36mARM tgz\033[0m"
-        read -p "Enter your choice (1/2/3/4/5): " linux_version
+        echo ""
+        read -n1 -p "Enter your choice (1/2/3/4/5): " linux_version
 
         case $linux_version in
             1) wget -O splunkforwarder-9.1.2-b6b9c8185839.x86_64.rpm "https://download.splunk.com/products/universalforwarder/releases/9.1.2/linux/splunkforwarder-9.1.2-b6b9c8185839.x86_64.rpm";;
@@ -46,7 +52,8 @@ case $os_choice in
         echo -e "\033[34mSelect the version for Mac:\033[0m"
         echo -e "1. \033[36mM1\033[0m"
         echo -e "2. \033[36mIntel\033[0m"
-        read -p "Enter your choice (1/2): " mac_version
+        echo ""
+        read -n1 -p "Enter your choice (1/2): " mac_version
 
         case $mac_version in
             1) wget -O splunkforwarder-9.1.2-b6b9c8185839-darwin-universal2.dmg "https://download.splunk.com/products/universalforwarder/releases/9.1.2/osx/splunkforwarder-9.1.2-b6b9c8185839-darwin-universal2.dmg";;
@@ -62,13 +69,11 @@ case $os_choice in
     *) echo "Invalid selection"; exit 1;;
 esac
 
+echo ""
 echo -e "\033[32mDownloading selected version...\033[0m"
-
-
 
 # Changing to /tmp directory to download
 cd /tmp
-
 
 # If a .deb file was downloaded, proceed with installation and configuration
 if [[ $os_choice -eq 2 ]] && ([[ $linux_version -eq 2 ]] || [[ $linux_version -eq 4 ]]); then
