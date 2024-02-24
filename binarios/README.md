@@ -94,7 +94,8 @@ nombre_{IP}         Da el nombre de la maquina si es linux o windows
 scanporty           python3 program que hace un escaneo y pregunta el numero de puertos.usa socket               
 sweep               Hace un sweep y despues pregunta si desea ejecutar expo
 sweepold            solo hace el sweep normal de las ips
-nsweep_{192.168.1}  hace un nmap -sn en la red para buscar maquinas activas.                           
+nsweep_{192.168.1}  hace un nmap -sn en la red para buscar maquinas activas.   
+nsweep2             Otro que hace un nmap -sn                        
 puertos2            nmap A -O -sV  nmap -A -O -sV -oX puerto.xml --stylesheet=https://svn.nmap.org/nmap/docs/nmap.xsl (probar varios firefox)
 expo                Hace un scaneo con o sin Pn, y lo genera en carpeta tmp, hace expo1, expo2, expo3
 expo4               crea un archibo clip1 del portapapeles para expo5                                  
@@ -103,6 +104,7 @@ sweepall            hace nmap xml para abrir con firefox, USA sweep, ips y puert
 sweepnet_{ip}	    Hace un sweep a toda la subnet, 10.0 o 192.168
 nbash               BASH escaneo de puertos de una maquina , no usa nmap, nbash 10.0.4.50
 pbash               /dev/tcp/[IP] BASH scaner puertos open (50 principales puertos only) en la red 10.0.4
+ncmap               Ocupa nc para escanear puertos, como nmap, escaneo
 
 ###------Nessus
 nessus              activa nesus y muestra el puerto donde abrirlo en firefox                          

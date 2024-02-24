@@ -1,0 +1,41 @@
+#!/bin/bash
+
+echo ""
+# Function to display colored message
+display_message() {
+    echo -e "\e[1;33m$1\e[0m"
+}
+
+# Function to display separator
+display_separator() {
+    echo ""
+    echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+
+    echo ""
+}
+
+# Prompt for IP address
+display_message "Enter the IP address to scan:"
+read -p "IP address: " ip_address
+echo ""
+
+# Prompt for port range, with default value 1-1000 if Enter is pressed
+display_message "Enter the port range to scan (Press Enter for default 1-1000):"
+read -p "Port range [default=1-1000]: " port_range
+
+# Set default port range if Enter is pressed
+if [ -z "$port_range" ]; then
+    port_range="1-1000"
+fi
+
+# Execute the nc command
+display_separator
+display_message "Scanning ports $port_range on IP address $ip_address..."
+echo ""
+nc -nv -w 1 -z $ip_address $port_range
+echo ""
+
+# End message
+display_separator
+display_message "Port scan completed."
+

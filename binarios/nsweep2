@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Solicitar la dirección IP a escanear
+read -p "Introduce la direccion IP a escanear (formato X.X.X.XD/x): " ip
+
+# Ejecutar el comando nmap con la dirección IP proporcionada
+sudo nmap -sn -n "$ip" -oG - | awk '/Up$/{print $2}' > ips-n.txt
+
+echo "Escaneo completado.Ips guardadas en el archivo ips-n.txt."
+
