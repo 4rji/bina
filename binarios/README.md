@@ -105,6 +105,7 @@ sweepnet_{ip}	    Hace un sweep a toda la subnet, 10.0 o 192.168
 nbash               BASH escaneo de puertos de una maquina , no usa nmap, nbash 10.0.4.50
 pbash               /dev/tcp/[IP] BASH scaner puertos open (50 principales puertos only) en la red 10.0.4
 ncmap               Ocupa nc para escanear puertos, como nmap, escaneo
+obierto             Busca un puerto abierto en especifico en la subnet, por ejemplo 80 en las ips creada por ncmap
 
 ###------Nessus
 nessus              activa nesus y muestra el puerto donde abrirlo en firefox                          

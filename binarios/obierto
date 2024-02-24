@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Colores
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+NC='\033[0m' # No Color
+
+echo -e "${GREEN}"
+echo ""
+echo "_________________________________________________________"
+echo -e "${NC}"
+
+# Pregunta por el puerto
+echo -e "${YELLOW}¿Qué puerto abierto quieres buscar con nc?${NC}"
+read puerto
+echo -e "${GREEN}Puerto seleccionado: ${puerto}${NC}"
+
+echo -e "${GREEN}"
+echo ""
+echo "_________________________________________________________"
+echo -e "${NC}"
+
+# Pregunta si quiere crear el archivo de IPs
+echo -e "${YELLOW}¿Quieres crear el archivo de IPs? [s/N]${NC}"
+read respuesta
+
+if [[ $respuesta =~ ^[Ss]$ ]]; then
+    echo -e "${GREEN}Creando el archivo de IPs...${NC}"
+    nsweep2
+else
+    echo -e "${RED}No se creará el archivo de IPs.${NC}"
+fi
+
+echo -e "${GREEN}"
+echo ""
+echo "_________________________________________________________"
+echo -e "${NC}"
+
+# Pregunta si desea buscar el puerto abierto ahora
+echo -e "${YELLOW}¿Deseas buscar el puerto abierto ahora? [S/n]${NC}"
+read buscar
+
+if [[ $buscar =~ ^[Nn]$ ]]; then
+    echo -e "${RED}Búsqueda cancelada.${NC}"
+else
+    echo -e "${GREEN}Iniciando búsqueda del puerto ${puerto}...${NC}"
+    while IFS= read -r line; do
+        # Ejecuta nc y filtra solo líneas con "open", luego muestra la línea sin modificar el color.
+        nc -nv -w 1 -z "$line" $puerto 2>&1 | grep "open"
+    done < ips-n.txt
+fi
+
+echo -e "${NC}"
+
