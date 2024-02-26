@@ -10,9 +10,6 @@ cafe='\033[0;33m'
 verde='\033[0;32m'
 fin_color='\033[0m'
 
-
-
-
 # Funcion para verificar conexiones SSH y mostrar el puerto de escucha configurado
 verificar_conexiones_ssh() {
     echo -e "${amarillo}Buscando conexiones SSH y puerto de escucha configurado${fin_color}"
@@ -35,17 +32,20 @@ verificar_conexiones_ssh() {
         return 0
     fi
 }
+    echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
 
-
-
+  echo ""
+    echo -e "\033[1;32mPuertos escuchando (plisten script): \033[0m\033[1;35mlsof -i -P\033[0m"  # Mostrar el comando lsof -i -P
+    echo 
+    lsof -i -P
+    echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
 
 
 # Función para verificar y terminar conexiones utilizando lsof
 verificar_y_terminar_conexiones() {
-    
     echo -e "\e[34m_________________________________________________________\e[0m\n"
     
-    echo -e "${amarillo}Verificando conexiones activas con lsof y netstat${fin_color}"
+    echo -e "${verde}Verificando conexiones activas con lsof y netstat${fin_color}"
     local conexiones=$(sudo lsof -i -n -P | grep 'ESTABLISHED' | grep -v 'LISTEN' | grep -v 'tailscale' | nl)
 
     if [ -z "$conexiones" ]; then
@@ -57,17 +57,14 @@ verificar_y_terminar_conexiones() {
     echo ""
     echo "$conexiones"
 
-    echo ""
-    #esta es normal espera respuesta del usuario
-    #echo -e "${amarillo}Cual conexion deseas terminar, [s] para cerrar todas:${fin_color}"
-    #read -n1 -p " >  " opcion || true
 
-    #esta la cierra despues de 4 segundos
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+
+  
+    
+echo ""
     echo -e "${amarillo}Cual conexion deseas terminar, [s] para cerrar todas:${fin_color}"
     read -t 4 -n1 -p " >  " opcion || exit
-
-
-
 
     if [[ $opcion =~ ^[Ss]$ ]]; then
         matar_todas_las_conexiones
@@ -86,13 +83,10 @@ verificar_y_terminar_conexiones() {
     fi
 }
 
-
-
 # Función para matar todas las conexiones activas
 matar_todas_las_conexiones() {
     echo ""
     echo -e "\e[34m_________________________________________________________\e[0m\n"
-
     
     echo ""
     echo -e "${rojo}Cerrando todas las conexiones activas...${fin_color}"
@@ -107,8 +101,6 @@ matar_todas_las_conexiones() {
 
     echo -e "${verde}Todas las conexiones activas han sido eliminadas.${fin_color}"
 }
-
-
 
 # Verificar conexiones SSH al inicio
 verificar_conexiones_ssh

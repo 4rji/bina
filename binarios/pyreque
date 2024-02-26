@@ -1,6 +1,7 @@
 #!/bin/bash
 
 # Instalación de los paquetes Python usando pip
-pip install asyncssh brython dnspython httpserver libratom paramiko psutil pycryptodomex pyinstaller requests scapy wmi termcolor
+pip install asyncssh pycryptodome brython dnspython httpserver libratom paramiko psutil pycryptodomex pyinstaller requests scapy wmi termcolor
 
 #https://github.com/hposton/python-for-cybersecurity
+

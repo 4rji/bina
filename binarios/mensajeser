@@ -1,0 +1,71 @@
+#!/usr/bin/env python3
+import socket
+from Crypto.Cipher import AES
+import hashlib
+import os
+
+# Función para imprimir una línea decorativa
+def print_line(color_code):
+    print(f"\033[{color_code}m{'_' * 60}\033[0m")
+
+# Función para imprimir un mensaje en un color específico
+def print_message(message, color_code):
+    print(f"\033[{color_code}m{message}\033[0m")
+
+# Función para solicitar al usuario una entrada con un mensaje y un color específico
+def input_colored(message, color_code):
+    return input(f"\033[{color_code}m{message}\033[0m")
+
+def decrypt(data, key, iv):
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    return cipher.decrypt(data)
+
+def generate_aes_key(password, salt=b'', key_length=32):
+    # Derivación de claves utilizando PBKDF2
+    key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000, key_length)
+    return key
+
+def main():
+    print_line("1;34")
+    print_message("Bienvenido al servidor de descifrado AES", "1;34")
+    print_line("1;34")
+    print("")
+
+    host = input_colored("Introduce la dirección del host (ej. 127.0.0.1): ", "1;36") or "127.0.0.1"
+    port = input_colored("Introduce el puerto a usar (deja vacío para usar el puerto predeterminado 1337): ", "1;36")
+    port = int(port) if port else 1337
+
+    print("")
+
+    # Solicitar al usuario que ingrese una clave de cifrado como una palabra
+    password = input_colored("Introduce la clave de cifrado: ", "1;35")
+
+    print("")
+
+    # Generar una clave AES derivada de la palabra proporcionada por el usuario
+    key = generate_aes_key(password)
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.bind((host, port))
+        s.listen()
+        print_line("1;34")
+        print_message(f"Servidor escuchando en {host}:{port}", "1;34")
+        print_line("1;34")
+        print("")
+        conn, addr = s.accept()
+        with conn:
+            print_message(f"Conexión establecida desde {addr}", "1;34")
+            print("")
+            while True:
+                iv = conn.recv(16)
+                length = conn.recv(1)   # Assumes short messages
+                data = conn.recv(1024)
+                if not data:
+                    break
+                decrypted_data = decrypt(data, key, iv).decode("utf-8")[:ord(length)]
+                print_message(f"Mensaje recibido: {decrypted_data}", "1;32")
+                print("")
+
+if __name__ == "__main__":
+    main()
+

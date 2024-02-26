@@ -55,7 +55,7 @@ case "$choice" in
     tshark -r "$new_filename"
     ;;
   p|P)
-    NetworkMonitoring
+    monitcp
     ;;
   *)
     echo "Operación cancelada."
@@ -63,8 +63,9 @@ case "$choice" in
 esac
 
 echo ""
-echo "tshark -r captura.cap"
-echo "NetworkMonitoring"
+echo "tshark -r captura.cap "
+echo "o tambien ejecuta para python:"
+echo "monitcp"
 
 
 

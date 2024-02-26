@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+
+import socket
+import os
+from Crypto.Cipher import AES
+import hashlib
+
+# Función para imprimir una línea decorativa
+def print_line(color_code):
+    print(f"\033[{color_code}m{'_' * 80}\033[0m")
+
+# Función para imprimir un mensaje en un color específico
+def print_message(message, color_code):
+    print(f"\033[{color_code}m{message}\033[0m")
+
+# Función para solicitar al usuario una entrada con un mensaje y un color específico
+def input_colored(message, color_code):
+    return input(f"\033[{color_code}m{message}\033[0m")
+
+# Solicitar al usuario que ingrese la dirección del host
+host = input_colored("Introduce la dirección del host (ej. 127.0.0.1): ", "1;36") or "127.0.0.1"
+
+# Solicitar al usuario que ingrese el puerto a usar
+port = int(input_colored("Introduce el puerto a usar (deja vacío para usar el puerto predeterminado 1337): ", "1;36") or 1337)
+
+# Función para cifrar un mensaje utilizando AES
+def encrypt(data, key, iv):
+    # Pad data as needed
+    data += " "*(16 - len(data) % 16)
+
+    cipher = AES.new(key, AES.MODE_CBC, iv)
+    return cipher.encrypt(bytes(data, "utf-8"))
+
+# Función para derivar una clave AES a partir de una contraseña proporcionada por el usuario
+def generate_aes_key(password, salt=b'', key_length=32):
+    # Key derivation using PBKDF2
+    key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8'), salt, 100000, key_length)
+    return key
+
+# Solicitar al usuario que ingrese una clave de cifrado como una palabra
+password = input_colored("Introduce la clave de cifrado: ", "1;35")
+
+# Generar una clave AES derivada de la palabra proporcionada por el usuario
+key = generate_aes_key(password)
+
+# Solicitar al usuario que ingrese el mensaje a enviar
+message = input_colored("Introduce el mensaje a enviar: ", "1;35")
+
+# Crear una conexión con el servidor
+with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+    # Establecer la conexión
+    s.connect((host, port))
+
+    # Generar un vector de inicialización aleatorio
+    iv = os.urandom(16)
+
+    # Enviar el vector de inicialización al servidor
+    s.send(iv)
+
+    # Enviar la longitud del mensaje al servidor
+    s.send(bytes([len(message)]))
+
+    # Cifrar el mensaje y enviarlo al servidor
+    encrypted = encrypt(message, key, iv)
+    print_line("1;32")
+    print_message("Mensaje cifrado enviado al servidor:", "1;32")
+    print_message(encrypted.hex(), "1;32")
+    print_line("1;32")
+    s.sendall(encrypted)
+

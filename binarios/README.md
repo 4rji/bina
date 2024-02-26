@@ -279,12 +279,12 @@ kittyinst           Instala kitty y baja su configuracion
 #python herramientas
 pyreque             Instala los requirements para python
 trafico             Genera trafico falso de varios sitios
-NetworkMonitoring   Muestra captura.cap en colores con python, integrado en chismes
+monitcp             Muestra captura.cap en colores con python, integrado en chismes
 autorun-no          Crea un archivo para usb, autorun. NO funcional yet.
 agregararchivo      Agrega un archivo a verificar archivo para ver si ha sido modificido
 verificararchivo    Verifica de la lista creada por agregar archivo si ha sido modificado
 wdefensas           Se supone desactiva el antivirus de windows, no probado
-
+telnetftppass       Encuentra contrasenas usadas en telnet y ftp python
 
 
 
