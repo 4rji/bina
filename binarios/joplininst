@@ -1,5 +1,6 @@
 #!/bin/bash
 
+echo ""
 # Check if npm is installed
 if ! command -v npm &>/dev/null; then
   echo "npm is not installed. Installing npm..."
@@ -26,3 +27,35 @@ else
 fi
 
 echo "Joplin Terminal is now installed and ready to use."
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+
+function download_database() {
+    read -n1 -p "¿Desea descargar la base de datos? [s/n]: " choice
+    echo ""
+    if [[ $choice == [sS] ]]; then
+        mktem
+        rm -rf ~/.config/joplin # Elimina la ubicación predeterminada en sistemas Linux
+        git clone https://github.com/4rji/4rji.git && cd 4rji
+        echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"       
+        joplin import jopa.jex
+        
+    else
+        echo "No se descargará la base de datos."
+    fi
+}
+
+function mktem() {
+    new_dir=$(mktemp -d)
+    echo "Directorio creado en: $new_dir"
+    cd "$new_dir" || return
+    echo "Cambiado al directorio: $PWD"
+}
+
+# Llamada a la función para descargar la base de datos
+download_database
+
+echo ""
+
+
+
