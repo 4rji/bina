@@ -293,6 +293,7 @@ mensajeser          Recibe un mensaje encriptado a mensajecl por medio de python
 mensajecl           Envia un mensaje encriptado de mensajeser, pide el host
 tunelhttp           Envia mensaje por medio de http para c2, camuflaje por http
 tunelhttpser        Servidor de tunelhttp, recibe el mensaje por tunnel camuflaje http
+secreto             Encripta y desencripta archivos con python y se asigna contrasena
 
 #Redstuff
 proxyvery           Verifica si funcionan los proxies de una lista
