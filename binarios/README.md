@@ -284,9 +284,15 @@ autorun-no          Crea un archivo para usb, autorun. NO funcional yet.
 agregararchivo      Agrega un archivo a verificar archivo para ver si ha sido modificido
 verificararchivo    Verifica de la lista creada por agregar archivo si ha sido modificado
 wdefensas           Se supone desactiva el antivirus de windows, no probado
-telnetftppass       Encuentra contrasenas usadas en telnet y ftp python
-
-
+telnetftppass       Windows: Encuentra contrasenas usadas en telnet y ftp python
+userdiscovery       win: Encuentra contrasenas en python no probado dumppassword
+filediscovery       Win: Busca correos, telefonos en archivos, se puede modificar para otras cosas
+galletawin          Extrae de windows cookies de firefox, podria servir para AWS
+winclipboard        Win: Modifica el clipboard por algo, cambiar emails, bitcoi address
+mensajeser          Recibe un mensaje encriptado a mensajecl por medio de python y una frase
+mensajecl           Envia un mensaje encriptado de mensajeser, pide el host
+tunelhttp           Envia mensaje por medio de http para c2, camuflaje por http
+tunelhttpser        Servidor de tunelhttp, recibe el mensaje por tunnel camuflaje http
 
 #Redstuff
 proxyvery           Verifica si funcionan los proxies de una lista
