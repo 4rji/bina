@@ -159,6 +159,7 @@ sshmoni             sshmoni loop para correr el sshmoni while loop
 lsofmoni            Lo mismo que ssh pero escanea conexiones con lsof
 mibebe              escanea las dos sshmoni lsofmoni
 mibebemata          Mi bebe mata solo. lol
+plisten             Muestra y mata las conexiones que estan en LISTEN con lsof
 sshmonitorsc        Script que checa conexiones ssh activas (reemplazado por sshmoni
 killsshauto         Cierra automaticamente todos los PID de ssh que encuentro con sshmoni
 killsshmanual       Pregunta su quiero hacer sudo kill a los PID de ssh de sshmoni

@@ -1,0 +1,40 @@
+#!/bin/bash
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+while true; do
+    echo ""
+    echo -e "\033[1;31mBienvenido al Selector de Comandos\033[0m"
+    echo ""
+    echo -e "\033[1;32m1. \033[0m\033[1;33msudo lsof -i -n -P\033[0m"
+    echo -e "\033[1;34m2. \033[0m\033[1;35mlsof -i -P\033[0m"
+    echo -e "\033[1;36m3. \033[0m\033[1;33msudo netstat -tulpn | grep LISTEN | awk '{print \$7}' | cut -d'/' -f1 | xargs sudo kill -9\033[0m"
+    echo ""
+    echo ""
+    read -n1 -p $'\033[1;33m¿Qué comando desea ejecutar? (1/2/3): \033[0m' choice
+    echo ""
+
+    case $choice in
+        1)
+            echo ""
+            echo -e "\033[1;32mEjecutando: \033[0m\033[1;33msudo lsof -i -n -P\033[0m"
+            sudo lsof -i -n -P
+            echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+            ;;
+        2)
+            echo ""
+            echo -e "\033[1;32mEjecutando: \033[0m\033[1;35mlsof -i -P\033[0m"
+            lsof -i -P
+            echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+            ;;
+        3)
+            echo ""
+            echo -e "\033[1;32mEjecutando: \033[0m\033[1;33msudo netstat -tulpn | grep LISTEN | awk '{print \$7}' | cut -d'/' -f1 | xargs sudo kill -9\033[0m"
+            sudo netstat -tulpn | grep LISTEN | awk '{print $7}' | cut -d'/' -f1 | xargs sudo kill -9
+            echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+            ;;
+        *)
+            echo ""
+            echo -e "\033[1;31mOpción no válida\033[0m"
+            ;;
+    esac
+done
+
