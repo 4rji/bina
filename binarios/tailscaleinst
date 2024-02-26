@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# Colores
+cyan="\e[1;36m"
+green="\e[1;32m"
+yellow="\e[1;33m"
+magenta="\e[1;35m"
+reset="\e[0m"
+
+# Función para preguntar al usuario
+function preguntar_usuario {
+    echo -e "${cyan}$1${reset}"
+    echo -e "${yellow}$2${reset}"
+    read -p "$3 " respuesta
+    echo ""
+}
+
+# Función para confirmar la instalación de Tailscale
+function confirmar_instalacion_tailscale {
+    preguntar_usuario "¿Desea instalar Tailscale?" "" "Instalar Tailscale [s/N]: "
+    if [[ $respuesta == "s" || $respuesta == "S" ]]; then
+        echo -e "${magenta}Instalando Tailscale...${reset}"
+        curl -fsSL https://tailscale.com/install.sh | sh
+        if [ $? -eq 0 ]; then
+            echo -e "${green}Tailscale se instaló correctamente.${reset}"
+        else
+            echo -e "${yellow}Hubo un problema durante la instalación de Tailscale.${reset}"
+        fi
+    fi
+}
+
+# Preguntar al usuario si desea desactivar la interfaz gráfica de usuario (GUI)
+echo ""
+echo "_________________________________________________________"
+echo ""
+preguntar_usuario "¿Desea desactivar la interfaz gráfica de usuario (GUI)?" "(Esto cambiará el nivel de ejecución predeterminado del sistema para iniciar en modo multiusuario)." "Desactivar GUI [s/N]: "
+if [[ $respuesta == "s" || $respuesta == "S" ]]; then
+    # Desactivar el GUI estableciendo el nivel de ejecución predeterminado como multiusuario
+    sudo systemctl set-default multi-user.target
+    echo -e "${green}La interfaz gráfica de usuario (GUI) ha sido desactivada. El sistema arrancará en modo multiusuario.${reset}"
+    # Confirmar instalación de Tailscale después de desactivar la GUI
+    confirmar_instalacion_tailscale
+else
+    echo -e "${green}No se desactivará la interfaz gráfica de usuario (GUI).${reset}"
+    # Confirmar instalación de Tailscale sin desactivar la GUI
+    confirmar_instalacion_tailscale
+fi
+
+# Preguntar al usuario si desea instalar otras aplicaciones
+echo ""
+echo "_________________________________________________________"
+echo ""
+preguntar_usuario "¿Desea instalar otras aplicaciones?" "(kitty, neofetch, lsd, wget, git, bat, curl, nmap)" "Instalar aplicaciones [s/N]: "
+if [[ $respuesta == "s" || $respuesta == "S" ]]; then
+    echo -e "${magenta}Instalando aplicaciones...${reset}"
+    sudo apt install kitty neofetch lsd wget git bat curl nmap -y
+    if [ $? -eq 0 ]; then
+        echo -e "${green}Las aplicaciones se han instalado correctamente.${reset}"
+    else
+        echo -e "${yellow}Hubo un problema durante la instalación de las aplicaciones.${reset}"
+    fi
+fi

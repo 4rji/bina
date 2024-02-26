@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Función para instalar las herramientas necesarias
+install_tools() {
+    echo "Instalando herramientas necesarias..."
+    sudo apt update
+    sudo apt install -y dnsrecon enum4linux redis-tools wkhtmltopdf
+    sudo pip3 install git+https://github.com/Tib3rius/AutoRecon.git
+}
+
+# Verificar si las herramientas están instaladas
+check_tools() {
+    #echo "Verificando herramientas..."
+    if ! command -v autorecon &> /dev/null; then
+        echo "AutoRecon no está instalado."
+        install_tools
+    fi
+}
+
+# Verificar si se especifica una IP
+if [ "$#" -eq 0 ]; then
+    echo "Por favor especifica una dirección IP."
+    exit 1
+elif [ "$1" == "-1" ]; then
+    # Si se pasa el argumento "-1", instalar las herramientas y salir
+    install_tools
+    exit 0
+fi
+
+# Verificar si las herramientas están instaladas
+check_tools
+
+# Ejecutar autorecon con Gobuster y la IP especificada
+sudo autorecon --dirbuster.tool gobuster "$1"
+
