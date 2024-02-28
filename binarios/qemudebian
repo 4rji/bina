@@ -36,7 +36,7 @@ read -p "Introduce el tamaño del disco duro en GB (ej. 20): " disk_size
 
 # Descarga la imagen iso de Debian con sudo
 echo -e "${GREEN}Descargando la imagen de Debian...${NC}"
-#sudo wget -P /var/lib/libvirt/images/ https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.4.0-amd64-netinst.iso
+sudo wget -P /var/lib/libvirt/images/ https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.4.0-amd64-netinst.iso
 echo -e "${GREEN}La imagen de Debian ha sido descargada.${NC}"
 
 

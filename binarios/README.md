@@ -259,8 +259,8 @@ qemuvm              Inicia la maquina virtual de qemu, desde cli y desde iso.
 qemuconsola         enable serial-getty@ttyS0.service  habilitar consola con virsh console  
 virs                Ejecuta comandos de virsh con la maquina automaticamente
 qemucomm            Comandos de qemu virsh
-qemudebian          Descarga, agrega e inicia una maquina debian :)
-qemuq2              Descarga linuxs qcow2, agrega e inicia una maquina debian/kali opciones
+qemudebian          Descarga ISO, agrega e inicia instalador debian :)
+qemuq2              Descarga linux VM qcow2, agrega e inicia una maquina debian/kali opciones
 
 #Instalaciones                                                                  
 lockfancyinst       Bloquear fancy para pantalla, alias lockf
