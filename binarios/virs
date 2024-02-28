@@ -73,18 +73,22 @@ function gestionar_vms {
             2)
                 echo "Iniciando $selected_vm..."
                 sudo virsh start "$selected_vm"
+				sleep 2
                 ;;
             3)
                 echo "Deteniendo $selected_vm..."
                 sudo virsh shutdown "$selected_vm"
+				sleep 2
                 ;;
             4)
                 echo "Forzando apagado (destroy) de $selected_vm..."
                 sudo virsh destroy "$selected_vm"
+				sleep 2
                 ;;
             5)
                 echo "Borrando $selected_vm y su almacenamiento (undefine)..."
                 sudo virsh undefine "$selected_vm" --remove-all-storage
+				sleep 2
                 ;;
             6)
                 echo "Abriendo $selected_vm en Virsh Viewer..."
