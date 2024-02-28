@@ -1,6 +1,6 @@
 #!/bin/bash
 
-i neofetch
+sudo apt install neofetch -y
 
 echo ""
 # Descargar el archivo desde la URL
@@ -16,7 +16,7 @@ if [ $? -eq 0 ]; then
     mv neoconf ~/.config/neofetch/config.conf
 
     echo "El archivo se ha descargado y movido correctamente."
-echo ""
+    echo ""  
     # Preguntar al usuario por el nuevo nombre
     read -p "Nombre del host nuevo: " nuevo_nombre
 
