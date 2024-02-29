@@ -170,7 +170,7 @@ fi
 # Pregunta combinada
 if $apache_installed || $httpd_installed || $python_http_installed; then
   echo -e "${GREEN}Se detectó Apache/httpd y/o Python en el sistema.${NC}"
-  read -n1 -p "¿Deseas iniciar Apache/httpd e iniciar el servidor en 8080? [S/n] " answer_combined
+  read -n1 -p "¿Deseas iniciar Apache/httpd e iniciar el servidor en 8080? [s/n] " answer_combined
   echo ""
   if [[ $answer_combined =~ ^[Ss]$ ]]; then
     # Iniciar Apache/httpd si está disponible
