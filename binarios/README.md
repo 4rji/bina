@@ -37,7 +37,6 @@ cx                  chmod +x sin ejecutarlonetw
 timeout 2h          Para ejecutar comandos por un tiempo determinado timeout 4 (4 segundos y cierra)
 binar               mueve un script a el directorio /usr/bin                                           
 ruta_{archivo}      copia la ruta del archivo en el portapapeles                                       
-sys                 Systemctl ss= stop / sa= start / st= status / enn =enable --now 
 clipc               Copia el ultimo comando escrito en la terminal
 clipa_{archivo}     copia el contenido del archivo al portapapeles                                     
 clipp               comando | clipp , copia la salida del comando en el portapapeles
@@ -60,7 +59,6 @@ ssk                 kitty +kitten ssh
 lfcd                para moverme con cd  #copiar el plugin a zsh
 mdcolors            Genera colores para archivos md 
 maquinasova         Convierte maquinas ova para qemu
-formatoscript       Copia al portapales formato script
 
 genarc              genera archivos conjuntos de 100 MB
 ddf                 hace un diff archivo vs archivo.backup                                             
