@@ -293,8 +293,9 @@ tunelhttpser        Servidor de tunelhttp, recibe el mensaje por tunnel camuflaj
 secreto             Encripta y desencripta archivos con python y se asigna contrasena
 pythonnc            Crea un servidor nc escucha, ejem. pythonnc -t IPserver -p 55551 -l -c
 pythonnc            como cliente: pythonnc -t IPServer -p 55551 (control+d) para tener shell
+sshforward          IPkali -p 8081 -r IPLocal:3000 --user=ass --password (3000 puerto nagios a enviar)
 
- 
+
 #Redstuff
 proxyvery           Verifica si funcionan los proxies de una lista
 chismes             Ejecuta tcpdump y tshark para ver la red, captura wireshark -add NetworkMonitoring
