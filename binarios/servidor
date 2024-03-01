@@ -144,7 +144,6 @@ stop_apache() {
 }
 
 
-
 # Capturar señales de interrupción y terminación para ejecutar stop_apache
 trap stop_apache SIGINT SIGTERM
 
@@ -170,7 +169,7 @@ fi
 # Pregunta combinada
 if $apache_installed || $httpd_installed || $python_http_installed; then
   echo -e "${GREEN}Se detectó Apache/httpd y/o Python en el sistema.${NC}"
-  read -n1 -p "¿Deseas iniciar Apache/httpd e iniciar el servidor en 8080? [s/n] " answer_combined
+  read -n1 -p "¿Deseas iniciar Apache/httpd [s/n] " answer_combined
   echo ""
   if [[ $answer_combined =~ ^[Ss]$ ]]; then
     # Iniciar Apache/httpd si está disponible
@@ -183,12 +182,15 @@ if $apache_installed || $httpd_installed || $python_http_installed; then
       apache_started=true
       echo -e "${GREEN}httpd iniciado.${NC}"
     fi
-    # Iniciar el servidor HTTP de Python en el puerto 8080
-    if $python_http_installed; then
+    # Pregunta por el puerto donde iniciar el servidor HTTP de Python
+    read -p "Puerto para el servidor HTTP de Python: " port
+    if [[ $port =~ ^[0-9]+$ ]]; then
       # Obtener IP local
       ip_address=$(hostname -I | cut -d' ' -f1)
-      echo -e "${BLUE}Iniciando servidor HTTP de Python en ${ip_address}:8080${NC}"
-      python3 -m http.server 8080 
+      echo -e "${BLUE}Iniciando servidor HTTP de Python en ${ip_address}:${port}${NC}"
+      python3 -m http.server $port
+    else
+      echo -e "${RED}El puerto ingresado no es válido.${NC}"
     fi
   fi
 else
