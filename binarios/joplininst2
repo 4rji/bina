@@ -1,0 +1,50 @@
+#!/bin/bash
+
+
+
+# Install Joplin Terminal
+if ! command -v joplin &>/dev/null; then
+  echo "Installing Joplin Terminal..."
+  NPM_CONFIG_PREFIX=~/.joplin-bin npm install -g joplin
+  sleep 1
+  sudo ln -s ~/.joplin-bin/bin/joplin /usr/bin/joplin
+else
+  echo "Joplin Terminal is already installed."
+fi
+
+echo "Joplin Terminal is now installed and ready to use."
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+
+function download_database() {
+    read -n1 -p "¿Desea descargar la base de datos? [s/n]: " choice
+    echo ""
+    if [[ $choice == [sS] ]]; then
+        mktem
+        rm -rf ~/.config/joplin # Elimina la ubicación predeterminada en sistemas Linux
+        git clone https://github.com/4rji/4rji.git && cd 4rji
+        echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"       
+        secreto jota.jex.enc
+        joplin import jota.jex
+        
+    else
+        echo "No se descargará la base de datos."
+    fi
+}
+
+function mktem() {
+    new_dir=$(mktemp -d)
+    echo "Directorio creado en: $new_dir"
+    cd "$new_dir" || return
+    echo "Cambiado al directorio: $PWD"
+}
+
+# Llamada a la función para descargar la base de datos
+download_database
+joplin config editor nano
+
+echo ""
+echo "si no se instala, cambiar a sudo su"
+echo "curl -fsSL https://deb.nodesource.com/setup_21.x | bash - && apt-get install -y nodejs"
+echo "tambien configurado:"
+echo "joplin config editor nano"
