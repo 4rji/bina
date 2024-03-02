@@ -21,6 +21,7 @@ fi
 if ! command -v joplin &>/dev/null; then
   echo "Installing Joplin Terminal..."
   NPM_CONFIG_PREFIX=~/.joplin-bin npm install -g joplin
+  sleep 1
   sudo ln -s ~/.joplin-bin/bin/joplin /usr/bin/joplin
 else
   echo "Joplin Terminal is already installed."
@@ -55,9 +56,11 @@ function mktem() {
 
 # Llamada a la función para descargar la base de datos
 download_database
+joplin config editor nano
 
 echo ""
 echo "si no se instala, cambiar a sudo su"
 echo "curl -fsSL https://deb.nodesource.com/setup_21.x | bash - && apt-get install -y nodejs"
-
+echo "tambien configurado:"
+echo "joplin config editor nano"
 
