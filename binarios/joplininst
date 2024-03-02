@@ -10,7 +10,7 @@ if [ "$(id -u)" -ne 0 ]; then
 fi
 
 apt update
-apt-get install -y npm
+#apt-get install -y npm
 curl -fsSL https://deb.nodesource.com/setup_21.x | sudo bash - && apt-get install -y nodejs
 
 echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
