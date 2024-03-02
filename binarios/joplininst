@@ -11,8 +11,8 @@ fi
 # Check if Node.js is installed
 if ! command -v node &>/dev/null; then
   echo "Node.js is not installed. Installing Node.js 12+..."
-  curl -sL https://deb.nodesource.com/setup_12.x | sudo -E bash -
-  sudo apt-get install -y nodejs
+  curl -fsSL https://deb.nodesource.com/setup_21.x | bash - && apt-get install -y nodejs
+  
 fi
 
 
@@ -57,6 +57,7 @@ function mktem() {
 download_database
 
 echo ""
-
+echo "si no se instala, cambiar a sudo su"
+echo "curl -fsSL https://deb.nodesource.com/setup_21.x | bash - && apt-get install -y nodejs"
 
 
