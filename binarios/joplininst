@@ -9,13 +9,12 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
-apt update
+#apt update
 #apt-get install -y npm
 curl -fsSL https://deb.nodesource.com/setup_21.x | sudo bash - && apt-get install -y nodejs
 
 echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
 echo " volver al usuario sin privilegios y ejecutar joplininst2"
-echo ""
-
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
 
 

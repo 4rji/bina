@@ -1,6 +1,7 @@
 #!/bin/bash
 
 
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 
 # Install Joplin Terminal
 if ! command -v joplin &>/dev/null; then
