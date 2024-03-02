@@ -38,7 +38,8 @@ function download_database() {
         rm -rf ~/.config/joplin # Elimina la ubicación predeterminada en sistemas Linux
         git clone https://github.com/4rji/4rji.git && cd 4rji
         echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"       
-        joplin import jopa.jex
+        secreto jota.jex.enc
+        joplin import jota.jex
         
     else
         echo "No se descargará la base de datos."

@@ -1,5 +1,15 @@
 #!/bin/bash
-echo ""
+
+# Verificar si se proporciona un argumento para el nombre del paquete o servicio
+if [ -z "$1" ]; then
+    echo "Debe especificar el nombre parcial o completo del paquete o servicio despues del script."
+    exit 1
+fi
+
+usuarioInput="$1"
+
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+echo "Buscando cohincidencia con:  $usuarioInput"
 echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
 echo ""
 
@@ -18,9 +28,8 @@ detectar_distro() {
     echo ""
 }
 
-# Solicitar el nombre del paquete o servicio
-echo ""
-read -p "Nombre parcial o completo del paquete o servicio a buscar: " paquete
+# Asignar el nombre del paquete o servicio proporcionado como argumento al script
+paquete="$usuarioInput"
 
 # Función para buscar un paquete
 buscar_paquete() {
