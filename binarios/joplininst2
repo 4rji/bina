@@ -45,7 +45,10 @@ download_database
 joplin config editor nano
 
 echo ""
-echo "si no se instala, cambiar a sudo su"
-echo "curl -fsSL https://deb.nodesource.com/setup_21.x | bash - && apt-get install -y nodejs"
 echo "tambien configurado:"
 echo "joplin config editor nano"
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+echo "iniciando Joplin en 1 segundo"
+sleep 1
+joplin
