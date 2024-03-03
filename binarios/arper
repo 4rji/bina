@@ -53,7 +53,7 @@ read -n1 respuesta
 # Si la respuesta es afirmativa, ejecutar arper con el archivo creado
 if [[ $respuesta == "s" || $respuesta == "S" ]]; then
     print_colored_confirmation "Ejecutando arpers con el archivo $nombre_archivo"
-    sudo arper $nombre_archivo
+    sudo arpers $nombre_archivo
 else
     print_colored_warning "No se ejecutara arpers."
 fi
