@@ -322,4 +322,3 @@ getcapv             Verifica permisos de getcap, setgid para escalar priv
 scados              Un ataque ddos con scapy, pruebas exitosas, hpyng3 manda mas.
 dnscat2             Dns tunnel, aun no probado/ https://github.com/iagox86/dnscat2.git
 recon               Hace un reconocimiento con autorecon  --dirbuster.tool gobuster
-a
