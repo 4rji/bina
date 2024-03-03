@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-
+print("")
+print( "IPkali -p 8081 -r IPLocal:3000 --user=ass --password (3000 puerto nagios a enviar")
+print("")
 # Copyright (C) 2008  Robey Pointer <robeypointer@gmail.com>
 #
 # This file is part of paramiko.
