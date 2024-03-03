@@ -5,9 +5,6 @@ from kamene.all import *
 import sys
 import threading
 import time
-import os
-
-
 
 
 # Función para cargar los datos desde el archivo
@@ -31,8 +28,6 @@ datos = cargar_datos(archivo_datos)
 interface = datos.get('interface', '')
 tgt_ip = datos.get('tgt_ip', '')
 tgt_gateway = datos.get('tgt_gateway', '')
-
-
 
 
 
@@ -156,12 +151,4 @@ finally:
                    tgt_ip,
                    tgt_mac
                    )
-    
-    # Desactivar el reenvío de paquetes IP al finalizar
-    #os.system("echo 0 | sudo tee /proc/sys/net/ipv4/ip_forward")
-    
     sys.exit(0)
-
-
-
-
