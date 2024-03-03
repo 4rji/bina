@@ -294,7 +294,7 @@ secreto             Encripta y desencripta archivos con python y se asigna contr
 pythonnc            Crea un servidor nc escucha, ejem. pythonnc -t IPserver -p 55551 -l -c
 pythonnc            como cliente: pythonnc -t IPServer -p 55551 (control+d) para tener shell
 sshforward          IPkali -p 8081 -r IPLocal:3000 --user=ass --password (3000 puerto nagios a enviar)
-
+arper               Poison creo arp, falta black python
 
 #Redstuff
 proxyvery           Verifica si funcionan los proxies de una lista
