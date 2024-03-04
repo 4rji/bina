@@ -1,5 +1,4 @@
 #!/bin/bash
-
 echo ""
 echo "_________________________________________________________"
 echo ""
@@ -10,15 +9,23 @@ echo ""
 echo "_________________________________________________________"
 echo ""
 
-# Ruta del directorio que quiere copiar
-echo -n -e "\033[1;32mRuta del directorio a copiar: \033[0m"
-read source_dir
 
-# Preguntar al usuario si desea usar un puerto específico
-echo -n -e "\033[1;32m¿Puerto o usar default Enter? [s/Enter]: \033[0m"
+
+# Verificar si se ha proporcionado una carpeta para copiar
+if [ -z "$1" ]; then
+    echo "Usage: copydir directory_to_copy"
+    exit 1
+fi
+
+
+# Ruta del directorio que quiere copiar
+source_dir="$1"
+
+# Ask the user if they want to use a specific port
+echo -n -e "\033[1;32mPort or use default Enter? [s/Enter]: \033[0m"
 read use_specific_port
 
-# Verificar si el usuario desea usar un puerto específico
+# Check if the user wants to use a specific port
 if [[ $use_specific_port == "s" || $use_specific_port == "S" ]]; then
     # Solicitar el puerto específico
     echo -n -e "\033[1;32mPuerto: \033[0m"

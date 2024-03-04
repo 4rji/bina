@@ -62,7 +62,7 @@ maquinasova         Convierte maquinas ova para qemu
 
 genarc              genera archivos conjuntos de 100 MB
 ddf                 hace un diff archivo vs archivo.backup                                             
-copdir	            Copia un directorio por medio de ssh scp
+copydir	            Copia un directorio por medio de ssh scp
 copyrsyn            Usa hosts ansible y copia un archivo con rsync y clave privada
 copyrrs             Copia archivo por rsync preguntado hosts y puerto
 copyrs              Copia archivo por rsync usando sshconf
