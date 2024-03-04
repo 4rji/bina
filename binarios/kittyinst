@@ -62,7 +62,10 @@ for paquete in "${paquetes[@]}"; do
 done
 
 
-#!/bin/bash
+
+
+
+
 
 # Definir colores para los mensajes
 green='\033[0;32m'
@@ -96,6 +99,16 @@ if [ ! -f "$color_file" ]; then
 else
     wget -q -O "$color_file" "https://raw.githubusercontent.com/4rji/4rji/main/kitty/color.ini"
     echo -e "${yellow}El archivo de colores de kitty ha sido reemplazado.${nocolor}"
+fi
+
+# Descargar y copiar el archivo de tema de aura de kitty
+aura_theme_file="$kitty_dir/aura-theme.conf"
+if [ ! -f "$aura_theme_file" ]; then
+    wget -q -O "$aura_theme_file" "https://raw.githubusercontent.com/4rji/4rji/main/kitty/aura-theme.conf"
+    echo -e "${green}Archivo de tema de aura de kitty descargado y copiado:${nocolor} $aura_theme_file"
+else
+    wget -q -O "$aura_theme_file" "https://raw.githubusercontent.com/4rji/4rji/main/kitty/aura-theme.conf"
+    echo -e "${yellow}El archivo de tema de aura de kitty ha sido reemplazado.${nocolor}"
 fi
 
 # Mensaje de instalación exitosa
