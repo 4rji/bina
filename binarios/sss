@@ -45,5 +45,3 @@ echo -e "\t\t\t\t  ${green}---   $(whoami)   ---${reset}\n"
 
 echo -e "\n\t\t\t ${yellow}*** Puerto de escucha: ***${reset}\n"
 echo -e "\t\t\t\t  $(grep -E '^#?Port ' /etc/ssh/sshd_config | awk '!/^#/')"
-
-echo "test2"
