@@ -23,9 +23,10 @@ if command -v pbcopy &>/dev/null; then
 elif command -v xclip &>/dev/null; then
   echo "$filepath" | xclip -selection clipboard
   echo ""
-  echo -e "\e[92mFile path '$filename' se ha copiado en el portapapeles.\e[0m"
+  echo -e "\e[92mLa siguiente ruta '$filename' ha sido copiada en el portapapeles.\e[0m"
 else
   echo -e "\e[91mNo se pudo encontrar el comando necesario para copiar al portapapeles.\e[0m"
   exit 1
 fi
-echo -e "\n\033[1;34m______________$echo $filepath___________________________________________\033[0m\n"
+echo -e "\e[34m$filepath\e[0m"
+echo ""
