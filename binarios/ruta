@@ -28,3 +28,4 @@ else
   echo -e "\e[91mNo se pudo encontrar el comando necesario para copiar al portapapeles.\e[0m"
   exit 1
 fi
+echo -e "\n\033[1;34m______________$echo $filepath___________________________________________\033[0m\n"
