@@ -79,6 +79,9 @@ echo ""
 rsync -avz --progress -e "ssh -p $PORT" $SOURCE:$FILE ./
 
 echo ""
+echo "Para copiar multiples archivos:"
+echo "host:/home/kali/Downloads/{adios,hola} ./  #ponerlos en corchetes"
+
 echo "-----------------------------------------------------"
 echo ""
 
