@@ -174,6 +174,7 @@ sshjump             Configura los jumps infinitamente.
 sshlist             Modifica la lista de /etc/hosts allow deny para asegurar la red ssh
 sshhuesped          Huespedes de mi configuracion
 sshic               Crea el sshi para pasar iniciar ssh sin mensajes ni autorizacion ippsec
+sshmont             Monta una carpeta usando ssh
 
 ###------Network
 fixwifibspwm        Arregla el wifi de bspwm cuando no funciona, instala y agrega una linea 

@@ -1,29 +1,108 @@
 #!/bin/bash
 
+# Lista de paquetes a instalar
+paquetes=("sshfs" )
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+
+
+
 # Pregunta al usuario la carpeta remota que desea montar
-read -p "Ruta de carpeta remota a montar [ruta]: " carpeta_remota
+echo ""
+echo -e "\e[33mRuta de carpeta remota a montar [ruta]: \e[0m"
+read carpeta_remota
 
 # Crea una carpeta con el mismo nombre en /tmp/
 carpeta_tmp="/tmp/$carpeta_remota"
 mkdir -p "$carpeta_tmp"
 
 # Pregunta al usuario el usuario y la IP para conectarse
-read -p "Host o IP para conectarse (usuario@IP): " usuario_ip
+echo ""
+echo -e "\e[33mHost o IP para conectarse (usuario@IP): \e[0m"
+read usuario_ip
 
 # Pregunta al usuario el puerto al que desea conectarse (por defecto 22)
-read -p "Puerto ssh o default enter [22]: " puerto
+echo ""
+echo -e "\e[33mPuerto ssh o usar default Enter [22]: \e[0m"
+read puerto
 puerto=${puerto:-22}  # Establece el valor predeterminado a 22 si el usuario no ingresa uno
 
 # Ejecuta el comando sshfs y muestra el comando en la terminal
 comando_sshfs="sshfs -o port=$puerto $usuario_ip:$carpeta_remota $carpeta_tmp"
-echo "Ejecutando comando: $comando_sshfs"
+echo ""
+echo -e "\e[33mEjecutando comando: \e[0m"
+echo "$comando_sshfs"
 $comando_sshfs
 
 # Muestra la carpeta montada
-echo "La carpeta remota ha sido montada en: "
-echo " $carpeta_tmp"
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+echo -e "\e[36mLa carpeta remota ha sido montada en:\e[0m"
+echo -e " \e[36m$carpeta_tmp\e[0m"
+echo -e "\n\033[1;37m_________________________CONTENIDO DE LA CARPETA___________________\033[0m\n"
+ls -l $carpeta_tmp
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
 
 # Muestra el mensaje de cómo desmontar la carpeta al final
-echo "Para desmontar la carpeta, ejecute el siguiente comando:"
-echo "fusermount -u $carpeta_tmp"
+echo ""
+echo -e "\e[33mPara desmontar la carpeta, ejecute el siguiente comando:\e[0m"
+echo -e "\e[36mfusermount -u $carpeta_tmp\e[0m"
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
 
+exit 0  # Finaliza el script sin esperar más entrada del usuario
