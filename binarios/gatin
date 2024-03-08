@@ -1,0 +1,84 @@
+#!/bin/bash
+
+if [ -z "$1" ]; then
+    echo "Usage: $0 <hash_file>"
+    exit 1
+fi
+
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+echo "Which hash algorithm do you want to use?"
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+echo "1. MD5 (Mode: 0)"
+echo "2. SHA-1 (Mode: 100)"
+echo "3. SHA-256 (Mode: 1400)"
+echo "4. NTLM (Mode: 1000)"
+echo "5. WPA/WPA2 (Mode: 22000)"
+echo "6. bcrypt (Mode: 3200)"
+echo "7. Unix Crypt (Mode: 500)"
+echo "8. MySQL (Mode: 300)"
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+read -n1 -p "Enter the mode number: " mode
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo -e "\e[34m"
+echo "Hashcat will now attempt to crack the hash using all dictionaries"
+echo "found in /usr/share/wordlists/4rji"
+echo -e "\e[0m"
+
+
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+
+
+sleep 1
+case $mode in
+    1)
+        echo "Command to execute: hashcat -m 0 \"$1\" /usr/share/wordlists/4rji/*"
+        hashcat -m 0 "$1" /usr/share/wordlists/4rji/*
+        ;;
+    2)
+        echo "Command to execute: hashcat -m 100 \"$1\" /usr/share/wordlists/4rji/*"
+        hashcat -m 100 "$1" /usr/share/wordlists/4rji/*
+        ;;
+    3)
+        echo "Command to execute: hashcat -m 1400 \"$1\" /usr/share/wordlists/4rji/*"
+        hashcat -m 1400 "$1" /usr/share/wordlists/4rji/*
+        ;;
+    4)
+        echo "Command to execute: hashcat -m 1000 \"$1\" /usr/share/wordlists/4rji/*"
+        hashcat -m 1000 "$1" /usr/share/wordlists/4rji/*
+        ;;
+    5)
+        echo "Command to execute: hashcat -m 22000 \"$1\" /usr/share/wordlists/4rji/*"
+        sleep 2
+        echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+        hashcat -m 22000 "$1" /usr/share/wordlists/4rji/*
+        ;;
+    6)
+        echo "Command to execute: hashcat -m 3200 \"$1\" /usr/share/wordlists/4rji/*"
+        hashcat -m 3200 "$1" /usr/share/wordlists/4rji/*
+        ;;
+    7)
+        echo "Command to execute: hashcat -m 500 \"$1\" /usr/share/wordlists/4rji/*"
+        hashcat -m 500 "$1" /usr/share/wordlists/4rji/*
+        ;;
+    8)
+        echo "Command to execute: hashcat -m 300 \"$1\" /usr/share/wordlists/4rji/*"
+        hashcat -m 300 "$1" /usr/share/wordlists/4rji/*
+        ;;
+    *)
+        echo "Invalid mode number. Exiting."
+        exit 1
+        ;;
+esac
+
+
+
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+# Mostrar el comando para ver los hashes crackeados
+echo "Command to view cracked hashes: hashcat -m $mode --show $1"
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+

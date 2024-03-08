@@ -250,6 +250,7 @@ nerdfonts           Instala nerdfonts comando fuentes sudo pacman -S nerd-fonts
 ufwinst             instala ufw y crea regla para puerto ssh                                           
 instdebian          basic debian apps for clean debian12
 instsurf            instala surfeando
+gatin               hashcat que usa todos los diccionarios en wordlists/4rji
 
 #qemu
 qemuins             Instala qemu y virtual en debian o arch
