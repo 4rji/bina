@@ -27,6 +27,7 @@ echo ""
 echo -e "\e[34m"
 echo "Hashcat will now attempt to crack the hash using all dictionaries"
 echo "found in /usr/share/wordlists/4rji"
+ls -l /usr/share/wordlists/4rji
 echo -e "\e[0m"
 
 
