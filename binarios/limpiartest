@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Function to generate a random number within the specified range
+random() {
+    awk -v min=$1 -v max=$2 'BEGIN{srand(); print int(min+rand()*(max-min+1))}'
+}
+
+# Create 50 random files
+for i in {1..50}; do
+    # Generate a random size between 1 and 20 MB
+    size=$(random 1 20)
+    # Create a file with the random size
+    dd if=/dev/urandom of=file_$i bs=1M count=$size
+done
+

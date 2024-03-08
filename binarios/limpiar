@@ -1,62 +1,93 @@
-#!/bin/zsh
+#!/bin/bash
 
-# Pregunta al usuario qué quiere hacer
-echo "¿Qué quieres hacer?"
-echo "1.- Buscar una palabra: grep -r 'palabra' ruta"
-echo "2.- Para eliminar la primera palabra con awk"
-echo "3.- Para eliminar la última palabra con awk"
-echo "4.- Para eliminar espacios en blanco"
-echo ""
-read opcion
 
-# Verifica si se proporcionó un archivo después del script
-if [ -n "$1" ]; then
-    archivo="$1"
-else
-    echo "No se proporcionó ningún archivo. Saliendo del script."
-    exit 1
+# Lista de paquetes a instalar
+paquetes=("scrub" "coreutils")
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
 fi
 
-# Extraer el nombre del archivo sin extensión
-nombre_archivo_sin_extension="${archivo%.*}"
-nuevo_archivo="${nombre_archivo_sin_extension}_n"
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
 
-# Evalúa la opción seleccionada
-case $opcion in
-    1)
-        # Si selecciona 1, pide al usuario que ingrese la palabra a buscar, luego ejecuta el comando grep con el archivo proporcionado
-        echo "Introduce la palabra a buscar:"
-        read palabra
-        grep -r "$palabra" "$archivo" > "$nuevo_archivo"
-        ;;
-    2)
-        # Si selecciona 2, muestra el mensaje para copiar el comando al portapapeles con clip
-        comando="awk '{\$1=\"\"; print \$0}' $archivo > \"$nuevo_archivo\""
-        echo "$comando" | xclip -selection clipboard
-        echo ""
-        echo "Comando copiado al portapapeles: $comando"
-        ;;
-    3) 
-        # Si selecciona 3, muestra el mensaje para copiar el comando al portapapeles con clip
-        comando="awk '{for(i=1;i<NF;i++) printf \"%s \", \$i; print \"\"}' $archivo > \"$nuevo_archivo\""
-        echo "$comando" | xclip -selection clipboard
-        echo ""
-        echo "Comando copiado al portapapeles: $comando"
-        ;;
-    4)
-        # Si selecciona 4, muestra el mensaje para copiar el comando al portapapeles con clip
-        comando="sed 's/^[[:space:]]*//' $archivo > \"$nuevo_archivo\""
-        echo "$comando" | xclip -selection clipboard
-        echo ""
-        echo "Comando copiado al portapapeles: $comando"
-        ;;
-    *)
-        # Si selecciona una opción inválida
-        echo ""
-        echo "Opción no válida."
-        ;;
-esac
 
-echo ""
-echo "     ******  Solo pega con el portapapeles para ejecutar  ***** "
-echo ""
+
+
+# Función para limpiar archivos de forma segura
+limpiar_archivos() {
+    echo "Limpieza iniciada en el directorio $1 ..."
+    # Aplicar el comando 'scrub'
+    find "$1" -type f -exec scrub -p dod {} +
+    # Aplicar el comando 'shred'
+    find "$1" -type f -exec shred -zun 10 -v {} +
+    echo "Limpieza completada."
+}
+
+# Preguntar al usuario si desea limpiar el directorio home
+read -t 30 -p "Limpiar el directorio home? [s/n]: " respuesta || respuesta="s"
+
+# Convertir la respuesta a minúsculas
+respuesta=$(echo "$respuesta" | tr '[:upper:]' '[:lower:]')
+
+# Verificar la respuesta del usuario
+if [ "$respuesta" = "s" ]; then
+    # Obtener el directorio home del usuario actual
+    directorio_home="/home/$(whoami)"
+    # Ejecutar la función de limpieza
+    limpiar_archivos "$directorio_home"
+else
+    echo "No se realizará ninguna limpieza."
+fi
+

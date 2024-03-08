@@ -59,6 +59,8 @@ ssk                 kitty +kitten ssh
 lfcd                para moverme con cd  #copiar el plugin a zsh
 mdcolors            Genera colores para archivos md 
 maquinasova         Convierte maquinas ova para qemu
+limpiartest         Genera archivos de varios tamanos para probar
+limpiar             Limpia el home con shred y scrub 
 
 genarc              genera archivos conjuntos de 100 MB
 ddf                 hace un diff archivo vs archivo.backup                                             
@@ -136,13 +138,12 @@ iniciafakep         alias para iniciar el portspoof, despues de instalarlo
 buspal              Buscador de palabras en un directorio, con grep -q buspal {directorio}
 comentada {file}    Busca en un archivo una linea, la comenta y agrega abajo de esa linea la nueva linea
 comentadas 			Copia al portapapales las lineas no comentadas, -c para solo verlas sin copiar
-limpiar	            Limpiar un archivo buscando, awk grep palabra.
+limpiarf            Limpiar un archivo buscando, awk grep palabra.
 buscando            Comandos para usar grep awk, # ls -l email* para buscar archivos empiezan email
 grephn              Hace una busqueda de una palabra especifica en un directorio grep -Hn
 mirar	            Hace un watch -n 1 comando, como netstat, o reglas.
 rempal              Reemplaza una palabra dentro de un archivo
 surempal            Reemplaza una palabra con sudo dentro de un archivo
-limpiar             Limpiar un archivo buscando, awk grep palabra.
 buspal              Buscador de palabras en un directorio, con grep -q buspal {directorio}
 comentada {file}    Busca en un archivo una linea, la comenta y agrega abajo de esa linea la nueva linea
 findme              Usa el comando find para buscar archivos
