@@ -75,10 +75,19 @@ case $mode in
         ;;
 esac
 
+ejecutar_comando_si_s() {
+    read -p "see the hashes? (s/n): " respuesta
+    if [ "$respuesta" = "s" ]; then
+        echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+        # Mostrar el comando para ver los hashes crackeados
+        echo "Command to view cracked hashes: hashcat --show $1"
+        echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+        hashcat --show $1
+    else
+        echo "No se ejecutará el comando."
+    fi
+}
 
-
-echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
-# Mostrar el comando para ver los hashes crackeados
-echo "Command to view cracked hashes: hashcat -m $mode --show $1"
-echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+# Llamar a la función y pasarle el argumento necesario
+ejecutar_comando_si_s "$1"
 
