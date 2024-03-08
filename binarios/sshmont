@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Pregunta al usuario la carpeta remota que desea montar
+read -p "Ruta de carpeta remota a montar [ruta]: " carpeta_remota
+
+# Crea una carpeta con el mismo nombre en /tmp/
+carpeta_tmp="/tmp/$carpeta_remota"
+mkdir -p "$carpeta_tmp"
+
+# Pregunta al usuario el usuario y la IP para conectarse
+read -p "Host o IP para conectarse (usuario@IP): " usuario_ip
+
+# Pregunta al usuario el puerto al que desea conectarse (por defecto 22)
+read -p "Puerto ssh o default enter [22]: " puerto
+puerto=${puerto:-22}  # Establece el valor predeterminado a 22 si el usuario no ingresa uno
+
+# Ejecuta el comando sshfs y muestra el comando en la terminal
+comando_sshfs="sshfs -o port=$puerto $usuario_ip:$carpeta_remota $carpeta_tmp"
+echo "Ejecutando comando: $comando_sshfs"
+$comando_sshfs
+
+# Muestra la carpeta montada
+echo "La carpeta remota ha sido montada en: "
+echo " $carpeta_tmp"
+
+# Muestra el mensaje de cómo desmontar la carpeta al final
+echo "Para desmontar la carpeta, ejecute el siguiente comando:"
+echo "fusermount -u $carpeta_tmp"
+
