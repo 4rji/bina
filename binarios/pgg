@@ -166,7 +166,7 @@ check_ip() {
         fi
     done
 
-    echo "No se pudo obtener la dirección IP pública desde las fuentes disponibles."
+    echo "No se pudo obtener la dirección IP publica desde las fuentes disponibles."
 }
 
 

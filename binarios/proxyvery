@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+
+
 import requests
 import csv
 import concurrent.futures
@@ -36,5 +38,3 @@ with concurrent.futures.ThreadPoolExecutor() as executor:
 
 # Formato de la lista en el CSV:
 #   66.60.150.190,80,US,United States,anonymous
-
-#asi pasa cuando se copia de alguna pagina web
