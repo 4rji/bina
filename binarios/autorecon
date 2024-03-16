@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Función para mostrar el uso del script
+usage() {
+    echo "Uso: $0 [-i] [IP]" 1>&2
+    echo "  -i   Instalar dependencias y clonar AutoRecon antes de ejecutarlo en la dirección IP proporcionada" 1>&2
+    exit 1
+}
+
+# Verificar si se proporcionó la opción -i y la dirección IP
+if [[ $# -ge 1 && $1 == "-i" ]]; then
+    # Instalar dependencias
+    sudo apt install -y dnsrecon feroxbuster enum4linux oscanner tnscmd10g redis-tools wkhtmltopdf gobuster
+    # Clonar AutoRecon
+    git clone https://github.com/Tib3rius/AutoRecon.git ~/.AutoRecon
+    # Navegar al directorio AutoRecon
+    cd ~/.AutoRecon || exit 1
+    # Instalar requerimientos de AutoRecon
+    sudo python3 -m pip install -r requirements.txt
+    # Si se proporcionó una IP después de -i, almacenarla
+    if [[ $# -eq 2 ]]; then
+        IP="$2"
+    fi
+fi
+
+# Si se proporcionó una IP, ejecutar AutoRecon con la dirección IP proporcionada
+if [[ $# -eq 1 && $1 != "-i" ]]; then
+    IP="$1"
+fi
+
+# Si hay una IP almacenada, ejecutar AutoRecon con la dirección IP proporcionada
+if [[ -n $IP ]]; then
+    sudo python3 ~/.AutoRecon/autorecon.py --dirbuster.tool gobuster "$IP"
+else
+    usage
+fi
