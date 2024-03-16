@@ -1,0 +1,26 @@
+#falta modificar despues con los templates de obsidian
+#por ahora funciona la funcion mkt pero solo crea los folders, falta los templates pero no los he hecho
+
+mkts() {
+  # Define your template and destination directories
+  local template_dir="~/htb"
+  local showcase_destination="/home/nat/Documents/GitHub/4rji/4rjinotes/htb"
+  local project_destination="/home/nat/Documents/GitHub/4rji/4rjinotes"
+  
+  local new_folder_name="$1"
+ NANO # Customize the naming convention here
+  local showcase_folder_name=$(echo "$new_folder_name" | awk '{customize this part}')
+  local project_folder_name=$(echo "$new_folder_name" | awk '{customize this part}')
+  
+  # Operations for the Showcase directory
+  cp -r "$template_dir" "$showcase_destination/$showcase_folder_name"
+  
+  # Operations for the project files directory
+  mkdir -p "$project_destination/$project_folder_name"
+  # Add subdirectories as needed
+  mkdir -p "$project_destination/$project_folder_name/subdirectory1"
+  # Continue for other subdirectories...
+  
+  echo "Setup completed for $showcase_destination/$showcase_folder_name"
+  echo "Setup completed for $project_destination/$project_folder_name"
+}

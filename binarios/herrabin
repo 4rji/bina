@@ -65,7 +65,7 @@ if [[ $omitir != true ]]; then
             "debian"|"ubuntu"|"kali")
                 if ! paquete_instalado_apt "$paquete"; then
                     echo "Instalando el paquete $paquete..."
-                    sudo nala install -y "$paquete" 
+                    sudo apt install -y "$paquete" 
                 fi
                 ;;
             "centos"|"rhel")
