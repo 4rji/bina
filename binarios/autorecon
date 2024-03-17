@@ -3,7 +3,7 @@
 # Función para mostrar el uso del script
 usage() {
     echo "Uso: $0 [-i] [IP]" 1>&2
-    echo "  -i   Instalar dependencias y clonar AutoRecon antes de ejecutarlo en la dirección IP proporcionada" 1>&2
+    echo "  -i   Instalar autorecon  <>  IP para hacer autorecon " 1>&2
     exit 1
 }
 
