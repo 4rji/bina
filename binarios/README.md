@@ -164,6 +164,7 @@ killsshauto         Cierra automaticamente todos los PID de ssh que encuentro co
 killsshmanual       Pregunta su quiero hacer sudo kill a los PID de ssh de sshmoni
 sshmoni             Este busca conexiones activas ssh, muestra procesos PID y luego ejecuta killsshmanual
 itcpd               Enmascara ssh o cualquier puerto con tcpd, version ssh nmap -sV -sC
+
 ssh80               Conecta con ssh -L para redirijir trafico desde una maquina a otra, a browser 
 fixsshhost          Seguido de la ip, para borrar la ip del localhost cuando se duplica	
 copyssh             copia mui clave a una maquina remota
