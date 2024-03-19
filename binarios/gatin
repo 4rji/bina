@@ -33,43 +33,44 @@ echo -e "\e[0m"
 
 echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
 
+hashcat -m 22000 -w 3 "blasd.hc22000" /usr/share/wordlists/4rji/*
 
 sleep 1
 case $mode in
     1)
         echo "Command to execute: hashcat -m 0 \"$1\" /usr/share/wordlists/4rji/*"
-        hashcat -m 0 "$1" /usr/share/wordlists/4rji/*
+        hashcat -w 3 -m 0 "$1" /usr/share/wordlists/4rji/*
         ;;
     2)
         echo "Command to execute: hashcat -m 100 \"$1\" /usr/share/wordlists/4rji/*"
-        hashcat -m 100 "$1" /usr/share/wordlists/4rji/*
+        hashcat -w 3 -m 100 "$1" /usr/share/wordlists/4rji/*
         ;;
     3)
         echo "Command to execute: hashcat -m 1400 \"$1\" /usr/share/wordlists/4rji/*"
-        hashcat -m 1400 "$1" /usr/share/wordlists/4rji/*
+        hashcat -w 3 -m 1400 "$1" /usr/share/wordlists/4rji/*
         ;;
     4)
         echo "Command to execute: hashcat -m 1000 \"$1\" /usr/share/wordlists/4rji/*"
-        hashcat -m 1000 "$1" /usr/share/wordlists/4rji/*
+        hashcat -w 3 -m 1000 "$1" /usr/share/wordlists/4rji/*
         ;;
     5)
         echo "Command to execute: "
         echo "hashcat -m 22000 \"$1\" /usr/share/wordlists/4rji/*"
         sleep 2
         echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
-        hashcat -m 22000 "$1" /usr/share/wordlists/4rji/*
+        hashcat -w 3 -m 22000 "$1" /usr/share/wordlists/4rji/*
         ;;
     6)
         echo "Command to execute: hashcat -m 3200 \"$1\" /usr/share/wordlists/4rji/*"
-        hashcat -m 3200 "$1" /usr/share/wordlists/4rji/*
+        hashcat -w 3 -m 3200 "$1" /usr/share/wordlists/4rji/*
         ;;
     7)
         echo "Command to execute: hashcat -m 500 \"$1\" /usr/share/wordlists/4rji/*"
-        hashcat -m 500 "$1" /usr/share/wordlists/4rji/*
+        hashcat -w 3 -m 500 "$1" /usr/share/wordlists/4rji/*
         ;;
     8)
         echo "Command to execute: hashcat -m 300 \"$1\" /usr/share/wordlists/4rji/*"
-        hashcat -m 300 "$1" /usr/share/wordlists/4rji/*
+        hashcat -w 3 -m 300 "$1" /usr/share/wordlists/4rji/*
         ;;
     *)
         echo "Invalid mode number. Exiting."
