@@ -32,7 +32,7 @@ descargarangry() {
     if [ -f "$archivo_descargado" ]; then
         tar -xf "$archivo_descargado"
         if [ $? -eq 0 ]; then
-            echo "Descarga y descompresión completadas con éxito en ~/.angry."
+            echo "Descarga y descompresión completadas con éxito en ~/.angry"
         else
             echo "Ocurrió un error durante la descompresión. Por favor, revise y ejecute manualmente si es necesario."
             echo "Ejecute 'sudo install.sh install' si marca error, luego solo ejecute el comando 'angry'."
