@@ -2,21 +2,23 @@
 
 
         # Listar los diccionarios en la carpeta
-        echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+        #echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+        echo ""
         echo "Lista de diccionarios en /usr/share/wordlists/4rji/:"
-        echo -e "\033[1;32m_________________________________________________________\033[0m"
+        echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+
         ls -1 /usr/share/wordlists/4rji/
 
         # Espacio en blanco decorativo
 
-        echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+        echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
         echo ""
 
 
 verificar_palabra_en_diccionarios() {
     while true; do
         # Solicitar la palabra a buscar en color azul
-        echo -e "\n\e[1;36m¿Contrasena a buscar?\e[0m"
+        echo -e "\n\e[1;35mPassword a buscar?\e[0m"
         read -p ": " palabra
 
         # Espacio en blanco decorativo
@@ -32,7 +34,9 @@ verificar_palabra_en_diccionarios() {
             if [ -f "$diccionario" ]; then
                 if grep -q "$palabra" "$diccionario"; then
                     encontrada=1
-                    echo -e "\e[1;36m Si, '$palabra' se encuentra en $(basename "$diccionario")\e[0m"
+                    #echo -e "\e[1;36m Si, '$palabra' se encuentra en $(basename "$diccionario")\e[0m"
+                    echo -e "\e[1;31mSi, '$palabra' se encuentra en $(basename "$diccionario")\e[0m"
+                    echo ""
                     echo -e "\033[1;33m_________________________________________________________\033[0m"
                 fi
             fi
@@ -48,6 +52,7 @@ verificar_palabra_en_diccionarios() {
 
         # Preguntar si desea buscar otra palabra
         echo -e "\e[1;36m¿Desea buscar otra palabra? (s/n)\e[0m"
+        echo ""
         read -n1 -p ": " respuesta
 
         # Salir del bucle si la respuesta es 'n'
