@@ -55,7 +55,7 @@ case $mode in
         ;;
     5)
         echo "Command to execute: "
-        echo "hashcat -m 22000 \"$1\" /usr/share/wordlists/4rji/*"
+        echo "hashcat -w 3 -m 22000 \"$1\" /usr/share/wordlists/4rji/*"
         sleep 2
         echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
         hashcat -w 3 -m 22000 "$1" /usr/share/wordlists/4rji/*
