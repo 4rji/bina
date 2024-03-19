@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# Función para instalar descargar
+descargarangry() {
+    echo "Seleccione la opción de descarga:"
+    echo "1- Linux amx X86"
+    echo "2- Linux Aarch64"
+    echo "3- Linux ARM"
+
+    read -p "Ingrese el número de la opción deseada: " opcion
+
+    case $opcion in
+        1)
+            wget https://github.com/Ragnt/AngryOxide/releases/download/v0.8.9/angryoxide-linux-x86_64.tar.gz -P ~/.angry/
+            ;;
+        2)
+            wget https://github.com/Ragnt/AngryOxide/releases/download/v0.8.9/angryoxide-linux-aarch64-musl.tar.gz -P ~/.angry/
+            ;;
+        3)
+            wget https://github.com/Ragnt/AngryOxide/releases/download/v0.8.9/angryoxide-linux-arm-musl.tar.gz -P ~/.angry/
+            ;;
+        *)
+            echo "Opción no válida. Saliendo."
+            return
+            ;;
+    esac
+
+    cd ~/.angry || return
+
+    archivo_descargado=$(basename $(ls -t1 | head -n1))
+
+    if [ -f "$archivo_descargado" ]; then
+        tar -xf "$archivo_descargado"
+        if [ $? -eq 0 ]; then
+            echo "Descarga y descompresión completadas con éxito en ~/.angry."
+        else
+            echo "Ocurrió un error durante la descompresión. Por favor, revise y ejecute manualmente si es necesario."
+            echo "Ejecute 'sudo install.sh install' si marca error, luego solo ejecute el comando 'angry'."
+        fi
+    else
+        echo "Ocurrió un error durante la descarga. Por favor, revise y ejecute manualmente si es necesario."
+        echo "Ejecute 'sudo install.sh install' si marca error, luego solo ejecute el comando 'angry'."
+    fi
+}
+
+
+
+
+
+
+# Función para mostrar las redes WLAN disponibles y pedir al usuario que elija una
+choose_interface() {
+    interfaces=$(ip -o link show | awk -F': ' '{print $2}')
+    echo "Interfaces WLAN disponibles:"
+    select interface in $interfaces; do
+        if [ -n "$interface" ]; then
+            break
+        else
+            echo "Opción no válida. Por favor, seleccione una interfaz WLAN."
+        fi
+    done
+    echo "Ha seleccionado: $interface"
+    sudo ~/.angry/angryoxide -i "$interface"
+}
+
+# Verificar si se proporcionó el argumento -i
+if [ "$1" = "-i" ]; then
+    descargarangry
+else
+    choose_interface
+fi
+
