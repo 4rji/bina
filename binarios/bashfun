@@ -45,3 +45,12 @@ def append_functions_to_shell_configs(functions):
 # Llamar a la función para agregar las funciones a los archivos de configuración
 append_functions_to_shell_configs(bash_functions)
 
+
+
+
+
+mkt () {
+	local base_dir="/home/nat/Documents/GitHub/4rji/4rjinotes/htb" 
+	local new_dir="$base_dir/$1" 
+	mkdir -p "$new_dir" && echo "Nuevo directorio creado: $new_dir" && cd "$new_dir" && mkdir nmap content exploits scripts && ls --color=tty -d
+}
