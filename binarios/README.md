@@ -249,6 +249,7 @@ tailscaleinst       El que mas he usado
 zerotierinst        Zerotier scrip like tailscale yo uso tailscale 
 emailscraper        ejecuta una herramienta de un curso para buscar emails                             
 crackmapexec	    Ejecutaria crackmapexec smb {ip} para active directory
+impacksmb           https://github.com/fortra/impacket
 nerdfonts           Instala nerdfonts comando fuentes sudo pacman -S nerd-fonts  
 ufwinst             instala ufw y crea regla para puerto ssh                                           
 instdebian          basic debian apps for clean debian12
