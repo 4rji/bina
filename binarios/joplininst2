@@ -23,7 +23,7 @@ function download_database() {
     if [[ $choice == [sS] ]]; then
         mktem
         rm -rf ~/.config/joplin # Elimina la ubicación predeterminada en sistemas Linux
-        git clone https://github.com/4rji/4rji.git && cd 4rji
+        git clone --depth 1 https://github.com/4rji/4rji.git && cd 4rji
         echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"       
         secreto jota.jex.enc
         joplin import jota.jex

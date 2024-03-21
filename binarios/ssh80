@@ -4,6 +4,10 @@ echo "ssh -L 8080:center.campus.edu:443 usuario@servidor_remoto"
 echo "Para acceder en el navegador https://localhost:8080/"
 echo "solo redirige el trafico de ese sitio web, no otro trafico."
 echo "Puede ser una ip o pagina web, para encontrar la ip hacer un ping a la pagina"
+echo ""
+echo "Para acceder a una maquina sobre otra, por ejemplo xps y ass (Jump)"
+echo "ssh -D 1080 -J xps@10.0.4.205 nat@192.168.122.138"
+      
 
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 

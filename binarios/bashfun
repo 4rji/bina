@@ -18,12 +18,19 @@ function mktem() {
     echo "Cambiado al directorio: $PWD"
 }
 
+
+#cambiar el directorio base a la carpeta de github de las notas
 function mkt(){
-    local base_dir="/home/nat/Documents/GitHub/4rji/4rjinotes/htb"
+    local base_dir="/Users/ozono/Dropbox/4rji/4rjinotes/htb"
     local new_dir="$base_dir/$1"
     
     mkdir -p "$new_dir" && echo "Nuevo folder: $new_dir" && cd "$new_dir" && mkdir nmap content exploits scripts && ls -d
 }
+
+
+
+
+
 
 function rmk(){
     scrub -p dod $1
@@ -47,10 +54,10 @@ append_functions_to_shell_configs(bash_functions)
 
 
 
+#esta funcion es para XPS notas
+#mkt () {
+ #   local base_dir="/home/nat/Documents/GitHub/4rji/4rjinotes/htb" 
+  #  local new_dir="$base_dir/$1" 
+   # mkdir -p "$new_dir" && echo "Nuevo directorio creado: $new_dir" && cd "$new_dir" && mkdir nmap content exploits scripts && ls --color=tty -d
+#}
 
-
-mkt () {
-	local base_dir="/home/nat/Documents/GitHub/4rji/4rjinotes/htb" 
-	local new_dir="$base_dir/$1" 
-	mkdir -p "$new_dir" && echo "Nuevo directorio creado: $new_dir" && cd "$new_dir" && mkdir nmap content exploits scripts && ls --color=tty -d
-}
