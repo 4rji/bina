@@ -1,5 +1,9 @@
 Github              binarios       
 
+#HTB directorio
+markup              XML External Entities (XXE or XEE) 
+
+
 ###------Arch linux
 instpkg             Instala un paquete en arch makepkg -si PKGBUILD
 instermius          Instala termius en arch con yay   
@@ -106,6 +110,7 @@ nbash               BASH escaneo de puertos de una maquina , no usa nmap, nbash 
 pbash               /dev/tcp/[IP] BASH scaner puertos open (50 principales puertos only) en la red 10.0.4
 ncmap               Ocupa nc para escanear puertos, como nmap, escaneo
 obierto             Busca un puerto abierto en especifico en la subnet, por ejemplo 80 en las ips creada por ncmap
+enum                ejecuta whichsys ping -c 1 y nmap y los guarda en archivos para htb
 
 ###------Nessus
 nessus              activa nesus y muestra el puerto donde abrirlo en firefox                          
@@ -336,3 +341,4 @@ angrywifi           Descarga el angry, primero con -i para instalar y luego solo
 autorecon           Ejecuta e instala autorecon con -i, funciona mejor recon, de arriba, lo mismo 
 pentestfm           Pentester framework con dockers
 4rjiincl            Listo de vulnerabilities con IPs, file inclusion.
+nc64d               Descarga nc64.exe para windows
