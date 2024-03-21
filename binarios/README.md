@@ -335,4 +335,4 @@ recon               Hace un reconocimiento con autorecon  --dirbuster.tool gobus
 angrywifi           Descarga el angry, primero con -i para instalar y luego solo 
 autorecon           Ejecuta e instala autorecon con -i, funciona mejor recon, de arriba, lo mismo 
 pentestfm           Pentester framework con dockers
-
+4rjivuln            Listo de vulnerabilities con IPs, file inclusion.
