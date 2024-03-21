@@ -6,7 +6,8 @@ echo "scp -P Port local_file IP-remote_machine:~"
 echo ""
 echo "recibir"
 echo "scp -P Port IP-remote_machine:~/remote_file ."
-
+echo "para ssh jump"
+echo "scp -J xps lab.ovpn ass@192.168.122.138:"
 echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
 
 if [[ $# -eq 0 ]]; then
