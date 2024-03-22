@@ -82,6 +82,11 @@ if [ "$1" == "-i" ]; then
     
 elif [ "$1" == "" ]; then
     echo ""
+    echo "alias archiva='cd ~/archivebox && docker-compose up'" >> ~/.zshrc
+
+    echo "para iniciar el servidor ir a cd ~/archivebox"
+    echo "ejecutar: docker-compose up (a veces con sudo, depende permisos) "
+    echo "Usa el alias: archiva"
     echo -e "\e[94m_________________________________________________________\e[0m"
     echo ""
     
@@ -116,3 +121,7 @@ elif [ "$1" == "" ]; then
 else
     echo "Uso: ./script [-i] instalar"
 fi
+
+
+
+#https://github.com/ArchiveBox/ArchiveBox
