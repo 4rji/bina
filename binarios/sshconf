@@ -17,14 +17,19 @@ print_separator
 echo -e "\e[93m\e[1mIngrese los detalles del host:\e[0m"
 prompt_with_color "92" "Nombre del host: "
 read host_name
-prompt_with_color "91" "Hostname o dirección IP del host: "
+prompt_with_color "91" "Hostname o direccion IP del host: "
 read host_address
+prompt_with_color "94" "Nombre de usuario SSH: "
+read user_name
 prompt_with_color "94" "Puerto SSH del host (opcional, dejar vacío para el valor predeterminado 22): "
 read host_port
 
 # Crear la cadena de configuración del host
 config_line="Host $host_name\n\tHostname $host_address"
-
+# Agregar el nombre de usuario SSH al host si se proporciona
+if [ -n "$user_name" ]; then
+    config_line="$config_line\n\tUser $user_name"
+fi
 # Agregar el puerto SSH al host si se proporciona
 if [ -n "$host_port" ]; then
     config_line="$config_line\n\tPort $host_port"

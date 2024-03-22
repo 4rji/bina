@@ -18,14 +18,30 @@ mktem
 bash -c 'rm -f ~/Downloads/.vpnitos/*'
 
 
+
+
 git clone --depth 1 https://github.com/4rji/4rji.git
 cd 4rji
 unzip Ban1_aa12.zip  
 
+
+
+# Navegar al directorio Ban1_aa12
 cd Ban1_aa12
-mkdir ~/Downloads/.vpnitos
+
+# Crear el directorio ~/Downloads/.vpnitos si no existe
+mkdir -p ~/Downloads/.vpnitos
+
+# Mover todos los archivos al directorio ~/Downloads/.vpnitos
 mv * ~/Downloads/.vpnitos
 
-#pass
-echo "Reemplazar contrasena cc"
+# Verificar si la carpeta ~/Downloads existe, y si no, crearla
+if [ ! -d ~/Downloads ]; then
+    mkdir -p ~/Downloads
+fi
+
+# Cambiar la contraseña (asumiendo que "cc.txt" contiene la nueva contraseña)
+echo "Reemplazar contraseña cc"
 sudo mv ~/Downloads/.vpnitos/cc.txt /
+
+
