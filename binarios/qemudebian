@@ -36,7 +36,8 @@ read -p "Introduce el tamaño del disco duro en GB (ej. 20): " disk_size
 
 # Descarga la imagen iso de Debian con sudo
 echo -e "${GREEN}Descargando la imagen de Debian...${NC}"
-sudo wget -P /var/lib/libvirt/images/ https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.4.0-amd64-netinst.iso
+sudo wget -P /var/lib/libvirt/images/ https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.5.0-amd64-netinst.iso
+#https://cdimage.debian.org/debian-cd/current/amd64/iso-cd/debian-12.4.0-amd64-netinst.iso
 echo -e "${GREEN}La imagen de Debian ha sido descargada.${NC}"
 
 
@@ -59,7 +60,7 @@ sudo bash -c "cat > /etc/libvirt/qemu/$vm_name.xml <<EOF
     </disk>
     <disk type='file' device='cdrom'>
       <driver name='qemu' type='raw'/>
-      <source file='/var/lib/libvirt/images/debian-12.4.0-amd64-netinst.iso'/>
+      <source file='/var/lib/libvirt/images/debian-12.5.0-amd64-netinst.iso'/>
       <target dev='hdc' bus='ide'/>
       <boot order='2'/>
     </disk>
