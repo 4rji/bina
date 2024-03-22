@@ -82,10 +82,13 @@ if [ "$answer" == "s" ]; then
 
     # Reiniciar el servicio squid
     sudo systemctl restart squid
+    sudo systemctl enable squid
+
     echo "¡El servicio squid ha sido reiniciado!"
     echo ""
     echo "sudo nano /etc/squid/squid.conf  "
     echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+    echo 'sudo lsof -i -P -n | grep "squid" '
     sudo lsof -i -P -n | grep "squid"
     echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 else
