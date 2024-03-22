@@ -1,0 +1,8 @@
+#!/bin/zsh
+
+# Obtener la ruta del script actual
+script_path=$(realpath "$0")
+
+# Crear una nueva sesión de tmux con el script
+tmux new-session -d -s pvpn pvpn  && tmux attach-session -t pvpn
+

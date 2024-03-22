@@ -1,4 +1,4 @@
-Github              binarios       
+1Github              binarios       
 
 #HTB directorio
 markup              XML External Entities (XXE or XEE) 
@@ -246,6 +246,7 @@ suricatalog         tail -f /var/log/suricata/fast.log
 joplininst          Trabaja con joplininst2 para instalarlo, se usan los dos. 
 joplininst2         Descarga la base de datos, detecta si ya esta instalado 
 kasminst            instala Kasm, no compatible con kali, probado debian 12
+pvpnt               Inicia pvpn en una sesion de tmux
 squidinst           Instala y activa squid en puerto 3128
 tinyurl             Muestra los alias creados en tinyurl, se descarga como tinyurl.com/herratodo
 torrelay            Instala tor relay, probado en debian
