@@ -8,6 +8,8 @@ fi
 url="$1"
 
 # Movemos al directorio de archivebox
+sudo ls
+
 cd ~/archivebox || { echo -e "\e[1;33mError: No se pudo acceder al directorio de ArchiveBox.\e[0m"; exit 1; }
 
 # Creamos una nueva sesión de tmux llamada "archiva" y ejecutamos el comando correspondiente
