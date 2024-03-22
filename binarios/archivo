@@ -4,7 +4,7 @@
 
 if [ "$1" == "-i" ]; then
         # Lista de paquetes a instalar
-    paquetes=("docker-compose" "docker-io" )
+    paquetes=("docker-compose" "docker.io" )
 
     # Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
     paquete_instalado_apt() {
@@ -81,13 +81,17 @@ if [ "$1" == "-i" ]; then
     sudo docker-compose up
     
 elif [ "$1" == "" ]; then
+    echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
     echo ""
-    echo "alias archiva='cd ~/archivebox && docker-compose up'" >> ~/.zshrc
+    echo "alias archivserv='cd ~/archivebox && docker-compose up'" >> ~/.zshrc
+    echo "alias archiva='sudo docker-compose run archivebox add --depth=0 '" >> ~/.zshrc
 
     echo "para iniciar el servidor ir a cd ~/archivebox"
     echo "ejecutar: docker-compose up (a veces con sudo, depende permisos) "
-    echo "Usa el alias: archiva"
-    echo -e "\e[94m_________________________________________________________\e[0m"
+    echo "Usa el alias: ararchivserv tambien para inciarlo"
+    echo ""
+    echo "archiva link #para guardar un link rapidamente depth=0"
+    echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
     echo ""
     
     echo -e "\e[32mPregunta: ¿Qué página quieres guardar?\e[0m"
