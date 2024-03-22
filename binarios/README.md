@@ -343,3 +343,4 @@ autorecon           Ejecuta e instala autorecon con -i, funciona mejor recon, de
 pentestfm           Pentester framework con dockers
 4rjiincl            Listo de vulnerabilities con IPs, file inclusion.
 nc64d               Descarga nc64.exe para windows
+archivoinst         Archivebox web archive para guardar paginas web
