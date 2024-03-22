@@ -82,15 +82,18 @@ if [ "$1" == "-i" ]; then
     
 elif [ "$1" == "" ]; then
     echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
+    Instrucciones:
     echo ""
     echo "alias archivserv='cd ~/archivebox && docker-compose up'" >> ~/.zshrc
     echo "alias archiva='sudo docker-compose run archivebox add --depth=0 '" >> ~/.zshrc
 
-    echo "para iniciar el servidor ir a cd ~/archivebox"
-    echo "ejecutar: docker-compose up (a veces con sudo, depende permisos) "
-    echo "Usa el alias: ararchivserv tambien para inciarlo"
+    echo -e "\e[33mpara iniciar el servidor ir a cd ~/archivebox\e[0m"
+    echo -e "\e[33mejecutar: docker-compose up (a veces con sudo, depende permisos)\e[0m"
+    echo -e "\e[33mUsa el alias: archivserv también para iniciarlo\e[0m"
     echo ""
-    echo "archiva link #para guardar un link rapidamente depth=0"
+    echo -e "\e[33mtambién el alias archiva para guardar un link rápidamente depth=0\e[0m"
+    echo -e "\e[33marchiva http...link\e[0m"
+
     echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
     echo ""
     
