@@ -117,7 +117,7 @@ echo ""
 fi
 
 
-# Ejemplo de cómo saltar la ejecución basado en las opciones
+# ejemplo de como saltar la ejecución basado en las opciones
 if [[ $omitir == true ]]; then
     # Lógica para manejar la opción -o
     echo "Omitiendo algo debido a -o"
