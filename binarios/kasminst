@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Lista de paquetes a instalar
+paquetes=("docker.io" "docker-compose")
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+
+
+# Pedir al usuario cuántos GB de RAM desea
+read -p "Cuanto de GB de RAM desea ( 4, 6, 8...) : " ram_gb
+
+# Calcular el tamaño del archivo de swap en MB
+swap_size_mb=$((ram_gb * 1024))
+
+# Crear un archivo de swap del tamaño calculado
+sudo dd if=/dev/zero bs=1M count="$swap_size_mb" of=/mnt/"$ram_gb"GiB.swap
+sudo chmod 600 /mnt/"$ram_gb"GiB.swap
+sudo mkswap /mnt/"$ram_gb"GiB.swap
+sudo swapon /mnt/"$ram_gb"GiB.swap
+
+# Hacer que el archivo de swap esté disponible en el arranque
+echo "/mnt/$ram_gb GiB.swap swap swap defaults 0 0" | sudo tee -a /etc/fstab
+
+# Descargar e instalar Kasm
+cd /tmp
+curl -O https://kasm-static-content.s3.amazonaws.com/kasm_release_1.15.0.06fdc8.tar.gz
+tar -xf kasm_release_1.15.0.06fdc8.tar.gz
+sudo bash kasm_release/install.sh
+
+
+
+
