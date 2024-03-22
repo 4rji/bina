@@ -1,0 +1,90 @@
+#!/bin/bash
+
+# Pregunta
+echo -e "¿${YELLOW}Quiere instalar squid?${NC} [${GREEN}s${NC}/${RED}n${NC}]"
+read -n1 -p "" answer
+echo ""
+
+if [ "$answer" == "s" ]; then
+
+    # Lista de paquetes a instalar
+    paquetes=("squid" )
+
+    # Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+    paquete_instalado_apt() {
+        dpkg -l "$1" | grep -q '^ii'  
+    }
+
+    # Función para verificar si un paquete está instalado (CentOS/RHEL)
+    paquete_instalado_yum() {
+        yum list installed "$1" &> /dev/null
+    }
+
+    # Función para verificar si un paquete está instalado (Fedora)
+    paquete_instalado_dnf() {
+        dnf list installed "$1" &> /dev/null
+    }
+
+    # Función para verificar si un paquete está instalado (Arch Linux)
+    paquete_instalado_pacman() {
+        pacman -Qi "$1" &> /dev/null
+    }
+
+    # Detectar el sistema operativo
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        OS=$ID
+    fi
+
+    # Instalar paquetes basados en el sistema operativo
+    for paquete in "${paquetes[@]}"; do
+        case $OS in
+            "debian"|"ubuntu"|"kali")
+                if ! paquete_instalado_apt "$paquete"; then
+                    echo "Instalando el paquete $paquete..."
+                    sudo apt-get install -y "$paquete"
+                fi
+                ;;
+            "centos"|"rhel")
+                if ! paquete_instalado_yum "$paquete"; then
+                    echo "Instalando el paquete $paquete..."
+                    sudo yum install -y "$paquete"
+                fi
+                ;;
+            "fedora")
+                if ! paquete_instalado_dnf "$paquete"; then
+                    echo "Instalando el paquete $paquete..."
+                    sudo dnf install -y "$paquete"
+                fi
+                ;;
+            "arch")
+                if ! paquete_instalado_pacman "$paquete"; then
+                    echo "Instalando el paquete $paquete..."
+                    sudo pacman -S --noconfirm "$paquete"
+                fi
+                ;;
+            *)
+                ;;
+        esac
+    done
+
+
+
+    # Copiar archivo de configuración original
+    sudo cp /etc/squid/squid.conf /etc/squid/squid.conf.bk
+    
+    # Descargar y reemplazar archivo de configuración
+    sudo wget -O /etc/squid/squid.conf https://raw.githubusercontent.com/4rji/4rji/main/config/squid.conf
+    
+    # Espacios para una mejor visualización
+    echo ""
+    echo "¿${BLUE}_________________________________________________________${NC}?"
+
+    # Reiniciar el servicio squid
+    sudo systemctl restart squid
+    echo "¡El servicio squid ha sido reiniciado!"
+    echo ""
+    echo "sudo nano /etc/squid/squid.conf  "
+else
+    echo "No se realizaron cambios."
+fi
