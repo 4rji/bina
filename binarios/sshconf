@@ -43,3 +43,10 @@ print_separator
 echo -e "\e[93m\e[1mContenido del archivo ~/.ssh/config:\e[0m"
 cat ~/.ssh/config
 print_separator
+
+
+#Para Jump usando XPS dell
+#Host deb
+#        Hostname 192.168.122.162
+#        User ass
+#        ProxyJump xps  
