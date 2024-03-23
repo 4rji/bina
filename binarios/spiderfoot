@@ -80,6 +80,11 @@ else
     echo -e "\e[32mPara instalar, ejecuta el script con la opción -i.\e[0m"
     echo ""
     echo -e "\e[34mEjecutando contenedor Docker en segundo plano...\e[0m"
-    docker run -d -p 5001:5001 spiderfoot/spiderfoot
+    echo ""
+    echo "docker run -d -p 5001:5001 --mount source=spiderfoot_dir,type=volume,target=/home/spiderfoot spiderfoot"
+    docker run -d -p 5001:5001 --mount source=spiderfoot_dir,type=volume,target=/home/spiderfoot spiderfoot
+    echo ""
+    echo "Para iniciarlo sin el volument montado:"
+    echo "docker run -d -p 5001:5001 spiderfoot/spiderfoot"
 fi
 
