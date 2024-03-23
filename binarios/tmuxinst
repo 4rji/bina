@@ -1,7 +1,7 @@
 #!/bin/bash
 
-
-
+rm .tmux.conf.local
+rm .tmux.conf
 #cd
 ##git clone https://github.com/gpakosz/.tmux.git
 #ln -s -f .tmux/.tmux.conf
