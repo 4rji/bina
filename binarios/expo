@@ -46,7 +46,7 @@ echo "_________________________________________________________"
 echo "" # Agregar espacio después de la entrada
 
 
-echo "El comando a ejecutar es: nmap -p- --open -T5 -v -n "
+echo "El comando a ejecutar es:         sudo nmap "$1" -p- --open -sS --min-rate 5000 -v -n -oG allPorts "
 read -n1 -p "Elige (1 o 2): " choice
 
 echo "" # Agregar espacio después de la entrada
