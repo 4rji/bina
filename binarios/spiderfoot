@@ -74,6 +74,7 @@ if [ "$1" == "-i" ]; then
     echo -e "\e[34mCreando volumen Docker...\e[0m"
     sudo docker volume create spiderfoot_dir
     echo -e "\e[34mEjecutando contenedor Docker en segundo plano...\e[0m"
+    echo "No guarda datos, aun no lo arreglo"
     docker run -d -p 5001:5001 --mount source=spiderfoot_dir,type=volume,target=/home/spiderfoot spiderfoot
 else
     # Si se ejecuta sin argumentos
@@ -86,5 +87,6 @@ else
     echo ""
     echo "Para iniciarlo sin el volument montado:"
     echo "docker run -d -p 5001:5001 spiderfoot/spiderfoot"
+    echo "No guarda datos, aun no lo arreglo"
 fi
 
