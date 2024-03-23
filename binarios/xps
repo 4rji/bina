@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Iniciar sesión de tmux
+tmux new-session -d -s xps
+
+# Crear pestaña ITEC y ejecutar los comandos
+tmux new-window -t xps:0 -n 'ITEC'
+tmux send-keys -t xps:0 'ssh -J xps ass@192.168.122.162' Enter
+tmux send-keys -t xps:0 'sudo openvpn itec.ovpn' Enter
+
+# Crear pestaña KASM1088 y ejecutar el comando
+tmux new-window -t xps:1 -n '1088'
+tmux send-keys -t xps:1 'ssh -D 1088 xps' Enter
+
+# Crear pestaña 1080 y ejecutar el comando
+tmux new-window -t xps:2 -n '1080'
+tmux send-keys -t xps:2 'ssh -D 1080 -J xps ass@192.168.122.162' Enter
+
+# Seleccionar diseño de paneles
+#tmux select-layout -t xps tiled
+
+# Adjuntar a la sesión de tmux
+tmux attach-session -t xps
+
