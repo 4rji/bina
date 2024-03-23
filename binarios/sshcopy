@@ -2,6 +2,8 @@
 
 echo ""
 echo "ssh-copy-id -i ~/.ssh/id_ed25519.pub -p puerto_ssh user@IP  "
+#echo "ssh-copy-id -o "ProxyJump xps" -o "Port=puerto" -i clave usuario@servidor"
+echo 'ssh-copy-id -o "ProxyJump xps" -o "Port=puerto" -i clave usuario@servidor'
 
 echo ""
 echo -e "\033[1;34m_________________________________________________________\033[0m"
