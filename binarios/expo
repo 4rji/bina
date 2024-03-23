@@ -8,8 +8,8 @@ show_help_and_confirm() {
     echo
     echo "El comando que este script ejecuta es:"
     echo ""
-    echo "1) - nmap -p- --open -T5 -v -n <ip> -oG allPorts"
-    echo "2) - nmap -p- --open -T5 -v -n -Pn <ip> -oG allPorts"
+    echo "1) - sudo nmap 10.10.10.3 -p- --open -sS --min-rate 5000 -v -n -oG allPorts "
+    echo "2) - sudo nmap 10.10.10.3 -p- --open -sS --min-rate 5000 -v -n -Pn -oG allPorts"
     echo
     read -n1 -p "Presione Enter para continuar o 'c' para salir. " response
 
@@ -56,11 +56,14 @@ echo ""
 case $choice in
     1)
         echo "Ejecutando escaneo sin Pn..."
-        nmap -p- --open -T5 -v -n "$1" -oG allPorts
+        #nmap -p- --open -T5 -v -n "$1" -oG allPorts
+        sudo nmap "$1" -p- --open -sS --min-rate 5000 -v -n -oG allPorts
         ;;
     2)
         echo "Ejecutando escaneo con Pn..."
-        nmap -p- --open -T5 -v -n -Pn "$1" -oG allPorts
+        #nmap -p- --open -T5 -v -n -Pn "$1" -oG allPorts
+        sudo nmap "$1" -p- --open -sS --min-rate 5000 -v -n -Pn -oG allPorts
+
         ;;
     *)
         echo "Opción no válida. Por favor, elige 1 o 2."
