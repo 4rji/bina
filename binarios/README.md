@@ -347,3 +347,4 @@ pentestfm           Pentester framework con dockers
 nc64d               Descarga nc64.exe para windows
 archivo             Archivebox web archive para guardar paginas web, ejecutar con -i para instalar
 archiva_link        Archiva una pagina en tmux, rapido link
+spiderfoot          Inicia spiderfoot, para instalar -i, funciona en Docker

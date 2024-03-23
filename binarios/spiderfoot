@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# Lista de paquetes a instalar
+paquetes=("docker.io" "docker-compose")
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+
+
+
+if [ "$1" == "-i" ]; then
+    # Si se ejecuta con -i
+    echo -e "\e[34mClonando SpiderFoot desde GitHub...\e[0m"
+    git clone https://github.com/smicallef/spiderfoot.git
+    cd spiderfoot
+    echo -e "\e[34mConstruyendo la imagen Docker...\e[0m"
+    docker build -t spiderfoot .
+    echo -e "\e[34mCreando volumen Docker...\e[0m"
+    sudo docker volume create spiderfoot_dir
+    echo -e "\e[34mEjecutando contenedor Docker en segundo plano...\e[0m"
+    docker run -d -p 5001:5001 --mount source=spiderfoot_dir,type=volume,target=/home/spiderfoot spiderfoot
+else
+    # Si se ejecuta sin argumentos
+    echo -e "\e[32mPara instalar, ejecuta el script con la opción -i.\e[0m"
+    echo ""
+    echo -e "\e[34mEjecutando contenedor Docker en segundo plano...\e[0m"
+    docker run -d -p 5001:5001 spiderfoot/spiderfoot
+fi
+
