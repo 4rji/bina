@@ -85,6 +85,8 @@ echo "sudo mount -t cifs //server_name/shared_directory mount_point -o username=
 echo ""
 echo -e "\n\033[1;34mEste para ver los recursos disponibles:\033[0m"
 echo "smbclient -L //IP_name -U "
+echo -e "\n\033[1;34mPara entrar a por ejemplo /tmp :\033[0m"
+echo "smbclient  //10.10.10.3/tmp"
 echo ""
 
 echo -e "\n\033[1;33mSi no funciona, instalar cifs-utils, samba o smb.\033[0m\n"
@@ -114,6 +116,7 @@ echo -e "\n\033[1;34m_________________________________________________________\0
 echo ""
 # Mostrar los recursos disponibles en el servidor SMB
 echo -e "\033[1;34mRecursos disponibles en el servidor SMB:\033[0m"
+echo "smbclient -L //$server_name -U username "
 smbclient -L //$server_name -U $username%$password
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 

