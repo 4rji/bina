@@ -141,6 +141,8 @@ elif [ $choice -eq 3 ]; then
     echo "_________________________________________________________"
     echo ""
     echo "Mostrando los puertos utilizados por squid:"
+    echo "sudo lsof -i -P -n | grep 3128"   
+    echo ""
     sudo lsof -i -P -n | grep "3128"
     echo ""
     echo "_________________________________________________________"

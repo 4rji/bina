@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+import sys
 from scapy.all import *
 from termcolor import colored
 
 flowData = {}
+
 def analyzeFlow(p):
     if p.haslayer(IP):
         length = p[IP].len
@@ -22,7 +24,11 @@ def analyzeFlow(p):
     else:
         flowData[key] = data
 
-packets = rdpcap("captura.cap")
+if len(sys.argv) > 1:
+    packets = rdpcap(sys.argv[1])
+else:
+    packets = rdpcap("captura.cap")
+
 for p in packets:
     analyzeFlow(p)
 
@@ -30,4 +36,3 @@ for f in flowData:
     [src, dst] = f.split(",")
     d = flowData[f]
     print(colored("%d bytes %s->%s" % (d[0], src, dst), 'blue') + "\t" + colored("%d bytes %s->%s" % (d[1], dst, src), 'yellow'))
-
