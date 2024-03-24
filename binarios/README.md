@@ -69,7 +69,7 @@ limpiar             Limpia el home con shred y scrub
 
 genarc              genera archivos conjuntos de 100 MB
 ddf                 hace un diff archivo vs archivo.backup                                             
-copydir	            Copia un directorio por medio de ssh scp
+copycar	            Copia una carpeta folder por medio de ssh scp
 copyrsyn            Usa hosts ansible y copia un archivo con rsync y clave privada
 copyrrs             Copia archivo por rsync preguntado hosts y puerto
 copyrs              Copia archivo por rsync usando sshconf
