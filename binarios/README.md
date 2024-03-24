@@ -268,6 +268,7 @@ instdebian          basic debian apps for clean debian12
 instsurf            instala surfeando
 gatin               hashcat que usa todos los diccionarios en wordlists/4rji
 gatinesta           Verifica si una palabra esta en los diccionarios password contrasena 
+xxelab              xxe lab docker instala 
 
 #qemu
 qemuins             Instala qemu y virtual en debian o arch
