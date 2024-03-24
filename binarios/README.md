@@ -194,6 +194,7 @@ mired               copia eth0 al portapapeles y muestra todas las ips del equip
 miwl                copia wlan0 al portapapeles  
 chdns	            Cambia el DNS comentando lineas y tambien quita banderas chattr +i PONE / -i QUITA 
 ppt                 Checa lsof netstat nmap y puertos que estan escuchando en el sistema
+newprocess          Encuentra nuevos procesos en pantalla para ver que se ejecuta
 
 #Ansible
 ansiconf            Crea host para ansible con alias y crea el archivo ansible_hosts
