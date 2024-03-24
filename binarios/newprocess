@@ -1,9 +1,20 @@
 #!/bin/bash
 
-old_process=$(ps -eo user,command)
-
 while true; do
+    # Obtener la lista de procesos
+    old_process=$(ps -eo user,command)
+    
+    # Esperar un segundo antes de obtener una nueva lista de procesos
+    sleep 1
+    
     new_process=$(ps -eo user,command)
-    diff <(echo "$old_process") <(echo "$new_process") | grep "[\>\<]" | grep -vE "command|diff|kworker"
-    old_process=$new_process
+    
+    # Comparar las listas de procesos y resaltar las diferencias
+    diff_output=$(diff <(echo "$old_process") <(echo "$new_process") | grep "[\>\<]" | grep -vE "command|diff|kworker")
+    
+    # Imprimir las diferencias resaltadas en rojo y otros mensajes en verde
+    if [ -n "$diff_output" ]; then
+        echo -e "\033[1;31mCambios en los procesos:\033[0m"
+        echo "$diff_output"
+    fi
 done
