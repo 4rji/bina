@@ -82,11 +82,13 @@ echo -e "\e[0m"
 
 docker build -t xxelab .
 
-docker run -it --rm -p 127.0.0.1:5000:80 xxelab
-
 echo -e "\e[1;32m"
 echo "_________________________________________________________"
 echo -e "\e[0m"
+echo "Empezando..."
+echo "docker run -d --rm -p 127.0.0.1:5000:80 xxelab"
+docker run -d --rm -p 127.0.0.1:5000:80 xxelab
+echo ""
 
 echo "Open http://localhost:5000 and have fun."
 #http://10.0.4.168:8000/archive/1711262312.419871/index.html
