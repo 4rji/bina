@@ -1,7 +1,11 @@
 #!/bin/bash
+echo -e "\033[0;34m"
+echo "_________________________________________________________"
+echo -e "\033[0m"
+echo ""
 
 # Mostrar la lista de interfaces disponibles y permitir al usuario seleccionar una
-echo "Interfaces disponibles:"
+echo -e "\033[0;32mInterfaces disponibles:\033[0m"
 interfaces=( $(ifconfig -a | grep '^[a-zA-Z]' | awk '{print $1}') )
 i=1
 for interface in "${interfaces[@]}"
@@ -10,25 +14,25 @@ do
     let i++
 done
 
-echo "Por favor, selecciona el número de la interfaz de red que deseas capturar:"
+echo -e "\033[0;33mPor favor, selecciona el número de la interfaz de red que deseas capturar:\033[0m"
 read choice
 selected_interface=${interfaces[$choice-1]}
 
 # Verificar si el usuario seleccionó una interfaz válida
 if [ -z "$selected_interface" ]; then
-    echo "Selección no válida. Saliendo."
+    echo -e "\033[0;31mSelección no válida. Saliendo.\033[0m"
     exit 1
 fi
 
 # Verificar si el archivo captura.cap ya existe
 if [ -e "captura.cap" ]; then
-    echo "El archivo captura.cap ya existe."
+    echo -e "\033[0;31mEl archivo captura.cap ya existe.\033[0m"
     read -p "¿Quieres sobrescribirlo? [S/n]: " overwrite
     overwrite=${overwrite:-S}  # Si la entrada es vacía, asume "S"
     if [ "$overwrite" != "S" ] && [ "$overwrite" != "s" ]; then
         timestamp=$(date +%Y%m%d%H%M%S)
         new_filename="captura_$timestamp.cap"
-        echo "Se creará un nuevo archivo: $new_filename en lugar de sobrescribir."
+        echo -e "\033[0;32mSe creará un nuevo archivo: $new_filename en lugar de sobrescribir.\033[0m"
     else
         new_filename="captura.cap"
     fi
@@ -37,17 +41,14 @@ else
 fi
 
 # Mostrar el comando a ejecutar
-echo "Ejecutando: sudo tcpdump -i $selected_interface -w $new_filename -v"
+echo -e "\033[0;32mEjecutando: sudo tcpdump -i $selected_interface -w $new_filename -v\033[0m"
 sudo tcpdump -i "$selected_interface" -w "$new_filename" -v
 
-echo "Captura completada y guardada en $new_filename."
-
-
+echo -e "\033[0;32mCaptura completada y guardada en $new_filename.\033[0m"
 echo ""
 
-
 # Preguntar si desea ver el archivo con tshark o el resumen con python
-echo "[t] para tshark, [p] Python Resument /Enter para cancelar]: " 
+echo -e "\033[0;33m[t] para tshark, [p] Python Resument /Enter para cancelar]: \033[0m" 
 
 read -p "¿Ver captura con tshark o con python? " choice
 case "$choice" in
@@ -58,14 +59,18 @@ case "$choice" in
     monitcp
     ;;
   *)
-    echo "Operación cancelada."
+    echo -e "\033[0;31mOperación cancelada.\033[0m"
     ;;
 esac
 
+
+
 echo ""
-echo "tshark -r captura.cap "
-echo "o tambien ejecuta para python:"
-echo "monitcp"
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+echo -e "\033[0;34mUsa 'tshark -r captura.cap' para verlo de nuevo\033[0m"
+echo -e "\033[1;33mO tambien para verlo con python solo ejecuta:\033[0m"
+echo -e "\033[0;34mmonitcp\033[0m"
+
 
 
 
