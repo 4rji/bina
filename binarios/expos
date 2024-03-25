@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# Verificar si se proporciona una dirección IP como argumento
+if [ $# -ne 1 ]; then
+    echo -e "\033[1;31mError:\033[0m Uso: $0 <dirección_IP>"
+    exit 1
+fi
+
+# IP proporcionada como argumento
+target_ip="$1"
+
+# Función para mostrar el comando y solicitar confirmación
+confirm_execute() {
+    read -p "[Enter para ejecutar, m para modificar] " choice
+    case "$choice" in 
+      m|M) 
+        read -p "Ingresa el nuevo comando: " new_command
+        eval "$new_command" ;;
+      *) 
+        eval "$1" ;;
+    esac
+}
+
+# Mensaje de inicio del escaneo
+echo -e "\n\033[1;33mIniciando escaneo...\033[0m"
+echo "--------------------------------------------"
+
+# Mostrar el comando a ejecutarse en el primer escaneo
+echo -e "\n\033[1;36mPrimer escaneo a ejecutar:\033[0m"
+echo "nmap -p- --min-rate=1000 -T4 -Pn $target_ip"
+confirm_execute "nmap -p- --min-rate=1000 -T4 -Pn $target_ip"
+
+# Realizar un escaneo de tipo SYN con nmap para determinar los puertos abiertos
+echo -e "\n\033[1;34mRealizando un escaneo SYN para la dirección IP $target_ip para determinar los puertos abiertos...\033[0m"
+open_ports=$(nmap -p- --min-rate=1000 -T4 -Pn $target_ip | grep ^[0-9] | cut -d'/' -f1 | tr '\n' ',')
+echo -e "\n\033[1;32mPuertos abiertos encontrados:\033[0m $open_ports"
+
+# Mostrar el comando a ejecutarse en el segundo escaneo
+echo -e "\n\033[1;36mSegundo escaneo a ejecutar:\033[0m"
+echo "nmap -p$open_ports -sV $target_ip"
+confirm_execute "nmap -p$open_ports -sV $target_ip"
+
+# Realizar un segundo escaneo para obtener información detallada sobre los servicios en los puertos abiertos
+echo -e "\n\033[1;34mRealizando un segundo escaneo para obtener información detallada sobre los servicios en los puertos abiertos...\033[0m"
+scan_output=$(nmap -p$open_ports -sV $target_ip)
+
+# Mostrar los resultados del segundo escaneo
+echo -e "\n\033[1;32mResultados del segundo escaneo:\033[0m"
+echo "$scan_output"
+
+# Mensaje de finalización del escaneo
+echo -e "\n\033[1;33mEscaneo completado.\033[0m"
+echo "--------------------------------------------"
+
