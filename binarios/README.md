@@ -75,6 +75,7 @@ copyrsyn            Usa hosts ansible y copia un archivo con rsync y clave priva
 copyrrs             Copia archivo por rsync preguntado hosts y puerto
 copyrs              Copia archivo por rsync usando sshconf
 copyrsr             Recibe un archivo por medio de rsync
+shtb                Syncroniza carpetas con rsync entre servidores, para htb vmqemu
 mackali	            Cambia la MAC de kali
 ncdu                para ver los archivos grandes, liberar espacio disco
 netevils            aun no se                                                                          
