@@ -66,6 +66,7 @@ mdcolors            Genera colores para archivos md
 maquinasova         Convierte maquinas ova para qemu
 limpiartest         Genera archivos de varios tamanos para probar
 limpiar             Limpia el home con shred y scrub 
+cortes              Muestra cortes con awk cut
 
 genarc              genera archivos conjuntos de 100 MB
 ddf                 hace un diff archivo vs archivo.backup                                             
