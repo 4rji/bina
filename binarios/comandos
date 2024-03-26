@@ -1,4 +1,5 @@
-
+#!/bin/bash
+echo ''' 
 
 #nmap 
 
@@ -50,3 +51,7 @@ ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=3 usuario@servidor
 
 #para mover todos los archivos, en este caso *.py a la carpeta actual:
 find . -mindepth 2 -type f -name "*.py" -exec mv {} . \;
+
+hydra -L users -P passwords ssh://$ip
+
+'''
