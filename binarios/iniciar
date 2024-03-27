@@ -1,0 +1,30 @@
+#!/bin/bash
+
+function mkt(){
+    local base_dir="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"
+    local new_dir="$base_dir/$1"
+    local template_file="/home/ass/.template.md"
+    local new_file="$new_dir/$(basename "$new_dir").md"
+    
+    mkdir -p "$new_dir" && cd "$new_dir" && mkdir -p nmap content exploits scripts && cp "$template_file" .
+    echo "$new_dir"
+}
+
+base_dir="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"
+
+# Preguntar por el nombre de la máquina y la IP
+read -p "Nombre de la máquina: " nombre_maquina
+read -p "IP: " ip
+
+# Ejecutar la función mkt y obtener la ruta de htcon
+htcon=$(mkt "$nombre_maquina")
+
+echo ""
+# Exportar la variable htcon
+echo "export htcon=$htcon"
+
+# Exportar la variable ip
+echo "export ip=$ip"
+
+echo "copiar y pegar para guardar las variables"
+echo ""

@@ -2,7 +2,7 @@
 
 # Definir la ruta y nombre del archivo
 ruta="$htcon"
-archivo="$htcon/passwords"
+archivo="$htcon/content/passwords"
 
 # Verificar si el archivo existe, de lo contrario, crearlo con un contenido inicial
 if [ ! -f "$archivo" ]; then
