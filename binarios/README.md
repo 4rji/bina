@@ -359,6 +359,6 @@ spray               Una funcion de bash que prueba una contrasena en los usuario
 
 
 #HTB shorcuts
-iniciar             Crea carpetas, las variables $ip  $htcon, se debe de ejecutar manualmente los echos
+iniciar             Function crea carpetas, variables $ip $htcon $htf, se debe de ejecutar manualmente los echos
 contra              Copia una contrasena del portapapales a content/passwords
 usua                Copia un usuario a /content/users
