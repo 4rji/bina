@@ -9,17 +9,17 @@ print_color() {
 
 # Función para realizar el ping a una IP
 ping_ip() {
-    ip=$1
+    local ip=$1
     echo ""
     print_color 36 "Realizando ping a la IP: $ip"
     echo ""
-    ping -c 1 $ip
+    ping -c 1 "$ip"
 }
 
 # Función para determinar el sistema operativo
 determine_os() {
-    ip=$1
-    timeout 1s whichsys $ip > OS-tipo
+    local ip=$1
+    timeout 1s whichsys "$ip" > OS-tipo
     echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 
     print_color 31 "$(cat OS-tipo)"
@@ -31,12 +31,13 @@ determine_os() {
 # Función para ejecutar nmap
 run_nmap() {
     echo ""
-    read -p "$(print_color 33 "¿Desea ejecutar nmap? (S/n): ")" choice
+    local choice
+    read -rp "$(print_color 33 "¿Desea ejecutar nmap? (S/n): ")" choice
     choice=${choice:-s}  # Si la opción es vacía (al presionar Enter), se establece como "s" por defecto
     if [[ $choice == [sS] ]]; then
         echo ""
         print_color 32 "Ejecutando nmap..."
-        sudo nmap -sC -sV $ip > nmap1
+        sudo nmap -sC -sV "$ip" > nmap1
         echo ""
         print_color 32 "Resultado de nmap guardado en el archivo 'nmap1'."
         echo ""
@@ -48,11 +49,8 @@ run_nmap() {
 }
 
 # Main
-echo ""
-print_color 35 "Ingrese la dirección IP:"
-read ip
-
-ping_ip $ip
-determine_os $ip
+ip="$ip"  # Tomar la dirección IP de la variable del sistema
+ping_ip "$ip"
+determine_os "$ip"
 run_nmap
 
