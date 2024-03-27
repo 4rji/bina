@@ -356,7 +356,8 @@ archiva_link        Archiva una pagina en tmux, rapido link
 spiderfoot          Inicia spiderfoot, para instalar -i, funciona en Docker
 javainject          Python que injecta comandos java ascii por terminal, modifica IP en script web busqueda
 spray               Una funcion de bash que prueba una contrasena en los usuarios, necesita users archivo
-
+chiseld             Descarga chisel y lo compila
+chisel4             El binario ya compilado para probar
 
 #HTB shorcuts
 iniciar             Function crea carpetas, variables $ip $htcon $htf, se debe de ejecutar manualmente los echos

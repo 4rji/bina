@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Instalar Go
+sudo apt install golang-go
+
+# Clonar el repositorio de chisel
+git clone https://github.com/jpillora/chisel.git
+
+# Navegar al directorio de chisel
+cd chisel
+
+# Compilar chisel
+go build
+
+# Compilar chisel con flags de enlace
+go build -ldflags "-s -w" .
+
+# Comprimir chisel con UPX
+upx chisel
