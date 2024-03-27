@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# Verificar si se proporciona un archivo como argumento
+if [ $# -ne 1 ]; then
+    echo "Uso: $0 <archivo>"
+    exit 1
+fi
+
+archivo="$1"
+
+# Verificar si el archivo existe
+if [ ! -f "$archivo" ]; then
+    echo "El archivo $archivo no existe."
+    exit 1
+fi
+
+# Verificar si el archivo es legible
+if [ ! -r "$archivo" ]; then
+    echo "No se puede leer el archivo $archivo."
+    exit 1
+fi
+
+# Buscar la línea que contiene # BASE64_ENCODED_CONTENT y eliminarla
+sed -i '/# BASE64_ENCODED_CONTENT/d' "$archivo"
+
+# Decodificar el contenido base64 en el archivo
+sed -i '/^#/!s/\([[:alnum:]]\+\=*\)/echo -n "\1" | base64 -d/e' "$archivo"
+
+echo "Contenido base64 en el archivo $archivo convertido con éxito."

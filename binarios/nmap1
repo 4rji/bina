@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Definir la línea que quieres reemplazar (por su contenido)
+LINEA_A_REEMPLAZAR="nmap1"
+
+# Obtener la ruta al archivo
+ARCHIVO=$htf #"/home/ass/Documents/GitHub/4rji/4rjinotes/htb/cap/cap.md"
+
+# Obtener el contenido del portapapeles
+linea_1=$(xclip -selection clipboard -o)
+
+# Si el portapapeles está vacío, salir del script
+if [[ -z "$linea_1" ]]; then
+  echo "El portapapeles está vacío."
+  exit 1
+fi
+
+# Convertir el contenido a base64 y agregar comentario indicando que es base64
+linea_2="# BASE64_ENCODED_CONTENT\n$(echo "$linea_1" | base64 -w 0 | tr -d '\n')"
+
+# Escapa los caracteres especiales en linea_2 (ejemplo para '/')
+linea_2=$(echo "${linea_2//\//\\/}")
+
+# Reemplazar la línea en el archivo (asegura la ruta correcta del archivo)
+sed -i "s/^\($LINEA_A_REEMPLAZAR.*\)$/$linea_2/" "$ARCHIVO"
+
+# Mostrar un mensaje de confirmación
+echo "Línea que contenía '$LINEA_A_REEMPLAZAR' reemplazada con éxito en el archivo $ARCHIVO."
