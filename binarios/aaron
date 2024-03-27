@@ -18,3 +18,5 @@ echo ""
 echo "iniciar como su root"
 echo "pass:"
 echo "aaron"
+
+#https://github.com/Arinerron/CVE-2022-0847-DirtyPipe-Exploit/blob/main/exploit.c
