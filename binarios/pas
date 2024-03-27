@@ -10,5 +10,5 @@ archivo="$htf"
 echo "$clipboard" >> "$archivo"
 
 # Mensaje de confirmación
-echo "Contenido del portapapeles añadido al archivo $archivo"
+echo "Anadido a $archivo"
 

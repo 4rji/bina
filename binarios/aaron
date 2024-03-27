@@ -1,0 +1,20 @@
+#!/bin/bash
+
+se descarga en la maquina y se compila si tiene gcc
+
+
+#el archivo esta en noraa aqui mismo en binarios
+clipa noraa
+
+echo "crear un archivo llamado privesc.c con lo que se copio del portapapeles"
+ecgi "archivo noraa de los binarios"
+
+echo ""
+echo "se guarda como privesc.c en /tmp"
+echo "gcc privesc.c -o privesc"
+echo "ejecutar ./privesc"
+
+echo ""
+echo "iniciar como su root"
+echo "pass:"
+echo "aaron"
