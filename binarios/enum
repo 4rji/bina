@@ -28,6 +28,28 @@ determine_os() {
     echo "guardado en OS-tipo"
 }
 
+
+# Función para ejecutar nmap
+run_nmap1() {
+    echo ""
+    local choice
+    read -rp "$(print_color 33 "¿Desea ejecutar nmap $ip ? (S/n): ")" choice
+    choice=${choice:-s}  # Si la opción es vacía (al presionar Enter), se establece como "s" por defecto
+    if [[ $choice == [sS] ]]; then
+        echo ""
+        print_color 32 "Ejecutando nmap..."
+        nmap "$ip" > nmap
+        echo ""
+        print_color 32 "Resultado de nmap guardado en el archivo 'nmap'."
+        echo ""
+        cat nmap
+    else
+        echo ""
+        print_color 31 "No se ejecutó nmap."
+    fi
+}
+
+
 # Función para ejecutar nmap
 run_nmap() {
     echo ""
@@ -37,11 +59,11 @@ run_nmap() {
     if [[ $choice == [sS] ]]; then
         echo ""
         print_color 32 "Ejecutando nmap..."
-        sudo nmap -sC -sV "$ip" > nmap1
+        sudo nmap -sC -sV "$ip" > nmap_CV
         echo ""
-        print_color 32 "Resultado de nmap guardado en el archivo 'nmap1'."
+        print_color 32 "Resultado de nmap guardado en el archivo 'nmap_CV'."
         echo ""
-        cat nmap1
+        cat nmap1_CV
     else
         echo ""
         print_color 31 "No se ejecutó nmap."
@@ -52,5 +74,6 @@ run_nmap() {
 ip="$ip"  # Tomar la dirección IP de la variable del sistema
 ping_ip "$ip"
 determine_os "$ip"
+run_nmap1
 run_nmap
 
