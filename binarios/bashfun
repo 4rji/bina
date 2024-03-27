@@ -6,10 +6,6 @@ import tempfile
 
 # Definir las funciones como cadenas
 bash_functions = """
-# Functions added by Python script
-#function mkt(){
-#   mkdir "$1" && cd "$1" && mkdir nmap && mkdir content && mkdir exploits && mkdir scripts && echo "nuevo directorio" && pwd && ls
-#}
 
 function mktem() {
     new_dir=$(mktemp -d)
@@ -19,14 +15,19 @@ function mktem() {
 }
 
 
-#cambiar el directorio base a la carpeta de github de las notas
-function mkt(){
-    local base_dir="/Users/ozono/Dropbox/4rji/4rjinotes/htb"
-    local new_dir="$base_dir/$1"
-    
-    mkdir -p "$new_dir" && echo "Nuevo folder: $new_dir" && cd "$new_dir" && mkdir nmap content exploits scripts && ls -d
-}
 
+#el template esta en home .template oculto
+function mkt(){
+    local base_dir="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"
+    local new_dir="$base_dir/$1"
+    local template_file="/home/ass/.template.md"
+    local new_file="$new_dir/$(basename "$new_dir").md"
+    
+    mkdir -p "$new_dir" && echo "Nuevo directorio creado: $new_dir" && cd "$new_dir" && mkdir nmap content exploits scripts && cp "$template_file" "$new_file" && ls -d
+    echo ""
+    echo "Directorio actual:"
+    pwd 
+}
 
 
 
