@@ -7,16 +7,20 @@ function mkt(){
     local machine_name="$1"
     local new_file="$new_dir/$machine_name.md"
     
-    mkdir -p "$new_dir" && cd "$new_dir/nmap" && mkdir -p nmap content exploits scripts && cp "$template_file" "$machine_name.md" 
+    mkdir -p "$new_dir/nmap" && cd "$new_dir/nmap" && mkdir -p nmap content exploits scripts && cp "$template_file" "$machine_name.md" 
     echo "$new_dir"
     echo "export htf=$new_file"
 }
 
 base_dir="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"
 
-# Preguntar por el nombre de la maquina y la IP
-read -p "Nombre de la maquina: " nombre_maquina
-read -p "IP: " ip
+# Verificar si se proporcionó el nombre de la máquina como argumento
+if [ $# -eq 0 ]; then
+    echo "Debe especificar el nombre de la máquina como argumento."
+    exit 1
+fi
+
+nombre_maquina=$1
 
 # Ejecutar la función mkt y obtener la ruta de htcon
 htcon=$(mkt "$nombre_maquina")
@@ -25,9 +29,7 @@ echo ""
 # Exportar la variable htcon
 echo "export htcon=$htcon"
 
-# Exportar la variable ip
-echo "export ip=$ip"
-
+# No es necesario preguntar por la IP ya que no se usa en el script
 
 echo ""
 echo "copiar y pegar para guardar las variables"
