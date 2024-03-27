@@ -24,18 +24,18 @@ iniciar() {
     local new_file="$new_dir/$machine_name.md"
     
     mkdir -p "$new_dir" && cd "$new_dir" && mkdir -p nmap content exploits scripts && cp "$template_file" "$machine_name.md" 
-    echo "$new_dir"
-
+    echo "Definir las siguientes variables"
+    echo "" 
+   #echo "$new_dir"
+    echo ""
     echo "export htf=$new_file"
 
     nombre_maquina=$1
-
-
-    echo ""
     # Exportar la variable htcon
     echo "export htcon=$new_dir"
     echo "export ip="
     cd "nmap"
+    echo ""
 }
 
 

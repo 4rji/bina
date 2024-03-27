@@ -43,7 +43,7 @@ binar               mueve un script a el directorio /usr/bin
 ruta_{archivo}      copia la ruta del archivo en el portapapeles                                       
 clipc               Copia el ultimo comando escrito en la terminal
 clipa_{archivo}     copia el contenido del archivo al portapapeles                                     
-clipp               comando | clipp , copia la salida del comando en el portapapeles
+pas                 Copia el contenido del portapapeles en la variable $htcon
 jfirefox            firejail a firefox             
 pant                arregla la pantalla para monitor de 34 pulgadas xrandr                             
 lid                 cambia el comportamiento de lid laptop                                             

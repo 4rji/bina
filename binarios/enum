@@ -37,7 +37,7 @@ run_nmap1() {
     choice=${choice:-s}  # Si la opción es vacía (al presionar Enter), se establece como "s" por defecto
     if [[ $choice == [sS] ]]; then
         echo ""
-        print_color 32 "Ejecutando nmap..."
+        print_color 32 "Ejecutando nmap $IP"
         nmap "$ip" > nmap
         echo ""
         print_color 32 "Resultado de nmap guardado en el archivo 'nmap'."
@@ -58,7 +58,7 @@ run_nmap() {
     choice=${choice:-s}  # Si la opción es vacía (al presionar Enter), se establece como "s" por defecto
     if [[ $choice == [sS] ]]; then
         echo ""
-        print_color 32 "Ejecutando nmap..."
+        print_color 32 "Ejecutando nmap -sC -sV IP"
         sudo nmap -sC -sV "$ip" > nmap_CV
         echo ""
         print_color 32 "Resultado de nmap guardado en el archivo 'nmap_CV'."
