@@ -24,3 +24,10 @@ spawn_interactive_shell()
 
 # Después de que la shell interactiva ha terminado, se imprimirá un mensaje
 print("Shell interactiva cerrada. Continuando con el script...")
+
+echo '''
+python3
+import os
+os.setuid(0)
+os.system("bash")
+'''

@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Definir la ruta y nombre del archivo
+ruta="$htcon"
+archivo="$htcon/passwords"
+
+# Verificar si el archivo existe, de lo contrario, crearlo con un contenido inicial
+if [ ! -f "$archivo" ]; then
+    touch "$archivo"
+fi
+
+# Obtener el contenido del portapapeles
+clipboard=$(xclip -selection clipboard -o)
+
+# Añadir el contenido del portapapeles al archivo sin borrar su contenido actual
+echo "$clipboard" >> "$archivo"
+
+# Mensaje de confirmación
+echo "Password added to /content/passwords"
