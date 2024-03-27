@@ -17,17 +17,17 @@ function mktem() {
 
 
 #el template esta en home .template oculto
-function mkt(){
-    local base_dir="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"
-    local new_dir="$base_dir/$1"
-    local template_file="/home/ass/.template.md"
-    local new_file="$new_dir/$(basename "$new_dir").md"
-    
-    mkdir -p "$new_dir" && echo "Nuevo directorio creado: $new_dir" && cd "$new_dir" && mkdir nmap content exploits scripts && cp "$template_file" "$new_file" && ls -d
-    echo ""
-    echo "Directorio actual:"
-    pwd 
-}
+#function mkt(){
+ #   local base_dir="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"
+  #  local new_dir="$base_dir/$1"
+#    local template_file="/home/ass/.template.md"
+ #   local new_file="$new_dir/$(basename "$new_dir").md"
+  #  #
+#    mkdir -p "$new_dir" && echo "Nuevo directorio creado: $new_dir" && cd "$new_dir" && mkdir nmap content exploits scripts && cp "$template_file" "$new_file" && ls -d
+ #   echo ""
+  #  echo "Directorio actual:"
+#    pwd 
+#}
 
 
 
@@ -61,4 +61,29 @@ append_functions_to_shell_configs(bash_functions)
   #  local new_dir="$base_dir/$1" 
    # mkdir -p "$new_dir" && echo "Nuevo directorio creado: $new_dir" && cd "$new_dir" && mkdir nmap content exploits scripts && ls --color=tty -d
 #}
+
+iniciar() {
+    local base_dir="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"
+    local new_dir="$base_dir/$1"
+    local template_file="/home/ass/.template.md"
+    local machine_name="$1"
+    local new_file="$new_dir/$machine_name.md"
+    
+    mkdir -p "$new_dir" && cd "$new_dir" && mkdir -p nmap content exploits scripts && cp "$template_file" "$machine_name.md" 
+    echo "$new_dir"
+    echo "export htf=$new_file"
+
+
+    nombre_maquina=$1
+
+    # Ejecutar la función mkt y obtener la ruta de htcon
+    htcon=$(mkt "$nombre_maquina")
+
+    echo ""
+    # Exportar la variable htcon
+    echo "export htcon=$new_file"
+    cd "nmap"
+}
+
+
 
