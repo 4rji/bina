@@ -359,6 +359,7 @@ spray               Una funcion de bash que prueba una contrasena en los usuario
 chiseld             Descarga chisel y lo compila
 chisel              El binario. curl https://i.jpillora.com/chisel\! | bash  
 privado             Instrucciones para dirtpipe, tienes que tener gcc
+4rjivuln            comprueba simple file inclusion
 
 #HTB shorcuts
 iniciar             Function crea carpetas, variables $ip $htcon $htf, se debe de ejecutar manualmente los echos
