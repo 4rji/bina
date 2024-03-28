@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Copiar el contenido del archivo privado.c al portapapeles
+xclip -selection clipboard -i /usr/bin/privado.c
+
+# Mensaje de instrucciones con colores
+echo -e "\e[1mInstrucciones para copiar y compilar el archivo privado.c en otra máquina:\e[0m"
+echo -e "\e[32m1. Crea un archivo en la otra máquina llamado privado.c\e[0m"
+echo -e "\e[32m2. Pega el contenido que se copió al portapapeles en el archivo privado.c\e[0m"
+echo -e "\e[32m3. Luego, ejecuta el siguiente comando para compilar el archivo:\e[0m"
+
+echo ""
+echo -e "\e[36mgcc privado.c -o privado\e[0m"
+echo "luego:"
+echo "./privado"
+
+echo ""
+echo "su root  y contras aaron"
+echo ""

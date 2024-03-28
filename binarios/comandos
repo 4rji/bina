@@ -54,4 +54,9 @@ find . -mindepth 2 -type f -name "*.py" -exec mv {} . \;
 
 hydra -L users -P passwords ssh://$ip
 
+#Para ver el payload de ftp en tshark
+#la captura es 0.pcap
+tshark -r 0.pcap -Y "ftp" -Tfields -e tcp.payload 2>/dev/null | xxd -ps -r
+
+
 '''

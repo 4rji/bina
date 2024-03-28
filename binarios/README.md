@@ -358,6 +358,7 @@ javainject          Python que injecta comandos java ascii por terminal, modific
 spray               Una funcion de bash que prueba una contrasena en los usuarios, necesita users archivo
 chiseld             Descarga chisel y lo compila
 chisel              El binario. curl https://i.jpillora.com/chisel\! | bash  
+privado             Instrucciones para dirtpipe, tienes que tener gcc
 
 #HTB shorcuts
 iniciar             Function crea carpetas, variables $ip $htcon $htf, se debe de ejecutar manualmente los echos
