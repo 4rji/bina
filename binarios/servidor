@@ -8,7 +8,7 @@ show_help_and_confirm() {
     echo ""
     echo -e "\033[1;32mEl comando que este script ejecuta es:\033[0m"
     echo ""
-    echo -e "\033[1;33msudo python3 -m http.server 8080\033[0m"
+    echo -e "\033[1;33msudo python3 -m http.server 8880\033[0m"
     echo ""
     echo ""
 echo -e "\033[1;34m_________________________________________________________\033[0m"
@@ -127,6 +127,7 @@ GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 NC='\033[0m' # Sin color
 
+
 # Inicializar variable para controlar si Apache fue iniciado
 apache_started=false
 
@@ -145,7 +146,7 @@ stop_apache() {
 
 
 # Capturar señales de interrupción y terminación para ejecutar stop_apache
-trap stop_apache SIGINT SIGTERM
+#trap stop_apache SIGINT SIGTERM
 
 echo ""
 echo -e "${BLUE}_________________________________________________________${NC}"
@@ -166,11 +167,33 @@ if command -v python3 > /dev/null; then
   python_http_installed=true
 fi
 
+
+
+
+
+
+
+
+# Variables para opciones predeterminadas
+default_answer="s"
+default_port="8880"
+port=$default_port
+
+# Directorio de destino para los archivos Apache
+destination_dir="/tmp/apache"
+
+# Archivo de lista de nombres de archivos
+file_list="/usr/bin/listaapache"
+
 # Pregunta combinada
 if $apache_installed || $httpd_installed || $python_http_installed; then
   echo -e "${GREEN}Se detectó Apache/httpd y/o Python en el sistema.${NC}"
-  read -n1 -p "¿Deseas iniciar Apache/httpd [s/n] " answer_combined
+  read -n1 -p "¿Deseas iniciar Apache/httpd [S/n] " answer_combined
   echo ""
+
+  # Establecer respuesta predeterminada si se presiona Enter
+  answer_combined="${answer_combined:-$default_answer}"
+
   if [[ $answer_combined =~ ^[Ss]$ ]]; then
     # Iniciar Apache/httpd si está disponible
     if $apache_installed; then
@@ -182,12 +205,34 @@ if $apache_installed || $httpd_installed || $python_http_installed; then
       apache_started=true
       echo -e "${GREEN}httpd iniciado.${NC}"
     fi
-    # Pregunta por el puerto donde iniciar el servidor HTTP de Python
-    read -p "Puerto para el servidor HTTP de Python: " port
+
+    # Verificar si se especificó un puerto diferente
+    read -p "¿Deseas utilizar un puerto diferente al predeterminado ($default_port)? [s/N] " custom_port
+    custom_port="${custom_port:-n}"
+
+    if [[ $custom_port =~ ^[Ss]$ ]]; then
+      # Solicitar el puerto personalizado
+      read -p "Por favor, introduce el puerto deseado: " port
+    fi
+
+    # Copiar archivos de la listaapache a /tmp/apache
+    if [ ! -d "$destination_dir" ]; then
+      mkdir -p "$destination_dir"
+    fi
+    while IFS= read -r filename; do
+      file_path=$(find /usr/bin/ -name "$filename" 2>/dev/null)
+      if [ -n "$file_path" ]; then
+        cp "$file_path" "$destination_dir"
+      else
+        echo -e "${RED}No se encontró el archivo $filename en /usr/bin.${NC}"
+      fi
+    done < "$file_list"
+    echo -e "${BLUE}Archivos de listaapache copiados a $destination_dir.${NC}"
+
+    # Iniciar el servidor HTTP de Python en /tmp/apache
     if [[ $port =~ ^[0-9]+$ ]]; then
-      # Obtener IP local
-      ip_address=$(hostname -I | cut -d' ' -f1)
-      echo -e "${BLUE}Iniciando servidor HTTP de Python en ${ip_address}:${port}${NC}"
+      cd "$destination_dir"
+      echo -e "${BLUE}Iniciando servidor HTTP de Python en la ruta $destination_dir:${port}${NC}"
       python3 -m http.server $port
     else
       echo -e "${RED}El puerto ingresado no es válido.${NC}"
@@ -196,4 +241,5 @@ if $apache_installed || $httpd_installed || $python_http_installed; then
 else
   echo -e "${RED}No se encontró un servicio para iniciar.${NC}"
 fi
+
 

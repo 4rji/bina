@@ -2,6 +2,7 @@
 
 # Copiar el contenido del archivo privado.c al portapapeles
 xclip -selection clipboard -i /usr/bin/privado.c
+echo "/usr/bin/privado.c"
 
 # Mensaje de instrucciones con colores
 echo -e "\e[1mInstrucciones para copiar y compilar el archivo privado.c en otra máquina:\e[0m"
