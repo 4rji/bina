@@ -38,7 +38,7 @@ run_nmap1() {
     if [[ $choice == [sS] ]]; then
         echo ""
         print_color 32 "Ejecutando nmap $IP"
-        nmap "$ip" > nmap
+        sudo nmap -T4 -p- --min-rate 1000 "$ip" > nmap
         echo ""
         print_color 32 "Resultado de nmap guardado en el archivo 'nmap'."
         echo ""
