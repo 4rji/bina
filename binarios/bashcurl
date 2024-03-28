@@ -20,7 +20,7 @@ echo "Archivo generado en $script_file"
 
 
 echo ""
-read -p "¿Iniciar servidor? s/n " response
+read -p "¿Iniciar servidor? [Enter=s /n] " response
 
 if [ "$response" = "s" ] || [ "$response" = "S" ] || [ -z "$response" ]; then
     servidor
