@@ -8,14 +8,14 @@ show_help_and_confirm() {
     echo ""
     echo -e "\033[1;32mEl comando que este script ejecuta es:\033[0m"
     echo ""
-    echo -e "\033[1;33msudo python3 -m http.server 8880\033[0m"
+    echo -e "\033[1;33mpython3 -m http.server 80\033[0m"
     echo ""
     echo ""
-echo -e "\033[1;34m_________________________________________________________\033[0m"
+    echo -e "\033[1;34m_________________________________________________________\033[0m"
     echo ""
 
     # Preguntar al usuario si desea continuar
-    read -n1 -p "Continuar el script?  Cancel [c]  " response
+    read -n1 -p "Continuar el script? Cancelar [c]  " response
     echo ""  # Añadir una nueva línea para la salida
 
     # Convertir la respuesta a minúsculas y evaluar
@@ -24,159 +24,8 @@ echo -e "\033[1;34m_________________________________________________________\033
     esac
 }
 
-# Verificar si se pasó el argumento -h
-if [ "$1" == "-h" ]; then
-    show_help_and_confirm
-fi
-# Lista de paquetes a instalar
-paquetes=("apache2" "httpd" "nginx" "lighttpd")
-
-# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
-paquete_instalado_apt() {  
-    dpkg -l "$1" &> /dev/null && return 0 || return 1
-}
-
-# Función para verificar si un paquete está instalado (CentOS/RHEL)
-paquete_instalado_yum() {
-    yum list installed "$1" &> /dev/null && return 0 || return 1
-}
-
-# Función para verificar si un paquete está instalado (Fedora)
-paquete_instalado_dnf() {
-    dnf list installed "$1" &> /dev/null && return 0 || return 1
-}
-
-# Función para verificar si un paquete está instalado (Arch Linux)
-paquete_instalado_pacman() {
-    pacman -Qi "$1" &> /dev/null && return 0 || return 1
-}
-
-# Detectar el sistema operativo
-if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    OS=$ID
-fi
-
-# Instalar el primer paquete disponible basado en el sistema operativo
-for paquete in "${paquetes[@]}"; do
-    instalado=false
-    case $OS in
-        "debian"|"ubuntu"|"kali")
-            if paquete_instalado_apt "$paquete"; then
-                echo "Paquete $paquete ya instalado."
-                break # Sale del bucle si el paquete ya está instalado
-            else
-                echo "Instalando el paquete $paquete..."
-                sudo apt-get install -y "$paquete" &> /dev/null && instalado=true
-            fi
-            ;;
-        "centos"|"rhel")
-            if paquete_instalado_yum "$paquete"; then
-                echo "Paquete $paquete ya está instalado."
-                break
-            else
-                echo "Instalando el paquete $paquete..."
-                sudo yum install -y "$paquete" &> /dev/null && instalado=true
-            fi
-            ;;
-        "fedora")
-            if paquete_instalado_dnf "$paquete"; then
-                echo "Paquete $paquete ya está instalado."
-                break
-            else
-                echo "Instalando el paquete $paquete..."
-                sudo dnf install -y "$paquete" &> /dev/null && instalado=true
-            fi
-            ;;
-        "arch")
-            if paquete_instalado_pacman "$paquete"; then
-                echo "Paquete $paquete ya está instalado."
-                break
-            else
-                echo "Instalando el paquete $paquete..."
-                sudo pacman -S --noconfirm "$paquete" &> /dev/null && instalado=true
-            fi
-            ;;
-        *)
-            echo "Sistema operativo no soportado."
-            break
-            ;;
-    esac
-    if [ "$instalado" = true ]; then
-        echo "Paquete $paquete instalado exitosamente."
-        break # Sale del bucle después de instalar el primer paquete disponible
-    fi
-done
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# Colores
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-NC='\033[0m' # Sin color
-
-
-# Inicializar variable para controlar si Apache fue iniciado
-apache_started=false
-
-# Función para detener Apache si está corriendo
-stop_apache() {
-  if $apache_started; then
-    echo -e "${RED}Deteniendo Apache/httpd...${NC}"
-    if command -v apache2 > /dev/null; then
-      sudo service apache2 stop
-    elif command -v httpd > /dev/null; then
-      sudo service httpd stop
-    fi
-    echo -e "${GREEN}Apache/httpd detenido.${NC}"
-  fi
-}
-
-
-# Capturar señales de interrupción y terminación para ejecutar stop_apache
-#trap stop_apache SIGINT SIGTERM
-
-echo ""
-echo -e "${BLUE}_________________________________________________________${NC}"
-echo ""
-
-# Detectar servicios instalados
-apache_installed=false
-httpd_installed=false
-python_http_installed=false
-
-if command -v apache2 > /dev/null; then
-  apache_installed=true
-elif command -v httpd > /dev/null; then
-  httpd_installed=true
-fi
-
-if command -v python3 > /dev/null; then
-  python_http_installed=true
-fi
-
-
-
-
-
-
-
-
 # Variables para opciones predeterminadas
-default_answer="s"
-default_port="8880"
+default_port="80"
 port=$default_port
 
 # Directorio de destino para los archivos Apache
@@ -186,60 +35,33 @@ destination_dir="/tmp/apache"
 file_list="/usr/bin/listaapache"
 
 # Pregunta combinada
-if $apache_installed || $httpd_installed || $python_http_installed; then
-  echo -e "${GREEN}Se detectó Apache/httpd y/o Python en el sistema.${NC}"
-  read -n1 -p "¿Deseas iniciar Apache/httpd [S/n] " answer_combined
-  echo ""
+read -p "¿Deseas utilizar un puerto diferente al predeterminado ($default_port)? [s/N] " custom_port
+custom_port="${custom_port:-n}"
 
-  # Establecer respuesta predeterminada si se presiona Enter
-  answer_combined="${answer_combined:-$default_answer}"
-
-  if [[ $answer_combined =~ ^[Ss]$ ]]; then
-    # Iniciar Apache/httpd si está disponible
-    if $apache_installed; then
-      sudo service apache2 start
-      apache_started=true
-      echo -e "${GREEN}Apache iniciado.${NC}"
-    elif $httpd_installed; then
-      sudo service httpd start
-      apache_started=true
-      echo -e "${GREEN}httpd iniciado.${NC}"
-    fi
-
-    # Verificar si se especificó un puerto diferente
-    read -p "¿Deseas utilizar un puerto diferente al predeterminado ($default_port)? [s/N] " custom_port
-    custom_port="${custom_port:-n}"
-
-    if [[ $custom_port =~ ^[Ss]$ ]]; then
-      # Solicitar el puerto personalizado
-      read -p "Por favor, introduce el puerto deseado: " port
-    fi
-
-    # Copiar archivos de la listaapache a /tmp/apache
-    if [ ! -d "$destination_dir" ]; then
-      mkdir -p "$destination_dir"
-    fi
-    while IFS= read -r filename; do
-      file_path=$(find /usr/bin/ -name "$filename" 2>/dev/null)
-      if [ -n "$file_path" ]; then
-        cp "$file_path" "$destination_dir"
-      else
-        echo -e "${RED}No se encontró el archivo $filename en /usr/bin.${NC}"
-      fi
-    done < "$file_list"
-    echo -e "${BLUE}Archivos de listaapache copiados a $destination_dir.${NC}"
-
-    # Iniciar el servidor HTTP de Python en /tmp/apache
-    if [[ $port =~ ^[0-9]+$ ]]; then
-      cd "$destination_dir"
-      echo -e "${BLUE}Iniciando servidor HTTP de Python en la ruta $destination_dir:${port}${NC}"
-      python3 -m http.server $port
-    else
-      echo -e "${RED}El puerto ingresado no es válido.${NC}"
-    fi
-  fi
-else
-  echo -e "${RED}No se encontró un servicio para iniciar.${NC}"
+if [[ $custom_port =~ ^[Ss]$ ]]; then
+    # Solicitar el puerto personalizado
+    read -p "Por favor, introduce el puerto deseado: " port
 fi
 
+# Copiar archivos de la listaapache a /tmp/apache
+if [ ! -d "$destination_dir" ]; then
+    mkdir -p "$destination_dir"
+fi
+while IFS= read -r filename; do
+    file_path=$(find /usr/bin/ -name "$filename" 2>/dev/null)
+    if [ -n "$file_path" ]; then
+        cp "$file_path" "$destination_dir"
+    else
+        echo -e "${RED}No se encontró el archivo $filename en /usr/bin.${NC}"
+    fi
+done < "$file_list"
+echo -e "${BLUE}Archivos de listaapache copiados a $destination_dir.${NC}"
 
+# Iniciar el servidor HTTP de Python en /tmp/apache
+if [[ $port =~ ^[0-9]+$ ]]; then
+    cd "$destination_dir"
+    echo -e "${BLUE}Iniciando servidor HTTP de Python en la ruta $destination_dir:$port${NC}"
+    python3 -m http.server $port
+else
+    echo -e "${RED}El puerto ingresado no es válido.${NC}"
+fi
