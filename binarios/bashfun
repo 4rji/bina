@@ -84,9 +84,16 @@ iniciar () {
   pwd
 }"""
 
-# Abre el archivo ~/.zshrc en modo de agregado y escribe el texto
-with open(os.path.expanduser('~/.zshrc'), 'a') as f:
-    f.write('\n\n# Added by Python script\n')  # Añade un comentario para marcar la adición
-    f.write(text)
 
-print("[*] Texto añadido a ~/.zshrc")
+
+# Obtener la ruta completa de los archivos .zshrc y .bashrc
+zshrc_path = os.path.expanduser('~/.zshrc')
+bashrc_path = os.path.expanduser('~/.bashrc')
+
+# Agregar el texto a ambos archivos
+for file_path in [zshrc_path, bashrc_path]:
+    with open(file_path, 'a') as f:
+        f.write('\n\n# Added by Python script\n')  # Añade un comentario para marcar la adición
+        f.write(text)
+
+print("[*] Texto añadido a ~/.zshrc y ~/.bashrc")
