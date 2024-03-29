@@ -1,0 +1,27 @@
+#!/bin/bash
+
+echo """
+
+
+
+Debo definir esta ruta para que funcione 
+htcon=ruta de content para guardar las contrasenas
+
+
+usua = agrega usuarios al archivo users en el folder content
+contra = agrega contrasenas al archivo passwords en content
+
+pas = copia lo que tenga en el clipboard al archivo nombre_maquina.md
+
+htf= ruta al archivo de donde se guardan los walk.md
+usualment es en folder de la maquina y el nombre de la maquina.md
+
+asd= copia la ip de target1 
+
+
+hacer un alias de 
+
+qwe = alias 'clipc && pas'
+para copiar el ultimo comando al archivo maquina.md"""
+
+echo ""

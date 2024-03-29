@@ -362,7 +362,11 @@ privado             Instrucciones para dirtpipe, tienes que tener gcc
 4rjivuln            comprueba simple file inclusion
 
 #HTB shorcuts
+htbinst
 iniciar             Function crea carpetas, variables $ip $htcon $htf, se debe de ejecutar manualmente los echos
+enum                guarda whichsys, nmap, se ejecuta desde nmap folder
 contra              Copia una contrasena del portapapales a content/passwords
 usua                Copia un usuario a /content/users
 bashcurl            Crea una bash 443 TCP para usar en curl, monta servidor, crea bash, curl localhost/bash | bash
+pas                 Guarda clipboad en maquina.md
+qwe                 Alias de clipc && pas
