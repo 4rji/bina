@@ -48,6 +48,7 @@ function fzf-lovely(){
 }
 
 
+
 iniciar () {
   local base_dir="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"
   local new_dir="$base_dir/$1"
@@ -68,16 +69,15 @@ iniciar () {
   echo "export ip="
 
   # Iniciar sesión tmux con la configuración deseada
-  tmux new-session -s "$1" -c "cd \"$new_dir\"" -d
+  tmux new-session -s "$1" -d
+  tmux send-keys -t "$1" "cd \"$new_dir\"" Enter
   tmux rename-window -t "$1" 0 "Principal"
-  tmux split-window -t "$1" -h -c "cd \"$new_dir/nmap\""
-  tmux select-pane -t "$1" 1
-  tmux split-window -t "$1" -v -c "cd \"$new_dir/content\""
+  tmux split-window -t "$1" -h -c "cd \"$new_dir/nmap\"; $SHELL"
+  tmux send-keys -t "$1" "cd \"$new_dir/nmap\"" Enter
+  tmux split-window -t "$1" -v -c "cd \"$new_dir/content\"; $SHELL"
+  tmux send-keys -t "$1" "cd \"$new_dir/content\"" Enter
   tmux select-pane -t "$1" 2
   tmux attach -t "$1"
-
-  # Cambiar al directorio "nmap"
-  #cd "nmap"
 
   # Mostrar mensaje final
   echo ""
