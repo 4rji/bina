@@ -13,7 +13,7 @@ if [ ! -e "$1" ]; then
 fi
 
 # Copiar el contenido del archivo al portapapeles
-cat "$1" | xclip -sel clip
+/usr/bin/cat "$1" | xclip -sel clip
 
 # Confirmar que se copió el contenido
 echo "El contenido del archivo '$1' se ha copiado al portapapeles."
