@@ -71,40 +71,8 @@ htp () {
   echo "export ip=\"$ip\""
 }
 
-iniciar () {
-  local base_dir="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"
-  local new_dir="$base_dir/$1"
-  local template_file="/home/ass/.template.md"
-  local machine_name="$1"
-  local new_file="$new_dir/$machine_name.md"
 
-  # Crear directorio y copiar plantilla
-  mkdir -p "$new_dir" && cd "$new_dir" && mkdir -p nmap content exploits scripts && cp "$template_file" "$machine_name.md"
-
-  # Mostrar información y variables
-  echo "Definir las siguientes variables"
-  echo ""
-  echo ""
-  echo "export htf=$new_file"
-  nombre_maquina=$1
-  echo "export htcon=$new_dir"
-  echo "export ip="
-
-  # Iniciar sesión tmux con la configuración deseada
-  tmux new-session -s "$1" -d
-  tmux send-keys -t "$1" "cd \"$new_dir\"" Enter
-  tmux rename-window -t "$1" 0 "Principal"
-  tmux split-window -t "$1" -h -c "cd \"$new_dir/nmap\"; $SHELL"
-  tmux send-keys -t "$1" "cd \"$new_dir/nmap\"" Enter
-  tmux split-window -t "$1" -v -c "cd \"$new_dir/content\"; $SHELL"
-  tmux send-keys -t "$1" "cd \"$new_dir/content\"" Enter
-  tmux select-pane -t "$1" 2
-  tmux attach -t "$1"
-
-  # Mostrar mensaje final
-  echo ""
-  pwd
-}"""
+"""
 
 
 
