@@ -1,6 +1,5 @@
 #!/bin/bash
 
-#echo -e "\e[34m_________________________________________________________\e[0m\n"
 
 # Colores para mejorar la visualización
 amarillo='\033[1;33m'
