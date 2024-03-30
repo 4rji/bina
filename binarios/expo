@@ -1,71 +1,54 @@
 #!/bin/bash
 
-echo ""
-
-
-# Función para mostrar el mensaje de ayuda y preguntar si desea continuar
-show_help_and_confirm() {
-    echo
-    echo "El comando que este script ejecuta es:"
-    echo ""
-    echo "1) - sudo nmap 10.10.10.3 -p- --open -sS --min-rate 5000 -v -n -oG allPorts "
-    echo "2) - sudo nmap 10.10.10.3 -p- --open -sS --min-rate 5000 -v -n -Pn -oG allPorts"
-    echo
-    read -n1 -p "Presione Enter para continuar o 'c' para salir. " response
-
-    echo "" # Agregar espacio después de la entrada
-    echo "_________________________________________________________"
-    echo ""
-
-    # Convertir la respuesta a minúsculas y verificar si se presionó 'c'
-    response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
-    if [ "$response" == "c" ]; then
-        echo "Saliendo del script."
-        exit 0
-    fi
+# Función para imprimir en color
+print_color() {
+    local color_code=$1
+    shift
+    echo -e "\e[1;${color_code}m$@\e[0m"
 }
 
-# Verificar si se pasó el argumento -h
-if [ "$1" == "-h" ]; then
-    show_help_and_confirm
-fi
+# Función para realizar el ping a una IP
+ping_ip() {
+    local ip=$1
+    echo ""
+    print_color 36 "Realizando ping a la IP: $ip"
+    echo ""
+    ping -c 1 "$ip"
+}
 
-# Verificar si se pasó la IP como argumento
-if [ -z "$1" ]; then
-    echo "Debe especificar la IP como argumento del script."
+# Función para determinar el sistema operativo
+determine_os() {
+    local ip=$1
+    local os_type
+    os_type=$(timeout 1s whichsys "$ip")  # Asignar la salida de whichsys a la variable
+    echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+    print_color 31 "$os_type"
+    echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+    echo "$os_type" > OS-tipo  # Guardar la salida en el archivo OS-tipo
+}
+
+# Verificar si se proporcionó un argumento
+if [ $# -eq 0 ]; then
+    echo "Por favor, proporciona un argumento para el script."
     exit 1
 fi
 
-echo ""
-echo "Selecciona el tipo de escaner que deseas usar:"
-echo ""
-echo "1. Ejecutar escaneo sin Pn "
-echo "2. Ejecutar escaneo con Pn "
-echo ""
-echo "_________________________________________________________"
-echo "" # Agregar espacio después de la entrada
+# Asignar el argumento a una variable
+ip="$1"
 
+# Llamar a las funciones
+ping_ip "$ip"
+determine_os "$ip"
 
-echo "El comando a ejecutar es:         sudo nmap "$1" -p- --open -sS --min-rate 5000 -v -n -oG allPorts "
-read -n1 -p "Elige (1 o 2): " choice
+# Luego del ping y la determinación del sistema operativo, ejecutar expo1 y expo2
+expo1 "$ip"
 
-echo "" # Agregar espacio después de la entrada
-echo "_________________________________________________________"
-echo ""
+# Verificar si expo1 se ejecutó correctamente
+if [ $? -ne 0 ]; then
+    echo "El script expo1 no se ejecutó correctamente. Saliendo del script."
+    exit 1
+fi
 
-case $choice in
-    1)
-        echo "Ejecutando escaneo sin Pn..."
-        #nmap -p- --open -T5 -v -n "$1" -oG allPorts
-        sudo nmap "$1" -p- --open -sS --min-rate 5000 -v -n -oG allPorts
-        ;;
-    2)
-        echo "Ejecutando escaneo con Pn..."
-        #nmap -p- --open -T5 -v -n -Pn "$1" -oG allPorts
-        sudo nmap "$1" -p- --open -sS --min-rate 5000 -v -n -Pn -oG allPorts
-
-        ;;
-    *)
-        echo "Opción no válida. Por favor, elige 1 o 2."
-        ;;
-esac
+expo2
