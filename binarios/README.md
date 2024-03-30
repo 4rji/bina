@@ -373,3 +373,4 @@ pas                 Guarda clipboad en maquina.md
 qwe                 Alias de clipc && pas
 goo                 Abre google chrome con la ip o pagina despues, es una bash function
 listaa              Agrega un nuevo nombre a la lista apache para el servidor apache
+hostht              Agrega el host para paginas, toma la $ip de zsh y solo pide el host.htb por ejemplo
