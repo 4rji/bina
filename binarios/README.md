@@ -360,6 +360,7 @@ chiseld             Descarga chisel y lo compila
 chisel              El binario. curl https://i.jpillora.com/chisel\! | bash  
 privado             Instrucciones para dirtpipe, tienes que tener gcc
 4rjivuln            comprueba simple file inclusion
+pspy64              procesos servicios newprocess pspy 
 
 #HTB shorcuts
 htbinst
@@ -373,4 +374,5 @@ pas                 Guarda clipboad en maquina.md
 qwe                 Alias de clipc && pas
 goo                 Abre google chrome con la ip o pagina despues, es una bash function
 listaa              Agrega un nuevo nombre a la lista apache para el servidor apache
-hostht              Agrega el host para paginas, toma la $ip de zsh y solo pide el host.htb por ejemplo
+hosthtb             Agrega el host para paginas, toma la $ip de zsh y solo pide el host.htb por ejemplo
+galletas            Recibe cookies de session, php js xss html injection phpsessid
