@@ -63,7 +63,7 @@ run_nmap() {
         echo ""
         print_color 32 "Resultado de nmap guardado en el archivo 'nmap_CV'."
         echo ""
-        cat nmap1_CV
+        cat nmap_CV
     else
         echo ""
         print_color 31 "No se ejecutó nmap."

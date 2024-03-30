@@ -47,6 +47,16 @@ function fzf-lovely(){
         fi
 }
 
+
+
+
+goo() {
+    google-chrome-stable "$1" & disown
+}
+
+
+
+
 htp () {
   # Obtener el directorio actual
   pwd=$(pwd)
