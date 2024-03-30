@@ -342,7 +342,7 @@ mapa                Busca un proceso despues del script y lo mata ps aux
 ippsec              Script de ippsec de ssh, aun no lo pruebo
 pythonroot          Usa getcap para tener una consola interactiva en python
 getcapa             Da permisos de getcap a python y corre pythonroot
-getcapv             Verifica permisos de getcap, setgid para escalar priv
+getcap              Verifica permisos de getcap, setgid para escalar priv
 scados              Un ataque ddos con scapy, pruebas exitosas, hpyng3 manda mas.
 dnscat2             Dns tunnel, aun no probado/ https://github.com/iagox86/dnscat2.git
 recon               Hace un reconocimiento con autorecon  --dirbuster.tool gobuster
