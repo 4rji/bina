@@ -35,7 +35,7 @@ echo "_________________________________________________________"
 echo ""
 
 # Pregunta al usuario si desea ejecutar expo para una IP específica
-read -n1 -p "¿Ejecutar Nmap a una IP? [S/n] " choice
+read -n1 -p "¿Ejecutar Nmap a una IP? [s/n] " choice
 echo ""
 echo ""
 
@@ -43,7 +43,7 @@ if [[ $choice =~ ^[Ss]$ ]]; then
     read -p "Cual numero de la lista: " selected_number
     echo ""
     selected_ip=$(sed "${selected_number}q;d" $tempfile)
-    read -n1 -p "¿Ejetar expo nmap a $selected_ip? [S/n]: " execute_expo
+    read -n1 -p "¿Ejetar expo nmap a $selected_ip? [s/n]: " execute_expo
 
     if [[ $execute_expo =~ ^[Ss]$ ]]; then
         expo $selected_ip
