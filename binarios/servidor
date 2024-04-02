@@ -7,7 +7,7 @@ echo -e "\033[1;34m_________________________________________________________\033
 #Descomprimir winpeas, linepas y en /tmp/apache
 read -p "Ejecutar linpeas? [s/Enter]? " opcion
 
-if ["opcion" == "s"]; then
+if ["$opcion" == "s"]; then
   linpi
 else
   echo ""
