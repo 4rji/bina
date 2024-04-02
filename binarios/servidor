@@ -73,6 +73,8 @@ echo -e "${BLUE}Archivos de listaapache copiados a $destination_dir.${NC}"
 if [[ $port =~ ^[0-9]+$ ]]; then
     cd "$destination_dir"
     echo -e "${BLUE}Iniciando servidor HTTP de Python en la ruta $destination_dir:$port${NC}"
+    ip -4 addr show | awk '/inet/ && !/127.0.0.1/ {split($2, a, "/"); printf "\t\t\t\t%s: %s\n", $NF, a[1]}'
+    echo ""
     python3 -m http.server $port
 else
     echo -e "${RED}El puerto ingresado no es válido.${NC}"
