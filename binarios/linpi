@@ -1,0 +1,17 @@
+#!/bin/bash
+
+
+if [ -d "tmp/apache" ]; then
+  cd /tmp/apache
+else 
+  mkdir -p /tmp/apache
+  cd /tmp/apache
+fi
+  
+secreto /usr/bin/winPEASx86.exe.enc
+
+secreto /usr/bin/winPEASx64.exe.enc
+
+secreto /usr/bin/linpeas.sh.enc
+
+
