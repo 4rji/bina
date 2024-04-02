@@ -49,3 +49,5 @@ sed -i '/export ip=/d' ~/.zshrc
 # Notificar al usuario
 echo ""
 echo "Las variables han sido definidas y agregadas al archivo ~/.zshrc"
+echo "REINICIAR la shell, cerrarla"
+echo ""
