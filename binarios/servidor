@@ -2,7 +2,19 @@
 
 echo ""
 echo -e "\033[1;34m_________________________________________________________\033[0m"
-echo ""
+#echo ""
+
+#Descomprimir winpeas, linepas y en /tmp/apache
+read -p "Ejecutar linpeas? [s/Enter]? " opcion
+
+if ["opcion" == "s"]; then
+  linpi
+else
+  echo ""
+fi
+
+
+
 # Función para mostrar el mensaje de ayuda y preguntar si desea continuar
 show_help_and_confirm() {
     echo ""
