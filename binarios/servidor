@@ -4,16 +4,12 @@ echo ""
 echo -e "\033[1;34m_________________________________________________________\033[0m"
 #echo ""
 
-#Descomprimir winpeas, linepas y en /tmp/apache
-read -p "Ejecutar linpeas? [s/Enter]? " opcion
-
-if [ "$opcion" == "s" ]; then
-  linpi
-else
-  echo ""
-fi
-
-
+#descomprimir linpeas porque github no me deja subirlo sin encriptar
+linpi
+#cambiando permisos a chmod +x 
+chmod +x  /tmp/apache/linpeas.sh
+chmod +x  /tmp/apache/winPEASx64.exe
+chmod +x  /tmp/apache/winPEASx86.exe
 
 # Función para mostrar el mensaje de ayuda y preguntar si desea continuar
 show_help_and_confirm() {
@@ -59,23 +55,33 @@ fi
 if [ ! -d "$destination_dir" ]; then
     mkdir -p "$destination_dir"
 fi
+
 while IFS= read -r filename; do
     file_path=$(find /usr/bin/ -name "$filename" 2>/dev/null)
     if [ -n "$file_path" ]; then
         cp "$file_path" "$destination_dir"
     else
-        echo -e "${RED}No se encontró el archivo $filename en /usr/bin.${NC}"
+        
+        echo -e "\033[0;31mNo se encontro el archivo $filename en /usr/bin\033[0m"
     fi
 done < "$file_list"
-echo -e "${BLUE}Archivos de listaapache copiados a $destination_dir.${NC}"
+
+echo ""
+echo -e "\033[0;34mArchivos copiados a $destination_dir\033[0m"
+ls $destination_dir
+echo ""
+
 
 # Iniciar el servidor HTTP de Python en /tmp/apache
 if [[ $port =~ ^[0-9]+$ ]]; then
     cd "$destination_dir"
+    echo ""
     echo -e "${BLUE}Iniciando servidor HTTP de Python en la ruta $destination_dir:$port${NC}"
-    ip -4 addr show | awk '/inet/ && !/127.0.0.1/ {split($2, a, "/"); printf "\t\t\t\t%s: %s\n", $NF, a[1]}'
+#    ip -4 addr show | awk '/inet/ && !/127.0.0.1/ {split($2, a, "/"); printf "\t\t\t\t%s: %s\n", $NF, a[1]}'
+    ip -4 addr show | awk '/inet/ && !/127.0.0.1/ {split($2, a, "/"); printf "\033[1;31m\t\t\t\t%s: %s\n\033[0m", $NF, a[1]}'
+
     echo ""
     python3 -m http.server $port
 else
-    echo -e "${RED}El puerto ingresado no es válido.${NC}"
+    echo -e "${RED}El puerto ingresado no es valido.${NC}"
 fi
