@@ -1,17 +1,53 @@
-#!/bin/bash
+#!/usr/bin/env python3
+import os
+import sys
+from Cryptodome.Cipher import AES
+from Cryptodome.Protocol.KDF import PBKDF2
+from Cryptodome.Random import get_random_bytes
 
+# Función para derivar la clave
+def derivar_clave(frase):
+    salt = get_random_bytes(16)  
+    clave = PBKDF2(frase.encode(), salt, dkLen=32)  
+    return clave, salt
 
-if [ -d "tmp/apache" ]; then
-  cd /tmp/apache
-else 
-  mkdir -p /tmp/apache
-  cd /tmp/apache
-fi
-  
-secreto /usr/bin/winPEASx86.exe.enc
+# Función para desencriptar el archivo
+def desencriptar(archivo, frase):
+    try:
+        file_in = open(archivo, 'rb')
+        salt = file_in.read(16)  
+        nonce = file_in.read(16)
+        tag = file_in.read(16)
+        ciphertext = file_in.read()
 
-secreto /usr/bin/winPEASx64.exe.enc
+        clave = PBKDF2(frase.encode(), salt, dkLen=32)
+        cipher_aes = AES.new(clave, AES.MODE_EAX, nonce)
+        data = cipher_aes.decrypt_and_verify(ciphertext, tag)
 
-secreto /usr/bin/linpeas.sh.enc
+        # Verificar si el directorio /tmp/apache existe, si no existe, crearlo
+        ruta_directorio = "/tmp/apache"
+        if not os.path.exists(ruta_directorio):
+            os.makedirs(ruta_directorio)
 
+        nombre_archivo = os.path.basename(archivo).replace(".enc", "")
+        ruta_salida = os.path.join(ruta_directorio, nombre_archivo)
 
+        with open(ruta_salida, 'wb') as file_out:
+            file_out.write(data)
+
+    except Exception as e:
+        print(f"Error al desencriptar el archivo: {e}")
+
+# Archivos a desencriptar
+archivos = [
+    "/usr/bin/winPEASx86.exe.enc",
+    "/usr/bin/winPEASx64.exe.enc",
+    "/usr/bin/linpeas.sh.enc"
+]
+
+# Frase secreta
+frase = "ass"
+
+# Desencriptar cada archivo
+for archivo in archivos:
+    desencriptar(archivo, frase)
