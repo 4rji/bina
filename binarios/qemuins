@@ -34,8 +34,12 @@ echo "sudo chown -R nombredeusuario /ruta/a/carpeta"
 
 #arreglar clipboard en bspqw escritorio environment
 echo "fix clipboard"
-sudo apt install spide-vdagent
+sudo apt install spice-vdagent
 sudo systemctl start spice-vdagent 
 sudo systemctl start spice-vdagent 
-sudo systemctl status spice-vdagent 
+
+sleep 3
 spice-vdagent
+
+
+sudo systemctl status spice-vdagent
