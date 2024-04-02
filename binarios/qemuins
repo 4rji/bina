@@ -30,3 +30,12 @@ echo ""
 echo "Para arreglar los permisos en carpetas ejecutar"
 echo ""
 echo "sudo chown -R nombredeusuario /ruta/a/carpeta"
+
+
+#arreglar clipboard en bspqw escritorio environment
+echo "fix clipboard"
+sudo apt install spide-vdagent
+sudo systemctl start spice-vdagent 
+sudo systemctl start spice-vdagent 
+sudo systemctl status spice-vdagent 
+spice-vdagent

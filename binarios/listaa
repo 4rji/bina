@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Definir la función
+agregar_a_lista() {
+    # Verificar si se proporcionó un argumento
+    if [ $# -eq 0 ]; then
+        echo "Por favor, proporciona algo para agregar a la lista."
+        return 1
+    fi
+    
+    # Agregar el argumento a la lista
+    echo "$1" >> /home/nat/Documents/GitHub/bina/binarios/listaapache
+    echo "Se ha agregado \"$1\" a la lista."
+}
+
+# Verificar si se proporcionó un argumento al script
+if [ $# -eq 0 ]; then
+    echo "Uso: $0 <algo para agregar>"
+    exit 1
+fi
+
+# Llamar a la función con el argumento proporcionado
+agregar_a_lista "$1"

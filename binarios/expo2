@@ -30,3 +30,6 @@ else
     echo "El archivo $file_path no existe."
 fi
 
+
+
+expo3

@@ -1,9 +1,15 @@
-#!/bin/zsh
+#!/bin/bash
 
-echo "¿Qué estás buscando en Launchpad en Google?"
-read search_query
+# Verificar si se proporcionó un argumento
+if [ $# -eq 0 ]; then
+    echo "Por favor, proporciona palabras clave para la búsqueda como argumento al script."
+    exit 1
+fi
 
+# Construir la URL de búsqueda utilizando las palabras clave proporcionadas
+search_query="$@"
 search_query_url=$(echo "$search_query" | sed 's/ /%20/g')
 search_url="https://www.google.com/search?q=launchpad%20$search_query_url"
 
-firefox "$search_url"
+# Abrir la URL en Google Chrome
+google-chrome-stable "$search_url" &

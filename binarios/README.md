@@ -197,7 +197,7 @@ mired               copia eth0 al portapapeles y muestra todas las ips del equip
 miwl                copia wlan0 al portapapeles  
 chdns	            Cambia el DNS comentando lineas y tambien quita banderas chattr +i PONE / -i QUITA 
 ppt                 Checa lsof netstat nmap y puertos que estan escuchando en el sistema
-newprocess          Encuentra nuevos procesos en pantalla para ver que se ejecuta
+newprocess          Servicios - encuentra nuevos procesos en pantalla para ver que se ejecuta 
 
 #Ansible
 ansiconf            Crea host para ansible con alias y crea el archivo ansible_hosts
@@ -342,7 +342,7 @@ mapa                Busca un proceso despues del script y lo mata ps aux
 ippsec              Script de ippsec de ssh, aun no lo pruebo
 pythonroot          Usa getcap para tener una consola interactiva en python
 getcapa             Da permisos de getcap a python y corre pythonroot
-getcapv             Verifica permisos de getcap, setgid para escalar priv
+capas               Verifica permisos de getcap, setgid para escalar priv
 scados              Un ataque ddos con scapy, pruebas exitosas, hpyng3 manda mas.
 dnscat2             Dns tunnel, aun no probado/ https://github.com/iagox86/dnscat2.git
 recon               Hace un reconocimiento con autorecon  --dirbuster.tool gobuster
@@ -360,9 +360,19 @@ chiseld             Descarga chisel y lo compila
 chisel              El binario. curl https://i.jpillora.com/chisel\! | bash  
 privado             Instrucciones para dirtpipe, tienes que tener gcc
 4rjivuln            comprueba simple file inclusion
+pspy64              procesos servicios newprocess pspy 
 
 #HTB shorcuts
+htbinst
 iniciar             Function crea carpetas, variables $ip $htcon $htf, se debe de ejecutar manualmente los echos
+htp                 Genera las import $ variables
+enum                guarda whichsys, nmap, se ejecuta desde nmap folder
 contra              Copia una contrasena del portapapales a content/passwords
 usua                Copia un usuario a /content/users
 bashcurl            Crea una bash 443 TCP para usar en curl, monta servidor, crea bash, curl localhost/bash | bash
+pas                 Guarda clipboad en maquina.md
+qwe                 Alias de clipc && pas
+goo                 Abre google chrome con la ip o pagina despues, es una bash function
+listaa              Agrega un nuevo nombre a la lista apache para el servidor apache
+hosthtb             Agrega el host para paginas, toma la $ip de zsh y solo pide el host.htb por ejemplo
+galletas            Recibe cookies de session, php js xss html injection phpsessid

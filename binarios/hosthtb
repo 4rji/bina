@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Verificar si se proporcionó un argumento
+if [ $# -eq 0 ]; then
+    echo "Por favor, proporciona el nombre del host como argumento al script."
+    exit 1
+fi
+
+# Obtener la IP de la zshrc
+if [ -z "$ip" ]; then
+    echo "No se encontró ninguna IP definida en el archivo .zshrc."
+    exit 1
+fi
+
+# Tomar el nombre del host del primer argumento
+host_name="$1"
+
+# Agregar la entrada al archivo /etc/hosts usando sudo
+echo "$ip $host_name" | sudo tee -a /etc/hosts > /dev/null
+
+# Comprobar si la entrada se agregó correctamente
+if [ $? -eq 0 ]; then
+    echo "Se ha agregado \"$ip $host_name\" al archivo /etc/hosts."
+else
+    echo "Hubo un error al agregar la entrada al archivo /etc/hosts."
+    exit 1
+fi
