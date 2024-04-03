@@ -91,9 +91,9 @@ preguntar_y_ejecutar_nmap() {
     echo "_________________________________________________________"
     echo ""
     echo -e "\033[34mComando a ejecutar: sudo nmap -T4 -p- --min-rate 1000 localhost\033[0m"
-    read -n1 -p $'\033[33m¿Ejecutar nmap localhost? [Enter/c]: \033[0m' respuesta
+    read -n1 -p $'\033[33m¿Ejecutar nmap -T4 -p- --min-rate 1000 -D RND:20 localhost? [Enter/c]: \033[0m' respuesta
     if [[ $respuesta != "c" ]]; then
-        sudo nmap -T4 -p- --min-rate 1000 localhost
+        sudo nmap -T4 -p- --min-rate 1000 -D RND:20 localhost
     fi
 }
 
