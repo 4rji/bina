@@ -1,5 +1,4 @@
 Github              Binarios
-
 #HTB directorio
 markup              XML External Entities (XXE or XEE) 
 

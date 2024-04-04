@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# Function to display colored messages
+print_message() {
+    local color=$1
+    local message=$2
+    echo -e "\033[${color}${message}\033[0m"
+}
+
+# Function to display spaced lines
+print_spacer() {
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+}
+
+# Ask to download ngrok
+print_message "0;34m" "Do you want to download ngrok? [y/n]"
+read -r download_choice
+
+if [ "$download_choice" == "y" ]; then
+    print_spacer
+    print_message "0;32m" "Downloading ngrok..."
+    sudo docker pull ngrok/ngrok
+fi
+
+# Ask to use HTTP on port 80
+print_message "0;33m" "Do you want to use HTTP on port 80? [y/n]"
+read -r http_choice
+
+if [ "$http_choice" == "y" ]; then
+    print_spacer
+    print_message "0;32m" "Running ngrok for HTTP on port 80..."
+    sudo docker run --net=host -it -e NGROK_AUTHTOKEN= ngrok/ngrok:latest http 80
+fi
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+echo "To access SSH, use:"
+echo "ssh asd@0.tcp.ngrok.io -p 17768 -D 1080"
+echo ""
+# Ask to use SSH on port 22
+print_message "0;33m" "Do you want to run SSH on port 22? [y/n]"
+read -r ssh_choice
+
+if [ "$ssh_choice" == "y" ]; then
+    print_spacer
+    print_message "0;32m" "Running ngrok for SSH on port 22..."
+    sudo docker run --net=host -it -e NGROK_AUTHTOKEN= ngrok/ngrok:latest tcp 22
+    
+fi
+
+print_spacer
+
