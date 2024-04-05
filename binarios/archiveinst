@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Colores ANSI
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+# Instalación de paquetes necesarios
+echo -e "${YELLOW}Instalando paquetes necesarios...${NC}"
+sudo apt install -y python3-full nodejs npm python3-pip
+
+# Creación de entorno virtual
+echo -e "${YELLOW}Creando entorno virtual...${NC}"
+python3 -m venv archivebox_env
+source archivebox_env/bin/activate
+
+# Instalación de archivebox
+echo -e "${YELLOW}Instalando ArchiveBox...${NC}"
+pip install archivebox
+
+# Instrucciones adicionales
+echo -e "${GREEN}La instalación ha finalizado.${NC}"
+echo -e "${GREEN}Para inicializar ArchiveBox, ejecuta:${NC}"
+echo -e "${YELLOW}archivebox setup --init${NC}"
+echo -e "${GREEN}Si ves el mensaje:${NC}"
+echo -e "${YELLOW}[X] This folder appears to already have files in it, but no index.sqlite3 present.${NC}"
+echo -e "${YELLOW}mkdir library && cd library${NC}"
+echo ""
+echo -e "${YELLOW}Después, vuelve a iniciar 'archivebox setup --init'${NC}"
+echo -e "${GREEN}Para iniciar el servidor, ejecuta:${NC}"
+echo -e "${YELLOW}archivebox server 0.0.0.0:8000${NC}"
+echo ""
+echo "add this to the file ArchiveBox.conf under Server_config]"
+echo "SAVE_ARCHIVE_DOT_ORG=False"

@@ -376,3 +376,4 @@ listaa              Agrega un nuevo nombre a la lista apache para el servidor ap
 hosthtb             Agrega el host para paginas, toma la $ip de zsh y solo pide el host.htb por ejemplo
 galletas            Recibe cookies de session, php js xss html injection phpsessid
 ngrokinst           Instala ngrok para dockers, tomar el token de la cuenta, falta token
+archiveinst         Archivebox para guardar paginas, instaladaro. alias archive para iniciar server tmux
