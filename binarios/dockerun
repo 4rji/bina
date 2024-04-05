@@ -51,6 +51,8 @@ elif [[ $choice == 3 ]]; then
     sudo docker rmi -f $image_id_to_delete
 
     # Preguntar al usuario si quiere ejecutar docker system prune -a
+    echo "IMAGEN ELIMINADA"
+    echo ""
     echo "¿Quieres eliminar todos los contenedores, redes y imágenes no utilizadas? [y/N]"
     read prune_choice
 
