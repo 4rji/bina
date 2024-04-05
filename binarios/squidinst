@@ -1,5 +1,34 @@
 #!/bin/bash
 
+echo ""
+echo -e "\033[1;34m_________________________________________________________\033[0m"
+echo ""
+# Función para mostrar el mensaje de ayuda y preguntar si desea continuar
+show_help_and_confirm() {
+    echo ""
+    echo -e "\033[1;32mEl comando que este script ejecuta es:\033[0m"
+    echo ""
+    echo -e "\033[1;33mdocker run -d --name squid-container -e TZ=UTC -p 3128:3128 ubuntu/squid\033[0m"
+    echo ""
+    echo ""
+echo -e "\033[1;34m_________________________________________________________\033[0m"
+    echo ""
+
+    # Preguntar al usuario si desea continuar
+    read -n1 -p "Continuar el script?  Cancel [c]  " response
+    echo ""  # Añadir una nueva línea para la salida
+
+    # Convertir la respuesta a minúsculas y evaluar
+    case "$response" in
+    *) echo "Continuando..." ;;
+    esac
+}
+
+# Verificar si se pasó el argumento -h
+if [ "$1" == "-h" ]; then
+    show_help_and_confirm
+fi
+
 # Preguntar al usuario dónde instalar squid
 echo ""
 echo -e "\033[33m¿Dónde desea instalar squid?\033[0m"
@@ -151,3 +180,8 @@ elif [ $choice -eq 3 ]; then
 else
     echo "Opción no válida. Por favor, seleccione 1, 2 o 3."
 fi
+
+
+echo ""
+echo "docker run -d --name squid-container -e TZ=UTC -p 3128:3128 ubuntu/squid"
+echo ""
