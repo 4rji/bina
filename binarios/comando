@@ -34,9 +34,9 @@ try:
             # Insertar el bloque de código después de la línea modificada o comentada
             lineas[i + 1:i + 1] = [
                 '\n',
-                'echo ""\n',
-                'echo -e "\\033[1;34m_________________________________________________________\\033[0m"\n',
-                'echo ""\n',
+                #'echo ""\n',
+                #'echo -e "\\033[1;34m_________________________________________________________\\033[0m"\n',
+                #'echo ""\n',
                 '# Función para mostrar el mensaje de ayuda y preguntar si desea continuar\n',
                 'show_help_and_confirm() {\n',
                 '    echo ""\n',
@@ -51,21 +51,12 @@ try:
                 '    echo ""\n',
                 'echo -e "\\033[1;34m_________________________________________________________\\033[0m"\n',
             
-                '    echo ""\n',
+                '    exit',
 
                 #'    echo -e "\\033[1;35mPresione Enter para ejecutar, otra tecla \'c\' para salir.\\033[0m"\n',
 
 #                '    echo -e "\\033[1;35mPresione Enter para ejecutar, otra tecla \\'c\\' para salir.\\033[0m"\n',
                 '\n',
-                '    # Preguntar al usuario si desea continuar\n',
-                '    read -n1 -p "Continuar el script?  Cancel [c]  " response\n',
-                '    echo ""  # Añadir una nueva línea para la salida\n',
-                '\n',
-                '    # Convertir la respuesta a minúsculas y evaluar\n',
-                '    case "$response" in\n',
-                #'    c|C) echo "Saliendo del script." ; exit 0 ;;\n',
-                '    *) echo "Continuando..." ;;\n',
-                '    esac\n',
                 '}\n',
                 '\n',
                 '# Verificar si se pasó el argumento -h\n',
