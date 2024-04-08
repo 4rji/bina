@@ -162,7 +162,7 @@ findme              Usa el comando find para buscar archivos
 x11uso              Instrucciones para x11
 ebanner             cambia el banner de ssh antes de logearse hola cacheton y se edita con bannere                                      
 bannerssh           Edita el banner de inicio de session de ssh, cuando se loguea
-sshcom              Copia y ejecuta un script en una maquina ssh remota
+sshcom              Copia y ejecuta un script en una maquina ssh remota en /tmp
 sshmoni             sshmoni loop para correr el sshmoni while loop
 lsofmoni            Lo mismo que ssh pero escanea conexiones con lsof
 mibebe              escanea las dos sshmoni lsofmoni
