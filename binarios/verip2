@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Lista de rutas sensibles a verificar
+sensitive_paths=("/etc/passwd" "/etc/shadow" "/etc/sudoers" "/etc/ssh/sshd_config" "/etc/cron.deny" "/etc/at.deny")
+
+# Función para verificar los permisos de una ruta
+check_permissions() {
+    local path=$1
+    local correct_permissions=$2
+
+    if [ -e "$path" ]; then
+        current_permissions=$(stat -c "%a" "$path")
+
+        if [ "$current_permissions" -ne "$correct_permissions" ]; then
+            echo "ADVERTENCIA: Los permisos de la ruta $path no están configurados correctamente."
+            echo "Permisos actuales: $current_permissions"
+            echo "Permisos correctos: $correct_permissions"
+            echo ""
+        else
+            echo "Los permisos de la ruta $path están configurados correctamente."
+        fi
+    else
+        echo "La ruta $path no existe."
+    fi
+}
+
+# Verificar los permisos para cada ruta sensible
+for path in "${sensitive_paths[@]}"; do
+    case "$path" in
+        "/etc/passwd" | "/etc/cron.deny" | "/etc/at.deny")
+            check_permissions "$path" "644" ;;
+        "/etc/shadow" | "/etc/sudoers" | "/etc/ssh/sshd_config")
+            check_permissions "$path" "600" ;;
+        *)
+            echo "No se ha configurado una verificación de permisos para la ruta $path."
+    esac
+done

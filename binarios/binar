@@ -3,5 +3,5 @@
 archivo=$1
 
 sudo cp $archivo /usr/bin/
-mv $archivo ~/Documents/GitHub/4rji/binarios/
+mv $archivo ~/Documents/GitHub/bina/binarios/
 
