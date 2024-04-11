@@ -259,7 +259,7 @@ protoninst          Instala protonvpn en kali o debian
 prandom             Cambia de VPN cada 5 min 
 fixprotonvpns       Baja los archivos de proton.
 grafanainst         Instala grafana y prometheus 
-instpalabras        El diccionario para crear palabras o al revez nwiz se llama
+instpalabras        El diccionario para crear palabras o al revez nwiz se llama, cewl para website diccionario
 tailscaleinst       El que mas he usado
 zerotierinst        Zerotier scrip like tailscale yo uso tailscale 
 emailscraper        ejecuta una herramienta de un curso para buscar emails                             
@@ -299,6 +299,7 @@ kittyinst           Instala kitty y baja su configuracion
 pyreque             Instala los requirements para python
 trafico             Genera trafico falso de varios sitios
 monitcp             Muestra captura.cap en colores con python, integrado en chismes
+monitcpl            Muestra una lista de todos los archivos pcap cap 
 autorun-no          Crea un archivo para usb, autorun. NO funcional yet.
 agregararchivo      Agrega un archivo a verificar archivo para ver si ha sido modificido
 verificararchivo    Verifica de la lista creada por agregar archivo si ha sido modificado
@@ -345,7 +346,7 @@ getcapa             Da permisos de getcap a python y corre pythonroot
 capas               Verifica permisos de getcap, setgid para escalar priv
 scados              Un ataque ddos con scapy, pruebas exitosas, hpyng3 manda mas.
 dnscat2             Dns tunnel, aun no probado/ https://github.com/iagox86/dnscat2.git
-recon               Hace un reconocimiento con autorecon  --dirbuster.tool gobuster
+recon               Hace un reconocimiento con autorecon  --dirbuster.tool gobuster rustscan scan
 angrywifi           Descarga el angry, primero con -i para instalar y luego solo 
 autorecon           Ejecuta e instala autorecon con -i, funciona mejor recon, de arriba, lo mismo 
 pentestfm           Pentester framework con dockers

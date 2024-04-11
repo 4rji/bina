@@ -3,6 +3,14 @@ echo '''
 
 #nmap 
 
+nmap -sL  (hostnames)
+nmap --script vuln IP
+nmap --script malware IP
+nmap --source-port 53 IP/24
+nmap -D RND:10 IP/24  (decoy 10 ips random)
+
+
+
 #busca scripts por categorias
 locate .nse | xargs grep "categories" | grep -oP '".*?"' | sort -u
 

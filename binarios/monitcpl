@@ -1,0 +1,58 @@
+#!/usr/bin/env python3
+import os
+import sys
+from scapy.all import *
+from termcolor import colored
+
+flowData = {}
+
+def analyzeFlow(p):
+    if p.haslayer(IP):
+        length = p[IP].len
+    else:
+        return
+    key = None
+    data = None
+    if p[IP].src < p[IP].dst:
+        key = ','.join([p[IP].src, p[IP].dst])
+        data = [length, 0]
+    else:
+        key = ','.join([p[IP].dst, p[IP].src])
+        data = [0, length]
+    if key in flowData:
+        f = flowData[key]
+        flowData[key] = [f[0]+data[0], f[1]+data[1]]
+    else:
+        flowData[key] = data
+
+# Listar archivos .pcap y .cap en la carpeta actual
+pcap_files = [f for f in os.listdir('.') if os.path.isfile(f) and (f.endswith('.pcap') or f.endswith('.cap'))]
+
+# Si hay archivos disponibles, preguntar al usuario cuál abrir
+if pcap_files:
+    print("Archivos disponibles:")
+    for idx, pcap_file in enumerate(pcap_files):
+        print(f"{idx+1}. {pcap_file}")
+    
+    choice = input("Selecciona el número del archivo que quieres abrir: ")
+    try:
+        choice = int(choice)
+        if 1 <= choice <= len(pcap_files):
+            packets = rdpcap(pcap_files[choice - 1])
+        else:
+            print("Selección inválida.")
+            sys.exit(1)
+    except ValueError:
+        print("Selección inválida.")
+        sys.exit(1)
+else:
+    print("No se encontraron archivos .pcap o .cap en la carpeta actual.")
+    sys.exit(1)
+
+for p in packets:
+    analyzeFlow(p)
+
+for f in flowData:
+    [src, dst] = f.split(",")
+    d = flowData[f]
+    print(colored("%d bytes %s->%s" % (d[0], src, dst), 'blue') + "\t" + colored("%d bytes %s->%s" % (d[1], dst, src), 'yellow'))
