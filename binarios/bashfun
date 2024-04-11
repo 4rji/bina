@@ -54,6 +54,10 @@ goo() {
     google-chrome-stable "$1" & disown
 }
 
+sshproxy() {
+    ssh -D 1080 -C -q -N "$@" &
+}
+
 
 
 
