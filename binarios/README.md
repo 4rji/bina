@@ -381,3 +381,4 @@ hosthtb             Agrega el host para paginas, toma la $ip de zsh y solo pide 
 galletas            Recibe cookies de session, php js xss html injection phpsessid
 ngrokinst           Instala ngrok para dockers, tomar el token de la cuenta, falta token
 archiveinst         Archivebox para guardar paginas, instaladaro. alias archive para iniciar server tmux
+linenum.sh          Como linpeas
