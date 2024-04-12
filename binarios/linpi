@@ -42,6 +42,7 @@ def desencriptar(archivo, frase):
 archivos = [
     "/usr/bin/winPEASx86.exe.enc",
     "/usr/bin/winPEASx64.exe.enc",
+    "/usr/bin/linenum.sh.enc",
     "/usr/bin/linpeas.sh.enc"
 ]
 

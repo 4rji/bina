@@ -98,6 +98,7 @@ linpi
 chmod +x  /tmp/apache/linpeas.sh
 chmod +x  /tmp/apache/winPEASx64.exe
 chmod +x  /tmp/apache/winPEASx86.exe
+chmod +x  /tmp/apache/linenum.sh
 
 
 
@@ -138,6 +139,7 @@ done < "$file_list"
 
 echo ""
 echo -e "\033[0;34mArchivos copiados a $destination_dir\033[0m"
+echo "linenum.sh, linpeas.sh winPEASx64.exe winPEASx86.exe"
 ls $destination_dir
 echo ""
 
