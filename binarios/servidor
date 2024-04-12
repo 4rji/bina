@@ -138,8 +138,10 @@ while IFS= read -r filename; do
 done < "$file_list"
 
 echo ""
+echo ""
 echo -e "\033[0;34mArchivos copiados a $destination_dir\033[0m"
-echo "linenum.sh, linpeas.sh winPEASx64.exe winPEASx86.exe"
+#echo "linenum.sh   linpeas.sh   winpeasx64.exe   winpeasx86.exe"
+echo ""
 ls $destination_dir
 echo ""
 
