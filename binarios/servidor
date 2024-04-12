@@ -1,6 +1,94 @@
 #!/bin/bash
 
 echo ""
+#si no funciona instalar : 
+#pip3 install pycryptodome
+
+
+
+
+# Lista de paquetes a instalar
+paquetes=("python3" "python3-pip" )
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {  
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+
+
+
+
+
+
+
+echo -e "\033[1;32mEl comando que este script ejecuta es:\033[0m"
+    echo ""
+    echo -e "\033[1;33mpython3 -m http.server 80\033[0m"
+
+
+
+
+
+
+
+
+
+
+echo ""
 echo -e "\033[1;34m_________________________________________________________\033[0m"
 #echo ""
 
@@ -11,26 +99,7 @@ chmod +x  /tmp/apache/linpeas.sh
 chmod +x  /tmp/apache/winPEASx64.exe
 chmod +x  /tmp/apache/winPEASx86.exe
 
-# Función para mostrar el mensaje de ayuda y preguntar si desea continuar
-show_help_and_confirm() {
-    echo ""
-    echo -e "\033[1;32mEl comando que este script ejecuta es:\033[0m"
-    echo ""
-    echo -e "\033[1;33mpython3 -m http.server 80\033[0m"
-    echo ""
-    echo ""
-    echo -e "\033[1;34m_________________________________________________________\033[0m"
-    echo ""
 
-    # Preguntar al usuario si desea continuar
-    read -n1 -p "Continuar el script? Cancelar [c]  " response
-    echo ""  # Añadir una nueva línea para la salida
-
-    # Convertir la respuesta a minúsculas y evaluar
-    case "$response" in
-    *) echo "Continuando..." ;;
-    esac
-}
 
 # Variables para opciones predeterminadas
 default_port="80"
