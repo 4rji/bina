@@ -111,6 +111,7 @@ destination_dir="/tmp/apache"
 # Archivo de lista de nombres de archivos
 file_list="/usr/bin/listaapache"
 
+echo ""
 # Pregunta combinada
 read -p "¿Deseas utilizar un puerto diferente al predeterminado ($default_port)? [s/N] " custom_port
 custom_port="${custom_port:-n}"
@@ -144,8 +145,11 @@ echo ""
 # Iniciar el servidor HTTP de Python en /tmp/apache
 if [[ $port =~ ^[0-9]+$ ]]; then
     cd "$destination_dir"
+    echo -e "\033[1;34m_________________________________________________________\033[0m"
     echo ""
-    echo -e "${BLUE}Iniciando servidor HTTP de Python en la ruta $destination_dir:$port${NC}"
+
+    echo -e "\033[33mIniciando servidor HTTP de Python en la ruta $destination_dir:$port\033[0m"
+
 #    ip -4 addr show | awk '/inet/ && !/127.0.0.1/ {split($2, a, "/"); printf "\t\t\t\t%s: %s\n", $NF, a[1]}'
     ip -4 addr show | awk '/inet/ && !/127.0.0.1/ {split($2, a, "/"); printf "\033[1;31m\t\t\t\t%s: %s\n\033[0m", $NF, a[1]}'
 
