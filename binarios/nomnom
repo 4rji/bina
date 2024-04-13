@@ -1,0 +1,81 @@
+#!/bin/bash
+
+'''
+
+# Install go
+from https://go.dev/dl/
+wget https://go.dev/dl/go1.22.2.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.22.2.linux-amd64.tar.gz
+
+cambiar a sudo su
+rm -rf /usr/local/go && tar -C /usr/local -xzf go1.22.2.linux-amd64.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+
+
+
+
+#si no funciona ese path poner en zshrc el path donde se instalo 
+
+export PATH=$PATH:/home/usuario/go/bin
+
+
+go install github.com/tomnomnom/httprobe@latest
+go install github.com/tomnomnom/hacks/html-tool@latest
+
+
+#1
+assetfinder --subs-only website.com > domains
+
+#2
+cat domains | httprobe | tee hosts
+
+#3
+meg -d 1000 -v /
+
+#esto creara un folder llamado out, ir a ese folder
+
+#4
+grep -Hnri space * | nvim -
+
+#5
+:%!sort -u         #sort unik
+:w results          #salva los resultados en un archivo results
+/something 
+n  o tambien   N   para next or back
+:noh para quitar lo resaltado, mantener busqueda
+
+#6
+:%!grep -v         #borrar lineas que no quiero
+
+#7
+:%!awk -F':'  '{print $3}'      separa con F los : (separador es :) y imprime el 3 campo
+
+#8
+control - v para borrar lineas juntas como un seleccionador, al inicio y borrar con x
+
+#9           Para reemplazar con macros
+shift - A = append         #para guardar acciones como borrar lo ultimo de la linea
+.                     #un punto para ejecutar
+
+#10            Para reemplazar con busqueda y reemplazar
+/\http$            #significa que busco http al final de la linea ($ sifnifica final )
+:%s//hola           #remplazo http por hola  nada o lo que sea
+
+#11   #llamar una shell en las lineas
+:%!xargs -n1 -I{} sh -c 'echo {} | base64 -d'                 #para cambiar lineas por base64 u otro tipo
+
+#Ya en la TERMINAL
+#12   #herramienta que busca atributos como .js .png .
+find . -type f | html-tool attribs src     
+#para buscar solo que termine en .js
+find . -type f | html-tool attribs src | grep '\.js$'      
+
+find . -type f | html-tool tags title
+
+
+
+
+
+
+'''
+
