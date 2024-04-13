@@ -328,6 +328,8 @@ proxylocomenu       Menu para descargar, el primero
 proxyloco           Instala el proxy, interface e inicia
 proxylococ          Comandos para su ejecucion de proxy loco reverse shell
 agentloco           Instala amd agente
+agentproxy          Agent AMD por si no se descarga
+proxyserver         Servidor AMD por si no se descarga
 torperlnipe         Script para mandar trafico por tor, no funciona aun.
 sheldonip           Reverse shell en python pide ip despues, con nc {ip} -lvnp 1234 
 sheldon             reverse shell easy, pide todos los datos preguntas

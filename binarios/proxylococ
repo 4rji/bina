@@ -1,4 +1,11 @@
 #!/bin/bash
+
+echo ""
+echo "./agent -connect IP:11601 -ignore-cert"
+echo "./proxy -selfcert"
+echo "sudo ip link delete ligolo"
+echo "sudo ip route add 1.1.1.0/24 dev ligolo"
+
 echo ""
 # Preguntar al usuario qué subnet desea utilizar
 read -p "¿Cuál es la subnet del agente (ejemplo: 192.168.1.0/24)? " selected_subnet
