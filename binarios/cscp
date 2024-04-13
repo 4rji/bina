@@ -2,27 +2,27 @@
 
 archivo_config="$HOME/.ssh/config"  # Ruta al archivo config de SSH
 
+puerto=22  # Establecer el puerto predeterminado como 22
+
 nombres_hosts=()
 while IFS= read -r linea; do
     if [[ $linea == Host* ]]; then
         nombre_host=$(echo "$linea" | awk '{print $2}')
         nombres_hosts+=("$nombre_host")
-    elif [[ $linea == *"Port"* ]]; then
-        puerto=$(echo "$linea" | awk '{print $2}')
     fi
 done < "$archivo_config"
 
 echo ""
-echo "enviar"
+echo "Enviar:"
 echo "scp -P Port local_file IP-remote_machine:~"
 echo ""
-echo "recibir"
+echo "Recibir:"
 echo "scp -P Port IP-remote_machine:~/remote_file ."
-echo "para ssh jump"
+echo "Para SSH jump:"
 echo "scp -J xps lab.ovpn ass@192.168.122.138:"
 echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
 
-echo "List of available hosts:"
+echo "Lista de hosts disponibles:"
 for (( i=0; i<"${#nombres_hosts[@]}"; i++ )); do
     echo "$(($i+1)). ${nombres_hosts[$i]}"
 done
@@ -63,10 +63,18 @@ echo ""
 
 if [[ $option == "e" ]]; then
     local_file=$1
-    scp_command="scp -P ${puerto:-22} $local_file $host_choice:~"
+    read -p "Ingrese el puerto (o presione Enter para utilizar el puerto predeterminado 22): " puerto_personalizado
+    if [[ $puerto_personalizado =~ ^[0-9]+$ ]]; then
+        puerto=$puerto_personalizado
+    fi
+    scp_command="scp -P $puerto $local_file $host_choice:~"
 elif [[ $option == "r" ]]; then
     remote_file=$1
-    scp_command="scp -P ${puerto:-22} $host_choice:~/$remote_file ."
+    read -p "Ingrese el puerto (o presione Enter para utilizar el puerto predeterminado 22): " puerto_personalizado
+    if [[ $puerto_personalizado =~ ^[0-9]+$ ]]; then
+        puerto=$puerto_personalizado
+    fi
+    scp_command="scp -P $puerto $host_choice:~/$remote_file ."
 else
     echo "Opción no válida. Por favor, elija 'e' o 'r'."
     exit 1
