@@ -1,5 +1,5 @@
 #!/bin/bash
-
+echo ""
 # Colores ANSI
 ROJO="\033[31m"
 VERDE="\033[32m"
@@ -10,6 +10,7 @@ RESET="\033[0m"
 echo -e "\033[33m¿Deseas iniciar el agente en /tmp? [S/n]: \033[0m"
 read -p "" iniciar_agente
 
+
 # Si el usuario presiona Enter o ingresa "s" (mayúscula o minúscula), entonces procedemos
 if [[ -z "$iniciar_agente" || "$iniciar_agente" == "s" || "$iniciar_agente" == "S" ]]; then
     # Copiar el archivo del agente a /tmp
@@ -19,11 +20,17 @@ if [[ -z "$iniciar_agente" || "$iniciar_agente" == "s" || "$iniciar_agente" == "
     unzip -q /tmp/agent.zip -d /tmp
 
     # Preguntar por la dirección IP del servidor
-    echo -e "\033[33m¿Cuál es la IP del servidor?: \033[0m"
+    echo ""
+    echo -e "\033[33m¿Cual es la IP del servidor?: \033[0m"
     read -p "" ip_servidor
-
+    echo ""
+    echo "Se ejecutara:"
+    echo "./tmp/agent -connect "$ip_servidor:11601" -ignore-cert"
+    sleep 1
+    echo "" 
     # Ejecutar el agente con la dirección IP del servidor y el puerto 11601
     /tmp/agent -connect "$ip_servidor:11601" -ignore-cert
+    echo ""
 else
     echo -e "\033[31mNo se inició el agente en /tmp. Saliendo del script.\033[0m"
 fi

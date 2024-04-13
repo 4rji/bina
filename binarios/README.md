@@ -327,9 +327,9 @@ chismes             Ejecuta tcpdump y tshark para ver la red, captura wireshark 
 proxylocomenu       Menu para descargar, el primero
 proxyloco           Instala el proxy, interface e inicia
 proxylococ          Comandos para su ejecucion de proxy loco reverse shell
-agentloco           Instala amd agente
-agentproxy          Agent AMD por si no se descarga
-proxyserver         Servidor AMD por si no se descarga
+agentloco           Instala amd agente, lo descarga y ejecuta
+agenteproxy         No lo descarga, lo descomprime y conecta al servidor
+proxyserver         proxyloco ya descargado, como binario, solo ejecutarlo: proxyserver -selfcert
 torperlnipe         Script para mandar trafico por tor, no funciona aun.
 sheldonip           Reverse shell en python pide ip despues, con nc {ip} -lvnp 1234 
 sheldon             reverse shell easy, pide todos los datos preguntas
