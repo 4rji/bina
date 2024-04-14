@@ -9,7 +9,7 @@ fi
 echo "_________________________________________________________"
 echo ""
 
-sleep 0.5
+#sleep 0.5
 
 subnet="$1"
 tempfile=$(mktemp) # Crea un archivo temporal
@@ -19,7 +19,7 @@ for ip in $(seq 1 254); do
     ping -c 1 "$subnet.$ip" | grep "64 bytes" | cut -d " " -f 4 | tr -d ":" | tee -a $tempfile >/dev/null &
 done
 echo "Escaneando ..."
-wait # Espera a que todos los procesos en segundo plano terminen
+#wait # Espera a que todos los procesos en segundo plano terminen
 
 echo ""
 echo "Hecho."
