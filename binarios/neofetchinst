@@ -4,7 +4,7 @@ sudo apt install neofetch -y
 
 echo ""
 # Descargar el archivo desde la URL
-wget -O neoconf https://raw.githubusercontent.com/4rji/4rji/main/neoconf
+wget -O ~/.config/neofetch/config.conf https://raw.githubusercontent.com/4rji/4rji/main/neoconf
 
 # Verificar si la descarga fue exitosa
 if [ $? -eq 0 ]; then
@@ -32,6 +32,3 @@ sudo cp /usr/bin/nff /usr/bin/wm
 sudo chattr +i /usr/bin/nff
 sudo chattr +i /usr/bin/wm
 
-# Mover el archivo a la ubicaci  n deseada
-    #mv ~/.config/neofetch/config.conf ~/.config/neofetch/config.conf.bk
-mv neoconf ~/.config/neofetch/config.conf
