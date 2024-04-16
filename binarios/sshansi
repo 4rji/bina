@@ -9,9 +9,9 @@ declare -a NOMBRES
 declare -a SSH_COMMANDS
 
 echo "Cargando hosts desde $INVENTARIO..."
-echo ""
-echo "-------------------------------------------------------------------"
-echo ""
+
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+
 INDEX=1
 # Variable para omitir la primera línea
 PRIMERA_LINEA=true
@@ -62,8 +62,8 @@ while IFS= read -r line; do
     echo "$INDEX. $NOMBRE"
     ((INDEX++))
 done < "$INVENTARIO"
-echo ""
-echo "-------------------------------------------------------------------"
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+#echo "-------------------------------------------------------------------"
 # Preguntar al usuario a cuál host desea conectarse
 echo ""
 read -p "Elige el numero del host al que quieres conectarte: " HOST_NUM
@@ -75,8 +75,8 @@ if [ "$HOST_NUM" -le 0 ] || [ "$HOST_NUM" -gt "${#NOMBRES[@]}" ]; then
 fi
 
 # Mostrar el comando SSH que será ejecutado
-echo ""
-echo "*******************"
+
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
 echo "Ejecutando comando: "
 echo ""
 echo "${SSH_COMMANDS[$((HOST_NUM-1))]}"
@@ -84,5 +84,5 @@ echo ""
 # Ejecutar el comando SSH para el host seleccionado
 echo "Conectando a ${NOMBRES[$((HOST_NUM-1))]}..."
 echo ""
-echo "__________________________________________________"
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
 eval "${SSH_COMMANDS[$((HOST_NUM-1))]}"
