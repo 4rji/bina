@@ -11,100 +11,100 @@ echo -e "\033[1;31m5. Download files from the Internet\033[0m"
 echo -e "\033[1;35m6. Manage git repositories\033[0m"
 echo -e "\033[1;33m7. Manage cron tasks\033[0m"
 echo ""
-read -p "Selection: " tarea
-echo 
+read -p "Selection: " task
+echo ""
 
-# Genera el archivo YAML de Ansible basado en la selección
-case $tarea in
+# Generates the Ansible YAML file based on the selection
+case $task in
   1)
     cat <<'EOF' >apt_example.yml
-# Ejemplo para instalar paquetes usando apt en sistemas basados en Debian/Ubuntu.
+# Example to install packages using apt on Debian/Ubuntu-based systems.
 - hosts: all
   become: yes
   tasks:
-    - name: Instalar un paquete con apt
+    - name: Install a package with apt
       ansible.builtin.apt:
-        name: vim  # Cambia 'vim' por el nombre del paquete que deseas instalar.
-        state: present  # 'present' asegura que el paquete esté instalado.
+        name: vim  # Change 'vim' to the package name you want to install.
+        state: present  # 'present' ensures the package is installed.
 EOF
     echo -e "\033[1;34mThe apt_example.yml file was created with examples and descriptions.\033[0m"
-#    echo "Se creó el archivo apt_example.yml con ejemplos y descripciones."
     ;;
   2)
     cat <<'EOF' >copy_example.yml
-# Ejemplo para copiar archivos a ubicaciones remotas.
+# Example to copy files to remote locations.
 - hosts: all
   tasks:
-    - name: Copiar archivo a ubicación remota
+    - name: Copy file to remote location
       ansible.builtin.copy:
-        src: /src/path/local.txt  # Ruta local del archivo a copiar.
-        dest: /dest/path/remote.txt  # Ruta destino en el host remoto.
+        src: /src/path/local.txt  # Local path of the file to copy.
+        dest: /dest/path/remote.txt  # Destination path on the remote host.
 EOF
-    echo "Se creó el archivo copy_example.yml con ejemplos y descripciones."
+    echo "The copy_example.yml file was created with examples and descriptions."
     ;;
   3)
     cat <<'EOF' >command_example.yml
-# Ejemplo para ejecutar comandos en un nodo remoto.
+# Example to run commands on a remote node.
 - hosts: all
   tasks:
-    - name: Ejecutar un comando en el nodo remoto
-      ansible.builtin.command: ls -lah  # Comando a ejecutar.
+    - name: Run a command on the remote node
+      ansible.builtin.command: ls -lah  # Command to execute.
 EOF
-    echo "Se creó el archivo command_example.yml con ejemplos y descripciones."
+    echo "The command_example.yml file was created with examples and descriptions."
     ;;
   4)
     cat <<'EOF' >script_example.yml
-# Ejemplo para ejecutar un script local en nodos remotos.
+# Example to run a local script on remote nodes.
 - hosts: all
   tasks:
-    - name: Ejecutar un script local en nodos remotos
-      ansible.builtin.script: /path/to/local/script.sh  # Ruta del script local a ejecutar.
+    - name: Run a local script on remote nodes
+      ansible.builtin.script: /path/to/local/script.sh  # Path of the local script to execute.
 EOF
-    echo "Se creó el archivo script_example.yml con ejemplos y descripciones."
+    echo "The script_example.yml file was created with examples and descriptions."
     ;;
   5)
     cat <<'EOF' >get_url_example.yml
-# Ejemplo para descargar archivos de Internet a nodos remotos.
+# Example to download files from the Internet to remote nodes.
 - hosts: all
   tasks:
-    - name: Descargar un archivo de Internet
+    - name: Download a file from the Internet
       ansible.builtin.get_url:
-        url: http://example.com/path/to/file  # URL del archivo a descargar.
-        dest: /path/to/destination  # Ruta destino en el host remoto.
+        url: http://example.com/path/to/file  # URL of the file to download.
+        dest: /path/to/destination  # Destination path on the remote host.
 EOF
-    echo "Se creó el archivo get_url_example.yml con ejemplos y descripciones."
+    echo "The get_url_example.yml file was created with examples and descriptions."
     ;;
   6)
     cat <<'EOF' >git_example.yml
-# Ejemplo para gestionar repositorios git en nodos remotos.
+# Example to manage git repositories on remote nodes.
 - hosts: all
   tasks:
-    - name: Gestionar un repositorio git
+    - name: Manage a git repository
       ansible.builtin.git:
-        repo: 'https://github.com/example/repo.git'  # URL del repositorio.
-        dest: /path/to/destination  # Ruta donde se clonará el repositorio.
+        repo: 'https://github.com/example/repo.git'  # Repository URL
+        dest: /path/to/destination  # Path where the repository will be cloned.
 EOF
-    echo "Se creó el archivo git_example.yml con ejemplos y descripciones."
+    echo "The git_example.yml file was created with examples and descriptions."
     ;;
   7)
     cat <<'EOF' >cron_example.yml
-# Ejemplo para gestionar tareas cron en nodos remotos.
+# Example to manage cron tasks on remote nodes.
 - hosts: all
   tasks:
-    - name: Gestionar una tarea cron
+    - name: Manage a cron task
       ansible.builtin.cron:
-        name: "Ejemplo de tarea cron"  # Descripción de la tarea cron.
-        user: "root"  # Usuario bajo el cual se ejecutará la tarea.
-        job: "echo 'Hola Mundo' > /dev/null 2>&1"  # Comando a ejecutar.
-        minute: "0"  # Minuto de ejecución (0-59).
-        hour: "0"  # Hora de ejecución (0-23).
-        day: "*"  # Día del mes (1-31).
-        month: "*"  # Mes del año (1-12 o nombres).
-        weekday: "*"  # Día de la semana (0-7 donde 7 es domingo, o nombres).
+        name: "Example cron task"  # Description of the cron task.
+        user: "root"  # User under which the task will run.
+        job: "echo 'Hello World' > /dev/null 2>&1"  # Command to execute.
+        minute: "0"  # Minute of execution (0-59).
+        hour: "0"  # Hour of execution (0-23).
+        day: "*"  # Day of the month (1-31).
+        month: "*"  # Month of the year (1-12 or names).
+        weekday: "*"  # Day of the week (0-7 where 7 is Sunday, or names).
 EOF
-    echo "Se creó el archivo cron_example.yml con ejemplos y descripciones."
+    echo "The cron_example.yml file was created with examples and descriptions."
     ;;
   *)
-    echo "Opción no válida."
+    echo "Invalid option."
     ;;
 esac
+
