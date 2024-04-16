@@ -1,39 +1,51 @@
 #!/bin/bash
 
-# Ruta al archivo de inventario
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+
+
+# Path to the inventory file
 inventory_file="$HOME/.ssh/ansible_hosts"
 
-# Verificar si el archivo de inventario existe
+# Check if the inventory file exists
 if [ ! -e "$inventory_file" ]; then
-  echo "El archivo de inventario ansible no existe en $inventory_file."
+  echo -e "\033[1;34mThe ansible inventory file does not exist at $inventory_file.\033[0m"
   exit 1
 fi
 
-# Leer las líneas del archivo de inventario y crear una lista
+# Read lines from the inventory file and create a list
 host_list=($(awk '/^\[.*\]$/ {next} NF {print $1}' "$inventory_file"))
 
-# Mostrar la lista de hosts disponibles
-echo "Hosts disponibles:"
+# Show the list of available hosts
+echo -e "\033[1;35mAvailable hosts:\033[0m"
+echo ""
 for i in "${!host_list[@]}"; do
   echo "$i: ${host_list[$i]}"
 done
 
-# Pedir al usuario el número del host al que hacer ping
-read -p "Ingresa el número del host al que quieres hacer ping: " host_number
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+echo ""
+# Ask the user for the host number to ping
+read -p "Enter the host number you want to ping: " host_number
 
-# Verificar si el número ingresado es válido
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+
+# Check if the entered number is valid
 if ! [[ "$host_number" =~ ^[0-9]+$ ]] || ((host_number < 0 || host_number >= ${#host_list[@]})); then
-  echo "Número de host no válido."
+  echo -e "\033[1;33mInvalid host number.\033[0m"
   exit 1
 fi
 
-# Obtener el nombre del host seleccionado
+# Get the name of the selected host
 selected_host="${host_list[$host_number]}"
 
-# Mostrar el comando a ejecutar
-echo "Ejecutando ping en $selected_host:"
+# Show the command to execute
+echo -e "\033[1;31mRunning ping on $selected_host:\033[0m"
+echo ""
 ping_command="ansible $selected_host -m ping -i $inventory_file"
 echo $ping_command
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
 
-# Ejecutar el comando ping
+
+# Execute the ping command
 $ping_command
+echo ""
