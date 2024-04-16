@@ -201,7 +201,6 @@ newprocess          Servicios - encuentra nuevos procesos en pantalla para ver q
 
 #Ansible
 ansiconf            Crea host para ansible con alias y crea el archivo ansible_hosts
-ansic               Para ejecutar comandos en los hosts, ansible. En ingles ansic_english 
 ansicc              Este da la opcion de elegir un solo host o todos. ansible
 ansibleplay         Crea archivos ejemplos de ansible play para ejecutar, se necesitan modificar
 ansip               Alias ping a todos los hosts ansible, -a para todos
