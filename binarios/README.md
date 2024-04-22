@@ -295,7 +295,7 @@ kittyinst           Instala kitty y baja su configuracion
 
 
 #python herramientas
-pyreque             Instala los requirements para python
+pythonreq           Instala los requirements para python
 trafico             Genera trafico falso de varios sitios
 monitcp             Muestra captura.cap en colores con python, integrado en chismes
 monitcpl            Muestra una lista de todos los archivos pcap cap 
