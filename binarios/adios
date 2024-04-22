@@ -108,3 +108,8 @@ done
 
 # Borrar el directorio después de ejecutar los comandos
 rm -rf "$1"
+
+
+# Ejecutar el script con el directorio como argumento
+# ./secure-delete.sh /path/to/directory
+# ./secure-delete.sh /home/user/Downloads
