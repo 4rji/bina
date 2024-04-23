@@ -319,6 +319,7 @@ sshforward          IPkali -p 8081 -r IPLocal:3000 --user=ass --password (3000 p
 arper               arp poisonig scapy, crea un archivo y ejecuta arpers, no funciona con unifi Firewall
 bruto               brute forcing directorios, lista all.txt se descarga web hacking no https
 contrawp            Fuerza bruta a wordpress joomla, descarga cain.txt diccionario
+sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 
 #Redstuff
 proxyvery           Verifica si funcionan los proxies de una lista

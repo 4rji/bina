@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# Comprobación e instalación de Scrapy si es necesario
+echo -e "\033[0;34m"
+echo "_________________________________________________________"
+echo ""
+if ! command -v scrapy &> /dev/null
+then
+    echo -e "\033[0;31mScrapy no está instalado. Instalando Scrapy..."
+    pip install scrapy
+else
+    echo -e "\033[0;32mScrapy ya está instalado."
+fi
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Agregar Scrapy al PATH
+echo -e "\033[0;36mAgregando Scrapy al PATH..."
+export PATH="$PATH:/home/nat/.local/bin"
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Crear un nuevo proyecto de Scrapy llamado 'arji'
+echo -e "\033[0;35mCreando nuevo proyecto de Scrapy llamado 'arji'..."
+scrapy startproject arji
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Cambiar al directorio de spiders del proyecto
+echo -e "\033[0;33mCambiando al directorio de spiders o ir manualmente si no fue..."
+cd arji/arji/spiders
+echo "cd arji/arji/spiders"
+echo "Ejecutarlo como source script.sh para que valla a el directorio"
+echo "_________________________________________________________"
+echo ""
+
+# Copiar el script site_downloader.py al directorio actual
+echo -e "\033[0;34mCopiando el script site_downloader.py..."
+cp /usr/bin/site_downloader.py .
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Iniciar el crawler 'site_downloader'
+echo -e "\033[0;32mIniciando el crawler 'site_downloader'..."
+echo "Ejecutar en el directorio spiders:"
+echo "scrapy crawl site_downloader"
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo -e "\033[0;37mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission."
+echo ""
+echo "_________________________________________________________"
+echo ""
+
