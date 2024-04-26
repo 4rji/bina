@@ -118,7 +118,7 @@ curl ifconfig.me
 echo ""
 echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
 echo ""
-echo "Para terminar la conexion:"
+echo "Para terminar la conexion down, up iniciar de nuevo:"
 echo "sudo wg-quick down \"$nombre_interfaz\""
 
 echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
