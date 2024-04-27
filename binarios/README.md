@@ -385,4 +385,4 @@ galletas            Recibe cookies de session, php js xss html injection phpsess
 ngrokinst           Instala ngrok para dockers, tomar el token de la cuenta, falta token
 archiveinst         Archivebox para guardar paginas, instaladaro. alias archive para iniciar server tmux
 linenum.sh          Como linpeas
-testing
+getpython           Para recibir archivos con curl -T desde la otra maquina, getpython2 disponible

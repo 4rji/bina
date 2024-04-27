@@ -1,0 +1,20 @@
+#!/usr/bin/python2
+
+print("para recibir archivos con python2, desde la otra maquina hacer un curl como este:")
+print("curl -T secrec http://192.168.88.19:8000")
+print("")
+
+import SimpleHTTPServer
+import BaseHTTPServer
+
+class SputHTTPRequestHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
+    def do_PUT(self):
+        print self.headers
+        length = int(self.headers['Content-Length'])
+        path = self.translate_path(self.path)
+        with open(path, 'wb') as dst:
+            dst.write(self.rfile.read(length))
+
+if __name__ == '__main__':
+    BaseHTTPServer.test(HandlerClass=SputHTTPRequestHandler)
+
