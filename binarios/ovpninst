@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Clear the screen
+clear
+
+echo -e "\e[96m_________________________________________________________\e[0m"
+echo ""
+echo -e "\e[93mDo you want to install OpenVPN Server? (y/n)\e[0m"
+echo ""
+echo -e "\e[96m_________________________________________________________\e[0m"
+read -p "" yn
+
+case $yn in
+    [Yy]* )
+        echo -e "\e[92mUpdating system and installing required packages...\e[0m"
+        apt update && apt -y install ca-certificates wget net-tools gnupg
+        
+        echo -e "\e[95mAdding the OpenVPN repository...\e[0m"
+        wget https://as-repository.openvpn.net/as-repo-public.asc -qO /etc/apt/trusted.gpg.d/as-repository.asc
+        echo "deb [arch=amd64 signed-by=/etc/apt/trusted.gpg.d/as-repository.asc] http://as-repository.openvpn.net/as/debian bookworm main" > /etc/apt/sources.list.d/openvpn-as-repo.list
+        
+        echo -e "\e[92mUpdating system and installing OpenVPN AS...\e[0m"
+        apt update && apt -y install openvpn-as
+        echo -e "\e[32mOpenVPN Server has been installed successfully.\e[0m"
+        ;;
+    [Nn]* )
+        echo -e "\e[91mInstallation cancelled by user.\e[0m"
+        ;;
+    * )
+        echo -e "\e[91mPlease answer yes or no.\e[0m"
+        ;;
+esac
+
+echo -e "\e[96m_________________________________________________________\e[0m"
+echo ""
+echo -e "\e[95mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\e[0m"
+echo ""
+echo -e "\e[96m_________________________________________________________\e[0m"
+

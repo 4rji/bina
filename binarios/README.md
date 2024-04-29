@@ -293,7 +293,7 @@ zshinst             Instala la zsh h-my-zsh powerlevel10k
 tmuxinst            Archivos para la configuracion de tmux, lo instala. con B
 neofetchinst        Instala y personaliza neofetch para ppg1
 kittyinst           Instala kitty y baja su configuracion
-
+ovpninst            Instala OpenvpnServer para webadmin, 4rjiDocs
 
 #python herramientas
 pythonreq           Instala los requirements para python
