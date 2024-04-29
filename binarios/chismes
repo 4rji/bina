@@ -6,14 +6,23 @@ echo ""
 
 # Mostrar la lista de interfaces disponibles y permitir al usuario seleccionar una
 echo -e "\033[0;32mInterfaces disponibles:\033[0m"
-interfaces=( $(ifconfig -a | grep '^[a-zA-Z]' | awk '{print $1}') )
+echo ""
+interfaces=( $(ip -o link show | awk -F': ' '{print $2}') )
 i=1
 for interface in "${interfaces[@]}"
 do
-    echo "$i) $interface"
+    # Obtener la dirección IP de cada interfaz
+    ip_address=$(ip -f inet addr show $interface | grep -Po 'inet \K[\d.]+' | head -1)
+    # Verificar si hay una dirección IP, si no, mostrar "No IP"
+    if [ -z "$ip_address" ]; then
+        ip_address="No IP"
+        echo -e "$i) \033[1;35m$interface\033[0m (\033[0;31m$ip_address\033[0m)"
+    else
+        echo -e "$i) \033[1;35m$interface\033[0m (\033[0;33m$ip_address\033[0m)"
+    fi
     let i++
 done
-
+echo ""
 echo -e "\033[0;33mPor favor, selecciona el número de la interfaz de red que deseas capturar:\033[0m"
 read choice
 selected_interface=${interfaces[$choice-1]}
@@ -48,7 +57,7 @@ echo -e "\033[0;32mCaptura completada y guardada en $new_filename.\033[0m"
 echo ""
 
 # Preguntar si desea ver el archivo con tshark o el resumen con python
-echo -e "\033[0;33m[t] para tshark, [p] Python Resument /Enter para cancelar]: \033[0m" 
+echo -e "\033[0;33m[t] para tshark, [p] Python Resumen /Enter para cancelar]: \033[0m"
 
 read -p "¿Ver captura con tshark o con python? " choice
 case "$choice" in
@@ -63,21 +72,8 @@ case "$choice" in
     ;;
 esac
 
-
-
 echo ""
 echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
 echo -e "\033[0;34mUsa 'tshark -r captura.cap' para verlo de nuevo\033[0m"
 echo -e "\033[1;33mO tambien para verlo con python solo ejecuta:\033[0m"
 echo -e "\033[0;34mmonitcp\033[0m"
-
-
-
-
-
-# Preguntar si desea ver el archivo con tshark
-#read -p "¿Quieres ver el archivo con tshark? [S/n]: " view
-#view=${view:-S}  # Si la entrada es vacía, asume "S"
-#if [[ "$view" == "S" || "$view" == "s" ]]; then
-#	tshark -r "$new_filename"
-#fi
