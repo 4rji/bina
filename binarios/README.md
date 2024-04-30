@@ -382,7 +382,7 @@ goo                 Abre google chrome con la ip o pagina despues, es una bash f
 listaa              Agrega un nuevo nombre a la lista apache para el servidor apache
 hosthtb             Agrega el host para paginas, toma la $ip de zsh y solo pide el host.htb por ejemplo
 galletas            Recibe cookies de session, php js xss html injection phpsessid
-ngrokinst           Instala ngrok para dockers, tomar el token de la cuenta, falta token
+ngrok               Instala ngrok para dockers, toma token de ngroktk script, conecta ssh y http. 
 archiveinst         Archivebox para guardar paginas, instaladaro. alias archive para iniciar server tmux
 linenum.sh          Como linpeas
 getpython           Para recibir archivos con curl -T desde la otra maquina, getpython2 disponible

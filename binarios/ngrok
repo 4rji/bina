@@ -1,5 +1,25 @@
 #!/bin/bash
 
+
+
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+# Ask for the ngrok auth token
+echo "This use docker, also you can get the token from ngroktk script"
+echo "runs in port 80, also can use apt from the website, but need root user"
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+echo "Do you want to get the token? (y/n)"
+read answer
+
+if [ "$answer" = "y" ]; then
+    ngroktk
+fi
+
+
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 # Function to display colored messages
 print_message() {
     local color=$1
@@ -14,13 +34,84 @@ print_spacer() {
     echo ""
 }
 
+# Ask for the ngrok auth token
+print_message "0;35m" "Please enter your ngrok auth token:"
+read -r token
+
 # Ask to download ngrok
 print_message "0;34m" "Do you want to download ngrok? [y/n]"
 read -r download_choice
 
+
+
+
+
 if [ "$download_choice" == "y" ]; then
     print_spacer
     print_message "0;32m" "Downloading ngrok..."
+    
+
+    # Lista de paquetes a instalar
+    paquetes=( "docker.io")
+
+    # Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+    paquete_instalado_apt() {
+        dpkg -l "$1" | grep -q '^ii'  
+    }
+
+    # Función para verificar si un paquete está instalado (CentOS/RHEL)
+    paquete_instalado_yum() {
+        yum list installed "$1" &> /dev/null
+    }
+
+    # Función para verificar si un paquete está instalado (Fedora)
+    paquete_instalado_dnf() {
+        dnf list installed "$1" &> /dev/null
+    }
+
+    # Función para verificar si un paquete está instalado (Arch Linux)
+    paquete_instalado_pacman() {
+        pacman -Qi "$1" &> /dev/null
+    }
+
+    # Detectar el sistema operativo
+    if [ -f /etc/os-release ]; then
+        . /etc/os-release
+        OS=$ID
+    fi
+
+    # Instalar paquetes basados en el sistema operativo
+    for paquete in "${paquetes[@]}"; do
+        case $OS in
+            "debian"|"ubuntu"|"kali")
+                if ! paquete_instalado_apt "$paquete"; then
+                    echo "Instalando el paquete $paquete..."
+                    sudo apt-get install -y "$paquete"
+                fi
+                ;;
+            "centos"|"rhel")
+                if ! paquete_instalado_yum "$paquete"; then
+                    echo "Instalando el paquete $paquete..."
+                    sudo yum install -y "$paquete"
+                fi
+                ;;
+            "fedora")
+                if ! paquete_instalado_dnf "$paquete"; then
+                    echo "Instalando el paquete $paquete..."
+                    sudo dnf install -y "$paquete"
+                fi
+                ;;
+            "arch")
+                if ! paquete_instalado_pacman "$paquete"; then
+                    echo "Instalando el paquete $paquete..."
+                    sudo pacman -S --noconfirm "$paquete"
+                fi
+                ;;
+            *)
+                ;;
+        esac
+    done
+
     sudo docker pull ngrok/ngrok
 fi
 
@@ -31,13 +122,15 @@ read -r http_choice
 if [ "$http_choice" == "y" ]; then
     print_spacer
     print_message "0;32m" "Running ngrok for HTTP on port 80..."
-    sudo docker run --net=host -it -e NGROK_AUTHTOKEN= ngrok/ngrok:latest http 80
+    sudo docker run --net=host -it -e NGROK_AUTHTOKEN=$token ngrok/ngrok:latest http 80
 fi
 
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 echo "To access SSH, use:"
 echo "ssh asd@0.tcp.ngrok.io -p 17768 -D 1080"
+echo "Copy this before continue..."
 echo ""
+
 # Ask to use SSH on port 22
 print_message "0;33m" "Do you want to run SSH on port 22? [y/n]"
 read -r ssh_choice
@@ -45,9 +138,7 @@ read -r ssh_choice
 if [ "$ssh_choice" == "y" ]; then
     print_spacer
     print_message "0;32m" "Running ngrok for SSH on port 22..."
-    sudo docker run --net=host -it -e NGROK_AUTHTOKEN= ngrok/ngrok:latest tcp 22
-    
+    sudo docker run --net=host -it -e NGROK_AUTHTOKEN=$token ngrok/ngrok:latest tcp 22
 fi
 
 print_spacer
-

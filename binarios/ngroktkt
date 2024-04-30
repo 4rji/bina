@@ -1,0 +1,10 @@
+#!/bin/bash
+
+
+cp /usr/bin/tk .
+secreto tk
+
+clipa tk
+cat tk
+echo "Copy to clip-paper"
+
