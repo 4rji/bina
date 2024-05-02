@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Asegúrate de que se haya proporcionado una subred como argumento
+# Ensure a subnet is provided as an argument
 if [ $# -ne 1 ]; then
-    echo "Por favor, proporciona una subred como argumento. Ejemplo: ./script.sh 192.168.1"
+    echo "Please provide a subnet as an argument. Example: ./script.sh 192.168.1"
     exit 1
 fi
 
@@ -12,21 +12,21 @@ echo ""
 #sleep 0.5
 
 subnet="$1"
-tempfile=$(mktemp) # Crea un archivo temporal
+tempfile=$(mktemp) # Create a temporary file
 
-# Hace ping a cada IP en la subred y muestra la salida
+# Pings each IP in the subnet and displays the output
 for ip in $(seq 1 254); do
     ping -c 1 "$subnet.$ip" | grep "64 bytes" | cut -d " " -f 4 | tr -d ":" | tee -a $tempfile >/dev/null &
 done
-echo "Escaneando ..."
-#wait # Espera a que todos los procesos en segundo plano terminen
+echo "Scanning ..."
+#wait # Wait for all background processes to finish
 
 echo ""
-echo "Hecho."
+echo "Done."
 echo ""
 
-# Muestra una lista de IPs encontradas
-echo "Lista de direcciones IP encontradas:"
+# Display a list of found IPs
+echo "List of IP addresses found:"
 echo ""
 awk '{ print NR "- " $0 }' $tempfile
 
@@ -34,29 +34,29 @@ echo ""
 echo "_________________________________________________________"
 echo ""
 
-# Pregunta al usuario si desea ejecutar expo para una IP específica
-read -n1 -p "¿Ejecutar Nmap a una IP? [s/n] " choice
+# Asks the user if they want to run nmap for a specific IP
+read -n1 -p "Run Nmap on an IP? [y/n] " choice
 echo ""
 echo ""
 
-if [[ $choice =~ ^[Ss]$ ]]; then
-    read -p "Cual numero de la lista: " selected_number
+if [[ $choice =~ ^[Yy]$ ]]; then
+    read -p "Which number from the list: " selected_number
     echo ""
     selected_ip=$(sed "${selected_number}q;d" $tempfile)
-    read -n1 -p "¿Ejetar expo nmap a $selected_ip? [s/n]: " execute_expo
+    read -n1 -p "Execute nmap expo to $selected_ip? [y/n]: " execute_expo
 
-    if [[ $execute_expo =~ ^[Ss]$ ]]; then
+    if [[ $execute_expo =~ ^[Yy]$ ]]; then
         expo $selected_ip
     else
-        echo "No se ejecutó el comando expo."
+        echo "Expo command was not executed."
     fi
 else
-    echo "Saliendo del script."
+    echo "Exiting the script."
 fi
 
-# Elimina el archivo temporal
+# Remove the temporary file
 rm $tempfile
 
 echo ""
-echo "*** Precaución: Este script está hecho para /24 ***"
+echo "*** Caution: This script is made for /24 ***"
 echo ""
