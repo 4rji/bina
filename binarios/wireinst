@@ -132,7 +132,11 @@ if [ "$response" = "y" ]; then
         
     # Execute the command to enable the interface at startup
 #    sudo wg-quick enable@"$interface_name"
-    sudo systemctl enable wg-quick@"$interface_name".service
+    sudo systemctl enable wg-quick@"$interface_name"
+
+    echo "sudo systemctl enable wg-quick@\"$interface_name\""
+
+
 
     echo "The interface $interface_name has been enabled to start automatically."
 else
