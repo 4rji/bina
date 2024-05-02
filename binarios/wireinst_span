@@ -64,79 +64,80 @@ done
 
 
 
-# Check if the configuration file was provided as an argument
+# Verificar si se proporcionó el archivo de configuración como argumento
 echo -e "\033[0;32m"
 echo "_________________________________________________________"
 echo ""
 if [ $# -eq 0 ]; then
-    echo -e "\033[0;31mError: No configuration file provided."
-    echo -e "Usage: $0 path/to/file.conf\033[0m"
+    echo -e "\033[0;31mError: No se ha proporcionado un archivo de configuración."
+    echo -e "Uso: $0 ruta/al/archivo.conf\033[0m"
     exit 1
 fi
 echo -e "\033[0m"
 
-# Take the first argument as the configuration file
-config_file=$1
+# Tomar el primer argumento como el archivo de configuración
+archivo_configuracion=$1
 
-# Extract the base name of the file to use in the commands
-file_name=$(basename "$config_file")
+# Extraer el nombre base del archivo para usarlo en los comandos
+nombre_archivo=$(basename "$archivo_configuracion")
 
-echo -e "\033[0;34mCopying the configuration file to /etc/wireguard/\033[0m"
-# Copy the configuration file to the WireGuard directory
-sudo cp "$config_file" "/etc/wireguard/$file_name"
-rm -f "$config_file" 
-# Adjust configuration file permissions
-sudo chmod 600 "/etc/wireguard/$file_name"
+echo -e "\033[0;34mCopiando el archivo de configuración a /etc/wireguard/\033[0m"
+# Copiar el archivo de configuración al directorio de WireGuard
+sudo cp "$archivo_configuracion" "/etc/wireguard/$nombre_archivo"
+rm -f "$archivo_configuracion" 
+# Ajustar permisos del archivo de configuración
+sudo chmod 600 "/etc/wireguard/$nombre_archivo"
 
-# Check if the file name ends in '.conf'
-if [[ $file_name == *.conf ]]; then
-    interface_name="${file_name%.*}"
+# Verificar si el nombre del archivo termina en '.conf'
+if [[ $nombre_archivo == *.conf ]]; then
+    nombre_interfaz="${nombre_archivo%.*}"
 else
-    interface_name="$file_name"
+    nombre_interfaz="$nombre_archivo"
 fi
 
-echo -e "\033[0;35mBringing up the WireGuard connection...\033[0m"
-# Bring up the WireGuard connection
-sudo wg-quick up "$interface_name"
+echo -e "\033[0;35mLevantando la conexión WireGuard...\033[0m"
+# Levantar la conexión WireGuard
+sudo wg-quick up "$nombre_interfaz"
 
-echo -e "\033[0;36mCurrent status of WireGuard:\033[0m"
-# Display WireGuard status
+echo -e "\033[0;36mEstado actual de WireGuard:\033[0m"
+# Mostrar el estado de WireGuard
 sudo wg
 echo ""
 echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
 
-echo "Connecting."
+echo "Conectando."
 sleep .5
-echo " Connecting.."
+echo " Conectando.."
 sleep 1
 echo ""
-echo -e "\033[0;31mYour public IP address is:\033[0m"
-# Display the public IP address
-minet
-
+echo -e "\033[0;31mTu dirección IP pública es:\033[0m"
+# Mostrar la dirección IP pública
+curl ifconfig.me
 
 echo ""
 echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
 echo ""
-echo "To end the connection use down, to start again use up:"
-echo "sudo wg-quick down \"$interface_name\""
+echo "Para terminar la conexion down, up iniciar de nuevo:"
+echo "sudo wg-quick down \"$nombre_interfaz\""
 
 echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
 
-# Ask the user
-echo "Do you wish to enable the network to start automatically? [y/n]"
-read response
 
-# Check if the response is 'y'
-if [ "$response" = "y" ]; then
+
+# Pregunta al usuario
+echo "¿Deseas habilitar la red para que se inicie automáticamente? [s/n]"
+read respuesta
+
+# Comprueba si la respuesta es 'y'
+if [ "$respuesta" = "s" ]; then
         
-    # Execute the command to enable the interface at startup
-#    sudo wg-quick enable@"$interface_name"
+    # Ejecuta el comando para habilitar la interfaz al inicio
+    #sudo wg-quick enable \"$nombre_interfaz\""
     sudo systemctl enable wg-quick@"$interface_name".service
 
-    echo "The interface $interface_name has been enabled to start automatically."
+    echo "La interfaz $nombre_interfaz ha sido habilitada para iniciar automáticamente."
 else
-    echo "No changes have been made."
+    echo "No se ha realizado ningún cambio."
 fi
 echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
 
