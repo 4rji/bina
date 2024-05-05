@@ -1,8 +1,11 @@
 #!/bin/bash
 
-
-wget -O ~/.config/neofetch/config.conf https://raw.githubusercontent.com/4rji/4rji/main/neoconf
-
+if wget -O ~/.config/neofetch/config.conf https://raw.githubusercontent.com/4rji/4rji/main/neoconf; then
+    echo "Descarga completada exitosamente."
+else
+    echo "Error en la descarga. Intentando de nuevo..."
+    exit 1
+fi
 
 #sudo apt install neofetch -y
 echo ""
