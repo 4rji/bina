@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Lista de paquetes a instalar
-paquetes=("lsof" "net-tools" "nmap")
+paquetes=("lsof" "net-tools" "nmap" "procps" )
 
 # Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
 paquete_instalado_apt() {  
