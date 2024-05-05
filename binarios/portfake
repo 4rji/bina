@@ -85,6 +85,7 @@ echo "Files move to /etc/portspoof:"
 ls /etc/portspoof
 echo ""
 
+echo -e "\n\033[1;31m_____________SSH will stop working after stopping Portspoof.____________________________\033[0m\n"
 
 # Ask the user if they want to start Portspoof
 read -p "Do you want to start Portspoof now? [y/n] " answer
@@ -100,12 +101,14 @@ echo -e "\n\033[1;34m_________________________________________________________\0
 
 echo "Iptables rules to add or remove:"
 echo "sudo iptables -t nat -A PREROUTING -p tcp -m tcp --dport 1:65535 -j REDIRECT --to-ports 4444"
-echo "to delete that rule"
+echo "To delete the rule next command: (SSH might not work if it's enabled.)"
 echo "sudo iptables -t nat -D PREROUTING -p tcp -m tcp --dport 1:65535 -j REDIRECT --to-ports 4444"
 echo ""
 # Instructions for running Portspoof
 echo "to run, simply type"
 echo "portspoof -c /etc/portspoof/portspoof.conf -s /etc/portspoof/portspoof_signatures"
 echo "alias to start portspoof=iniciafakep"
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+
 cd ~
 rm -rf portspoof
