@@ -164,7 +164,7 @@ ebanner             cambia el banner de ssh antes de logearse hola cacheton y se
 bannerssh           Edita el banner de inicio de session de ssh, cuando se loguea
 sshcom              Copia y ejecuta un script en una maquina ssh remota en /tmp
 sshmoni             sshmoni loop para correr el sshmoni while loop
-lsofmoni            Lo mismo que ssh pero escanea conexiones con lsof
+lsofmoni            Lo mismo que ssh pero escanea conexiones con lsof, detecta backdoors 
 mibebe              escanea las dos sshmoni lsofmoni
 mibebemata          Mi bebe mata solo. lol
 plisten             Muestra y mata las conexiones que estan en LISTEN con lsof
