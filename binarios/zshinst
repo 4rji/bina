@@ -3,11 +3,13 @@ import subprocess
 import os
 
 def instalar_zsh():
-    respuesta = input("¿Deseas instalar la ZSH? [s/n]: ").strip().lower()
+    respuesta = input("¿Deseas instalar la ZSH? [S/n]: ").strip().lower() or 's'
     if respuesta == "s":
         subprocess.run("sh -c \"$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)\"", shell=True)
         print("Por favor, vuelve a abrir este script después de instalar Zsh.")
         exit()
+
+
 
 def instalar_tema():
     respuesta = input("¿Deseas instalar el tema Powerlevel10k? [s/n]: ").strip().lower()
