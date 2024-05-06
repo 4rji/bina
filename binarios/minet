@@ -42,3 +42,9 @@ echo -e "\e[34m                  _______________________________________________
 #echo -e "\n\t\t\t\tTu IP es: $(/usr/sbin/ifconfig "$network_interface" | grep "inet " | awk '{print "("$1")", $2}')\n"
 echo -e "\n\t\t\t\tTu IP de $network_interface es: $(/usr/sbin/ifconfig "$network_interface" | grep "inet " | awk '{print $2}')\n"
 
+
+
+#para mac ->
+#echo ""
+#ifconfig | awk '/^[a-z]/ {iface=$1} /inet / && !/inet6/ {print iface, $2}'
+#echo ""'''
