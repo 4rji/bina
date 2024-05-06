@@ -2,36 +2,53 @@
 echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
 archivo_config="$HOME/.ssh/config"  # Ruta al archivo config de SSH
 
-nombres_hosts=()
-while IFS= read -r linea; do
-    if [[ $linea == Host* ]]; then
-        nombre_host=$(echo "$linea" | awk '{print $2}')
-        nombres_hosts+=("$nombre_host")
+declare -A host_ip_map  # Usamos un diccionario para mapear hosts a IPs
+
+# Leer nombres e IPs de hosts del archivo de configuración
+current_host=""
+skip=false
+
+while IFS= read -r linea || [[ -n "$linea" ]]; do
+    # Limpia comentarios, espacios al inicio y al final
+    linea=$(echo "$linea" | sed 's/#.*//;s/^\s*//;s/\s*$//')
+    if [[ -z "$linea" ]]; then continue; fi  # Ignora líneas en blanco
+
+    # Manejar insensibilidad de mayúsculas y minúsculas para Host y HostName
+    key=$(echo "$linea" | awk '{print tolower($1)}')
+    value=$(echo "$linea" | awk '{print $2}')
+
+    if [[ "$key" == "host" ]]; then
+        current_host="$value"
+        host_ip_map["$current_host"]="IP no encontrada"  # Inicializamos con IP no encontrada
+        skip=false
+    elif [[ "$key" == "hostname" ]] && [[ -n "$current_host" ]] && ! $skip; then
+        host_ip_map["$current_host"]=$value  # Actualizamos la IP para el host actual
+        skip=true  # Evita capturar múltiples HostName si existen
     fi
 done < "$archivo_config"
 
+# Mostrar los hosts disponibles
 echo "List of available hosts:"
-for (( i=0; i<"${#nombres_hosts[@]}"; i++ )); do
-    echo "$(($i+1)). ${nombres_hosts[$i]}"
+i=1
+host_list=()  # Array to hold host keys
+for host in "${!host_ip_map[@]}"; do
+    echo "$i. $host - ${host_ip_map[$host]}"
+    host_list+=("$host")  # Store the host in order
+    ((i++))
 done
 
-# Ask the user which host they want to connect to
+# Solicitar al usuario que elija un host para conectar
 echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
 read -p $'\n\e[33mEnter the number of the host you want to connect to: \e[0m' chosen_host_number
 
-# Validate user input
-if ! [[ "$chosen_host_number" =~ ^[0-9]+$ ]]; then
-    echo -e "\n\e[31mError: Please enter a valid number.\e[0m\n"
+# Validar la entrada del usuario
+if ! [[ "$chosen_host_number" =~ ^[0-9]+$ ]] || ((chosen_host_number < 1 || chosen_host_number > ${#host_list[@]})); then
+    echo -e "\n\e[31mError: Please enter a valid number within the range.\e[0m\n"
     exit 1
 fi
 
-# Check if the chosen host number is within range
-if ((chosen_host_number < 1 || chosen_host_number > ${#nombres_hosts[@]})); then
-    echo -e "\n\e[31mError: Please enter a number within the range.\e[0m\n"
-    exit 1
-fi
-
-# Connect to the chosen host
-chosen_host=${nombres_hosts[$(($chosen_host_number-1))]}
-echo -e "\n\e[33mConnecting to $chosen_host...\e[0m\n"
+# Conectar al host elegido
+chosen_host=${host_list[$((chosen_host_number-1))]}
+chosen_ip=${host_ip_map[$chosen_host]}
+echo -e "\n\e[33mConnecting to $chosen_host ($chosen_ip)...\e[0m\n"
 ssh "$chosen_host"

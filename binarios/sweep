@@ -9,8 +9,6 @@ fi
 echo "_________________________________________________________"
 echo ""
 
-#sleep 0.5
-
 subnet="$1"
 tempfile=$(mktemp) # Create a temporary file
 
@@ -18,17 +16,28 @@ tempfile=$(mktemp) # Create a temporary file
 for ip in $(seq 1 254); do
     ping -c 1 "$subnet.$ip" | grep "64 bytes" | cut -d " " -f 4 | tr -d ":" | tee -a $tempfile >/dev/null &
 done
+
 echo "Scanning ..."
-#wait # Wait for all background processes to finish
+wait # Wait for all background processes to finish
 
 echo ""
 echo "Done."
 echo ""
 
-# Display a list of found IPs
-echo "List of IP addresses found:"
+# Display a list of found IPs and check for matching hosts in ~/.ssh/config
+echo "List of IP addresses and corresponding host names if available:"
 echo ""
-awk '{ print NR "- " $0 }' $tempfile
+counter=1
+while read -r ip; do
+    # Extract the hostname matching the IP from ~/.ssh/config
+    host_name=$(grep -B 1 "$ip" ~/.ssh/config | grep "Host " | awk '{print $2}')
+    if [[ -n "$host_name" ]]; then
+        echo "$counter- $ip - $host_name"
+    else
+        echo "$counter- $ip - Host name not found"
+    fi
+    ((counter++))
+done < $tempfile
 
 echo ""
 echo "_________________________________________________________"
@@ -42,7 +51,7 @@ echo ""
 if [[ $choice =~ ^[Yy]$ ]]; then
     read -p "Which number from the list: " selected_number
     echo ""
-    selected_ip=$(sed "${selected_number}q;d" $tempfile)
+    selected_ip=$(sed "${selected_number}q;d" $tempfile | awk '{print $2}')
     read -n1 -p "Execute nmap expo to $selected_ip? [y/n]: " execute_expo
 
     if [[ $execute_expo =~ ^[Yy]$ ]]; then
