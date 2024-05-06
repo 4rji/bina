@@ -32,7 +32,7 @@ echo "List of available hosts:"
 i=1
 host_list=()  # Array to hold host keys
 for host in "${!host_ip_map[@]}"; do
-    echo "$i. $host - ${host_ip_map[$host]}"
+    echo -e "$i. \033[0;34m$host\033[0m - \033[0;33m${host_ip_map[$host]}\033[0m"
     host_list+=("$host")  # Store the host in order
     ((i++))
 done
@@ -50,5 +50,5 @@ fi
 # Conectar al host elegido
 chosen_host=${host_list[$((chosen_host_number-1))]}
 chosen_ip=${host_ip_map[$chosen_host]}
-echo -e "\n\e[33mConnecting to $chosen_host ($chosen_ip)...\e[0m\n"
+echo -e "\n\e[33mConnecting to \033[0;34m$chosen_host\033[0m (\033[0;33m$chosen_ip\033[0m)...\e[0m\n"
 ssh "$chosen_host"
