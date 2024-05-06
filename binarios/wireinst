@@ -84,7 +84,7 @@ file_name=$(basename "$config_file")
 echo -e "\033[0;34mCopying the configuration file to /etc/wireguard/\033[0m"
 # Copy the configuration file to the WireGuard directory
 sudo cp "$config_file" "/etc/wireguard/$file_name"
-rm -f "$config_file" 
+#rm -f "$config_file" 
 # Adjust configuration file permissions
 sudo chmod 600 "/etc/wireguard/$file_name"
 
