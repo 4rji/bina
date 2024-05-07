@@ -254,6 +254,7 @@ pvpnt               Inicia pvpn en una sesion de tmux
 squidinst           Instala y activa squid en puerto 3128
 tinyurl             Muestra los alias creados en tinyurl, se descarga como tinyurl.com/herratodo
 torrelay            Instala tor relay, probado en debian
+torweb              Crea una pagina .onion para tor, index en /tmp/torweb
 protoninst          Instala protonvpn en kali o debian
 prandom             Cambia de VPN cada 5 min 
 fixprotonvpns       Baja los archivos de proton.

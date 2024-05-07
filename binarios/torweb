@@ -1,0 +1,54 @@
+#!/bin/bash
+
+sudo apt install tor python3 -y
+
+# Ask user if they want to create a .onion site
+read -p "Do you want to create your .onion site? [Y/n] " answer
+if [[ $answer == "" || $answer == "Y" || $answer == "y" ]]; then
+    echo "Setting up .onion site..."
+
+    # Uncomment lines in /etc/tor/torrc
+    sudo sed -i 's/#HiddenServiceDir \/var\/lib\/tor\/hidden_service\//HiddenServiceDir \/var\/lib\/tor\/hidden_service\//' /etc/tor/torrc
+    sudo sed -i 's/#HiddenServicePort 80 127.0.0.1:80/HiddenServicePort 80 127.0.0.1:80/' /etc/tor/torrc
+
+    # Set permissions for Tor
+    sudo chown -R debian-tor:debian-tor /var/lib/tor/hidden_service/
+    sudo chmod -R 700 /var/lib/tor/hidden_service/
+
+echo ""
+echo "################ web address ####################"
+    cat /var/lib/tor/hidden_service/hostname
+echo ""
+
+
+# Create a simple index.html
+    mkdir -p /tmp/torweb
+    echo "<!DOCTYPE html>
+<html>
+<head>
+    <title>Hello World</title>
+</head>
+<body>
+    <h1>Hello World</h1>
+</body>
+</html>" > /tmp/torweb/index.html
+
+    # Start a simple HTTP server on port 80
+    cd /tmp/torweb
+    python3 -m http.server 80 & disown
+
+    # Run tor in the background
+    sudo -u debian-tor tor & disown
+
+    # Display .onion hostname
+    echo "Your .onion site is being set up. This may take a few minutes."
+    
+else
+    echo "Operation cancelled."
+fi
+
+
+
+
+
+
