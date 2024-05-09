@@ -10,6 +10,7 @@ instparu            instala para y scrub para arch (debian no necesita)
 ssa_arch            ssa para arch linux                                                                
 mackarch            Cambia la MAC de arch linux
 aliasarch           Arregla los alias en arch
+rx6800              Instala el archivo de configuracion en Arch para que funcione la GPU
 
 ###------hardware stuff
 bateriamonitor      Muestra los watts y el estado de carga en kali

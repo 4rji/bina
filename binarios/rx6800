@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Función para mostrar el uso del script
+mostrar_uso() {
+    echo "Uso: $0 [-c]"
+    echo "  -c   Eliminar el archivo creado"
+    exit 1
+}
+
+# Comprobando si se proporciona alguna opción
+if [ $# -eq 0 ]; then
+    # Si no se proporciona ninguna opción, crear el archivo
+    contenido='Section "Device"
+    Identifier "AMDGPU"
+    Driver "amdgpu"
+    BusID "PCI:6:0:0"
+    Option "DRI" "3"
+EndSection'
+
+    # Definiendo la ubicación del archivo
+    archivo="/etc/X11/xorg.conf.d/10-amdgpu.conf"
+
+    # Solicitar autorización de root
+    if ! sudo -v; then
+        echo "Se necesita autorización de root para ejecutar este script."
+        exit 1
+    fi
+
+    # Escribir el contenido en el archivo
+    echo "$contenido" | sudo tee "$archivo" >/dev/null
+    echo "Archivo creado exitosamente en: $archivo"
+    exit 0
+fi
+
+# Verificando las opciones proporcionadas
+while getopts "c" opcion; do
+    case $opcion in
+        c)  # Si se proporciona la opción -c, eliminar el archivo si existe
+            archivo="/etc/X11/xorg.conf.d/10-amdgpu.conf"
+            if [ -f "$archivo" ]; then
+                sudo rm "$archivo"
+                echo "Archivo eliminado: $archivo"
+            else
+                echo "El archivo $archivo no existe."
+            fi
+            exit 0
+            ;;
+        \?) # Opción no válida
+            mostrar_uso
+            ;;
+    esac
+done
+
+# Si no se proporciona ninguna opción válida, mostrar el uso
+mostrar_uso
