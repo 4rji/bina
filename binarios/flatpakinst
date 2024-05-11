@@ -1,0 +1,42 @@
+#!/bin/bash
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo "Look for software app after the installation"
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+
+echo "Do you want to install Flatpak? (y/n)"
+read answer
+
+if [[ "$answer" == "y" ]]; then
+    echo "Installing Flatpak..."
+    sudo apt install flatpak -y
+    
+    echo "Detecting Desktop Environment..."
+    if [[ "$XDG_CURRENT_DESKTOP" == "GNOME" ]]; then
+        echo "Installing GNOME software plugin for Flatpak..."
+        sudo apt install gnome-software-plugin-flatpak -y
+    elif [[ "$XDG_CURRENT_DESKTOP" == "KDE" ]]; then
+        echo "Installing Plasma Discover backend for Flatpak..."
+        sudo apt install plasma-discover-backend-flatpak -y
+    else
+        echo "No compatible desktop environment found for extra integrations."
+    fi
+
+    echo "Adding Flathub repository..."
+    flatpak remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+    echo "To see the available applications, visit the website: https://flathub.org"
+    echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+    echo "It is necessary to restart the system. Restart now? (y/n)"
+    read restart_answer
+    if [[ "$restart_answer" == "y" ]]; then
+        echo "Rebooting..."
+        sudo reboot
+    else
+        echo "Reboot canceled. Please reboot manually later to complete the installation."
+    fi
+else
+    echo "Flatpak installation canceled."
+fi
+
