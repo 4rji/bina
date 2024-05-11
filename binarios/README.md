@@ -78,7 +78,7 @@ copyrs              Copia archivo por rsync usando sshconf
 copyrsr             Recibe un archivo por medio de rsync
 shtb                Syncroniza carpetas con rsync entre servidores, para htb vmqemu
 mackali	            Cambia la MAC de kali
-ncdu                para ver los archivos grandes, liberar espacio disco
+ncdu                para ver los archivos grandes, liberar espacio disco tamano
 netevils            aun no se                                                                          
 fzf                 buscador bueno, solo tipiar fzf 
 btop                Bueno, mejor que htop top #m to see the menu
