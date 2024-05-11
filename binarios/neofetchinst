@@ -1,32 +1,38 @@
 #!/bin/bash
 
 
-mkdir -p  ~/.config/neofetch/
-if wget -O ~/.config/neofetch/config.conf https://raw.githubusercontent.com/4rji/4rji/main/neoconf; then
-    echo "Descarga completada exitosamente."
-else
-    echo "Error en la descarga. Intentando de nuevo..."
-    exit 1
-fi
-
-#sudo apt install neofetch -y
 echo ""
 # Descargar el archivo desde la URL
+wget -O neoconf https://raw.githubusercontent.com/4rji/4rji/main/neoconf
 
+# Verificar si la descarga fue exitosa
+if [ $? -eq 0 ]; then
+    # Crear la carpeta si no existe
+#    mkdir -p ~/.config/neofetch
 
-echo ""  
-# Preguntar al usuario por el nuevo nombre
-read -p "Nombre del host nuevo: " nuevo_nombre
+    # Mover el archivo a la ubicaci  n deseada
+    #mv ~/.config/neofetch/config.conf ~/.config/neofetch/config.conf.bk
+    mkdir ~/.config/neofetch    
+    mv neoconf ~/.config/neofetch/config.conf
 
-# Reemplazar la palabra "casiton" en /usr/bin/nff con el nuevo nombre usando sudo
-sudo cp /usr/bin/nff /usr/bin/wm
-sudo sed -i "s/casiton/$nuevo_nombre/g" /usr/bin/wm
+    echo "El archivo se ha descargado y movido correctamente."
+echo ""
+    # Preguntar al usuario por el nuevo nombre
+    read -p "Nombre del host nuevo: " nuevo_nombre
 
-#sudo rm /usr/bin/neofetch
+    # Reemplazar la palabra "casiton" en /usr/bin/nff con el nuevo nombre usando sudo
+    sudo sed -i "s/casiton/$nuevo_nombre/g" /usr/bin/nff
+
+    echo "Se ha realizado el reemplazo en /usr/bin/nff con el nuevo nombre."
+else
+    echo "Hubo un error al descargar el archivo."
+fi
+
 sudo cp /usr/bin/nff /usr/bin/wm
 
 #sudo chattr +i /usr/bin/nff
 #sudo chattr +i /usr/bin/wm
+
 
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 echo "si no funciona hacerlo manual"
@@ -34,7 +40,6 @@ echo "Copiado a portapeles"
 echo ""
 echo "sudo sed -i \"s/casiton/$nuevo_nombre/g\" /usr/bin/wm" 
 echo "sudo sed -i \"s/casiton/$nuevo_nombre/g\" /usr/bin/wm" | xclip -sel clip
-
 
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 
