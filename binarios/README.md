@@ -389,4 +389,4 @@ ngrok               Instala ngrok para dockers, toma token de ngroktk script, co
 archiveinst         Archivebox para guardar paginas, instaladaro. alias archive para iniciar server tmux
 linenum.sh          Como linpeas
 getpython           Para recibir archivos con curl -T desde la otra maquina, getpython2 disponible
-Getpython2
+getpythonsyn
