@@ -18,7 +18,7 @@ for ip in $(seq 1 254); do
 done
 
 echo "Scanning ..."
-wait # Wait for all background processes to finish
+#wait # Wait for all background processes to finish
 
 echo ""
 echo "Done."
@@ -43,24 +43,16 @@ echo ""
 echo "_________________________________________________________"
 echo ""
 
-# Asks the user if they want to run nmap for a specific IP
-read -n1 -p "Run Nmap on an IP? [y/n] " choice
+# Ask for the number to scan
+read -p "Which number from the list to scan: " selected_number
 echo ""
-echo ""
+selected_ip=$(sed "${selected_number}q;d" $tempfile | awk '{print $1}')
+read -n1 -p "Execute nmap expo to $selected_ip? [y/n]: " execute_expo
 
-if [[ $choice =~ ^[Yy]$ ]]; then
-    read -p "Which number from the list: " selected_number
-    echo ""
-    selected_ip=$(sed "${selected_number}q;d" $tempfile | awk '{print $2}')
-    read -n1 -p "Execute nmap expo to $selected_ip? [y/n]: " execute_expo
-
-    if [[ $execute_expo =~ ^[Yy]$ ]]; then
-        expo $selected_ip
-    else
-        echo "Expo command was not executed."
-    fi
+if [[ $execute_expo =~ ^[Yy]$ ]]; then
+    expo $selected_ip
 else
-    echo "Exiting the script."
+    echo "Expo command was not executed."
 fi
 
 # Remove the temporary file
