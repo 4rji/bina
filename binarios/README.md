@@ -19,6 +19,7 @@ tempe               or tempe -f temperatura de arch linux y -f crea un archivo c
 
 
 ###------utilidades sistema
+verlos              fzf alias a preview de archivos con cat,  nvim $verlos
 todo_{algo}         Busca en alias y readme info
 comando             aplica -h mensaje para mostrar al inicio de un script
 comandos            Muestra varios comandos aprendidos s4vi
