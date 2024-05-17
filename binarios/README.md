@@ -11,7 +11,7 @@ ssa_arch            ssa para arch linux
 mackarch            Cambia la MAC de arch linux
 aliasarch           Arregla los alias en arch
 rx6800              Instala el archivo de configuracion en Arch para que funcione la GPU
-
+test
 ###------hardware stuff
 bateriamonitor      Muestra los watts y el estado de carga en kali
 bateria             new script con bateria en lugar de alias                                           
