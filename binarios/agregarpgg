@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 # Definir la función a agregar
 function_to_add=$(cat << 'EOF'
