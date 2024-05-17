@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 echo "¿Quieres enviar o recibir un archivo? (escriba 'e' o 'r')"
 read option
