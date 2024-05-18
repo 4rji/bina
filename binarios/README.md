@@ -373,9 +373,9 @@ privado             Instrucciones para dirtpipe, tienes que tener gcc, para root
 pspy64              procesos servicios newprocess pspy 
 
 #HTB shorcuts
-htbinst
-iniciar             Function crea carpetas, variables $ip $htcon $htf, se debe de ejecutar manualmente los echos
+htbinst             Algunas instrucciones, hacer un whx a ese binario 
 htp                 Genera las import $ variables
+iniciar             Function crea carpetas, variables $ip $htcon $htf, se debe de ejecutar manualmente los echos
 enum                guarda whichsys, nmap, se ejecuta desde nmap folder
 contra              Copia una contrasena del portapapales a content/passwords
 usua                Copia un usuario a /content/users
