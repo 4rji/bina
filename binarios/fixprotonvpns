@@ -1,5 +1,11 @@
 #!/bin/bash
 
+
+
+#para que no pida confirmacion
+rm -f ~/Downloads/.vpnitos/*
+
+
 # Lista de paquetes a instalar
 paquetes=("openvpn" "dialog" "tmux")
 
@@ -76,10 +82,9 @@ mktem
 
 
 
-#para que no pida confirmacion
-bash -c 'rm -f ~/Downloads/.vpnitos/*'
 
-
+# Crear el directorio ~/Downloads/.vpnitos si no existe
+mkdir -p ~/Downloads/.vpnitos
 
 
 git clone --depth 1 https://github.com/4rji/4rji.git
@@ -91,16 +96,11 @@ unzip Ban1_aa12.zip
 # Navegar al directorio Ban1_aa12
 cd Ban1_aa12
 
-# Crear el directorio ~/Downloads/.vpnitos si no existe
-mkdir -p ~/Downloads/.vpnitos
+
 
 # Mover todos los archivos al directorio ~/Downloads/.vpnitos
-mv * ~/Downloads/.vpnitos
+cp * ~/Downloads/.vpnitos/
 
-# Verificar si la carpeta ~/Downloads existe, y si no, crearla
-if [ ! -d ~/Downloads ]; then
-    mkdir -p ~/Downloads
-fi
 
 # Cambiar la contraseña (asumiendo que "cc.txt" contiene la nueva contraseña)
 echo "Reemplazar contraseña cc"
