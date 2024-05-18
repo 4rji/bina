@@ -392,3 +392,4 @@ archiveinst         Archivebox para guardar paginas, instaladaro. alias archive 
 linenum.sh          Como linpeas
 getpython           Para recibir archivos con curl -T desde la otra maquina, getpython2 disponible
 getpythonsyn
+archivos            Descarga desde $ip robots y cookies
