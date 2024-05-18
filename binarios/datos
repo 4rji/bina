@@ -1,0 +1,43 @@
+#!/usr/bin/python3
+
+#para crear la base de datos del archivo data.json para la pagina web, pregunta titutlo, contenido y link
+#el link esta ligado a la pagina, donde el script solo cambia el nombre de la pagina pero el dominio es el mismo
+
+import json
+import os
+
+# Ruta del archivo JSON
+file_path = '/home/nat/Documents/GitHub/documentation/data.json'
+
+# Función para agregar contenido nuevo al archivo JSON
+def add_content_to_json(file_path):
+    # Pedir valores al usuario
+    title = input("Enter the title: ")
+    content = input("Enter the content: ")
+    newsite = input("Enter the new site (path for the link): ") + ".html"
+
+    # Crear el nuevo diccionario
+    new_entry = {
+        "title": title,
+        "content": content,
+        "link": f"https://4rjidocs.pages.dev/{newsite}"
+    }
+
+    # Leer el contenido existente del archivo JSON
+    if os.path.exists(file_path):
+        with open(file_path, 'r') as file:
+            data = json.load(file)
+    else:
+        data = []
+
+    # Agregar el nuevo contenido
+    data.append(new_entry)
+
+    # Escribir el contenido actualizado al archivo JSON
+    with open(file_path, 'w') as file:
+        json.dump(data, file, indent=4)
+
+    print(f"New entry added to {file_path}.")
+
+# Ejecutar la función
+add_content_to_json(file_path)

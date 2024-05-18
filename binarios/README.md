@@ -301,6 +301,7 @@ kittyinst           Instala kitty y baja su configuracion
 ovpninst            Instala OpenvpnServer para webadmin, 4rjiDocs
 
 #python herramientas
+datos               Crea datos para la pagina web, para llenar la base de busqueda search
 pythonreq           Instala los requirements para python
 trafico             Genera trafico falso de varios sitios
 monitcp             Muestra captura.cap en colores con python, integrado en chismes
