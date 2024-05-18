@@ -1,0 +1,5 @@
+#!/bin/bash
+
+wget --save-cookies cookies.txt --keep-session-cookies $ip
+wget $ip/robots.txt
+

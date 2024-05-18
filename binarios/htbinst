@@ -2,6 +2,11 @@
 
 echo """
 
+desde la configuracion de singlefile de firefox, se modifica para que guarde la pagina web en clipboard desde la configuracion 
+de la extension dentro de firefox, en Destination, copy to clipboard
+y ya despues en la terminal dentro de donde se quiera guarda se hace un
+pega > archivo.index 
+y listo, pega es un alias de pegar el clipboard. 
 
 
 Debo definir esta ruta para que funcione 
