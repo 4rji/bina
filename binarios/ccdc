@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 # Mostrar el arte y el texto
 echo "
@@ -26,37 +26,42 @@ echo "
 
 No for competition. For learning purposes only.
 "
+
+# Show the art and text
+echo "
+"
 sleep 1
 
 file_list=($HOME/ccdc/*)
-# Crear un menú de configuración con dialog
+# Create a configuration menu with dialog
 menu_options=()
 for ((i=0; i<${#file_list[@]}; i++)); do
   file="${file_list[$i]}"
-  file_name=$(basename "$file") # Obtener solo el nombre del archivo
+  file_name=$(basename "$file") # Get only the file name
   menu_options+=("$i" "$file_name")
 done
 
-menu_options+=("0" "Salir")
+menu_options+=("0" "Exit")
 
-# Mostrar el menú y obtener la opción seleccionada
-option=$(dialog --backtitle "Menú de configuración" --title "Configuración" --menu "Selecciona un archivo:" 25 50 4 "${menu_options[@]}" 2>&1 >/dev/tty)
+# Show the menu and get the selected option
+option=$(dialog --backtitle "Configuration Menu" --title "Configuration" --menu "Select a file:" 25 50 4 "${menu_options[@]}" 2>&1 >/dev/tty)
 
-# Verificar la opción seleccionada
+# Check the selected option
 if [[ $option == "0" ]]; then
-  echo "Saliendo..."
+  echo "Exiting..."
 elif [[ $option =~ [0-9]+ && $option -lt ${#file_list[@]} ]]; then
-  # Obtener el nombre del archivo seleccionado
+  # Get the name of the selected file
   selected_file="${file_list[$option]}"
-  selected_file_name=$(basename "$selected_file") # Obtener solo el nombre del archivo seleccionado
+  selected_file_name=$(basename "$selected_file") # Get only the name of the selected file
 
-  echo "Ejecutando el script del archivo: $selected_file_name con sudo"
-  # Ejecutar el archivo seleccionado con sudo
+  echo "Running the script from the file: $selected_file_name with sudo"
+  # Execute the selected file with sudo
   if [[ -x "$selected_file" ]]; then
     sudo "$selected_file"
   else
-    echo "No se puede ejecutar el archivo. Permiso denegado."
+    echo "File cannot be executed. Permission denied."
   fi
 else
-  echo "Opción inválida."
+  echo "Invalid option."
 fi
+
