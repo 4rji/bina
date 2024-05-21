@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#https://www.tenable.com/downloads/nessus?loginAttempted=true
 # Función para imprimir una línea de separación
 print_separator() {
     echo -e "\033[1;35m_________________________________________________________\033[0m"
@@ -37,18 +37,19 @@ if [ $opcion -eq 1 ]; then
 elif [ $opcion -eq 2 ]; then
     # Descargar el paquete de instalación de Nessus
     curl --request GET \
-      --url 'https://www.tenable.com/downloads/api/v2/pages/nessus/files/Nessus-10.7.1-debian10_amd64.deb' \
-      --output 'Nessus-10.7.1-debian10_amd64.deb'
+  --url 'https://www.tenable.com/downloads/api/v2/pages/nessus/files/Nessus-10.7.3-debian10_amd64.deb' \
+  --output 'Nessus-10.7.3-debian10_amd64.deb'
 
+  
     # Instala Nessus utilizando dpkg
-    sudo dpkg -i Nessus-10.7.1-debian10_amd64.deb
+    sudo dpkg -i Nessus-10.7.3-debian10_amd64.deb
 
     # Verifica el hash en la página oficial
     print_separator
     echo -e "\033[1;32mVerifica el hash en la página oficial que coincida: https://www.tenable.com/downloads/nessus?loginAttempted=true\033[0m"
 
     # Calcula y muestra el hash SHA-256 del archivo Nessus
-    sha256sum Nessus-10.7.1-debian10_amd64.deb
+    sha256sum Nessus-10.7.3-debian10_amd64.deb
 
     echo -e "\033[1;32mInstrucciones para iniciar Nessus:\033[0m"
     echo -e "\033[1;34mPara iniciar Nessus, simplemente escribe nessus o systemctl start nessusd.service\033[0m"

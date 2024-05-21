@@ -4,7 +4,7 @@
 install_tools() {
     echo "Instalando herramientas necesarias..."
     sudo apt update
-    sudo apt install -y dnsrecon enum4linux redis-tools wkhtmltopdf
+    sudo apt install -y dnsrecon enum4linux redis-tools wkhtmltopdf gobuster oscanner tnscmd10g
     sudo pip3 install git+https://github.com/Tib3rius/AutoRecon.git
 }
 
@@ -21,7 +21,7 @@ check_tools() {
 if [ "$#" -eq 0 ]; then
     echo "Por favor especifica una dirección IP."
     exit 1
-elif [ "$1" == "-1" ]; then
+elif [ "$1" == "-i" ]; then
     # Si se pasa el argumento "-1", instalar las herramientas y salir
     install_tools
     exit 0
