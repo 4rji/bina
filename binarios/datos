@@ -20,7 +20,7 @@ def add_content_to_json(file_path):
     new_entry = {
         "title": title,
         "content": content,
-        "link": f"https://4rjidocs.pages.dev/{newsite}"
+        "link": f"https://docs.4rji.com/{newsite}"
     }
 
     # Leer el contenido existente del archivo JSON
