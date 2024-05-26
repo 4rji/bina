@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# La ruta del archivo que contiene la lista de nombres de archivos a eliminar está predefinida
+LIST_FILE="/opt/4rji/bin/listaherrabin"
+
+# Verificar si el archivo existe
+if [ ! -f "$LIST_FILE" ]; then
+    echo "Error: File '$LIST_FILE' not found."
+    exit 1
+fi
+
+# Leer el archivo línea por línea
+while IFS= read -r file
+do
+    # Construir la ruta completa del archivo
+    TARGET_FILE="/usr/bin/$file"
+
+    # Verificar si el archivo existe antes de intentar eliminarlo
+    if [ -f "$TARGET_FILE" ]; then
+        echo "Deleting $TARGET_FILE..."
+        sudo rm "$TARGET_FILE"
+    else
+        echo "File $TARGET_FILE does not exist."
+    fi
+done < "$LIST_FILE"
+
+echo "Operation completed."
