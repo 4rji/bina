@@ -21,25 +21,23 @@ echo ""
     read -p "Nombre del host nuevo: " nuevo_nombre
 
     # Reemplazar la palabra "casiton" en /usr/bin/nff con el nuevo nombre usando sudo
-    sudo sed -i "s/casiton/$nuevo_nombre/g" /usr/bin/nff
+    sudo sed -i "s/casiton/$nuevo_nombre/g" /opt/4rji/bin/nff
 
-    echo "Se ha realizado el reemplazo en /usr/bin/nff con el nuevo nombre."
+    echo "Se ha realizado el reemplazo en /opt/4rji/bin/nff con el nuevo nombre."
 else
     echo "Hubo un error al descargar el archivo."
 fi
 
-sudo cp /usr/bin/nff /usr/bin/wm
+sudo cp /opt/4rji/bin/nff /opt/4rji/bin/wm
 
-#sudo chattr +i /usr/bin/nff
-#sudo chattr +i /usr/bin/wm
 
 
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 echo "si no funciona hacerlo manual"
 echo "Copiado a portapeles"
 echo ""
-echo "sudo sed -i \"s/casiton/$nuevo_nombre/g\" /usr/bin/wm" 
-echo "sudo sed -i \"s/casiton/$nuevo_nombre/g\" /usr/bin/wm" | xclip -sel clip
+echo "sudo sed -i \"s/casiton/$nuevo_nombre/g\" /opt/4rji/wm" 
+echo "sudo sed -i \"s/casiton/$nuevo_nombre/g\" /opt/4rji/wm" | xclip -sel clip
 
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 

