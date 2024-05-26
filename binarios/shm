@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# Function to clean /dev/shm
+cleanup_shm() {
+    echo -e "\033[36m"
+    echo "Current content of /dev/shm:"
+    ls -lh /dev/shm
+    echo -e "\033[0m"
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+    echo "sudo rm -rf /dev/shm/*"
+    echo -e "\033[31mCleaning /dev/shm...\033[0m"
+    sudo rm -rf /dev/shm/*
+    echo -e "\033[36mContent of /dev/shm after cleaning:\033[0m"
+    ls -lh /dev/shm
+}
+
+# Check if the -c option was passed
+if [ "$1" == "-c" ]; then
+    cleanup_shm
+    exit 0
+fi
+
+# Display current memory and /dev/shm space information
+echo -e "\033[32m"
+echo "free -h"
+echo "Current memory information:"
+free -h
+echo -e "\033[35m"
+echo "df -h /dev/shm"
+echo "Current /dev/shm information:"
+df -h /dev/shm
+echo -e "\033[0m"
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Ask user for the new size
+echo -e "\033[33m"
+echo "Please enter the new capacity you want to assign to /dev/shm (number in GB only):"
+read -p "New size: " size
+echo "${size}G"
+echo -e "\033[0m"
+
+# Remount /dev/shm with the new size
+echo -e "\033[32m"
+echo "sudo mount -o remount,size=${size}G /dev/shm"
+echo "Changing size of /dev/shm to ${size}G..."
+sudo mount -o remount,size=${size}G /dev/shm
+echo -e "\033[0m"
+
+# Ask if the change should be made permanent
+echo -e "\033[33m"
+echo "Do you want to make this permanent? [y/N]"
+read -n 1 -r response
+echo
+if [[ $response =~ ^[Yy]$ ]]; then
+    echo "Making the change permanent..."
+    echo "echo 'tmpfs   /dev/shm   tmpfs   defaults,size=${size}G   0   0' | sudo tee -a /etc/fstab"
+    echo "tmpfs   /dev/shm   tmpfs   defaults,size=${size}G   0   0" | sudo tee -a /etc/fstab
+fi
+echo -e "\033[0m"
+
+# Display new state of /dev/shm
+echo -e "\033[35m"
+echo "df -h /dev/shm"
+echo "New state of /dev/shm after the change:"
+df -h /dev/shm
+echo -e "\033[0m"
+

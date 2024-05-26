@@ -19,6 +19,7 @@ tempe               or tempe -f temperatura de arch linux y -f crea un archivo c
 
 
 ###------utilidades sistema
+shm                 Aumenta la memoria de tmp de la /dev/shm, y la limpia con -c
 verlos              fzf alias a preview de archivos con cat,  nvim $verlos
 todo_{algo}         Busca en alias y readme info
 todos               Hace un fzf a el directorio 4rj, con cat -l rb, para abrir usar nvim $(todos)
