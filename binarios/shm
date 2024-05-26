@@ -1,4 +1,5 @@
 #!/bin/bash
+reset
 
 # Function to clean /dev/shm
 cleanup_shm() {
