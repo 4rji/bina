@@ -104,8 +104,9 @@ if [[ $omitir != true ]]; then
     git clone --depth 1  https://github.com/4rji/bina.git
     cd bina
 
+    sudo mkdir -p /opt/4rji/bin
 
-    sudo cp -f binarios/* /usr/bin/
+    sudo cp -f binarios/* /opt/4rji/bin
 
       echo -e "${azul}binarios actualizados${reset}"
       todou
@@ -155,6 +156,33 @@ reset='\e[0m'
 
 echo ""
 echo -e "${verde}_________________________________________________________${reset}"
+
+
+
+
+
+# Preguntar al usuario si desea agregar la ruta al PATH
+read -p "Do you want to add /opt/4rji/bin to your PATH? (y/n): " -n 1 -r
+echo    # (opcional) mueve a una nueva línea
+
+# Por defecto, si el usuario presiona Enter, considera 'n'
+if [[ ! $REPLY =~ ^[Yy]$ ]]
+then
+    echo "No changes made to PATH."
+    exit 1
+fi
+
+# Agregar el directorio /opt/4rji/bin al PATH en ~/.bashrc
+echo 'export PATH=$PATH:/opt/4rji/bin' >> ~/.zshrc
+
+# Recargar ~/.bashrc para aplicar los cambios
+source ~/.zshrc
+
+echo "The directory /opt/4rji/bin has been added to the PATH."
+
+
+
+
 
 # Pregunta al usuario
 read -n1 -p "$(echo -e ${verde}'¿Instalar las {}FUNCTION en la bash? (s/N): '${reset})" respuesta
