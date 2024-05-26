@@ -14,14 +14,28 @@ text = r"""function extractPorts(){
 }
 
 
-
-
+# Con la funcion de que se puede poner un nombre despues del mktem para especificar el nombre del folder.
 function mktem() {
-    new_dir=$(mktemp -d)
+    if [ -n "$1" ]; then
+        new_dir=$(mktemp -d /dev/shm/tmp."$1".XXXXXX)
+    else
+        new_dir=$(mktemp -d /dev/shm/tmp.XXXXXX)
+    fi
+    
     echo "Directorio creado en: $new_dir"
     cd "$new_dir" || return
     echo "Cambiado al directorio: $PWD"
 }
+
+
+
+
+#function mktem() {
+ #   new_dir=$(mktemp -d)
+  #  echo "Directorio creado en: $new_dir"
+#    cd "$new_dir" || return
+#    echo "Cambiado al directorio: $PWD"
+#}
 
 
 # fzf improvement

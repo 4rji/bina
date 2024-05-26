@@ -25,7 +25,7 @@ def desencriptar(archivo, frase):
         data = cipher_aes.decrypt_and_verify(ciphertext, tag)
 
         # Verificar si el directorio /tmp/apache existe, si no existe, crearlo
-        ruta_directorio = "/tmp/apache"
+        ruta_directorio = "/dev/shm/apache"
         if not os.path.exists(ruta_directorio):
             os.makedirs(ruta_directorio)
 
@@ -40,10 +40,10 @@ def desencriptar(archivo, frase):
 
 # Archivos a desencriptar
 archivos = [
-    "/usr/bin/winPEASx86.exe.enc",
-    "/usr/bin/winPEASx64.exe.enc",
-    "/usr/bin/linenum.sh.enc",
-    "/usr/bin/linpeas.sh.enc"
+    "/opt/4rji/bin/winPEASx86.exe.enc",
+    "/opt/4rji/bin/winPEASx64.exe.enc",
+    "/opt/4rji/bin/linenum.sh.enc",
+    "/opt/4rji/bin/linpeas.sh.enc"
 ]
 
 # Frase secreta

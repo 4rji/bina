@@ -91,6 +91,7 @@ done
 
 
 
+#!/bin/bash
 
 echo -e "\033[1;32mEl comando que este script ejecuta es:\033[0m"
     echo ""
@@ -98,10 +99,12 @@ echo -e "\033[1;32mEl comando que este script ejecuta es:\033[0m"
 
 
 
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 
+echo -e "\033[0;34mejecutar linpi para descomprimir los otros binarios y tambien pyreque como sudo para secreto\033[0m"
 
-
-
+echo "ejecutar linpi para descomprimir los otros binarios y tambien pyreque como sudo para secreto"
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 
 
 
@@ -112,10 +115,10 @@ echo -e "\033[1;34m_________________________________________________________\033
 #descomprimir linpeas porque github no me deja subirlo sin encriptar
 linpi
 #cambiando permisos a chmod +x 
-chmod +x  /tmp/apache/linpeas.sh
-chmod +x  /tmp/apache/winPEASx64.exe
-chmod +x  /tmp/apache/winPEASx86.exe
-chmod +x  /tmp/apache/linenum.sh
+chmod +x  /dev/shm/apache/linpeas.sh
+chmod +x  /dev/shm/apache/winPEASx64.exe
+chmod +x  /dev/shm/apache/winPEASx86.exe
+chmod +x  /dev/shm/apache/linenum.sh
 
 
 
@@ -124,14 +127,14 @@ default_port="80"
 port=$default_port
 
 # Directorio de destino para los archivos Apache
-destination_dir="/tmp/apache"
+destination_dir="/dev/shm/apache"
 
 # Archivo de lista de nombres de archivos
-file_list="/usr/bin/listaapache"
+file_list="/opt/4rji/bin/listaapache"
 
 echo ""
 # Pregunta combinada
-read -p "¿Deseas utilizar un puerto diferente al predeterminado ($default_port)? [s/N] " custom_port
+read -p "¿Deseas utilizar un puerto diferente al predeterminado ($default_port)? [S/n] " custom_port
 custom_port="${custom_port:-n}"
 
 if [[ $custom_port =~ ^[Ss]$ ]]; then
@@ -145,12 +148,12 @@ if [ ! -d "$destination_dir" ]; then
 fi
 
 while IFS= read -r filename; do
-    file_path=$(find /usr/bin/ -name "$filename" 2>/dev/null)
+    file_path=$(find /opt/4rji/bin/ -name "$filename" 2>/dev/null)
     if [ -n "$file_path" ]; then
         cp "$file_path" "$destination_dir"
     else
         
-        echo -e "\033[0;31mNo se encontro el archivo $filename en /usr/bin\033[0m"
+        echo -e "\033[0;31mNo se encontro el archivo $filename en /opt/4rji/bin\033[0m"
     fi
 done < "$file_list"
 

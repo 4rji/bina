@@ -372,6 +372,7 @@ chiselinst          Instrucciones para port forwarding chisel
 privado             Instrucciones para dirtpipe, tienes que tener gcc, para root
 4rjivuln            comprueba simple file inclusion
 pspy64              procesos servicios newprocess pspy 
+shells              Copia al portapapeles varias tipo de shells, pregunta IP y general el comando
 
 #HTB shorcuts
 htbinst             Algunas instrucciones, hacer un whx a ese binario 
