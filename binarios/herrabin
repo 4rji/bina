@@ -1,5 +1,8 @@
 #!/bin/bash
 
+[ -f /usr/bin/herrabin ] && sudo rm /usr/bin/herrabin
+
+
 # Colores
 azul='\e[0;34m'
 reset='\e[0m'
