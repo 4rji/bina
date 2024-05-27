@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 # Colores
 azul='\e[0;34m'
 reset='\e[0m'
@@ -25,10 +24,7 @@ while getopts "op" opt; do
     esac
 done
 
-
 if [[ $omitir != true ]]; then
-
-
     # Función para verificar si un paquete está instalado
 
     paquetes=("sudo" "curl" "git" "kitty" "nano" "ifupdown" "sudo" "zsh" "xclip" "python3" "bat" "lsd" "tldr" "iproute2" "net-tools" "iputils-ping" "moreutils"  )
@@ -91,11 +87,7 @@ if [[ $omitir != true ]]; then
         esac
     done
 
-
-
-
-
-    # Con la funcion de que se puede poner un nombre despues del mktem para especificar el nombre del folder.
+    # Función para crear directorios temporales
     function mktem() {
         if [ -n "$1" ]; then
             new_dir=$(mktemp -d /dev/shm/tmp."$1".XXXXXX)
@@ -108,28 +100,26 @@ if [[ $omitir != true ]]; then
         echo "Cambiado al directorio: $PWD"
     }
 
-
-    # Aquí puedes llamar a la función mktem
+    # Crear directorio temporal y realizar operaciones
     mktem
-
-    git clone --depth 1  https://github.com/4rji/bina.git
+    git clone --depth 1 https://github.com/4rji/bina.git
     cd bina
-
     sudo mkdir -p /opt/4rji/bin
-
     sudo cp -f binarios/* /opt/4rji/bin
     echo ""
-      echo -e "${azul}binarios actualizados${reset}"
-      todou
+    echo -e "${azul}binarios actualizados${reset}"
+    todou
     cd
-   
-
-echo ""
-
+    echo ""
 fi
 
+# Comprobar si se debe omitir la sección de preguntas
+if [[ $omitirPreguntas == true ]]; then
+    echo "Se omitirá la sección de preguntas."
+    exit 0
+fi
 
-
+# Sección de preguntas empieza aquí
 
 
 # Colores
@@ -270,4 +260,5 @@ else
 fi
 
 todou
+
 
