@@ -224,6 +224,32 @@ reset='\e[0m'
 echo -e "${azul}"
 echo "_________________________________________________________"
 echo ""
+# Pregunta al usuario si desea descargar los archivos comprimidos
+read -p "¿Deseas descargar los comprimidos? [s/N] " respuesta
+
+# Convertir la respuesta en minúsculas
+respuesta=${respuesta,,}  # Esto es para convertir la respuesta a minúsculas
+
+# Comprobar si la respuesta es 's'
+if [[ "$respuesta" == "s" ]]; then
+    # Comando para crear el directorio si no existe
+    sudo mkdir -p /opt/4rji/bin/
+    
+    # Comando para descargar el archivo
+    sudo wget -O /opt/4rji/bin/comprimidos.tar.xz "https://github.com/4rji/4rji/blob/a597919d97320882a7194b55d49b545fdc8d13fb/comprimidos.tar.xz?raw=true"
+    
+    # Comando para descomprimir el archivo
+    sudo tar -xvf /opt/4rji/bin/comprimidos.tar.xz -C /opt/4rji/bin/
+    
+    echo "Archivo descargado y descomprimido con éxito."
+else
+    echo "No se realizará ninguna descarga."
+fi
+
+echo -e "${azul}"
+echo "_________________________________________________________"
+echo ""
+
 
 # Pregunta al usuario
 read -n1 -p "$(echo -e ${verde}'¿Instalar todos alias? (s/N): '${reset})" respuesta
