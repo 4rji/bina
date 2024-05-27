@@ -290,7 +290,8 @@ qemucomm            Comandos de qemu virsh
 qemudebian          Descarga ISO, agrega e inicia instalador debian :)
 qemuq2              Descarga linux VM qcow2, agrega e inicia una maquina debian/kali opciones
 
-#Instalaciones                                                                  
+#Instalaciones         
+cowrie              Instala docker cowrie y tambien detiene con -t todos los contenedores                                                         
 lockfancyinst       Bloquear fancy para pantalla, alias lockf
 instsublime         Instala sublime en kali
 instgithub          Instala github desktop en kali

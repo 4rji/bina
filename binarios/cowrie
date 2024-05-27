@@ -1,0 +1,52 @@
+#!/bin/bash
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo "cowrie -t to stop the containers"
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"5;9u
+
+# Number of containers
+NUM_CONTAINERS=20
+
+# Docker image
+IMAGE="cowrie/cowrie"
+
+# Function to generate a random port
+generate_random_port() {
+  while :; do
+    PORT=$((RANDOM % 64511 + 1024)) # Generate a port between 1024 and 65535
+    if ! netstat -tuln | grep -q ":$PORT "; then
+      echo $PORT
+      return
+    fi
+  done
+}
+
+# Function to stop and remove all containers
+stop_containers() {
+  for i in $(seq 1 $NUM_CONTAINERS); do
+    CONTAINER_NAME="cowrie_$i"
+    if docker ps -a --format '{{.Names}}' | grep -q "^$CONTAINER_NAME$"; then
+      docker stop $CONTAINER_NAME
+      docker rm $CONTAINER_NAME
+      echo "Stopped and removed container $CONTAINER_NAME"
+    fi
+  done
+}
+
+# Check if the script is run with the -t option
+if [[ $1 == "-t" ]]; then
+  stop_containers
+  exit 0
+fi
+
+# Pull the Docker image
+docker pull $IMAGE
+
+# Loop to create the containers
+for i in $(seq 1 $NUM_CONTAINERS); do
+  PORT=$(generate_random_port)
+  CONTAINER_NAME="cowrie_$i"
+  docker run -d -p $PORT:2222/tcp --name $CONTAINER_NAME $IMAGE
+  echo "Created container $CONTAINER_NAME with SSH port $PORT"
+done
+
