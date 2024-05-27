@@ -3,6 +3,7 @@
 # Verificar si se proporcionó un argumento
 if [ $# -eq 0 ]; then
     echo "Por favor, proporciona el nombre del host como argumento al script."
+    echo "hosthtb pagina.xyz"
     exit 1
 fi
 
@@ -25,3 +26,5 @@ else
     echo "Hubo un error al agregar la entrada al archivo /etc/hosts."
     exit 1
 fi
+
+cat /etc/hosts

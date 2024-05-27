@@ -20,7 +20,7 @@ echo ""
     # Preguntar al usuario por el nuevo nombre
     read -p "Nombre del host nuevo: " nuevo_nombre
 
-    # Reemplazar la palabra "casiton" en /usr/bin/nff con el nuevo nombre usando sudo
+    # Reemplazar la palabra "casiton" en /opt/4rji/bin/nff con el nuevo nombre usando sudo
     sudo sed -i "s/casiton/$nuevo_nombre/g" /opt/4rji/bin/nff
 
     echo "Se ha realizado el reemplazo en /opt/4rji/bin/nff con el nuevo nombre."

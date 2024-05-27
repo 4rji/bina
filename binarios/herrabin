@@ -1,7 +1,5 @@
 #!/bin/bash
 
-[ -f /usr/bin/herrabin ] && sudo rm /usr/bin/herrabin
-
 
 # Colores
 azul='\e[0;34m'
@@ -30,7 +28,6 @@ done
 
 if [[ $omitir != true ]]; then
 
-    #omitir -o
 
     # Función para verificar si un paquete está instalado
 
@@ -96,6 +93,8 @@ if [[ $omitir != true ]]; then
 
 
 
+
+
     # Con la funcion de que se puede poner un nombre despues del mktem para especificar el nombre del folder.
     function mktem() {
         if [ -n "$1" ]; then
@@ -128,19 +127,6 @@ if [[ $omitir != true ]]; then
 echo ""
 
 fi
-
-
-# ejemplo de como saltar la ejecución basado en las opciones
-if [[ $omitir == true ]]; then
-    # Lógica para manejar la opción -o
-    echo "Omitiendo algo debido a -o"
-fi
-
-# Asegurarse de no ejecutar la segunda parte si -p está presente
-if [[ $omitirPreguntas == true ]]; then
-    exit 0
-fi
-
 
 
 
@@ -178,42 +164,21 @@ read -p "Do you want to add /opt/4rji/bin to your PATH? (y/n): " -n 1 -r
 echo    # (opcional) mueve a una nueva línea
 
 # Por defecto, si el usuario presiona Enter, considera 'n'
-if [[ ! $REPLY =~ ^[Yy]$ ]]
-then
-    echo "No changes made to PATH."
-    exit 1
-fi
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    # Agregar el directorio /opt/4rji/bin al PATH en ~/.zshrc
+    echo 'export PATH=$PATH:/opt/4rji/bin' >> ~/.zshrc
+    echo "The directory /opt/4rji/bin has been added to your PATH in ~/.zshrc."
 
-# Agregar el directorio /opt/4rji/bin al PATH en ~/.bashrc
-echo 'export PATH=$PATH:/opt/4rji/bin' >> ~/.zshrc
-
-# Recargar ~/.bashrc para aplicar los cambios
-source ~/.zshrc
-
-echo "The directory /opt/4rji/bin has been added to the PATH."
-
-
-
-
-
-# Pregunta al usuario
-read -n1 -p "$(echo -e ${verde}'¿Instalar las {}FUNCTION en la bash? (s/N): '${reset})" respuesta
-echo ""
-
-# Define un valor predeterminado si el usuario presiona Enter
-respuesta=${respuesta:-n}
-
-# Convierte la respuesta a minúsculas para facilitar la comparación
-respuesta=$(echo $respuesta | tr '[:upper:]' '[:lower:]')
-
-# Verifica la respuesta
-if [ "$respuesta" == "s" ]; then
-    #echo -e "${verde}Ejecutando bashfun...${reset}"
-    wget -O - https://raw.githubusercontent.com/4rji/4rji/main/binarios/bashfun | bash
-    # Aquí colocas el código para ejecutar bashfun
+    # Opcional: recargar ~/.zshrc para aplicar los cambios sin necesidad de reiniciar la terminal
+    #source ~/.zshrc
 else
-    echo ""
+    echo "No changes made to PATH."
 fi
+
+
+
+
+
 
 
 # Colores
@@ -236,7 +201,7 @@ if [[ "$respuesta" == "s" ]]; then
     sudo mkdir -p /opt/4rji/bin/
     
     # Comando para descargar el archivo
-    sudo wget -O /opt/4rji/bin/comprimidos.tar.xz "https://github.com/4rji/4rji/blob/a597919d97320882a7194b55d49b545fdc8d13fb/comprimidos.tar.xz?raw=true"
+    sudo wget -O /opt/4rji/bin/comprimidos.tar.xz "https://github.com/4rji/archivos-b/blob/d5d6d8b3418c7b452f21e1de105a4747c6c480e1/comprimidos.tar.xz?raw=true"
     
     # Comando para descomprimir el archivo
     sudo tar -xvf /opt/4rji/bin/comprimidos.tar.xz -C /opt/4rji/bin/

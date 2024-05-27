@@ -39,7 +39,7 @@ mv /tmp/lists.txt ~/.aliaseses.md
 
 #se mezcla
 
-cat /usr/bin/README.md ~/.aliaseses.md  > ~/.todo.txt
+cat /opt/4rji/bin/README.md ~/.aliaseses.md  > ~/.todo.txt
 # Definir la ruta completa al archivo README.md
 file="$HOME/.todo.txt"
 
