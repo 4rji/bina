@@ -118,7 +118,7 @@ if [[ $omitir != true ]]; then
     sudo mkdir -p /opt/4rji/bin
 
     sudo cp -f binarios/* /opt/4rji/bin
-
+    echo ""
       echo -e "${azul}binarios actualizados${reset}"
       todou
     cd
@@ -130,20 +130,6 @@ fi
 
 
 
-#segunda parte >
-
- #Hasta aquí termina la omisión, esto es normal
-
-    echo ""
-    echo -e "${azul}_________________________________________________________${reset}"
-    echo ""
-
-    echo -e "${azul}Si hay: Error opening terminal: xterm-kitty, ejecutar:${reset}"
-    echo "export TERM=xterm"
-
-    
-    echo -e "${azul}_________________________________________________________${reset}"
-    echo ""
 
 
 # Colores
