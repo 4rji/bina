@@ -218,6 +218,7 @@ ansihost            Cat a los hosts y pregunta si quiero editarlo ansible
 
 
 ###------seguridad de sistemas
+snifferip           Sniffer paquetes red que captura las cabeceras IP en dirección IP especifica.
 iarpon              Arpon para protejer de arp poising. arp sniff 
 iicmp               para protejer de ataques icmp, solo cambia el 0 a 1 este script
 bucle               Ejecute un while true; do en bucle, pregunta tiempo y comando
