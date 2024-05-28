@@ -1,0 +1,41 @@
+#!/bin/bash
+
+echo ""
+echo "This script is a simple Python web server designed to create a  by generating web pages with random or predefined links. It includes configurable parameters such as the number of links per page, the length of each link, the server port, and a delay before serving each page. The server can use a provided file of webpage names or generate random links if no file is specified."
+echo ""
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo "you can use this to test it"
+echo "sudo wget -m http://127.0.0.1:8000"
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+# Mostrar la lista de archivos en /usr/share/dirbuster/wordlists/ con números
+files=(/usr/share/dirbuster/wordlists/*)
+for i in "${!files[@]}"; do
+    echo -e "\033[1;$((31 + i % 6))m$((i + 1)). $(basename "${files[$i]}")\033[0m"
+done
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Preguntar al usuario cuál archivo de la lista quiere usar con el comando spider
+read -p "$(echo -e '\033[1;34mSeleccione el número del archivo que desea usar con spider: \033[0m')" selection
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Verificar que la selección es un número válido
+if [[ $selection -gt 0 && $selection -le ${#files[@]} ]]; then
+    selected_file="${files[$((selection - 1))]}"
+    echo -e "\033[1;32mEjecutando spider con el archivo: $(basename "$selected_file")\033[0m"
+    spidertrapscript "$selected_file"
+else
+    echo -e "\033[1;31mSelección inválida. Por favor, ejecute el script nuevamente y elija un número válido.\033[0m"
+fi
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo -e "\033[1;32mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\033[0m"
