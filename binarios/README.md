@@ -243,6 +243,7 @@ disapp              Ejecuta una aplicacion en un contenedor determinador despues
 operarch            Instala brave o opera en distrobox en arch con yay
 
 ###------antivirus y malware
+spidertrap          Hace una pagina para evitar el scaneo de paginas web usando listas de gobuster
 rkhun               Instala, actualiza y ejecuta el scaneo rkhunter, tambien instala chkrootkit
 apachenombre        Instrucciones para remover el nombre del banner de apache y nginx
 clamavinst          instala antivirus e inicia un scaneo solo ingresando la ruta, y se actualiza tambien 
