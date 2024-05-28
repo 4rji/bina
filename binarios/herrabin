@@ -115,7 +115,7 @@ fi
 
 # Comprobar si se debe omitir la sección de preguntas
 if [[ $omitirPreguntas == true ]]; then
-    echo "Se omitirá la sección de preguntas."
+    echo ""
     exit 0
 fi
 
