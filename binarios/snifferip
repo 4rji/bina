@@ -7,7 +7,6 @@ from ctypes import *
 # host to listen on
 host = "192.168.88.64"
 
-
 class IP(Structure):
     _fields_ = [
         ("ihl", c_ubyte, 4),
@@ -27,21 +26,15 @@ class IP(Structure):
         return cls.from_buffer_copy(socket_buffer)
 
     def __init__(self, socket_buffer=None):
-        self.socket_buffer = socket_buffer
-
-        # map protocol constants to their names
-        self.protocol_map = {1: "ICMP", 6: "TCP", 17: "UDP"}
-
         # human readable IP addresses
         self.src_address = socket.inet_ntoa(struct.pack("@I", self.src))
         self.dst_address = socket.inet_ntoa(struct.pack("@I", self.dst))
 
-        # human readable protocol
-        try:
-            self.protocol = self.protocol_map[self.protocol_num]
-        except IndexError:
-            self.protocol = str(self.protocol_num)
+        # map protocol constants to their names
+        self.protocol_map = {1: "ICMP", 6: "TCP", 17: "UDP"}
 
+        # human readable protocol
+        self.protocol = self.protocol_map.get(self.protocol_num, str(self.protocol_num))
 
 # create a raw socket and bind it to the public interface
 if os.name == "nt":
