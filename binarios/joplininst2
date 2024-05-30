@@ -18,38 +18,44 @@ echo "Joplin Terminal is now installed and ready to use."
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 
 function download_database() {
-    read -n1 -p "¿Desea descargar la base de datos? [s/n]: " choice
+    read -n1 -p "Do you want to download the database? [y/n]: " choice
     echo ""
-    if [[ $choice == [sS] ]]; then
+    if [[ $choice == [yY] ]]; then
         mktem
-        rm -rf ~/.config/joplin # Elimina la ubicación predeterminada en sistemas Linux
+        rm -rf ~/.config/joplin # Deletes the default location on Linux systems
         #git clone --depth 1 https://github.com/4rji/4rji.git && cd 4rji
-        wget https://github.com/4rji/archivos-b/blob/d5d6d8b3418c7b452f21e1de105a4747c6c480e1/jota.jex.enc
+        git clone --depth 1 https://github.com/4rji/archivos-b && cd archivos-b
+        #wget https://github.com/4rji/archivos-b/blob/d5d6d8b3418c7b452f21e1de105a4747c6c480e1/jota.jex.enc
         echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"       
         secreto jota.jex.enc
         joplin import jota.jex
         
     else
-        echo "No se descargará la base de datos."
+        echo "The database will not be downloaded."
     fi
 }
 
 function mktem() {
-    new_dir=$(mktemp -d)
-    echo "Directorio creado en: $new_dir"
+    if [ -n "$1" ]; then
+        new_dir=$(mktemp -d /dev/shm/tmp."$1".XXXXXX)
+    else
+        new_dir=$(mktemp -d /dev/shm/tmp.XXXXXX)
+    fi
+    
+    echo "Directory created at: $new_dir"
     cd "$new_dir" || return
-    echo "Cambiado al directorio: $PWD"
+    echo "Changed to directory: $PWD"
 }
 
-# Llamada a la función para descargar la base de datos
+# Call the function to download the database
 download_database
 joplin config editor nano
 
 echo ""
-echo "tambien configurado:"
+echo "also configured:"
 echo "joplin config editor nano"
 
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
-echo "iniciando Joplin en 1 segundo"
+echo "starting Joplin in 1 second"
 sleep 1
 joplin
