@@ -1,0 +1,64 @@
+#!/bin/bash
+
+# Ruta del archivo de configuración de GRUB
+GRUB_CONFIG="/etc/default/grub"
+
+# Backup del archivo de configuración de GRUB antes de modificarlo
+cp $GRUB_CONFIG $GRUB_CONFIG.bak
+
+# Comenta la línea existente y añade la nueva configuración debajo
+sed -i '/GRUB_CMDLINE_LINUX_DEFAULT=/c\#&\nGRUB_CMDLINE_LINUX_DEFAULT="quiet intel_iommu=on"' $GRUB_CONFIG
+
+# Actualizar GRUB
+update-grub
+
+
+
+
+# Backup de los archivos de configuración antes de modificarlos
+cp /etc/modules /etc/modules.bak
+cp /etc/modprobe.d/iommu_unsafe_interrupts.conf /etc/modprobe.d/iommu_unsafe_interrupts.conf.bak
+cp /etc/modprobe.d/kvm.conf /etc/modprobe.d/kvm.conf.bak
+cp /etc/modprobe.d/blacklist.conf /etc/modprobe.d/blacklist.conf.bak
+cp /etc/modprobe.d/vfio.conf /etc/modprobe.d/vfio.conf.bak
+
+
+
+# Añadir módulos VFIO al archivo de módulos
+echo "vfio" >> /etc/modules
+echo "vfio_iommu_type1" >> /etc/modules
+echo "vfio_pci" >> /etc/modules
+echo "vfio_virqfd" >> /etc/modules
+
+# Configuración para permitir interrupciones inseguras
+echo "options vfio_iommu_type1 allow_unsafe_interrupts=1" > /etc/modprobe.d/iommu_unsafe_interrupts.conf
+
+# Configuración para ignorar MSRs en KVM
+echo "options kvm ignore_msrs=1" > /etc/modprobe.d/kvm.conf
+
+# Lista negra de módulos de gráficos
+echo "blacklist radeon" > /etc/modprobe.d/blacklist.conf
+echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
+echo "blacklist nvidia" >> /etc/modprobe.d/blacklist.conf
+
+# Configurar VFIO-PCI con los ID específicos de dispositivos
+echo "options vfio-pci ids=10de:2484,10de:228b,10de:0ffd,10de:0e1b disable_vga=1" > /etc/modprobe.d/vfio.conf
+
+# Actualizar initramfs
+update-initramfs -u
+
+
+#" con lspci -v buscamos 
+#04:00.0 VGA compatible controller: NVIDIA Corporation GA104 [GeForce RTX 3070] (rev a1) (prog-if 00 [VGA controller])
+#03:00.0 VGA compatible controller: NVIDIA Corporation GK107 [NVS 510] (rev a1) (prog-if 00 [VGA controller])"
+#de ahi tomamos y ponemos:
+#lspci -n -s 04:00  
+#04:00.0 0300: 10de:2484 (rev a1)
+#04:00.1 0403: 10de:228b (rev a1)
+#lspci -n -s 03:00
+#03:00.0 0300: 10de:0ffd (rev a1)
+#03:00.1 0403: 10de:0e1b (rev a1)
+
+#para  crear las lineas:
+#options vfio-pci ids=10de:2484,10de:228b,10de:0ffd,10de:0e1b disable_vga=1
+
