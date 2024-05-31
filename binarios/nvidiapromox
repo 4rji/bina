@@ -62,3 +62,4 @@ update-initramfs -u
 #para  crear las lineas:
 #options vfio-pci ids=10de:2484,10de:228b,10de:0ffd,10de:0e1b disable_vga=1
 
+#https://youtu.be/X_VwQpJSXIQ?si=nPfJwXS8sX9CZ9iW
