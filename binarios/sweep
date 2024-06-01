@@ -1,15 +1,36 @@
 #!/bin/bash
 
-# Ensure a subnet is provided as an argument
-if [ $# -ne 1 ]; then
-    echo "Please provide a subnet as an argument. Example: ./script.sh 192.168.1"
-    exit 1
-fi
+# Colors
+RED='\033[0;31m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Function to display available interfaces and IPs
+function show_interfaces() {
+    ip -4 addr show | awk '/inet/ && !/127.0.0.1/ {split($2, a, "/"); printf "%s:%s\n", $NF, a[1]}'
+}
+
+# Get the list of interfaces and IPs
+interfaces_and_ips=($(show_interfaces))
+
+# Display the list of interfaces
+echo -e "Available interfaces and IPs:"
+for i in "${!interfaces_and_ips[@]}"; do
+    interface=$(echo "${interfaces_and_ips[$i]}" | cut -d: -f1)
+    ip=$(echo "${interfaces_and_ips[$i]}" | cut -d: -f2)
+    echo -e "$((i+1)) - ${RED}$interface${NC}, ${BLUE}$ip${NC}"
+done
+
+# Ask the user to select an interface
+read -p "Which interface number do you want to scan? " selected_interface_number
+
+# Extract the selected IP
+selected_ip=$(echo "${interfaces_and_ips[$((selected_interface_number-1))]}" | cut -d: -f2)
+subnet=$(echo $selected_ip | awk -F. '{print $1"."$2"."$3}')
 
 echo "_________________________________________________________"
 echo ""
 
-subnet="$1"
 tempfile=$(mktemp) # Create a temporary file
 
 # Pings each IP in the subnet and displays the output
