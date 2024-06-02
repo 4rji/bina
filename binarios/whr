@@ -8,4 +8,4 @@ then
 fi
 
 # Utiliza sudo para abrir nano con el archivo especificado
-sudo nano "/usr/bin/$1"
+sudo nano "/opt/4rji/bin/$1"

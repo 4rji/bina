@@ -1,0 +1,13 @@
+#!/bin/bash
+echo ""
+# Check if the /etc/resolv.conf file exists
+if [ -f /etc/resolv.conf ]; then
+    echo -e "\033[1;33mConfigured DNS servers:\033[0m"
+    # Extract and display the lines containing the DNS servers
+    grep "nameserver" /etc/resolv.conf | awk '{print "\033[1;31m" $2 "\033[0m"}'
+else
+    echo -e "\033[1;33mThe /etc/resolv.conf file does not exist.\033[0m"
+fi
+
+echo ""
+
