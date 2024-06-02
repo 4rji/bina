@@ -114,4 +114,20 @@ cp * ~/Downloads/.vpnitos/
 echo "Reemplazar contraseña cc"
 sudo mv ~/Downloads/.vpnitos/cc.txt /
 
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+
+
+##Inicio automatico
+
+read -p "¿Quieres que se inicie Proton al iniciar el sistema con el servidor del Reino Unido? [s/n]: " respuesta
+
+if [[ "$respuesta" == "s" || "$respuesta" == "S" ]]; then
+    protoninicio
+    echo "Proton se ha iniciado con el servidor del UK."
+else
+    echo "Proton no se ha iniciado."
+fi
+echo ""
+
 

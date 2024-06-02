@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Variables
+SERVICE_PATH="/etc/systemd/system/openvpn.service"
+OVPN_PATH="/home/kasm/Downloads/.vpnitos/aSecure-ch-uk-01.protonvpn.udp.ovpn"
+
+# Crear archivo de servicio
+echo "Creando archivo de servicio en $SERVICE_PATH..."
+sudo bash -c "cat > $SERVICE_PATH <<EOL
+[Unit]
+Description=OpenVPN Service
+After=network.target
+
+[Service]
+ExecStart=/usr/sbin/openvpn --config $OVPN_PATH
+ExecStartPre=/bin/sleep 10
+ExecReload=/bin/kill -HUP $MAINPID
+KillSignal=SIGTERM
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOL"
+
+# Recargar systemd
+echo "Recargando systemd..."
+sudo systemctl daemon-reload
+
+# Habilitar y arrancar el servicio
+echo "Habilitando y arrancando el servicio OpenVPN..."
+sudo systemctl enable openvpn.service
+sudo systemctl start openvpn.service
+
+echo "Proceso completado. Recuerda cambiar la ruta en el archivo de servicio si es necesario."
+
