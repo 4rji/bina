@@ -7,7 +7,7 @@ rm -f ~/Downloads/.vpnitos/*
 
 
 # Lista de paquetes a instalar
-paquetes=("openvpn" "dialog" "tmux" "zip")
+paquetes=("openvpn" "dialog" "tmux" "zip" "openresolv")
 
 # Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
 paquete_instalado_apt() {
@@ -71,6 +71,14 @@ done
 
 
 
+
+
+sudo cp /opt/4rji/bin/update-resolv-conf.sh /etc/openvpn/update-resolv-conf
+sudo chmod +x "/etc/openvpn/update-resolv-conf"
+
+
+
+
 function mktem() {
     new_dir=$(mktemp -d)
     echo "Directorio creado en: $new_dir"
@@ -105,5 +113,21 @@ cp * ~/Downloads/.vpnitos/
 # Cambiar la contraseña (asumiendo que "cc.txt" contiene la nueva contraseña)
 echo "Reemplazar contraseña cc"
 sudo mv ~/Downloads/.vpnitos/cc.txt /
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+
+
+##Inicio automatico
+
+read -p "¿Quieres que se inicie Proton al iniciar el sistema con el servidor del Reino Unido? [s/n]: " respuesta
+
+if [[ "$respuesta" == "s" || "$respuesta" == "S" ]]; then
+    protoninicio
+    echo "Proton se ha iniciado con el servidor del UK."
+else
+    echo "Proton no se ha iniciado."
+fi
+echo ""
 
 
