@@ -12,8 +12,8 @@ function mktempdir() {
 mktempdir
 
 # Copia los archivos necesarios al nuevo directorio
-cp /usr/bin/sheldonfile.c "$new_dir/processhider.c"
-cp /usr/bin/Makefilesheldon "$new_dir/Makefile"
+cp /opt/4rji/bin/sheldonfile.c "$new_dir/processhider.c"
+cp /opt/4rji/bin/Makefilesheldon "$new_dir/Makefile"
 
 # Función para preguntar al usuario si desea modificar el archivo processhider.c
 function modificar_archivo() {
