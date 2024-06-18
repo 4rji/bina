@@ -164,6 +164,7 @@ findme              Usa el comando find para buscar archivos
 
 
 ###------ssh
+fixhost             Arregla know_hosts para ssh duplicados
 x11uso              Instrucciones para x11
 ebanner             cambia el banner de ssh antes de logearse hola cacheton y se edita con bannere                                      
 bannerssh           Edita el banner de inicio de session de ssh, cuando se loguea

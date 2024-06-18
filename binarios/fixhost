@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Check if the hostname was provided
+if [ -z "$1" ]; then
+  echo "Usage: $0 <hostname>"
+  exit 1
+fi
+
+# Find the line number of the offending key in known_hosts
+line=$(ssh-keygen -F $1 | grep -oP 'line \K\d+')
+
+# Remove the offending key
+if [ -n "$line" ]; then
+  ssh-keygen -R $1
+  echo "Removed offending key for $1 from known_hosts."
+else
+  echo "No entries found for $1 in known_hosts."
+fi
+
