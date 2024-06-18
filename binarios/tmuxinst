@@ -18,7 +18,7 @@ mv .tmux.conf ~/.tmux.conf
 
 tmux source ~/.tmux.conf
 
-echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
 echo ""
 echo "Open tmux and install the plugins with Control B, then Shift I ( i of install )"
-echo ""
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
