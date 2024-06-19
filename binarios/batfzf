@@ -1,0 +1,22 @@
+#!/bin/bash
+
+# Create a directory for bat themes
+mkdir -p ~/.config/bat/themes
+
+# Navigate to the directory
+cd ~/.config/bat/themes
+
+# Download the tokyonight theme
+curl -O https://raw.githubusercontent.com/folke/tokyonight.nvim/main/extras/sublime/tokyonight_night.tmTheme
+
+# Rebuild the bat cache
+bat cache --build
+batcat cache --build
+
+# Append the BAT_THEME configuration to ~/.zshrc
+echo 'export BAT_THEME="tokyonight_night"' >> ~/.zshrc
+echo 'eval "$(fzf --zsh)"' >> ~/.zshrc
+
+# Install fzf
+sudo apt install fzf
+

@@ -18,6 +18,7 @@ tempe               or tempe -f temperatura de arch linux y -f crea un archivo c
 
 
 ###------utilidades sistema
+batfzf              Instala el theme night tokio para batcat, tambien fzf 
 nvidiapromox        instala nvidio passtrhought 3070, en promox
 limpiarherrabin     Limpia los binarios de /usr/bin/ 
 shm                 Aumenta la memoria de tmp de la /dev/shm, y la limpia con -c
