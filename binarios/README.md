@@ -16,6 +16,8 @@ bateriamonitor      Muestra los watts y el estado de carga en kali
 bateria             new script con bateria en lugar de alias                                           
 tempe               or tempe -f temperatura de arch linux y -f crea un archivo con los datos de tempe  
 
+#Nixos
+nixbus              Para buscar paquetes en linea de comando y tambien corregir bash
 
 ###------utilidades sistema
 batfzf              Instala el theme night tokio para batcat, tambien fzf 

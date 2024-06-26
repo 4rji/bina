@@ -1,0 +1,25 @@
+#!/run/current-system/sw/bin/bash
+# Asegurarse de que se ha proporcionado exactamente un argumento.
+if [ "$#" -ne 1 ]; then
+    echo "Uso: ./script palabra"
+    exit 1
+fi
+
+# Palabra para buscar y reemplazar 'dig'
+new_word=$1
+
+# Comando nix-env con la palabra reemplazada
+nix-env -qa ".*$new_word.*"
+
+
+
+
+
+#change the shell path
+#from /opt/4rji/bin
+
+#sudo find /opt/4rji/bin/* -type f -exec sed -i 's|^#!/bin/bash|#!/run/current-system/sw/bin/bash|' {} +
+
+#sudo find /opt/4rji/bin/* -type f -exec sed -i 's|^#!/bin/zsh|#!/run/current-system/sw/bin/bash|' {} +
+
+
