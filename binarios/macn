@@ -10,7 +10,7 @@ reset="\033[0m"
 # Agregar un renglón de separación
 echo -e "${yellow}" # Amarillo
 echo ""
-ifconfig | grep inet | grep -v 127.0.0.1 | sed 's/^/    /'
+ifconfig | grep inet | grep -v 127.0.0.1 | sed 's/^/    /' | grep -v inet6
 echo -e "${red}" # Rojo
 echo ""
 
@@ -25,5 +25,5 @@ network_interface=$(get_network_interface)
 
 # Mostrar la dirección IP local
 echo -e "${blue}                  ___________________________________________________${reset}"
-echo -e "\n\t\t\t\tTu IP de $network_interface es: $(ifconfig "$network_interface" | grep "inet " | awk '{print $2}')\n"
+echo -e "\n\t\t\t\tTu IP de $network_interface es: $(ifconfig "$network_interface" | grep "inet " | awk '{print $2}')\n" 
 
