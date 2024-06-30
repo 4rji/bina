@@ -11,6 +11,12 @@ reset="\033[0m"
 echo -e "${yellow}" # Amarillo
 echo ""
 ifconfig | grep inet | grep -v 127.0.0.1 | sed 's/^/    /' | grep -v inet6
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+#ifconfig | awk '/^[a-z]/ { iface = $1 } /inet / && !/127.0.0.1/ { print iface ": " $2 }'
+ifconfig | awk '/^[a-z]/ { iface = $1 } /inet / && !/127.0.0.1/ { print "        " iface ": " $2 }'
+
 echo -e "${red}" # Rojo
 echo ""
 

@@ -46,6 +46,7 @@ NC='\033[0m' # No Color
 echo "Selecciona la imagen a descargar:"
 echo "1) Debian"
 echo "2) Kali"
+echo "3) Fedora"
 read -p "Introduce tu elección (1/2): " opcion
 
 # Variables de URL de imagen y nombre de archivo
@@ -66,6 +67,13 @@ case $opcion in
         wget "$image_url"
         sudo 7z x "kali-linux-2023.4-qemu-amd64.7z" -o/var/lib/libvirt/images/
         ;;
+    3)
+        echo -e "${GREEN}Descargando la imagen de Debian...${NC}"
+        image_url="https://download.fedoraproject.org/pub/fedora/linux/releases/40/Server/x86_64/images/Fedora-Server-KVM-40-1.14.x86_64.qcow2"
+        file_name="Fedora-Server-KVM-40-1.14.x86_64.qcow2"
+        sudo wget -P /var/lib/libvirt/images/ "$image_url"
+        ;;
+
     *)
         echo "Opción no válida."
         exit 1
