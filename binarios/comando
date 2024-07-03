@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+
+#aplica -h mensaje para mostrar al inicio de un script
+
 import sys
 
 if len(sys.argv) != 2:

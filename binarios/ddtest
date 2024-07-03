@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Function to execute the dd command with the specified block size
+run_dd() {
+    local bs=$1
+    dd if=/dev/zero of=testfile bs=${bs}M count=1000 conv=fdatasync
+}
+
+# Check if a parameter is provided
+if [ "$#" -eq 1 ]; then
+    # Check if the parameter is -5
+    if [ "$1" == "-5" ]; then
+        run_dd 5
+    else
+        echo "Invalid parameter. Use ./script or ./script -5"
+        exit 1
+    fi
+else
+    run_dd 10
+fi
+
+# Remove the created file
+rm testfile
+
+echo "Operation completed and file deleted."
+
