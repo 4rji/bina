@@ -29,6 +29,18 @@ function mktem() {
 
 
 
+function mktemm() {
+    if [ -n "$1" ]; then
+        new_dir=$(mktemp -d /tmp/tmp."$1".XXXXXX)
+    else
+        new_dir=$(mktemp -d /tmp/tmp.XXXXXX)
+    fi
+    
+    echo "Directorio creado en: $new_dir"
+    cd "$new_dir" || return
+    echo "Cambiado al directorio: $PWD"
+}
+
 
 #function mktem() {
  #   new_dir=$(mktemp -d)
