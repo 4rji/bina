@@ -23,10 +23,12 @@ usualment es en folder de la maquina y el nombre de la maquina.md
 
 asd= copia la ip de target1 
 
+datos = para crear la base de datos de la pagina web busqueda en arch, este paso es al final.
 
 hacer un alias de 
 
 qwe = alias 'clipc && pas'
 para copiar el ultimo comando al archivo maquina.md"""
+
 
 echo ""
