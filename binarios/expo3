@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 ip_address=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' allPorts | uniq)
 
@@ -16,4 +16,5 @@ echo -e "\e[1;31m$command\e[0m"
 
 eval "$command"
 echo ""
-bat -l rb --paging=never expo3
+mv expo3 nmap_results
+bat -l rb --paging=never nmap_results
