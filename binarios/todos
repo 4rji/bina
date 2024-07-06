@@ -26,3 +26,7 @@ sleep .5
 
 find /home/nat/Documents/GitHub/bina/binarios -type f | fzf --preview 'bat --color=always --style=plain {}'
 
+
+#Este hace un nano pero el original hace un nvim automaticamente en Arch
+#cd /Users/ozono/Dropbox/bina/binarios/ && nano $(fzf --preview="bat --color=always {}")
+
