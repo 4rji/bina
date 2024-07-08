@@ -2,7 +2,18 @@
 
 echo """
 
+ejecutar htp
+Primero  asignar la IP en target1
+Luego ejecutar iniciar para asignar las ips
+
+
+expo mas signo de dolarIP para enumerar.
+
+
+
 desde la configuracion de singlefile de firefox, se modifica para que guarde la pagina web en clipboard desde la configuracion 
+se puede guardar la pagina descargar y moverla de downloads a content o tambien:
+
 de la extension dentro de firefox, en Destination, copy to clipboard
 y ya despues en la terminal dentro de donde se quiera guarda se hace un
 pega > archivo.index 
