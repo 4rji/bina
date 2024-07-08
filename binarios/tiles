@@ -1,0 +1,16 @@
+#!/bin/bash
+
+echo "https://github.com/esjeon/krohnkite"
+
+echo ""
+
+echo "Instalar en Window Manager- KWin scripts - Get New Script"
+echo "look for krohkite"
+
+echo ""
+mkdir -p ~/.local/share/kservices5/
+ln -s ~/.local/share/kwin/scripts/krohnkite/metadata.desktop ~/.local/share/kservices5/krohnkite.desktop
+
+echo "Este script instala el boton de configuracion, ya debera estar instalado al agregar el script "
+
+
