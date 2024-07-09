@@ -1,6 +1,7 @@
 #!/bin/bash
 
-#for kali I follow this  after I run this scritp and reboot:
+#for kali install this inside the VM
+#follow this  after I run this scritp and reboot:
 
 
 #sudo nano /etc/default/grub
@@ -29,15 +30,14 @@ update-grub
 
 
 
-
 # Backup de los archivos de configuración antes de modificarlos
 cp /etc/modules /etc/modules.bak
-cp /etc/modprobe.d/iommu_unsafe_interrupts.conf /etc/modprobe.d/iommu_unsafe_interrupts.conf.bak
-cp /etc/modprobe.d/kvm.conf /etc/modprobe.d/kvm.conf.bak
-cp /etc/modprobe.d/blacklist.conf /etc/modprobe.d/blacklist.conf.bak
-cp /etc/modprobe.d/vfio.conf /etc/modprobe.d/vfio.conf.bak
 
-
+# Verificar y hacer backup de los archivos de configuración específicos si existen
+[[ -f /etc/modprobe.d/iommu_unsafe_interrupts.conf ]] && cp /etc/modprobe.d/iommu_unsafe_interrupts.conf /etc/modprobe.d/iommu_unsafe_interrupts.conf.bak
+[[ -f /etc/modprobe.d/kvm.conf ]] && cp /etc/modprobe.d/kvm.conf /etc/modprobe.d/kvm.conf.bak
+[[ -f /etc/modprobe.d/blacklist.conf ]] && cp /etc/modprobe.d/blacklist.conf /etc/modprobe.d/blacklist.conf.bak
+[[ -f /etc/modprobe.d/vfio.conf ]] && cp /etc/modprobe.d/vfio.conf /etc/modprobe.d/vfio.conf.bak
 
 # Añadir módulos VFIO al archivo de módulos
 echo "vfio" >> /etc/modules
@@ -45,19 +45,14 @@ echo "vfio_iommu_type1" >> /etc/modules
 echo "vfio_pci" >> /etc/modules
 echo "vfio_virqfd" >> /etc/modules
 
-# Configuración para permitir interrupciones inseguras
+# Crear o modificar archivos de configuración con los valores necesarios
 echo "options vfio_iommu_type1 allow_unsafe_interrupts=1" > /etc/modprobe.d/iommu_unsafe_interrupts.conf
-
-# Configuración para ignorar MSRs en KVM
 echo "options kvm ignore_msrs=1" > /etc/modprobe.d/kvm.conf
-
-# Lista negra de módulos de gráficos
 echo "blacklist radeon" > /etc/modprobe.d/blacklist.conf
 echo "blacklist nouveau" >> /etc/modprobe.d/blacklist.conf
 echo "blacklist nvidia" >> /etc/modprobe.d/blacklist.conf
-
-# Configurar VFIO-PCI con los ID específicos de dispositivos
 echo "options vfio-pci ids=10de:2484,10de:228b,10de:0ffd,10de:0e1b disable_vga=1" > /etc/modprobe.d/vfio.conf
+
 
 # Actualizar initramfs
 update-initramfs -u
