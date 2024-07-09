@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Download the NVIDIA driver
+echo "Downloading the NVIDIA driver..."
+wget https://uk.download.nvidia.com/XFree86/Linux-x86_64/555.42.02/NVIDIA-Linux-x86_64-555.42.02.run
+
+# Ensure the script is executable
+chmod +x NVIDIA-Linux-x86_64-555.42.02.run
+
+# Disable the nouveau module
+echo "Disabling the nouveau module..."
+echo "blacklist nouveau" | sudo tee /etc/modprobe.d/blacklist-nouveau.conf > /dev/null
+echo "options nouveau modeset=0" | sudo tee -a /etc/modprobe.d/blacklist-nouveau.conf > /dev/null
+
+# Install development tools and headers for the current kernel
+echo "Installing development tools and kernel headers..."
+sudo apt-get update
+sudo apt-get install -y build-essential linux-headers-$(uname -r)
+
+# Update initramfs
+echo "Updating initramfs..."
+sudo update-initramfs -u
+
+# Final message
+echo "Please reboot the machine to apply changes."
+
