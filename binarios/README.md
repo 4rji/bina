@@ -17,7 +17,8 @@ bateria             new script con bateria en lugar de alias
 tempe               or tempe -f temperatura de arch linux y -f crea un archivo con los datos de tempe  
 
 #Nixos
-nixbus              Para buscar paquetes en linea de comando y tambien corregir bash
+nixbus              Para buscar programas en linea de comando y tambien corregir bash
+nixosshell          Arregla la shell de nixos para los scripts 4rji
 
 ###------utilidades sistema
 batfzf              Instala el theme night tokio para batcat, tambien fzf 
@@ -312,7 +313,6 @@ kittyinst           Instala kitty y baja su configuracion
 ovpninst            Instala OpenvpnServer para webadmin, 4rjiDocs
 
 #python herramientas
-datos               Crea datos para la pagina web, para llenar la base de busqueda search
 pythonreq           Instala los requirements para python
 trafico             Genera trafico falso de varios sitios
 monitcp             Muestra captura.cap en colores con python, integrado en chismes
@@ -338,6 +338,9 @@ arper               arp poisonig scapy, crea un archivo y ejecuta arpers, no fun
 bruto               brute forcing directorios, lista all.txt se descarga web hacking no https
 contrawp            Fuerza bruta a wordpress joomla, descarga cain.txt diccionario
 sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
+
+#website
+busqueda            Crea datos para la pagina web, para llenar la base de busqueda search
 
 #Redstuff
 proxyvery           Verifica si funcionan los proxies de una lista

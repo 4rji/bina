@@ -1,0 +1,8 @@
+#!/run/current-system/sw/bin/bash
+
+#change the shell path
+#from /opt/4rji/bin
+
+sudo find /opt/4rji/bin/* -type f -exec sed -i 's|^#!/bin/bash|#!/run/current-system/sw/bin/bash|' {} +
+
+sudo find /opt/4rji/bin/* -type f -exec sed -i 's|^#!/bin/zsh|#!/run/current-system/sw/bin/bash|' {} +
