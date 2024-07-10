@@ -340,7 +340,7 @@ contrawp            Fuerza bruta a wordpress joomla, descarga cain.txt diccionar
 sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 
 #website
-busqueda            Crea datos para la pagina web, para llenar la base de busqueda search
+search              Crea datos para la pagina web, para llenar la base de busqueda search
 
 #Redstuff
 proxyvery           Verifica si funcionan los proxies de una lista
