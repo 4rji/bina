@@ -1,0 +1,45 @@
+#!/bin/bash
+
+# Start the SMB server
+sudo impacket-smbserver smbFolder $(pwd) -smb2support &
+
+# Wait for a moment to ensure the server starts
+sleep 2
+
+# Instructions with ANSI color codes
+echo -e "\033[31m"
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo "Instructions for downloading the file:"
+echo ""
+echo -e "\033[32m"
+echo "From Linux:"
+echo -e "\033[34m"
+echo "1. Install smbclient if you don't have it already:"
+echo -e "\033[33m"
+echo "   sudo apt-get install smbclient"
+echo -e "\033[34m"
+echo "2. Access the shared folder:"
+echo -e "\033[33m"
+echo "   smbclient //$(hostname -I | awk '{print $1}')/smbFolder"
+echo -e "\033[34m"
+echo "3. Download the file:"
+echo -e "\033[33m"
+echo "   get <filename>"
+echo ""
+echo -e "\033[31m"
+echo "From Windows:"
+echo -e "\033[32m"
+echo "1. Press Win + R to open the Run dialog."
+echo -e "\033[34m"
+echo "2. Type '\\\\$(hostname -I | awk '{print $1}')\\smbFolder' and press Enter."
+echo -e "\033[33m"
+echo "3. Copy the file from the shared folder or try copy \\$ip\smbFolder\file namenewfile"
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo -e "\033[31m"
+echo "ADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission."
+echo -e "\033[0m"
+
