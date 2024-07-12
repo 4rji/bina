@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Actualizar e instalar paquetes necesarios
+sudo apt update
+sudo apt install -y xorg sddm
+
+# Configurar SDDM como el gestor de inicio predeterminado
+sudo systemctl enable sddm
+sudo systemctl set-default graphical.target
+
+# Ofrecer selección de entorno de escritorio
+echo "Seleccione el entorno de escritorio que desea instalar:"
+echo "1. KDE Plasma"
+echo "2. XFCE"
+echo "3. GNOME"
+echo "4. MATE"
+read -p "Ingrese el número correspondiente a su elección: " choice
+
+case $choice in
+    1)
+        sudo apt install -y kali-desktop-kde
+        ;;
+    2)
+        sudo apt install -y kali-desktop-xfce
+        ;;
+    3)
+        sudo apt install -y kali-desktop-gnome
+        ;;
+    4)
+        sudo apt install -y kali-desktop-mate
+        ;;
+    *)
+        echo "Opción no válida. Saliendo."
+        exit 1
+        ;;
+esac
+
+echo "Instalación y configuración completada. Reinicie el sistema para aplicar los cambios."
+
