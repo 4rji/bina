@@ -1,0 +1,45 @@
+#!/bin/sh
+
+# Crear el archivo .xsession en el directorio de inicio del usuario actual
+echo "startplasma-x11" > ~/.xsession
+
+# Hacer una copia de seguridad del archivo startwm.sh original
+sudo cp /etc/xrdp/startwm.sh /etc/xrdp/startwm.sh.bk
+
+# Eliminar el archivo startwm.sh original
+sudo rm /etc/xrdp/startwm.sh
+
+# Crear un nuevo archivo startwm.sh con el contenido proporcionado
+sudo bash -c 'cat << EOF > /etc/xrdp/startwm.sh
+#!/bin/sh
+# xrdp X session start script
+
+if test -r /etc/profile; then
+    . /etc/profile
+fi
+
+if test -r ~/.profile; then
+    . ~/.profile
+fi
+
+# Clean up previously set DBUS session address
+unset DBUS_SESSION_BUS_ADDRESS
+unset XDG_RUNTIME_DIR
+
+# Start KDE Plasma session
+exec startplasma-x11
+EOF'
+
+# Hacer que el nuevo archivo startwm.sh sea ejecutable
+sudo chmod +x /etc/xrdp/startwm.sh
+
+# Reiniciar el servicio xrdp
+sudo systemctl restart xrdp
+
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+echo "Configuración completada. XRDP está configurado para iniciar KDE Plasma."
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+
+echo "Para usar el servicio usar ctl xrdp"
+echo "Usar Microsoft remote desktop para conectarse a la ip"
+echo "Para para el servicio usar systemctl stop xrdp"
