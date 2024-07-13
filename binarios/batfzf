@@ -21,7 +21,8 @@ batcat cache --build
 
 # Append the BAT_THEME configuration to ~/.zshrc
 echo 'export BAT_THEME="tokyonight_night"' >> ~/.zshrc
-echo 'eval "$(fzf --zsh)"' >> ~/.zshrc
+#echo 'eval "$(fzf --zsh)"' >> ~/.zshrc
+echo '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' >> ~/.zshrc
 echo 'eval $(thefuck --alias)' >> ~/.zshrc
 echo 'eval $(thefuck --alias fk)' >> ~/.zshrc
 echo 'eval "$(zoxide init zsh)"' >> ~/.zshrc

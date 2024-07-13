@@ -344,6 +344,8 @@ sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 search              Crea datos para la pagina web, para llenar la base de busqueda search
 
 #Redstuff
+shutt               como vpn sshuttle para subnets, muestra subnets disponibles en sshhost, no manda trafico
+shutall             Manda todo el trafico por ssh, como vpn sshuttle 
 proxyvery           Verifica si funcionan los proxies de una lista
 chismes             Ejecuta tcpdump y tshark para ver la red, captura wireshark -add NetworkMonitoring
 proxylocomenu       Menu para descargar, el primero

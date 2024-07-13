@@ -1,0 +1,137 @@
+#!/bin/bash
+
+# Lista de paquetes a instalar
+paquetes=("sshuttle")
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+
+
+
+# Comprobamos que se ha pasado un argumento
+if [ "$#" -ne 1 ]; then
+    echo -e "\033[0;31mUso: $0 user@ip\033[0m"
+    exit 1
+fi
+
+REMOTE_HOST=$1
+
+# Pregunta al usuario si desea especificar un puerto SSH personalizado
+echo -e "\033[0;34m"
+echo "_________________________________________________________"
+echo ""
+echo -e "Change port (22)? (y/N): \033[0m"
+read -r USE_CUSTOM_PORT
+
+# Establecer el puerto SSH
+if [[ $USE_CUSTOM_PORT =~ ^[Yy]$ ]]; then
+    echo -e "\033[0;32mPort SSH: \033[0m"
+    read -r SSH_PORT
+else
+    SSH_PORT=22
+fi
+
+# Obtener la IP local de la máquina
+MYIP=$(hostname -I | awk '{print $1}')
+
+# Ejecutamos el comando para obtener las subnets, usando el puerto SSH
+OUTPUT=$(ssh -p "$SSH_PORT" "$REMOTE_HOST" "ip -4 addr show | awk '/inet/ && !/127.0.0.1/ {split(\$2, a, \"/\"); printf \"\t\t\t\t%s: %s\n\", \$NF, a[1]}'")
+
+# Verificamos si la conexión SSH fue exitosa
+if [ $? -ne 0 ]; then
+    echo -e "\033[0;31mError al conectar con $REMOTE_HOST en el puerto $SSH_PORT\033[0m"
+    exit 1
+fi
+
+# Mostramos la salida al usuario
+echo -e "\033[0;36mSubnets disponibles:\033[0m"
+echo -e "\033[0;35m$OUTPUT\033[0m" | nl -s ") "
+
+# Solicitamos al usuario que elija una subnet
+echo -e "\033[0;34mChoose the  subnet for SSHuttle: \033[0m"
+read -p "" CHOICE
+
+# Obtenemos la IP seleccionada
+SELECTED_IP=$(echo "$OUTPUT" | sed -n "${CHOICE}p" | awk '{print $NF}')
+
+# Verificamos si la elección es válida
+if [ -z "$SELECTED_IP" ]; then
+    echo -e "\033[0;31mInvalid\033[0m"
+    exit 1
+fi
+
+# Convertimos la IP a una base de red para subnet /24
+IFS='.' read -r -a IP_PARTS <<< "$SELECTED_IP"
+SELECTED_SUBNET="${IP_PARTS[0]}.${IP_PARTS[1]}.${IP_PARTS[2]}.0/24"
+
+# Construimos el comando SSHuttle, incluyendo el puerto SSH
+SSHUTTLE_CMD="sshuttle --dns -r $REMOTE_HOST:$SSH_PORT --exclude $MYIP $SELECTED_SUBNET -D" 
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+# Ejecutamos SSHuttle con la subnet seleccionada
+echo -e "\033[0;36mEjecutando SSHuttle con la subnet: $SELECTED_SUBNET\033[0m"
+echo -e "\033[0;33m$SSHUTTLE_CMD\033[0m"
+echo ""
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo ""
+$SSHUTTLE_CMD
+
+echo ""
+
+echo -e "\033[0;31mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\033[0m"
+
