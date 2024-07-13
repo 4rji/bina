@@ -21,6 +21,7 @@ nixbus              Para buscar programas en linea de comando y tambien corregir
 nixosshell          Arregla la shell de nixos para los scripts 4rji
 
 ###------utilidades sistema
+findd               incorpora grep y find en un script para buscar palabras en archivos
 x11inst             Instala x11 u otros desktops kali y sddm por default
 batfzf              Instala el theme night tokio para batcat, tambien fzf 
 tiles               Instala la configuracion de tiles krohn y da instruciones de descarga

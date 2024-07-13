@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Este script busca una palabra en todos los archivos de un directorio especificado y sus subdirectorios
+# Se debe proporcionar una palabra y un directorio como argumentos al ejecutar el script
+
+if [ "$#" -ne 2 ]; then
+    echo "Uso: $0 palabra_a_buscar directorio"
+    exit 1
+fi
+
+nombre="$1"
+directorio="$2"
+
+# Verifica si el directorio existe
+if [ ! -d "$directorio" ]; then
+    echo "El directorio especificado no existe: $directorio"
+    exit 1
+fi
+
+# Imprime el comando antes de ejecutarlo
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+echo "Ejecutando: "
+echo "find $directorio -type f -exec grep -H --color=always \"$nombre\" {} \;"
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+find "$directorio" -type f -exec grep -H --color=always "$nombre" {} \;
+
