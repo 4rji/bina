@@ -20,7 +20,8 @@ tempe               or tempe -f temperatura de arch linux y -f crea un archivo c
 nixbus              Para buscar programas en linea de comando y tambien corregir bash
 nixosshell          Arregla la shell de nixos para los scripts 4rji
 
-###------utilidades sistema
+###------utilidades 
+rutainter           Definir la via ruta de internet cuando hay 2 interfaces internet
 veloint             iperf3 para medir la velocidad de ethernet o conexion, instrucciones e instala
 findd               incorpora grep y find en un script para buscar palabras en archivos
 x11inst             Instala x11 u otros desktops kali y sddm por default

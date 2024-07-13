@@ -1,0 +1,67 @@
+#!/bin/bash
+clear
+echo ""
+echo "Este es el comando que se ejecuta"
+echo "sudo ip route del default via 192.168.88.1 dev eth0"
+echo ""
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+# Mostrar las rutas predeterminadas
+echo -e "\033[0;34m=== Rutas predeterminadas actuales ===\033[0m"
+echo ""
+ip route show | grep 'default via'
+echo "_________________________________________________________"
+echo ""
+
+# Guardar las rutas predeterminadas en variables
+DEFAULT_ROUTE1=$(ip route show | grep 'default via' | sed -n '1p')
+DEFAULT_ROUTE2=$(ip route show | grep 'default via' | sed -n '2p')
+
+# Preguntar al usuario cuál ruta desea usar
+echo -e "\033[0;32mSeleccione la ruta que desea usar:\033[0m"
+echo -e "\033[0;33m1) $DEFAULT_ROUTE1\033[0m"
+echo -e "\033[0;33m2) $DEFAULT_ROUTE2\033[0m"
+echo ""
+read -p "$(echo -e '\033[0;36mIngrese el número de la ruta a usar (1 o 2):\033[0m ')" CHOICE
+
+# Verificar la elección del usuario y eliminar la otra ruta
+case $CHOICE in
+    1)
+        if [ -n "$DEFAULT_ROUTE2" ]; then
+            # Extraer la IP y la interfaz
+            IP=$(echo $DEFAULT_ROUTE2 | awk '{print $3}')
+            DEV=$(echo $DEFAULT_ROUTE2 | awk '{print $5}')
+            COMMAND="sudo ip route del default via $IP dev $DEV"
+            echo -e "\033[0;31mEjecutando: $COMMAND\033[0m"
+            eval $COMMAND
+        else
+            echo -e "\033[0;31mSolo hay una ruta predeterminada.\033[0m"
+        fi
+        ;;
+    2)
+        if [ -n "$DEFAULT_ROUTE1" ]; then
+            # Extraer la IP y la interfaz
+            IP=$(echo $DEFAULT_ROUTE1 | awk '{print $3}')
+            DEV=$(echo $DEFAULT_ROUTE1 | awk '{print $5}')
+            COMMAND="sudo ip route del default via $IP dev $DEV"
+            echo -e "\033[0;31mEjecutando: $COMMAND\033[0m"
+            eval $COMMAND
+        else
+            echo -e "\033[0;31mSolo hay una ruta predeterminada.\033[0m"
+        fi
+        ;;
+    *)
+        echo -e "\033[0;31mOpción no válida. Saliendo.\033[0m"
+        exit 1
+        ;;
+esac
+
+# Mostrar las rutas actuales después del cambio
+echo ""
+echo -e "\033[0;34m=== Rutas predeterminadas actualizadas ===\033[0m"
+echo ""
+ip route show | grep 'default via'
+echo "_________________________________________________________"
+echo ""
+
+echo -e "\033[0;31mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\033[0m"
+
