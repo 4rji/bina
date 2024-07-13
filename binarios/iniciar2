@@ -7,8 +7,6 @@ if [ -z "$1" ]; then
   exit 1
 fi
 
-#ejecutar el script target1
-target1
 
 iniciar() {
   local base_dir="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"

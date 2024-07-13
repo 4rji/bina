@@ -2,9 +2,12 @@
 
 echo """
 
-ejecutar htp
-Primero  asignar la IP en target1
-Luego ejecutar iniciar para asignar las ips
+
+target1
+
+iniciarhtb
+
+iniciar2
 
 
 expo mas signo de dolarIP para enumerar.
