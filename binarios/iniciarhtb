@@ -33,9 +33,9 @@ echo "export htcon=\"$base_dir/$nombre\""
 echo "export ip=\"$ip\""
 
 # Eliminar las líneas existentes del archivo .zshrc si ya están definidas
-sed -i '/export htf=/d' ~/.zshrc
-sed -i '/export htcon=/d' ~/.zshrc
-sed -i '/export ip=/d' ~/.zshrc
+sed -i 's/^export htf=/##&/' ~/.zshrc
+sed -i 's/^export htcon=/##&/' ~/.zshrc
+sed -i 's/^export ip=/##&/' ~/.zshrc
 
 # Añadir las líneas al final del archivo .zshrc
 {
