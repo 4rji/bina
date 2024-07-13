@@ -1,0 +1,99 @@
+#!/bin/bash
+
+# Lista de paquetes a instalar
+paquetes=("iperf3")
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+
+
+# Dirección IP del servidor
+SERVER_IP="10.0.4.178"
+
+# Número de flujos paralelos
+PARALLEL_STREAMS=5
+
+# Colores ANSI
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Función para mostrar instrucciones
+function show_instructions {
+    echo -e "${GREEN}=== Instrucciones para ejecutar iperf3 ===${NC}"
+    echo ""
+    echo -e "${YELLOW}1. En la máquina servidor (${SERVER_IP}), ejecuta:${NC}"
+    echo -e "   ${BLUE}iperf3 -s${NC}"
+    echo ""
+    echo -e "${YELLOW}2. En la máquina cliente, ejecuta para medir la velocidad de envío:${NC}"
+    echo -e "   ${BLUE}iperf3 -c ${SERVER_IP} -P ${PARALLEL_STREAMS}${NC}"
+    echo -e "   ${RED}# -P ${PARALLEL_STREAMS}: Ejecuta la prueba con ${PARALLEL_STREAMS} flujos paralelos.${NC}"
+    echo ""
+    echo -e "${YELLOW}3. En la máquina cliente, ejecuta para medir la velocidad de recepción:${NC}"
+    echo -e "   ${BLUE}iperf3 -c ${SERVER_IP} -P ${PARALLEL_STREAMS} -R${NC}"
+    echo -e "   ${RED}# -R: Invierte la dirección de la prueba, midiendo la velocidad de recepción desde el servidor.${NC}"
+    echo ""
+    echo -e "${GREEN}=== Fin de las instrucciones ===${NC}"
+}
+
+# Mostrar las instrucciones
+show_instructions
+

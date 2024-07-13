@@ -1,5 +1,11 @@
 #!/bin/bash
 
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+echo -e "\033[33mpara asignar la dhcp\033[0m"
+echo -e "\033[33msudo dhclient eth1 (cambia la eth1 por la que quieras\033[0m"
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+
 # Definir los nombres de los servicios de red en cada distribución
 ubuntu_service="network-manager"
 debian_service="networking"
@@ -9,53 +15,67 @@ kali_service="network-manager"
 
 # Función para reiniciar el servicio de red en Ubuntu
 restart_ubuntu() {
-    read -p "Ejecutar en Ubuntu (s/n): sudo systemctl restart $ubuntu_service " choice
-    if [[ $choice == "s" ]]; then
-        sudo systemctl restart $ubuntu_service
-    fi
+    echo -e "\033[34mReiniciando $ubuntu_service en Ubuntu...\033[0m"
+    sudo systemctl restart $ubuntu_service
 }
 
 # Función para reiniciar el servicio de red en Debian/Ubuntu
 restart_debian() {
-    read -p "Ejecutar en Debian/Ubuntu (s/n): sudo systemctl restart $debian_service  " choice
-    if [[ $choice == "s" ]]; then
-        sudo service $debian_service restart
-    fi
+    echo -e "\033[32mReiniciando $debian_service en Debian/Ubuntu...\033[0m"
+    sudo service $debian_service restart
 }
 
 # Función para reiniciar el servicio de red en CentOS/RHEL
 restart_redhat() {
-    read -p "Ejecutar en CentOS/RHEL (s/n): sudo systemctl restart $redhat_service " choice
-    if [[ $choice == "s" ]]; then
-        sudo systemctl restart $redhat_service
-    fi
+    echo -e "\033[36mReiniciando $redhat_service en CentOS/RHEL...\033[0m"
+    sudo systemctl restart $redhat_service
 }
 
 # Función para reiniciar el servicio de red en Arch Linux
 restart_arch() {
-    read -p "Ejecutar en Arch Linux (s/n): sudo systemctl restart $arch_service " choice
-    if [[ $choice == "s" ]]; then
-        sudo systemctl restart $arch_service
-    fi
+    echo -e "\033[35mReiniciando $arch_service en Arch Linux...\033[0m"
+    sudo systemctl restart $arch_service
 }
 
 # Función para reiniciar el servicio de red en Kali Linux
 restart_kali() {
-    read -p "Ejecutar en Kali Linux (s/n): sudo systemctl restart $kali_service " choice
-    if [[ $choice == "s" ]]; then
-        sudo systemctl restart $kali_service
-    fi
+    echo -e "\033[31mReiniciando $kali_service en Kali Linux...\033[0m"
+    sudo systemctl restart $kali_service
 }
 
 # Función principal del script
 main() {
-    restart_ubuntu
-    restart_debian
-    restart_redhat
-    restart_arch
-    restart_kali
+    while true; do
+        echo -e "\033[34mSelecciona el sistema operativo para reiniciar el servicio de red:\033[0m"
+
+        echo ""
+        echo -e "\033[33m1. Ubuntu # sudo systemctl restart $ubuntu_service\033[0m"
+        echo -e "\033[36m2. Debian/Ubuntu # sudo service $debian_service restart\033[0m"
+        echo -e "\033[35m3. CentOS/RHEL # sudo systemctl restart $redhat_service\033[0m"
+        echo -e "\033[31m4. Arch Linux # sudo systemctl restart $arch_service\033[0m"
+        echo -e "\033[33m5. Kali Linux # sudo systemctl restart $kali_service\033[0m"
+        echo -e "\033[37m0. Salir\033[0m"
+
+        echo ""
+     
+        echo -e "\033[31mPresiona Control+C para salir inmediatamente.\033[0m"
+echo ""
+        # Leer solo un caracter
+        read -n1 -p "$(echo -e "\033[33mIngresa tu opcion: \033[0m")" choice
+        echo ""
+
+        case $choice in
+            1) restart_ubuntu ;;
+            2) restart_debian ;;
+            3) restart_redhat ;;
+            4) restart_arch ;;
+            5) restart_kali ;;
+            0) echo -e "\033[31mSaliendo del script...\033[0m"; break ;;
+            *) echo -e "\033[31mOpción no válida, intenta de nuevo.\033[0m" ;;
+        esac
+    done
+    echo -e "\033[33mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\033[0m"
 }
 
 # Llamar a la función principal
 main
-
