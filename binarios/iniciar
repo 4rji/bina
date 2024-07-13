@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# Verificar si se proporcionó el nombre de la máquina
+if [ -z "$1" ]; then
+  echo "Error: No se proporcionó el nombre de la máquina."
+  echo "Uso: $0 <nombre_maquina>"
+  exit 1
+fi
+
+#ejecutar el script target1
+target1
+
 iniciar() {
   local base_dir="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"
   local new_dir="$base_dir/$1"
@@ -24,5 +34,5 @@ iniciar() {
   pwd
 }
 
-# Llamar a la funci  n iniciar con el nombre de la m  quina como argumento
+# Llamar a la función iniciar con el nombre de la máquina como argumento
 iniciar "$1"
