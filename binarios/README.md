@@ -21,6 +21,7 @@ nixbus              Para buscar programas en linea de comando y tambien corregir
 nixosshell          Arregla la shell de nixos para los scripts 4rji
 
 ###------utilidades 
+wgetfold            descarga con wget folder completo 
 remoto              Instala xrdp, inicia el servicio y copia la configuracion para plasma #vnc
 vnckali             (USAR xrdp) x11vnc, si no funciona install Xvfb and posiblemente install full kde. 
 rutainter           Definir la via ruta de internet cuando hay 2 interfaces internet

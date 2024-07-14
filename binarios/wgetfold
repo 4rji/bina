@@ -1,0 +1,24 @@
+#!/bin/bash
+
+# Verificar si se ha proporcionado al menos un argumento
+if [ -z "$1" ]; then
+  echo "Uso: $0 ip[:port]"
+  exit 1
+fi
+
+# Obtener la IP y el puerto del argumento
+IFS=':' read -r ip port <<< "$1"
+
+# Si no se especifica el puerto, usar el puerto por defecto (80)
+if [ -z "$port" ]; then
+  port=80
+fi
+
+# Construir la URL base
+url="http://$ip:$port/"
+
+# Descargar todos los archivos de la carpeta
+wget -r -np -nH --cut-dirs=1 -R "index.html*" "$url"
+
+echo "Descarga completa desde $url"
+
