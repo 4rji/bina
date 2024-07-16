@@ -5,7 +5,7 @@ draw_sign() {
     local user=$(whoami)
     local hostname=$(hostname -I | awk '{print $1}')
     local lines="********************************************"
-    local message1="Exiting from $user:"
+    local message1="Exiting from   $user"
     local message2="Hostname: $hostname"
 
     echo "$lines"
