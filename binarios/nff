@@ -4218,8 +4218,7 @@ EOF
                 ;;
 
             esac
-        ;;
-    esac
+        
 
     # Overwrite distro colors if '$ascii_colors' doesn't
     # equal 'distro'.
