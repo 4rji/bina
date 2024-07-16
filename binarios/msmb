@@ -60,6 +60,7 @@ for paquete in "${paquetes[@]}"; do
             ;;
     esac
 done
+#!/bin/bash
 
 echo -e "\n\033[1;31m_________________________________________________________\033[0m"
 echo "smbclient -L 10.129.150.233 -U administrator"
@@ -68,11 +69,10 @@ echo "smbclient \\\\10.10.10.131\\ADMIN$ -U Administrator"
 
 echo -e "\n\033[1;31m_________________________________________________________\033[0m"
 
-
 default_mount_point="/mnt/smb_share"
 
 echo -e "\n\033[1;34mEste es el comando:\033[0m"
-echo "sudo mount -t cifs //server_name/shared_directory $default_mount_point -o username=username,password=password"
+echo "sudo mount -t cifs //server_name/shared_directory $default_mount_point -o username=username,password=password,uid=1000,gid=984,rw,file_mode=0777,dir_mode=0777"
 echo ""
 echo -e "\n\033[1;34mEste para ver los recursos disponibles:\033[0m"
 echo "smbclient -L //IP_name -U "
@@ -114,10 +114,9 @@ echo -e "\n\033[1;34m_________________________________________________________\0
 read -p "Ingrese el nombre del directorio compartido que desea montar: " shared_directory
 echo ""
 
-# Mostrar el comando de montaje antes de ejecutarlo
-montage_cmd="sudo mount -t cifs //$server_name/$shared_directory $mount_point -o username=$username,password=$password"
-echo -e "\033[1;34mMontando con el comando:\033[0m $montage_cmd"
 # Montar el servidor SMB
+montage_cmd="sudo mount -t cifs //$server_name/$shared_directory $mount_point -o username=$username,password=$password,uid=1000,gid=984,rw,file_mode=0777,dir_mode=0777"
+echo -e "\033[1;34mMontando con el comando:\033[0m $montage_cmd"
 eval "$montage_cmd"
 
 # Verificar si el montaje tuvo éxito
@@ -128,7 +127,5 @@ if [ $? -eq 0 ]; then
 else
     echo -e "\n\033[1;31mHubo un problema al intentar montar el servidor SMB. Por favor, verifique sus credenciales y la conexión.\033[0m"
 fi
-
-echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
