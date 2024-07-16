@@ -124,6 +124,7 @@ if [ $? -eq 0 ]; then
     echo -e "\n\033[1;32mSe ha montado con éxito el servidor SMB en $mount_point\033[0m"
     echo "$mount_point" | xclip -selection clipboard  # Copiar el directorio montado al portapapeles
     echo -e "\033[1;32mEl directorio montado se ha copiado al portapapeles.\033[0m"
+    ls $mount_point
 else
     echo -e "\n\033[1;31mHubo un problema al intentar montar el servidor SMB. Por favor, verifique sus credenciales y la conexión.\033[0m"
 fi
