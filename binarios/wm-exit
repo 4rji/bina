@@ -1,0 +1,20 @@
+#!/bin/bash
+
+draw_sign() {
+    local user=$(whoami)
+    local hostname=$(hostname -I | awk '{print $1}')
+    local lines="********************************************"
+    local message1="Exiting from $user:"
+    local message2="Hostname: $hostname"
+
+    echo "$lines"
+    echo "*                                          *"
+    printf "*%s*\n" "$(printf '%*s' $(((${#lines} - 2 - ${#message1}) / 2)) '' | tr ' ' ' ')$message1$(printf '%*s' $(((${#lines} - 2 - ${#message1} + 1) / 2)) '' | tr ' ' ' ')"
+    echo "*                                          *"
+    printf "*%s*\n" "$(printf '%*s' $(((${#lines} - 2 - ${#message2}) / 2)) '' | tr ' ' ' ')$message2$(printf '%*s' $(((${#lines} - 2 - ${#message2} + 1) / 2)) '' | tr ' ' ' ')"
+    echo "*                                          *"
+    echo "$lines"
+}
+
+draw_sign
+

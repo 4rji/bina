@@ -78,7 +78,6 @@ csftp               copia un archivo por sftp hubicado en home, pregunta la IP y
 reset               limpia la terminal
 weather             Muestra el clima geolocalizacion usar
 depurar             para depurar un script y ver su ejecusion: ❯  bash -x ./script
-ssk                 kitty +kitten ssh 
 lfcd                para moverme con cd  #copiar el plugin a zsh
 mdcolors            Genera colores para archivos md 
 maquinasova         Convierte maquinas ova para qemu
@@ -177,6 +176,8 @@ findme              Usa el comando find para buscar archivos
 
 
 ###------ssh
+ssk                 kitty +kitten ssh 
+sshexit             Instala un mensaje de salida de ssh en la zsh ZSH
 fixhost             Arregla know_hosts para ssh duplicados
 x11uso              Instrucciones para x11
 ebanner             cambia el banner de ssh antes de logearse hola cacheton y se edita con bannere                                      
