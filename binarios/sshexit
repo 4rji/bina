@@ -6,17 +6,19 @@ sudo cp /opt/4rji/bin/wm-exit /usr/bin/wm-exit
 # Add wm-exit to the zlogout for Zsh
 echo "/usr/bin/wm-exit" >> ~/.zlogout
 
-# Add the SSH check function and update PROMPT_COMMAND in bashrc
-echo '
-function check_ssh_logout() {
-    if [[ -z "$SSH_CONNECTION" ]]; then
-        echo "SSH Connection has closed."
-        /usr/bin/wm-exit
-    fi
-}
 
-PROMPT_COMMAND="check_ssh_logout; $PROMPT_COMMAND"
-' >> ~/.bashrc
+#no es necesario esto:
+# Add the SSH check function and update PROMPT_COMMAND in bashrc
+#echo '
+#function check_ssh_logout() {
+#    if [[ -z "$SSH_CONNECTION" ]]; then
+#        echo "SSH Connection has closed."
+#        /usr/bin/wm-exit
+#    fi
+#}
+
+#PROMPT_COMMAND="check_ssh_logout; $PROMPT_COMMAND"
+#' >> ~/.bashrc
 
 echo "SSH exit configured."
 
