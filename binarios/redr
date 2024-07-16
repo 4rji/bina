@@ -54,7 +54,7 @@ main() {
         echo -e "\033[35m3. CentOS/RHEL # sudo systemctl restart $redhat_service\033[0m"
         echo -e "\033[31m4. Arch Linux # sudo systemctl restart $arch_service\033[0m"
         echo -e "\033[33m5. Kali Linux # sudo systemctl restart $kali_service\033[0m"
-        echo -e "\033[37m0. Salir\033[0m"
+        echo -e "\033[37mq. Salir\033[0m"
 
         echo ""
      
@@ -70,7 +70,7 @@ echo ""
             3) restart_redhat ;;
             4) restart_arch ;;
             5) restart_kali ;;
-            0) echo -e "\033[31mSaliendo del script...\033[0m"; break ;;
+            q) echo -e "\033[31mSaliendo del script...\033[0m"; break ;;
             *) echo -e "\033[31mOpción no válida, intenta de nuevo.\033[0m" ;;
         esac
     done
