@@ -41,3 +41,4 @@ echo "sudo sed -i \"s/casiton/$nuevo_nombre/g\" /opt/4rji/wm" | xclip -sel clip
 
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 
+sudo mv /opt/4rji/bin/wm /usr/bin/wm
