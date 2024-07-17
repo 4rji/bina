@@ -176,6 +176,7 @@ findme              Usa el comando find para buscar archivos
 
 
 ###------ssh
+sshsync             Sincroniza el archivo ssh con los nuevos de github. no borra nada
 sshdown             Descarga .ssh/config y crea copia
 ssa                 Busca un host en ssh
 ssk                 kitty +kitten ssh 

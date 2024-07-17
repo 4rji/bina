@@ -14,3 +14,11 @@ curl -o ~/.ssh/config $URL
 
 # Muestra las últimas líneas del archivo de configuración actualizado
 tail ~/.ssh/config
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+# Compara el archivo de configuración de respaldo con el nuevo archivo descargado
+echo -e "diff de los archivos\n"
+
+diff ~/.ssh/config_$DATE ~/.ssh/config
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
