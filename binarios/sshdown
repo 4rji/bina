@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Define la URL de descarga
+URL="https://raw.githubusercontent.com/4rji/archivos-b/main/config"
+
+# Obtén la fecha actual en formato año-mes-día
+DATE=$(date +%Y-%m-%d)
+
+# Crea una copia de seguridad del archivo de configuración actual de SSH
+cp ~/.ssh/config ~/.ssh/config_$DATE
+
+# Descarga el nuevo archivo de configuración de SSH
+curl -o ~/.ssh/config $URL
+
+# Muestra las últimas líneas del archivo de configuración actualizado
+tail ~/.ssh/config

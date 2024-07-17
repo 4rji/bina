@@ -176,6 +176,7 @@ findme              Usa el comando find para buscar archivos
 
 
 ###------ssh
+sshdown             Descarga .ssh/config y crea copia
 ssa                 Busca un host en ssh
 ssk                 kitty +kitten ssh 
 sshexit             Instala un mensaje de salida de ssh en la zsh ZSH
