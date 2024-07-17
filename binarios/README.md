@@ -176,6 +176,7 @@ findme              Usa el comando find para buscar archivos
 
 
 ###------ssh
+ssa                 Busca un host en ssh
 ssk                 kitty +kitten ssh 
 sshexit             Instala un mensaje de salida de ssh en la zsh ZSH
 fixhost             Arregla know_hosts para ssh duplicados
