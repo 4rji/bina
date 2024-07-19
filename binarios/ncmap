@@ -1,5 +1,23 @@
 #!/bin/bash
 
+# Función para mostrar el mensaje de ayuda y preguntar si desea continuar
+show_help_and_confirm() {
+    echo ""
+    echo -e "\033[1;32mEl comando que este script ejecuta es:\033[0m"
+    echo ""
+    echo -e "\033[1;33mEjecuta ./ncmap IP para escanear red"
+    echo -e "\033[1;33mEjecuta ./ncmap IP PORT - monitorear puerto.\033[0m"
+    echo ""
+    echo ""
+echo -e "\033[1;34m_________________________________________________________\033[0m"
+    exit
+}
+
+# Verificar si se pasó el argumento -h
+if [ "$1" == "-h" ]; then
+    show_help_and_confirm
+fi
+
 # Check if an IP address is provided as a command-line argument
 if [ $# -eq 0 ]; then
     echo -e "\e[1;31mUsage: $0 IP_ADDRESS [PORT]\e[0m"
