@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# Check if an IP address is provided as a command-line argument
+if [ $# -eq 0 ]; then
+    echo -e "\e[1;31mUsage: $0 IP_ADDRESS [PORT]\e[0m"
+    exit 1
+fi
+
+ip_address=$1
+
 echo ""
 # Function to display colored message
 display_message() {
@@ -10,32 +18,50 @@ display_message() {
 display_separator() {
     echo ""
     echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
-
     echo ""
 }
 
-# Prompt for IP address
-display_message "Enter the IP address to scan:"
-read -p "IP address: " ip_address
-echo ""
+# Check if port is also provided
+if [ $# -eq 2 ]; then
+    port=$2
+    while true; do
+        # Display the command to be executed
+        display_separator
+        display_message "Continuously scanning port $port on IP address $ip_address..."
+        echo ""
+        echo -e "\e[1;31mCommand: $ip_address $port\e[0m"
+        echo -e "\e[1;31mnc -nv -z $ip_address $port\e[0m"
 
-# Prompt for port range, with default value 1-1000 if Enter is pressed
-display_message "Enter the port range to scan (Press Enter for default 1-1000):"
-read -p "Port range [default=1-1000]: " port_range
+        # Execute the nc command with error handling
+        nc -nv -z $ip_address $port 2>&1 | grep --invert-match 'Connection timed out' || echo -e "\e[1;31mConnection timed out\e[0m"
+        echo "Waiting for a few seconds before rechecking..."
+        sleep 5
+    done
+else
+    # Prompt for port range, with default value 1-1000 if Enter is pressed
+    display_message "Enter the port range to scan (Press Enter for default 1-1000):"
+    read -p "Port range [default=1-1000]: " port_range
 
-# Set default port range if Enter is pressed
-if [ -z "$port_range" ]; then
-    port_range="1-1000"
+    # Set default port range if Enter is pressed
+    if [ -z "$port_range" ]; then
+        port_range="1-1000"
+    fi
+
+    while true; do
+        # Display the command to be executed
+        display_separator
+        display_message "Continuously scanning ports $port_range on IP address $ip_address..."
+        echo ""
+        echo -e "\e[1;32mCommand:  $ip_address $port_range\e[0m"
+        echo -e "\e[1;32mnc -nv -w 1 -z $ip_address $port_range\e[0m"
+
+        # Execute the nc command with error handling
+        nc -nv -w 1 -z $ip_address $port_range 2>&1 | grep --invert-match 'Connection timed out' || echo -e "\e[1;31mConnection timed out\e[0m"
+        echo "Waiting for a few seconds before rechecking..."
+        sleep 5
+    done
 fi
-
-# Execute the nc command
-display_separator
-display_message "Scanning ports $port_range on IP address $ip_address..."
-echo ""
-nc -nv -w 1 -z $ip_address $port_range
-echo ""
 
 # End message
 display_separator
 display_message "Port scan completed."
-
