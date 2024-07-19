@@ -85,6 +85,11 @@ sshproxy() {
 }
 
 
+function T() {
+    local temp_file=$(mktemp)
+    "$@" | tee "$temp_file" | batcat -l rb
+}
+
 
 
 htp () {
