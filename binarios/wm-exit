@@ -4,15 +4,19 @@ echo -e "\n\033[1;31m_________________________________________________________\0
 draw_sign() {
     local user=$(whoami)
     local hostname=$(hostname -I | awk '{print $1}')
+    local server=$server
     local lines="********************************************"
     local message1="Exiting from   $user"
     local message2="Hostname: $hostname"
+    local message3="Server: nserver"
 
     echo "$lines"
     echo "*                                          *"
     printf "*%s*\n" "$(printf '%*s' $(((${#lines} - 2 - ${#message1}) / 2)) '' | tr ' ' ' ')$message1$(printf '%*s' $(((${#lines} - 2 - ${#message1} + 1) / 2)) '' | tr ' ' ' ')"
     echo "*                                          *"
     printf "*%s*\n" "$(printf '%*s' $(((${#lines} - 2 - ${#message2}) / 2)) '' | tr ' ' ' ')$message2$(printf '%*s' $(((${#lines} - 2 - ${#message2} + 1) / 2)) '' | tr ' ' ' ')"
+    echo "*                                          *"
+    printf "*%s*\n" "$(printf '%*s' $(((${#lines} - 2 - ${#message3}) / 2)) '' | tr ' ' ' ')$message3$(printf '%*s' $(((${#lines} - 2 - ${#message3} + 1) / 2)) '' | tr ' ' ' ')"
     echo "*                                          *"
     echo "$lines"
 }
