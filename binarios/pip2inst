@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Update your system's package index
+sudo apt-get update
+
+# Check if Python 2.7 is installed, install if it's not
+if ! command -v python2 &> /dev/null
+then
+    echo "Python 2.7 is not installed. Installing Python 2.7..."
+    sudo apt-get install -y python2
+else
+    echo "Python 2.7 is already installed."
+fi
+
+# Check if pip for Python 2 is installed, install if it's not
+if ! command -v pip2 &> /dev/null
+then
+    echo "pip2 is not installed. Installing pip2..."
+    curl https://bootstrap.pypa.io/pip/2.7/get-pip.py -o get-pip.py
+    python2 get-pip.py
+    rm get-pip.py
+    # Add pip2 to PATH
+    if [[ ":$PATH:" != *":$HOME/.local/bin:"* ]]; then
+        echo 'export PATH=$PATH:$HOME/.local/bin' >> ~/.bashrc
+        export PATH=$PATH:$HOME/.local/bin
+        echo "pip2 directory added to PATH."
+    fi
+else
+    echo "pip2 is already installed."
+fi
+
+# Install Paramiko using pip2
+if ! python2 -c "import paramiko" &> /dev/null
+then
+    echo "Installing Paramiko..."
+    pip2 install paramiko
+else
+    echo "Paramiko is already installed."
+fi
+
+echo "Setup complete."
+
