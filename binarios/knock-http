@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# Define el path del archivo de configuración de knockd
+KNOCKD_CONF="/etc/knockd.conf"
+
+# Añade la configuración para abrir y cerrar el puerto HTTP al final del archivo knockd.conf
+{
+echo "[openHTTP]"
+echo "    sequence    = 8000,8800,8888"
+echo "    seq_timeout = 5"
+echo "    command     = /opt/4rji/bin/open_http.sh"
+echo "    tcpflags    = syn"
+echo ""
+echo "[closeHTTP]"
+echo "    sequence    = 8888,8800,8000"
+echo "    seq_timeout = 5"
+echo "    command     = /opt/4rji/bin/close_http.sh"
+echo "    tcpflags    = syn"
+} | sudo tee -a $KNOCKD_CONF
+
+echo "Configuración añadida a $KNOCKD_CONF exitosamente."

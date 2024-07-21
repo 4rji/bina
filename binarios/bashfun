@@ -89,6 +89,11 @@ T () {
     "$@" | tee "$temp_file" | batcat -l rb
 }
 
+function T() {
+    local temp_file=$(mktemp)
+    "$@" | tee "$temp_file" | batcat -l rb
+}
+
 
 
 htp () {
