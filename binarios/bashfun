@@ -95,7 +95,7 @@ function htp() {
   echo "export ip=\"$ip\""
 }
 
-function co() {
+function coll() {
     # Obtener el último comando del historial excluyendo números de línea y espacios iniciales
     local cmd=$(fc -ln -1 | sed 's/^[[:space:]]*//')
 
