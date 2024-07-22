@@ -49,6 +49,21 @@ function mktemm() {
 #    echo "Cambiado al directorio: $PWD"
 #}
 
+# Configuración de fzf para reemplazar Ctrl + R en zsh
+__fzf_history_search() {
+  local selected
+  selected=$(fc -rl 1 | fzf --tac +s --tiebreak=index --toggle-sort=ctrl-r | awk '{$1=""; sub("  ", ""); print}')
+  if [[ -n $selected ]]; then
+    LBUFFER="$selected"
+    RBUFFER=""
+  fi
+  zle reset-prompt
+}
+
+# Bind Ctrl + R to the custom function
+zle -N __fzf_history_search
+bindkey '^R' __fzf_history_search
+
 
 # fzf improvement
 function fzf-lovely(){
