@@ -106,7 +106,7 @@ function coll() {
     echo $cmd > "$temp_file"
 
     # Ejecutar el comando y usar 'tee' para duplicar la salida y 'batcat' para visualizarla
-    eval $cmd | tee "$temp_file" | batcat -l c
+    eval $cmd | tee "$temp_file" | batcat -l rb
 }
 
 
