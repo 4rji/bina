@@ -81,6 +81,8 @@ function T() {
     "$@" | tee "$temp_file" | batcat -l rb
 }
 
+
+
 function htp() {
   pwd=$(pwd)
   foldername=$(basename "$pwd")
@@ -92,6 +94,22 @@ function htp() {
   echo "export htcon=\"$pwd\""
   echo "export ip=\"$ip\""
 }
+
+function co() {
+    # Obtener el último comando del historial excluyendo números de línea y espacios iniciales
+    local cmd=$(fc -ln -1 | sed 's/^[[:space:]]*//')
+
+    # Crear un archivo temporal para guardar el comando
+    local temp_file=$(mktemp)
+
+    # Escribir el comando en el archivo temporal
+    echo $cmd > "$temp_file"
+
+    # Ejecutar el comando y usar 'tee' para duplicar la salida y 'batcat' para visualizarla
+    eval $cmd | tee "$temp_file" | batcat -l c
+}
+
+
 """
 
 # Función para agregar texto a un archivo
