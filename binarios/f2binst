@@ -88,6 +88,10 @@ echo ""
 echo "no se te olvide cambiar los tiempos de jail con f2mod alias"
 echo "para tiempo ilimitado: bantime = -1"
 echo "para ver los comandos de nuevo f2bcomm"
+echo "agrega a f2mod estas lineas para whitelist"
+echo '''[DEFAULT]
+ignoreip = 127.0.0.1/8 192.168.0.1'''
+
 #Comandos de fail2ban f2b
 
 #f2b = banea una IP
