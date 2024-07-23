@@ -4,7 +4,7 @@
 read -p "Ingrese el nombre del servidor: " server_name
 
 # Copia el script wm-exit a /usr/bin
-sudo cp /opt/4rji/bin/wm-exit /usr/bin/wm-exit
+sudo mv /opt/4rji/bin/wm-exit /usr/bin/wm-exit
 
 # Modifica el script wm-exit para actualizar la variable con el nombre del servidor
 # Asegúrate de que el uso de sed coincida exactamente con cómo está formateado en el script original

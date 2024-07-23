@@ -78,7 +78,7 @@ read -p "Introduce el nuevo nombre del host: " new_host
 # Usar 'tee' en lugar de 'cat' para manejar permisos con sudo
 echo "#!/bin/bash
 figlet -f slant -c \"$new_host\" | lolcat
-hostname -I | figlet -f digital | awk -v term_width=\"\$(tput cols)\" '{ line=\$0; gsub(/ /, \"\", line); printf \"%*s\\n\", term_width/2 + length(line)/2, \$0 }' | lolcat" | sudo tee "$script_dir/$script_name" > /dev/null
+hostname -I | awk -v term_width=\"\$(tput cols)\" '{ line=\$0; gsub(/ /, \"\", line); printf \"%*s\\n\", term_width/2 + length(line)/2, \$0 }' " | sudo tee "$script_dir/$script_name" > /dev/null
 
 # Dar permisos de ejecución al script
 sudo chmod +x "$script_dir/$script_name"
