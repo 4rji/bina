@@ -1,15 +1,16 @@
 #!/bin/bash
 
-# Ask for the server name
-read -p "Enter the server name: " server_name
+# Pide el nombre del servidor
+read -p "Ingrese el nombre del servidor: " server_name
 
-# Copy the wm-exit script to /usr/bin
+# Copia el script wm-exit a /usr/bin
 sudo cp /opt/4rji/bin/wm-exit /usr/bin/wm-exit
 
-# Modify the wm-exit script to update the nserver variable
-sudo sed -i "s/\(Server: \)nserver/\1$server_name/" /usr/bin/wm-exit
+# Modifica el script wm-exit para actualizar la variable con el nombre del servidor
+# Asegúrate de que el uso de sed coincida exactamente con cómo está formateado en el script original
+sudo sed -i "s/echo \"nserver\" | figlet/echo \"$server_name\" | figlet/" /usr/bin/wm-exit
 
-# Add wm-exit to the zlogout for Zsh
+# Agrega wm-exit al archivo zlogout para Zsh
 echo "/usr/bin/wm-exit" >> ~/.zlogout
 
-echo "SSH exit configured."
+echo "Configuración de salida SSH completada."
