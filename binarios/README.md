@@ -21,6 +21,7 @@ nixbus              Para buscar programas en linea de comando y tambien corregir
 nixosshell          Arregla la shell de nixos para los scripts 4rji
 
 ###------utilidades 
+barrierinst         Instala barrier debian flatpat, crea alias barrier
 coll                Muestra comandos con colores con batcat y un tmp archivo
 wgetfold            descarga con wget folder completo 
 remoto              Instala xrdp, inicia el servicio y copia la configuracion para plasma #vnc

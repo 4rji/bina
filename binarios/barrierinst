@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Actualizar la lista de paquetes
+echo "Updating package list..."
+sudo apt update
+
+# Instalar Flatpak
+echo "Installing Flatpak..."
+sudo apt install -y flatpak
+
+# Agregar el repositorio Flathub
+echo "Adding Flathub repository..."
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+# Instalar Barrier desde Flathub
+echo "Installing Barrier from Flathub..."
+flatpak install -y flathub com.github.debauchee.barrier
+
+# Añadir alias a .zshrc para facilitar el inicio de Barrier
+echo "Adding alias to .zshrc for easy Barrier startup..."
+echo "alias barrier='flatpak run com.github.debauchee.barrier & disown'" >> ~/.zshrc
+
+# Recargar .zshrc para aplicar los cambios
+echo "Reloading .zshrc to apply changes..."
+source ~/.zshrc
+
+echo "Installation completed. You can now start Barrier by typing 'barrier' in the terminal."
+
