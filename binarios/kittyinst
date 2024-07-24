@@ -114,3 +114,7 @@ fi
 # Mensaje de instalación exitosa
 echo -e "${green}Instalación exitosa.${nocolor}"
 
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo "Para editar el tema kitten theme"
+echo ""

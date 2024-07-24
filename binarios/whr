@@ -1,11 +1,22 @@
 #!/bin/bash
 
 # Verifica si se proporciona un argumento
-if [ -z "$1" ]
-then
+if [ -z "$1" ]; then
   echo "Error: Se requiere un nombre de archivo como argumento."
   exit 1
 fi
 
-# Utiliza sudo para abrir nano con el archivo especificado
-sudo nano "/opt/4rji/bin/$1"
+# Define las rutas donde se buscará el archivo
+RUTAS=("/opt/4rji/bin" "/usr/bin")
+
+# Busca el archivo en las rutas especificadas
+for RUTA in "${RUTAS[@]}"; do
+  if [ -f "$RUTA/$1" ]; then
+    sudo nano "$RUTA/$1"
+    exit 0
+  fi
+done
+
+# Si no se encuentra el archivo, muestra un mensaje de error
+echo "Error: El archivo $1 no se encontró en las rutas especificadas."
+exit 1
