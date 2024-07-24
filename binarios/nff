@@ -1,4 +1,5 @@
 #!/bin/bash
+figlet -f slant -c "casiton" | lolcat
 echo -e "\n\033[1;34m$(printf "%*s" $(( ($(tput cols) + $((${#USER} + 4))) / 4)) "_________   $(whoami)  _________")\033[0m\n"
 
 # vim: noai:ts=4:sw=4:expandtab
@@ -4122,24 +4123,9 @@ EOF
         "Kali"*)
             set_colors 4 8
             read -rd '' ascii_data <<'EOF'
-${c1}           .MMM..:MMMMMMM
-          MMMMMMMMMMMMMMMMMM
-          MMMMMMMMMMMMMMMMMMMM.
-         MMMMMMMMMMMMMMMMMMMMMM
-        ,MMMMMMMMMMMMMMMMMMMMMM:
-        MMMMMMMMMMMMMMMMMMMMMMMM
-  .MMMM'  MMMMMMMMMMMMMMMMMMMMMM
- MMMMMM    `MMMMMMMMMMMMMMMMMMMM.
-MMMMMMMM                        MM .
-MMMMMMMMM.                     ' MM.
+${c1}           
                  casiton      
-`MMMMMMMM.                     ,MMMMM.
- `MMMMMMMMMM.                 ,MMMMMMMM.
-    MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-      MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM:
-         MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
-            `MMMMMMMMMMMMMMMMMMMMMMMM:
-                ``MMMMMMMMMMMMMMMMM'
+
   
 EOF
         ;;

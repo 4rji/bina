@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 echo ""
 # Descargar el archivo desde la URL
 wget -O neoconf https://raw.githubusercontent.com/4rji/4rji/main/neoconf
@@ -8,15 +7,14 @@ wget -O neoconf https://raw.githubusercontent.com/4rji/4rji/main/neoconf
 # Verificar si la descarga fue exitosa
 if [ $? -eq 0 ]; then
     # Crear la carpeta si no existe
-#    mkdir -p ~/.config/neofetch
-
-    # Mover el archivo a la ubicaci  n deseada
-    #mv ~/.config/neofetch/config.conf ~/.config/neofetch/config.conf.bk
-    mkdir ~/.config/neofetch    
+    mkdir -p ~/.config/neofetch
+    
+    # Mover el archivo a la ubicación deseada
     mv neoconf ~/.config/neofetch/config.conf
 
     echo "El archivo se ha descargado y movido correctamente."
-echo ""
+    echo ""
+    
     # Preguntar al usuario por el nuevo nombre
     read -p "Nombre del host nuevo: " nuevo_nombre
 
@@ -24,11 +22,17 @@ echo ""
     sudo sed -i "s/casiton/$nuevo_nombre/g" /opt/4rji/bin/nff
 
     echo "Se ha realizado el reemplazo en /opt/4rji/bin/nff con el nuevo nombre."
+
+    # Reemplazar la línea con figlet en /opt/4rji/bin/nff
+    sudo sed -i "s/figlet -f slant -c \"casiton\" | lolcat/figlet -f slant -c \"$nuevo_nombre\" | lolcat/g" /opt/4rji/bin/nff
+
+    echo "Se ha reemplazado la línea de figlet en /opt/4rji/bin/nff con el nuevo nombre."
 else
     echo "Hubo un error al descargar el archivo."
 fi
 
 sudo cp /opt/4rji/bin/nff /opt/4rji/bin/wm
+
 
 
 
