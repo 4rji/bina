@@ -1,0 +1,40 @@
+#!/bin/bash
+
+#crea un mensaje de bienvenida de ssh al logearse. diferente al de startwars
+
+echo ""
+
+
+# Deshabilita los scripts dinámicos del MOTD moviéndolos a otra ubicación
+for file in /etc/update-motd.d/*; do
+    if [[ ! "$file" =~ ".disabled" ]]; then
+        sudo mv "$file" "${file}.disabled"
+    fi
+done
+
+
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+
+draw_sign() {
+    local user=$(whoami)
+    local hostname=$(hostname -I | awk '{print $1}')
+    local lines="********************************************"
+    local message1="Hola $user:"
+    local message2="Hostname: $hostname"
+
+    echo "$lines"
+    echo "*                                          *"
+    printf "*%s*\n" "$(printf '%*s' $(((${#lines} - 2 - ${#message1}) / 2)) '' | tr ' ' ' ')$message1$(printf '%*s' $(((${#lines} - 2 - ${#message1} + 1) / 2)) '' | tr ' ' ' ')"
+    echo "*                                          *"
+    printf "*%s*\n" "$(printf '%*s' $(((${#lines} - 2 - ${#message2}) / 2)) '' | tr ' ' ' ')$message2$(printf '%*s' $(((${#lines} - 2 - ${#message2} + 1) / 2)) '' | tr ' ' ' ')"
+    echo "*                                          *"
+    echo "$lines"
+}
+
+motd_content=$(draw_sign)
+
+echo "$motd_content" | sudo tee /etc/motd > /dev/null
+cat /etc/motd
+
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+echo "SSH banner created on /etc/motd"
