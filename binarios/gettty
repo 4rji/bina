@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Colores ANSI
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e """
+${GREEN}Esto me da bash:${NC}   
+${BLUE}script /dev/null -c bash${NC}
+
+Control + Z, regresar a mi terminal y escribir:
+${YELLOW}A veces se traba en kitty, usar terminal en mac o konsole${NC}
+
+Este comando arregla que Control + C no cierre mi consola:
+${BLUE}stty raw -echo; fg${NC}
+
+Para arreglar el tamaño de la ventana en nano, por ejemplo:
+En otra ventana ejecutar:
+${BLUE}stty size${NC}
+
+Regresar a la terminal de la máquina explotada:
+${BLUE}stty rows 24 columns 80${NC}
+
+Buscar root.txt:
+${BLUE}find / -name root.txt${NC}
+
+Borrar logs y todo. ${RED}NO EJECUTAR:${NC}
+${BLUE}(rm -rf /*) 2>/dev/null${NC}
+"""
