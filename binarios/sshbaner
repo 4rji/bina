@@ -38,3 +38,6 @@ cat /etc/motd
 
 echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
 echo "SSH banner created on /etc/motd"
+
+#eliminar el mensaje de inicio de session de kali, automaticamente el motd entra en accion
+sudo rm /etc/issue
