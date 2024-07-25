@@ -177,11 +177,12 @@ if [[ "$respuesta" == "s" ]]; then
     sudo mkdir -p /opt/4rji/bin/
     
     # Comando para descargar el archivo
-    sudo wget -O /opt/4rji/bin/comprimidos.tar.xz "https://github.com/4rji/archivos-b/blob/d5d6d8b3418c7b452f21e1de105a4747c6c480e1/comprimidos.tar.xz?raw=true"
-    
+    git clone https://github.com/4rji/archivos-b
+    #sudo wget -O /opt/4rji/bin/comprimidos.tar.xz "https://github.com/4rji/archivos-b/blob/d5d6d8b3418c7b452f21e1de105a4747c6c480e1/comprimidos.tar.xz?raw=true"
+    cd archivos-b
     # Comando para descomprimir el archivo
-    sudo tar -xvf /opt/4rji/bin/comprimidos.tar.xz -C /opt/4rji/bin/
-    
+    sudo tar -xvf comprimidos.tar.xz 
+    sudo mv comprimidos/* /opt/4rji/bin/
     echo "Archivo descargado y descomprimido con éxito."
 else
     echo "No se realizará ninguna descarga."
