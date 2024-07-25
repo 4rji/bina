@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Clonar el repositorio de Impacket
+if [ -d "impacket" ]; then
+    echo "El directorio 'impacket' ya existe. Eliminándolo..."
+    rm -rf impacket
+fi
+#ya lo puse en comprimidos, debera de estar en /opt/4rji/bin
+#git clone https://github.com/SecureAuthCorp/impacket.git
+
+cp /opt/4rji/bin/impacto.zip .
+unzip impacto.zip
+
+# Instalar Impacket
+cd impacket
+pip3 install .
+
+# Verificar la instalación
+if command -v smbserver.py &> /dev/null; then
+    echo "Impacket y SMBServer instalados correctamente."
+else
+    echo "Hubo un error al instalar Impacket."
+fi
+
+# Limpiar
+cd ..
+rm -rf impacket
+
+echo "Instalación completada."
+
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+echo "impacket-smbserver Nombre_share $(pwd) -smb2support"
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"

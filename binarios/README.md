@@ -276,6 +276,7 @@ suricatainst        Instala suricata, largo proceso
 suricatalog         tail -f /var/log/suricata/fast.log
 
 ###------utilidades instalaciones
+impactoinst         instala impacket smb server para montar con impacto
 flatpakinst         Instala flatpak en debian, no probado pero los pasos estan ahi.
 joplininst          Trabaja con joplininst2 para instalarlo, se usan los dos. 
 joplininst2         Descarga la base de datos, detecta si ya esta instalado 
