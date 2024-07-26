@@ -18,7 +18,7 @@ tempe               or tempe -f temperatura de arch linux y -f crea un archivo c
 
 #Nixos
 nixbus              Para buscar programas en linea de comando y tambien corregir bash
-nixosshell          Arregla la shell de nixos para los scripts 4rji
+nixclean            Arregla la shell de nixos para los scripts 4rji
 
 ###------utilidades 
 wwinst              Crea el script ww que es la presentacion de colores del host

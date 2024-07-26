@@ -40,7 +40,7 @@ echo ""
 echo ""
 echo -e "\e[34m                  ___________________________________________________\e[0m"
 # Agregamos el mensaje con la IP local
-echo -e "\n\t\t\t\tTu IP es: $(/usr/sbin/ifconfig "$network_interface" | grep "inet " | awk '{print $2}')\n"
+echo -e "\n\t\t\t\tTu IP es: $(ifconfig "$network_interface" | grep "inet " | awk '{print $2}')\n"
 echo -e "\t\t\t\t  ${green}---   $(whoami)   ---${reset}\n"
 
 echo -e "\n\t\t\t ${yellow}*** Puerto de escucha: ***${reset}\n"
