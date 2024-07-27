@@ -1,5 +1,5 @@
 #!/run/current-system/sw/bin/bash
-
+sudo rm -f minet todo sss whx wm-exit todou nixclean
 #change the shell path
 #from /opt/4rji/bin
 
