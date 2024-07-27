@@ -1,7 +1,11 @@
 #!/bin/bash
 
-# Pregunta por el nombre del host
-read -p "Introduce el nombre del host: " custom_hostname
+# Intenta cargar el nombre del host desde la variable, si no, pedirlo
+if [ -z "$host_nombre" ]; then
+    read -p "Introduce el nombre del host: " custom_hostname
+else
+    custom_hostname=$host_nombre
+fi
 
 draw_sign() {
     local lines="********************************************"
@@ -23,3 +27,6 @@ draw_sign() {
 
 draw_sign
 
+
+
+sudo systemctl restart getty@tty1

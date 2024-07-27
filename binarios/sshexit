@@ -1,7 +1,11 @@
 #!/bin/bash
 
-# Pide el nombre del servidor
-read -p "Ingrese el nombre del servidor: " server_name
+# Intenta cargar el nombre del servidor desde la variable, si no, pedirlo
+if [ -z "$host_nombre" ]; then
+    read -p "Ingrese el nombre del servidor: " server_name
+else
+    server_name=$host_nombre
+fi
 
 # Copia el script wm-exit a /usr/bin
 sudo mv /opt/4rji/bin/wm-exit /usr/bin/wm-exit

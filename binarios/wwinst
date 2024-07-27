@@ -72,8 +72,12 @@ script_name="ww"
 # Asegurarse de que el directorio existe
 mkdir -p "$script_dir"
 
-# Pedir al usuario el nombre del host
-read -p "Introduce el nuevo nombre del host: " new_host
+# Intentar cargar el nombre del host desde la variable, si no, pedirlo
+if [ -z "$host_nombre" ]; then
+    read -p "Introduce el nuevo nombre del host: " new_host
+else
+    new_host=$host_nombre
+fi
 
 # Usar 'tee' en lugar de 'cat' para manejar permisos con sudo
 echo "#!/bin/bash

@@ -27,12 +27,17 @@ if [ $? -eq 0 ]; then
     sudo sed -i "s/figlet -f slant -c \"casiton\" | lolcat/figlet -f slant -c \"$nuevo_nombre\" | lolcat/g" /opt/4rji/bin/nff
 
     echo "Se ha reemplazado la línea de figlet en /opt/4rji/bin/nff con el nuevo nombre."
+
+    # Establecer la variable en Zsh
+    echo "export host_nombre='$nuevo_nombre'" >> ~/.zshrc
+
+    echo "Variable 'host_nombre' establecida para uso futuro en Zsh."
+
 else
     echo "Hubo un error al descargar el archivo."
 fi
 
 sudo cp /opt/4rji/bin/nff /opt/4rji/bin/wm
-
 
 
 
@@ -46,3 +51,33 @@ echo "sudo sed -i \"s/casiton/$nuevo_nombre/g\" /opt/4rji/wm" | xclip -sel clip
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 
 sudo mv /opt/4rji/bin/wm /usr/bin/wm
+
+
+echo -e "\033[34m"
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo -e "\033[32m¿Deseas ejecutar los comandos? (Presiona 'Enter' para Sí, 'n' para No, 'S' para Sí):"
+read respuesta
+
+echo -e "\033[36m"
+case $respuesta in
+    "" | "S" | "s")
+        echo "Eligiendo Sí. Ejecutando comandos..."
+        ttyinicio
+        sshexit
+        wwinst
+        ;;
+    "n" | "N")
+        echo "Eligiendo No. No se ejecutará ningún comando."
+        ;;
+    *)
+        echo -e "\033[31mRespuesta no válida. Intente de nuevo."
+        ;;
+esac
+
+echo -e "\033[35m"
+echo "ADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission."
+echo -e "\033[0m"
+
