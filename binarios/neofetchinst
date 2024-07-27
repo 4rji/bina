@@ -15,8 +15,15 @@ if [ $? -eq 0 ]; then
     echo "El archivo se ha descargado y movido correctamente."
     echo ""
     
-    # Preguntar al usuario por el nuevo nombre
-    read -p "Nombre del host nuevo: " nuevo_nombre
+    # Verificar si la variable 'host_nombre' ya está establecida
+    if [ -z "$host_nombre" ]; then
+        # Preguntar al usuario por el nuevo nombre si la variable no está establecida
+        read -p "Nombre del host nuevo: " nuevo_nombre
+    else
+        # Usar el valor existente de la variable
+        nuevo_nombre=$host_nombre
+        echo "Usando el nombre del host existente: $nuevo_nombre"
+    fi
 
     # Reemplazar la palabra "casiton" en /opt/4rji/bin/nff con el nuevo nombre usando sudo
     sudo sed -i "s/casiton/$nuevo_nombre/g" /opt/4rji/bin/nff
@@ -28,10 +35,11 @@ if [ $? -eq 0 ]; then
 
     echo "Se ha reemplazado la línea de figlet en /opt/4rji/bin/nff con el nuevo nombre."
 
-    # Establecer la variable en Zsh
-    echo "export host_nombre='$nuevo_nombre'" >> ~/.zshrc
-
-    echo "Variable 'host_nombre' establecida para uso futuro en Zsh."
+    # Establecer la variable en Zsh, solo si fue solicitado un nuevo nombre
+    if [ -z "$host_nombre" ]; then
+        echo "export host_nombre='$nuevo_nombre'" >> ~/.zshrc
+        echo "Variable 'host_nombre' establecida para uso futuro en Zsh."
+    fi
 
 else
     echo "Hubo un error al descargar el archivo."
