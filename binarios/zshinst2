@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# Ruta del archivo p10k
+p10k_file="$HOME/.p10k.zsh"
+# Ruta del archivo de configuración de Zsh
+zshrc_file="$HOME/.zshrc"
+
+# Verifica si el archivo ~/.p10k.zsh ya existe
+if [[ -f "$p10k_file" ]]; then
+  # Hace un backup del archivo existente
+  mv "$p10k_file" "${p10k_file}.bak"
+fi
+
+# Descarga el nuevo archivo de configuración
+curl -o "$p10k_file" "https://raw.githubusercontent.com/4rji/archivos-b/main/p10k.zsh"
+
+# Verifica si la variable host_nombre ya está definida
+if [[ -z "${host_nombre}" ]]; then
+  # Si no está definida, pide al usuario que la defina
+  read -p "Ingresa el valor para host_nombre: " host_nombre
+  # Añade la variable de manera permanente al archivo .zshrc
+  echo "export host_nombre='$host_nombre'" >> "$zshrc_file"
+  # Exporta la variable para que esté disponible en el entorno actual
+  export host_nombre
+fi
+
+# Define la función prompt_hola que se desea añadir
+function_to_add="function prompt_hola() {
+  p10k segment -f 208 -t \"\$host_nombre\"
+}"
+
+# Añade la función al inicio del archivo ~/.p10k.zsh
+echo "$function_to_add" | cat - "$p10k_file" > temp && mv temp "$p10k_file"
