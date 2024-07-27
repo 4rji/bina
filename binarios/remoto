@@ -100,8 +100,11 @@ sudo systemctl restart xrdp
 
 echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
 echo "Configuración completada. XRDP está configurado para iniciar KDE Plasma."
+sss
 echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
 
 echo "Para usar el servicio usar ctl xrdp"
 echo "Usar Microsoft remote desktop para conectarse a la ip"
 echo "Para para el servicio usar systemctl stop xrdp"
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+
