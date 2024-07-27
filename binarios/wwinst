@@ -88,8 +88,8 @@ hostname -I | awk -v term_width=\"\$(tput cols)\" '{ line=\$0; gsub(/ /, \"\", l
 sudo chmod +x "$script_dir/$script_name"
 
 # Agregar la ruta del script al principio del archivo .zshrc
-path_to_script="$script_dir/$script_name"
-sed -i "1i$path_to_script" ~/.zshrc
+#path_to_script="$script_dir/$script_name"
+#sed -i "1i$path_to_script" ~/.zshrc
 
 echo "El script 'ww' ha sido creado en $script_dir/$script_name y añadido a tu archivo .zshrc."
 
