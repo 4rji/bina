@@ -21,6 +21,7 @@ nixbus              Para buscar programas en linea de comando y tambien corregir
 nixclean            Arregla la shell de nixos para los scripts 4rji
 
 ###------utilidades 
+ttyinicio           Crea mensaje de inicio de tty para ver la ip del servidor debian
 wwinst              Crea el script ww que es la presentacion de colores del host
 barrierinst         Instala barrier debian flatpat, crea alias barrier
 coll                Muestra comandos con colores con batcat y un tmp archivo

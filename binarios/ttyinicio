@@ -1,0 +1,25 @@
+#!/bin/bash
+
+# Pregunta por el nombre del host
+read -p "Introduce el nombre del host: " custom_hostname
+
+draw_sign() {
+    local lines="********************************************"
+    local message1="Welcome to - $custom_hostname - by 4rji"
+    local local_ip=$(hostname -I | awk '{print $1}')  # Asume que la primera IP es la local
+    local message2="Local IP address: $local_ip"
+
+    # Genera el mensaje y lo envía a /etc/issue
+    {
+        echo "$lines"
+        echo "*                                          *"
+        printf "*%s*\n" "$(printf '%*s' $(((${#lines} - 2 - ${#message1}) / 2)) '' | tr ' ' ' ')$message1$(printf '%*s' $(((${#lines} - 2 - ${#message1} + 1) / 2)) '' | tr ' ' ' ')"
+        echo "*                                          *"
+        printf "*%s*\n" "$(printf '%*s' $(((${#lines} - 2 - ${#message2}) / 2)) '' | tr ' ' ' ')$message2$(printf '%*s' $(((${#lines} - 2 - ${#message2} + 1) / 2)) '' | tr ' ' ' ')"
+        echo "*                                          *"
+        echo "$lines"
+    } | sudo tee /etc/issue
+}
+
+draw_sign
+
