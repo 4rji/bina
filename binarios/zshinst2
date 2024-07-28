@@ -34,8 +34,7 @@ echo "$function_to_add" | cat - "$p10k_file" > temp && mv temp "$p10k_file"
 
 #no icons
 echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
-echo "no icons, download from:"
-https://www.nerdfonts.com/font-downloads
+echo "no icons, download from: https://www.nerdfonts.com/font-downloads"
 echo "wget https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/Meslo.zip"
 
 echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"

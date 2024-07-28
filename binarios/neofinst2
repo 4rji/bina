@@ -17,6 +17,7 @@ case $respuesta in
         ttyinicio
         sshexit
         wwinst
+        zshinst2
         ;;
     "n" | "N")
 
