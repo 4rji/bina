@@ -1,5 +1,28 @@
 #!/bin/bash
 
+#DEscomprimir rockyou en 4rji
+
+# Ruta del archivo comprimido y del directorio de destino
+compressed_file="/usr/share/wordlists/rockyou.txt.gz"
+destination_dir="/usr/share/wordlists/4rji"
+decompressed_file="$destination_dir/rockyou.txt"
+
+# Crear el directorio de destino si no existe
+sudo mkdir -p "$destination_dir"
+
+# Verificar si el archivo descomprimido ya existe
+if [ -f "$decompressed_file" ]; then
+    echo "El archivo $decompressed_file ya existe. No es necesario descomprimirlo nuevamente."
+else
+    # Descomprimir el archivo si no existe
+    sudo gzip -d -k -c "$compressed_file" | sudo tee "$decompressed_file" > /dev/null
+    echo "El archivo ha sido descomprimido y guardado en $decompressed_file."
+fi
+
+
+
+
+
 # Check if the hash file is provided
 if [ -z "$1" ]; then
     echo -e "\033[31mUsage: $0 <hash_file>\033[0m"
