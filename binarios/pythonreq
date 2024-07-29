@@ -66,7 +66,7 @@ done
 
 
 # Instalación de los paquetes Python usando pip
-pip install asyncssh pycryptodome brython dnspython httpserver libratom paramiko psutil pycryptodomex pyinstaller requests scapy wmi termcolor
+pip install pexpect python-nmap asyncssh pycryptodome brython dnspython httpserver libratom paramiko psutil pycryptodomex pyinstaller requests scapy wmi termcolor
 
 #https://github.com/hposton/python-for-cybersecurity
 

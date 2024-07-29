@@ -331,6 +331,9 @@ kittyinst           Instala kitty y baja su configuracion
 ovpninst            Instala OpenvpnServer para webadmin, 4rjiDocs
 
 #python herramientas
+pscaner             escaneo de puertos, mostrando si los puertos están abiertos o cerrados
+pnmap               El script escanea los puertos especificados de un host objetivo y muestra su estado.
+
 pip2inst            Para instalar pip2 y paramiko
 pythonreq           Instala los requirements para python
 trafico             Genera trafico falso de varios sitios
