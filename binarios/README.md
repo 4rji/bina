@@ -331,6 +331,8 @@ kittyinst           Instala kitty y baja su configuracion
 ovpninst            Instala OpenvpnServer para webadmin, 4rjiDocs
 
 #python herramientas
+
+pcapmap             Genera un archivo kml para google maps de un pcap file para ver ubicacion
 downgeo             Descarga la base de datos de Geo para localizar ips
 iploc               localiza la hubicacion de una IP con python, descarga la base GEYO
 pscaner             escaneo de puertos, mostrando si los puertos están abiertos o cerrados
