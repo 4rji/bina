@@ -331,9 +331,11 @@ kittyinst           Instala kitty y baja su configuracion
 ovpninst            Instala OpenvpnServer para webadmin, 4rjiDocs
 
 #python herramientas
+downgeo             Descarga la base de datos de Geo para localizar ips
+iploc               localiza la hubicacion de una IP con python, descarga la base GEYO
 pscaner             escaneo de puertos, mostrando si los puertos están abiertos o cerrados
 pnmap               El script escanea los puertos especificados de un host objetivo y muestra su estado.
-
+sweepport           Escane un puerto con python estilo nmap.
 pip2inst            Para instalar pip2 y paramiko
 pythonreq           Instala los requirements para python
 trafico             Genera trafico falso de varios sitios

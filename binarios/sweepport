@@ -1,0 +1,43 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import nmap
+import sys
+
+
+print()
+print("like: nmap -p 22 --open -oG - 192.168.44.0/24")
+
+print()
+
+
+def findTgts(subNet, port):
+    nmScan = nmap.PortScanner()  # Crea una instancia del escáner de puertos
+    nmScan.scan(subNet, port)  # Escanea la subred para el puerto especificado
+    tgtHosts = []  # Lista para guardar los hosts con el puerto especificado abierto
+
+    for host in nmScan.all_hosts():  # Itera sobre todos los hosts encontrados en el escaneo
+        if nmScan[host].has_tcp(int(port)):  # Verifica si el host tiene el puerto TCP especificado
+            state = nmScan[host]['tcp'][int(port)]['state']  # Obtiene el estado del puerto
+            if state == 'open':  # Si el estado del puerto es 'abierto'
+                print(f" [+] \033[93mFound Target Host: {host}\033[0m (Port {port} is \033[91mopen\033[0m) ")  # Imprime el host encontrado con colores
+                tgtHosts.append(f'{host} (Port {port} is open)')
+            else:
+                print(f" [-] \033[93m{host}\033[0m: Port {port} is \033[91m{state}\033[0m ")  # Imprime el estado del puerto en colores si no está abierto
+                tgtHosts.append(f'{host} (Port {port} is {state})')
+        else:
+            print(f" [-] \033[93m{host}\033[0m does not have TCP port {port}")  # Informa si el puerto no está disponible en el host con colores
+            tgtHosts.append(f'{host} (Port {port} is not available)')
+
+    return tgtHosts  # Retorna la lista de hosts objetivo
+
+if __name__ == "__main__":
+    if len(sys.argv) != 3:
+        print("Usage: ./script.py <port> <subnet>")
+        sys.exit(1)
+
+    port = sys.argv[1]
+    subnet = sys.argv[2]
+    target_hosts = findTgts(subnet, port)
+    # Comentar o eliminar la siguiente línea para evitar la impresión final de la lista
+    # print(target_hosts)
+

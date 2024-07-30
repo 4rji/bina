@@ -1,0 +1,32 @@
+#!/bin/bash
+
+# Función para crear un directorio temporal en /dev/shm
+function mktem() {
+    if [ -n "$1" ]; then
+        new_dir=$(mktemp -d /dev/shm/tmp."$1".XXXXXX)
+    else
+        new_dir=$(mktemp -d /dev/shm/tmp.XXXXXX)
+    fi
+    echo "Directorio creado en: $new_dir"
+    cd "$new_dir" || return
+    echo "Cambiado al directorio: $PWD"
+}
+
+# Crear el directorio de destino si no existe
+mkdir -p /opt/4rji/
+
+# Usar la función mktem para crear un directorio temporal
+mktem "download"
+
+# Descargar el archivo
+git clone --depth 1 https://github.com/4rji/archivos-b.git
+
+# Extraer el archivo en el directorio de destino
+tar -xzvf archivos-b/GEYO-locacion.tar.gz
+
+sudo mv GeoLite2-City_20240726/GeoLite2-City.mmdb /opt/4rji
+
+
+
+echo "Descarga y extracción completada en /opt/4rji/"
+
