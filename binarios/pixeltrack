@@ -1,0 +1,98 @@
+#!/usr/bin/python3
+import subprocess
+
+def install_packages():
+    print("Instalando paquetes...")
+    subprocess.run('sudo apt update', shell=True)
+    subprocess.run('sudo apt install -y apache2 php libapache2-mod-php', shell=True)
+    subprocess.run('sudo a2enmod rewrite', shell=True)
+
+def setup_php_script():
+    print("Configurando save_ip.php...")
+    php_content = """
+<?php
+// Archivo para guardar los datos
+$logFile = "/var/log/image_access.log";
+
+// Obtiene la dirección IP del visitante
+$ip = $_SERVER["REMOTE_ADDR"];
+
+// Obtiene la fecha y hora actual
+$dateTime = date("Y-m-d H:i:s");
+
+// Escribe la información en el archivo de registro
+file_put_contents($logFile, "IP: " . $ip . " - Date/Time: " . $dateTime . "\\n", FILE_APPEND);
+
+// Establece el tipo de contenido a imagen PNG
+header("Content-Type: image/png");
+
+// Entrega la imagen real al cliente
+readfile("/var/www/html/sss.png");
+?>
+"""
+    subprocess.run(['sudo', 'tee', '/var/www/html/save_ip.php'], input=php_content.encode(), check=True)
+    subprocess.run('sudo chown www-data:www-data /var/www/html/save_ip.php', shell=True)
+    subprocess.run('sudo chmod 644 /var/www/html/save_ip.php', shell=True)
+
+def setup_htaccess():
+    print("Configurando .htaccess...")
+    htaccess_content = """
+RewriteEngine On
+# Redirige las solicitudes a sss.png al script PHP
+RewriteRule ^sss\\.png$ /save_ip.php [L]
+"""
+    subprocess.run(['sudo', 'tee', '/var/www/html/.htaccess'], input=htaccess_content.encode(), check=True)
+    subprocess.run('sudo chmod 644 /var/www/html/.htaccess', shell=True)
+
+def setup_logs_and_permissions():
+    print("Configurando logs y permisos...")
+    subprocess.run('sudo touch /var/log/image_access.log', shell=True)
+    subprocess.run('sudo chown www-data:www-data /var/log/image_access.log', shell=True)
+    subprocess.run('sudo chmod 640 /var/log/image_access.log', shell=True)
+
+def download_and_setup_image():
+    print("Descargando y configurando imagen...")
+    image_url = "https://github.com/4rji/archivos-b/raw/c5cbc289fd6a8a9e5be86f11c62308ea17bea62d/pixel_blanco_invisible.png"
+    image_path = '/var/www/html/sss.png'
+    result = subprocess.run(f'sudo wget {image_url} -O {image_path}', shell=True)
+    if result.returncode == 0:
+        print(f'Imagen descargada correctamente: {image_path}')
+        # Verificar permisos actuales
+        subprocess.run(['ls', '-l', image_path], shell=True)
+        # Cambiar propietario y permisos
+        subprocess.run(f'sudo chown www-data:www-data {image_path}', shell=True)
+        subprocess.run(f'sudo chmod 644 {image_path}', shell=True)
+        # Verificar permisos después de cambios
+        subprocess.run(['ls', '-l', image_path], shell=True)
+    else:
+        print(f'Error al descargar la imagen: {image_path}')
+
+def update_apache_config():
+    print("Actualizando configuración de Apache...")
+    config_block = """
+<Directory /var/www/html>
+    Options Indexes FollowSymLinks
+    AllowOverride All
+    Require all granted
+</Directory>
+"""
+    subprocess.run(['sudo', 'bash', '-c', f'echo "{config_block}" >> /etc/apache2/apache2.conf'], check=True)
+
+def restart_apache():
+    print("Reiniciando Apache...")
+    subprocess.run('sudo systemctl restart apache2', shell=True)
+
+def main():
+    install_packages()
+    setup_php_script()
+    setup_htaccess()
+    setup_logs_and_permissions()
+    download_and_setup_image()
+    update_apache_config()
+    restart_apache()
+    print("Instalación y configuración completadas.")
+
+if __name__ == "__main__":
+    main()
+
+print("sudo tail -f /var/log/image_access.log")
