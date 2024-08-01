@@ -43,7 +43,7 @@ echo -e "\e[34m                  _______________________________________________
 # Agregamos el mensaje con la IP local
 #echo -e "\n\t\t\t\tTu IP es: $(/usr/sbin/ifconfig "$network_interface" | grep "inet " | awk '{print $2}')\n"
 #echo -e "\n\t\t\t\tTu IP es: $(/usr/sbin/ifconfig "$network_interface" | grep "inet " | awk '{print "("$1")", $2}')\n"
-echo -e "\n\t\t\t\tTu IP de $network_interface es: $(/usr/sbin/ifconfig "$network_interface" | grep "inet " | awk '{print $2}')\n"
+echo -e "\n\t\t\t\tTu IP de $network_interface es: $(ifconfig "$network_interface" | grep "inet " | awk '{print $2}')\n"
 
 
 
