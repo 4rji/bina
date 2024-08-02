@@ -103,7 +103,6 @@ echo -e "\n\033[1;37m_________________________________________________________\0
 
 echo -e "\033[0;34mejecutar linpi para descomprimir los otros binarios y tambien pyreque como sudo para secreto\033[0m"
 
-echo "ejecutar linpi para descomprimir los otros binarios y tambien pyreque como sudo para secreto"
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 
 
