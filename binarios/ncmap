@@ -47,7 +47,7 @@ if [ $# -eq 2 ]; then
         display_separator
         display_message "Continuously scanning port $port on IP address $ip_address..."
         echo ""
-        echo -e "\e[1;31mCommand: $ip_address $port\e[0m"
+        #echo -e "\e[1;31mCommand: $ip_address $port\e[0m"
         echo -e "\e[1;31mnc -nv -z $ip_address $port\e[0m"
 
         # Execute the nc command with error handling

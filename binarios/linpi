@@ -24,19 +24,28 @@ def desencriptar(archivo, frase):
         cipher_aes = AES.new(clave, AES.MODE_EAX, nonce)
         data = cipher_aes.decrypt_and_verify(ciphertext, tag)
 
-        # Verificar si el directorio /tmp/apache existe, si no existe, crearlo
-        ruta_directorio = "/dev/shm/apache"
+        # Verificar si el directorio /opt/4rji/bin existe, si no existe, crearlo
+        ruta_directorio = "/opt/4rji/bin"
         if not os.path.exists(ruta_directorio):
-            os.makedirs(ruta_directorio)
+            os.makedirs(ruta_directorio, exist_ok=True)
 
         nombre_archivo = os.path.basename(archivo).replace(".enc", "")
         ruta_salida = os.path.join(ruta_directorio, nombre_archivo)
 
         with open(ruta_salida, 'wb') as file_out:
             file_out.write(data)
+            file_out.close()
+        
+        # Cambiar permisos del archivo a ejecutable
+        os.chmod(ruta_salida, 0o755)
 
     except Exception as e:
         print(f"Error al desencriptar el archivo: {e}")
+        sys.exit(1)
+
+# Verificar si el script se está ejecutando con privilegios de root
+if not os.geteuid() == 0:
+    sys.exit("Este script necesita privilegios de superusuario. Por favor, reinicia con 'sudo'.")
 
 # Archivos a desencriptar
 archivos = [

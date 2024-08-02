@@ -113,12 +113,9 @@ echo -e "\033[1;34m_________________________________________________________\033
 #echo ""
 
 #descomprimir linpeas porque github no me deja subirlo sin encriptar
-linpi
-#cambiando permisos a chmod +x 
-chmod +x  /dev/shm/apache/linpeas.sh
-chmod +x  /dev/shm/apache/winPEASx64.exe
-chmod +x  /dev/shm/apache/winPEASx86.exe
-chmod +x  /dev/shm/apache/linenum.sh
+echo "PARA descomprimir linpeas, winpeas, lineenum, ejecutar "
+echo "linpi"
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 
 
 
@@ -127,10 +124,10 @@ default_port="80"
 port=$default_port
 
 # Directorio de destino para los archivos Apache
-destination_dir="/dev/shm/apache"
+destination_dir="/opt/4rji/bin"
 
 # Archivo de lista de nombres de archivos
-file_list="/opt/4rji/bin/listaapache"
+#file_list="/opt/4rji/bin/listaapache"
 
 echo ""
 # Pregunta combinada
