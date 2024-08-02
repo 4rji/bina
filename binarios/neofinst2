@@ -81,6 +81,7 @@ case $respuesta in
         sshexit
         wwinst
         zshinst2
+        sshbaner
         ;;
     "n" | "N")
 
