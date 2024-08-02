@@ -28,5 +28,5 @@ draw_sign() {
 draw_sign
 
 
-
+sudo systemctl enable getty@tty1
 sudo systemctl restart getty@tty1

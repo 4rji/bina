@@ -421,7 +421,7 @@ shells              Copia al portapapeles varias tipo de shells, pregunta IP y g
 
 #HTB shorcuts
 htbinst             Algunas instrucciones, hacer un whx a ese binario 
-iniciarhtb          Genera las variables, ips y zsh cosas
+iniciar1          Primero target1 y luego este: que genera las variables, ips y zsh cosas
 iniciar2            Function crea carpetas, variables $ip $htcon $htf, se debe de ejecutar manualmente los echos
 enum                guarda whichsys, nmap, se ejecuta desde nmap folder
 contra              Copia una contrasena del portapapales a content/passwords
