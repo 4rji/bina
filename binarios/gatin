@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#DEscomprimir rockyou en 4rji
+# Descomprimir rockyou en 4rji
 
 # Ruta del archivo comprimido y del directorio de destino
 compressed_file="/usr/share/wordlists/rockyou.txt.gz"
@@ -19,38 +19,46 @@ else
     echo "El archivo ha sido descomprimido y guardado en $decompressed_file."
 fi
 
-
-
-
-
-# Check if the hash file is provided
+# Verificar si se proporcionó el archivo de hashes
 if [ -z "$1" ]; then
     echo -e "\033[31mUsage: $0 <hash_file>\033[0m"
     exit 1
 fi
 
-# Display hash modes
+# Mostrar modos de hash y ejemplos
 echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
-echo -e "\033[34mWhich hash algorithm do you want to use?\033[0m"
+echo -e "\033[34mWhich hash algorithm do you want to use? Here are some examples:\033[0m"
 echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
 echo -e "\033[33m1. MD5 (Mode: 0)"
-echo "2. SHA-1 (Mode: 100)"
-echo "3. SHA-256 (Mode: 1400)"
-echo "4. NTLM (Mode: 1000)"
-echo "5. WPA/WPA2 (Mode: 22000)"
-echo "6. bcrypt (Mode: 3200)"
-echo "7. Unix Crypt (Mode: 500)"
-echo "8. MySQL (Mode: 300)"
-echo "9. Kerberos 5, etype 23, AS-REP (Mode: 18200)\033[0m"
+echo "   Example: 5f4dcc3b5aa765d61d8327deb882cf99 (password)"
+echo -e "\033[34m2. SHA-1 (Mode: 100)"
+echo "   Example: 5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8 (password)"
+echo -e "\033[35m3. SHA-256 (Mode: 1400)"
+echo "   Example: 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8 (password)"
+echo -e "\033[36m4. NTLM (Mode: 1000)"
+echo "   Example: 8846f7eaee8fb117ad06bdd830b7586c (password)"
+echo -e "\033[32m5. WPA/WPA2 (Mode: 22000)"
+echo "   Example: [HASH]:[ESSID] (WPA/WPA2 format)"
+echo -e "\033[37m6. bcrypt (Mode: 3200)"
+echo "   Example: \$2a\$12\$KIXQz7kc6fw6tvVxZk3qPOmQVxDJZ4D5Z7U5IsBdxQ6AKeFgPphG6 (password)"
+echo -e "\033[31m7. Unix Crypt (Mode: 500)"
+echo "   Example: sa3tHJ3/KuYvI (password)"
+echo -e "\033[33m8. MySQL (Mode: 300)"
+echo "   Example: 60671c896665c3fa9b886a77d7e376b8 (password)"
+echo -e "\033[34m9. Kerberos 5, etype 23, AS-REP (Mode: 18200)"
+echo "   Example: \$krb5asrep\$23\$user@domain.com:hash"
+echo -e "\033[35m10. Linux sha512crypt (Mode: 1800)"
+echo "   Example: \$6\$saltsalt\$svn8UoSVnopIENZKK9fgmvbWe/oIjhq6Bp48wB/oS4TTZEWJXYlJZh/5H5UcQ3OBVkx5LCN5t7y7cZ8NnqMhb0 (password)"
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 
-# Get user input for mode
+
+# Obtener entrada del usuario para el modo
 read -n2 -p "Enter the mode number: " mode
 echo ""
 echo "_________________________________________________________"
 echo ""
 
-# Attempt to crack the hash using hashcat
+# Intentar crackear el hash usando hashcat
 echo -e "\033[34mHashcat will now attempt to crack the hash using all dictionaries found in /usr/share/wordlists/4rji\033[0m"
 ls -l /usr/share/wordlists/4rji
 echo ""
@@ -65,11 +73,12 @@ case $mode in
     7) hashcat -w 3 -m 500 "$1" /usr/share/wordlists/4rji/* ;;
     8) hashcat -w 3 -m 300 "$1" /usr/share/wordlists/4rji/* ;;
     9) hashcat -w 3 -m 18200 "$1" /usr/share/wordlists/4rji/* ;;
+    10) hashcat -w 3 -m 1800 "$1" /usr/share/wordlists/4rji/* ;;
     *) echo -e "\033[31mInvalid mode number. Exiting.\033[0m"
        exit 1 ;;
 esac
 
-# Function to ask user if they want to see cracked hashes
+# Función para preguntar al usuario si quiere ver los hashes crackeados
 function ejecutar_comando_si_s {
     read -p "See the hashes? (s/n): " respuesta
     if [ "$respuesta" = "s" ]; then
@@ -81,5 +90,5 @@ function ejecutar_comando_si_s {
     fi
 }
 
-# Call the function and pass the necessary argument
+# Llamar a la función y pasar el argumento necesario
 ejecutar_comando_si_s "$1"

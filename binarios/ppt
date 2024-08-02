@@ -66,7 +66,7 @@ preguntar_y_ejecutar_lsof() {
     echo ""
     echo "_________________________________________________________"
     echo ""
-    echo -e "\033[34mComando a ejecutar: sudo lsof -i -P -n\033[0m"
+    echo -e "\033[34mComando a ejecutar: sudo lsof -i -P -n  (also ss -lntp)\033[0m"
     read -n1 -p $'\033[33m¿Ejecutar lsof? [Enter/c]: \033[0m' respuesta
     if [[ $respuesta != "c" ]]; then
         sudo lsof -i -P -n
