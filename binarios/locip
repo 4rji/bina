@@ -21,7 +21,7 @@ def check_and_download_database():
     if not os.path.exists(DATABASE_LOCATION):
         print(f"La base de datos en {DATABASE_LOCATION} no existe.")
         answer = input("¿Desea descargar la base de datos? (Y/n): ")
-        if answer.lower() == 'y':
+        if answer.lower() in ['', 'y']:
             print("Descargando la base de datos...")
             subprocess.run(['downgeo'])  # Asegúrate de que 'downgeo' es ejecutable y está en el PATH
             print("Descarga completada.")
