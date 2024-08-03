@@ -47,24 +47,22 @@ wifikali            Crea wifi redes para kali nuevos system-connections
 verip               Verifica los permisos de los archivos /etc/passwd u linux claves
 verip2              Otro para ver permisos de linux
 4rji                el programa y busqueda de scripts
-4rjic	            Muestra una lista simple de 4rji
 meslo               Instala las fuentes meslo
-4rjia	            Muestra los alias
 bashfun             Agrega las funciones function a las bash zsh, en zshrc bashrc mktem
-whx_{binario}       hace un xargs cat a un binario y pregunta si deseo editarlo #ejemplo whx mired     
-whr_{binario}       hace un nano a un binario    
+whx                 hace un xargs cat a un binario y pregunta si deseo editarlo #ejemplo whx mired     
+whr                 hace un nano a un binario    
 restaurando         Restaura "" y limpia mas bien mi sistema, -t programar
 cxx                 chmod +x y luego ./ ejecuta el script
 cx                  chmod +x sin ejecutarlonetw
-timeout 2h          Para ejecutar comandos por un tiempo determinado timeout 4 (4 segundos y cierra)
-binar               mueve un script a el directorio /usr/bin                                           
-ruta_{archivo}      copia la ruta del archivo en el portapapeles                                       
+timeout_2h          Para ejecutar comandos por un tiempo determinado timeout 4 (4 segundos y cierra)
+ruta_archivo        copia la ruta del archivo en el portapapeles                                       
 clipc               Copia el ultimo comando escrito en la terminal
-clipa_{archivo}     copia el contenido del archivo al portapapeles                                     
+clipa_archivo       copia el contenido del archivo al portapapeles                                     
 pas                 Copia el contenido del portapapeles en la variable $htcon
 jfirefox            firejail a firefox             
-pant                arregla la pantalla para monitor de 34 pulgadas xrandr                             
 lid                 cambia el comportamiento de lid laptop                                             
+
+#Util
 msmb                monta un smb o samba
 smbcomm             Explota samba, arregla s tty, consola interactiva, control c     
 servidor            Inicia y detiene un servidor apache en 8080                                                         
@@ -75,7 +73,6 @@ herralias           Actualiza los binarios descargando solo alias
 worms               Comprime una carpeta y la manda por worms, se ejecuta: worms ruta_carpeta          
 cscp                copiar archivos en scp en lugar de sftp    
 csftp               copia un archivo por sftp hubicado en home, pregunta la IP y usuario y archivo     
-reset               limpia la terminal
 weather             Muestra el clima geolocalizacion usar
 depurar             para depurar un script y ver su ejecusion: ❯  bash -x ./script
 lfcd                para moverme con cd  #copiar el plugin a zsh
@@ -83,7 +80,7 @@ mdcolors            Genera colores para archivos md
 maquinasova         Convierte maquinas ova para qemu
 limpiartest         Genera archivos de varios tamanos para probar
 limpiar             Limpia el home con shred y scrub 
-cortes              Muestra cortes con awk cut
+cortes              Muestra cortes archivos con awk cut (no grep or find)
 
 genarc              genera archivos conjuntos de 100 MB
 ddf                 hace un diff archivo vs archivo.backup                                             
