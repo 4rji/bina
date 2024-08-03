@@ -1,0 +1,61 @@
+#!/bin/bash
+echo -e "\033[0;32m#----------------------------------#\033[0m"
+echo "# IP Route Deletion"
+echo "sudo ip route del default via 192.168.88.1 dev wlp0s20f3"
+
+echo -e "\033[0;32m#----------------------------------#\033[0m"
+echo "# Nmap Commands"
+echo "nmap -sL (hostnames)"
+echo "nmap --script vuln IP"
+echo "nmap --script malware IP"
+echo "nmap --source-port 53 IP/24"
+echo "nmap -D RND:10 IP/24"
+
+echo -e "\033[0;32m#----------------------------------#\033[0m"
+echo "# Nvidia Driver Installation"
+echo "sudo apt install linux-headers-$(uname -r)"
+
+echo -e "\033[0;32m#----------------------------------#\033[0m"
+echo "# NSE Script Search"
+echo "locate .nse | xargs grep 'categories' | grep -oP '\".*?\"' | sort -u"
+
+echo -e "\033[0;32m#----------------------------------#\033[0m"
+echo "# Masscan Usage Examples"
+echo "sudo masscan -p22,80,445,8080,443 192.168.142.156/26 --rate=10000"
+echo "sudo masscan -p1-65535 10.0.4.0/24 --top-ports 100 --rate=10000 -i wlan0"
+
+echo -e "\033[0;32m#----------------------------------#\033[0m"
+echo "# Nmap for Vulnerability and Safety"
+echo "nmap -p[puerto] 192.10.0.88 --script='vuln and safe' -sV"
+
+echo -e "\033[0;32m#----------------------------------#\033[0m"
+echo "# Process and Port Investigation"
+echo "lsof -i:puerto"
+echo "pwdx PID"
+
+echo -e "\033[0;32m#----------------------------------#\033[0m"
+echo "# Network Capturing Tools"
+echo "tcpdump -i interfase -w captura.cap -v"
+echo "tshark -r captura.cap 2>/dev/null"
+
+echo -e "\033[0;32m#----------------------------------#\033[0m"
+echo "# Network Scanning"
+echo "sudo arp-scan -I wlan0 10.0.4.1-10.0.4.254"
+echo "netdiscover -i wlan0"
+
+echo -e "\033[0;32m#----------------------------------#\033[0m"
+echo "# SSH Connection Keep-Alive"
+echo "ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=3 usuario@servidor"
+
+echo -e "\033[0;32m#----------------------------------#\033[0m"
+echo "# Moving Files Example"
+echo "find . -mindepth 2 -type f -name '*.py' -exec mv {} . \;"
+
+echo -e "\033[0;32m#----------------------------------#\033[0m"
+echo "# Hydra Usage Example"
+echo "hydra -L users -P passwords ssh://$ip"
+
+echo -e "\033[0;32m#----------------------------------#\033[0m"
+echo "# FTP Payload Inspection with Tshark"
+echo "tshark -r 0.pcap -Y 'ftp' -Tfields -e tcp.payload 2>/dev/null | xxd -ps -r"
+echo -e "\033[0;32m#----------------------------------#\033[0m"

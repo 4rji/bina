@@ -1,6 +1,4 @@
 Github              Binarios
-#HTB directorio
-markup              XML External Entities (XXE or XEE) 
 
 ###------Arch linux
 instpkg             Instala un paquete en arch makepkg -si PKGBUILD
@@ -10,7 +8,7 @@ ssa_arch            ssa para arch linux
 mackarch            Cambia la MAC de arch linux
 aliasarch           Arregla los alias en arch
 rx6800              Instala el archivo de configuracion en Arch para que funcione la GPU
-test
+
 ###------hardware stuff
 bateriamonitor      Muestra los watts y el estado de carga en kali
 bateria             new script con bateria en lugar de alias                                           
@@ -31,25 +29,22 @@ remoto              Instala xrdp, inicia el servicio y copia la configuracion pa
 vnckali             (USAR xrdp) x11vnc, si no funciona install Xvfb and posiblemente install full kde. 
 rutainter           Definir la via ruta de internet cuando hay 2 interfaces internet
 veloint             iperf3 para medir la velocidad de ethernet o conexion, instrucciones e instala
-findd               incorpora grep y find en un script para buscar palabras en archivos
+grepfind            incorpora grep y find en un script para buscar palabras en archivos
 x11inst             Instala x11 u otros desktops kali y sddm por default
 batfzf              Instala el theme night tokio para batcat, tambien fzf 
-tiles               Instala la configuracion de tiles krohn y da instruciones de descarga
+tiles               Instala la configuracion de tiles sdd manager krohn y da instruciones de descarga
 nvidiapromox        instala nvidia passtrhought 3070, en promox
 nvidiakali          Instala nvidia en kali, baja el driver  
 limpiarherrabin     Limpia los binarios de /usr/bin/ 
 shm                 Aumenta la memoria de tmp de la /dev/shm, y la limpia con -c
 verlos              fzf alias a preview de archivos con cat,  nvim $verlos
-todo_{algo}         Busca en alias y readme info
 todos               Hace un fzf a el directorio 4rj, con cat -l rb, para abrir usar nvim $(todos)
 ayudabinario        Aplica -h mensaje para mostrar al inicio de un script
-comandos            Muestra varios comandos aprendidos s4vi
-colores             Actualiza los colores de la polybar y de kitty en bspwx
+s4vit               Muestra varios comandos aprendidos s4vi
 usuario             Crea un usuario en bash, automatico.
 wifiinterfaces      Arregla wifi en kali, terminal grafica texto, debian wifi GUI gui
 wifikali            Crea wifi redes para kali nuevos system-connections
-template_paquetes   Template para instalar paquetes automaticamente en todas las distro
-verip               Verifica los permisos de los archivos linux claves
+verip               Verifica los permisos de los archivos /etc/passwd u linux claves
 verip2              Otro para ver permisos de linux
 4rji                el programa y busqueda de scripts
 4rjic	            Muestra una lista simple de 4rji
