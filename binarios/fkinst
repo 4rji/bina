@@ -1,0 +1,15 @@
+#!/bin/bash
+
+# Instalar thefuck
+pip install thefuck
+
+# Mostrar la ubicación de la instalación
+pip3 show thefuck | grep Location
+
+# Crear un enlace simbólico para thefuck en /opt/4rji/bin/
+sudo ln -s ~/.local/bin/thefuck /opt/4rji/bin/thefuck
+
+# Agregar alias de thefuck al archivo .zshrc
+echo 'eval $(thefuck --alias)' >> ~/.zshrc
+echo 'eval $(thefuck --alias fk)' >> ~/.zshrc
+
