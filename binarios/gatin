@@ -25,6 +25,10 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
+# Mostrar los tipos de hashes en el archivo
+echo -e "\033[34mDetecting hash types in the file: $1\033[0m"
+hashcat --identify $1
+
 # Mostrar modos de hash y ejemplos
 echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
 echo -e "\033[34mWhich hash algorithm do you want to use? Here are some examples:\033[0m"
@@ -51,7 +55,6 @@ echo -e "\033[35m10. Linux sha512crypt (Mode: 1800)"
 echo "   Example: \$6\$saltsalt\$svn8UoSVnopIENZKK9fgmvbWe/oIjhq6Bp48wB/oS4TTZEWJXYlJZh/5H5UcQ3OBVkx5LCN5t7y7cZ8NnqMhb0 (password)"
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 
-
 # Obtener entrada del usuario para el modo
 read -n2 -p "Enter the mode number: " mode
 echo ""
@@ -63,32 +66,40 @@ echo -e "\033[34mHashcat will now attempt to crack the hash using all dictionari
 ls -l /usr/share/wordlists/4rji
 echo ""
 
+# Variable para almacenar el comando
+hashcat_command=""
+
+# Determinar el comando a ejecutar según el modo seleccionado
 case $mode in
-    1) hashcat -w 3 -m 0 "$1" /usr/share/wordlists/4rji/* ;;
-    2) hashcat -w 3 -m 100 "$1" /usr/share/wordlists/4rji/* ;;
-    3) hashcat -w 3 -m 1400 "$1" /usr/share/wordlists/4rji/* ;;
-    4) hashcat -w 3 -m 1000 "$1" /usr/share/wordlists/4rji/* ;;
-    5) hashcat -w 3 -m 22000 "$1" /usr/share/wordlists/4rji/* ;;
-    6) hashcat -w 3 -m 3200 "$1" /usr/share/wordlists/4rji/* ;;
-    7) hashcat -w 3 -m 500 "$1" /usr/share/wordlists/4rji/* ;;
-    8) hashcat -w 3 -m 300 "$1" /usr/share/wordlists/4rji/* ;;
-    9) hashcat -w 3 -m 18200 "$1" /usr/share/wordlists/4rji/* ;;
-    10) hashcat -w 3 -m 1800 "$1" /usr/share/wordlists/4rji/* ;;
+    1) hashcat_command="hashcat -w 3 -m 0 \"$1\" /usr/share/wordlists/4rji/*" ;;
+    2) hashcat_command="hashcat -w 3 -m 100 \"$1\" /usr/share/wordlists/4rji/*" ;;
+    3) hashcat_command="hashcat -w 3 -m 1400 \"$1\" /usr/share/wordlists/4rji/*" ;;
+    4) hashcat_command="hashcat -w 3 -m 1000 \"$1\" /usr/share/wordlists/4rji/*" ;;
+    5) hashcat_command="hashcat -w 3 -m 22000 \"$1\" /usr/share/wordlists/4rji/*" ;;
+    6) hashcat_command="hashcat -w 3 -m 3200 \"$1\" /usr/share/wordlists/4rji/*" ;;
+    7) hashcat_command="hashcat -w 3 -m 500 \"$1\" /usr/share/wordlists/4rji/*" ;;
+    8) hashcat_command="hashcat -w 3 -m 300 \"$1\" /usr/share/wordlists/4rji/*" ;;
+    9) hashcat_command="hashcat -w 3 -m 18200 \"$1\" /usr/share/wordlists/4rji/*" ;;
+    10) hashcat_command="hashcat -w 3 -m 1800 \"$1\" /usr/share/wordlists/4rji/*" ;;
     *) echo -e "\033[31mInvalid mode number. Exiting.\033[0m"
        exit 1 ;;
 esac
 
-# Función para preguntar al usuario si quiere ver los hashes crackeados
-function ejecutar_comando_si_s {
-    read -p "See the hashes? (s/n): " respuesta
-    if [ "$respuesta" = "s" ]; then
-        echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
-        echo -e "\033[34mCommand to view cracked hashes: hashcat --show $1\033[0m"
-        hashcat --show $1
-    else
-        echo "No se ejecutará el comando."
-    fi
-}
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+# Mostrar el comando a ejecutar
+echo -e "\033[32mExecuting command:\033[0m"
+echo "$hashcat_command"
+echo ""
 
-# Llamar a la función y pasar el argumento necesario
-ejecutar_comando_si_s "$1"
+# Ejecutar el comando
+eval $hashcat_command
+
+# Mostrar las contraseñas crackeadas y guardarlas en passwords.txt
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+#echo -e "\033[34mCommand to view cracked hashes: $hashcat_command --show -o passwords.txt\033[0m"
+eval "$hashcat_command --show -o passwords.txt"
+
+echo -e "\033[32mLas contraseñas crackeadas se han guardado en passwords.txt\033[0m"
+
+cat passwords.txt
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
