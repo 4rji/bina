@@ -1,23 +1,16 @@
 #!/bin/bash
 
-# Verificar si la variable maquina está definida
+# Verificar si la variable maquina está definida en el entorno
 if [ -z "$maquina" ]; then
   echo "Error: La variable 'maquina' no está definida en el entorno."
   exit 1
 fi
 
-# Verificar si se proporcionó el nombre de la máquina
-if [ -z "$1" ]; then
-  echo "Error: No se proporcionó el nombre de la máquina."
-  echo "Uso: $0 <nombre_maquina>"
-  exit 1
-fi
-
 iniciar() {
   local base_dir="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"
-  local new_dir="$base_dir/$1"
+  local new_dir="$base_dir/$maquina"
   local template_file="/home/ass/.template.md"
-  local machine_name="$1"
+  local machine_name="$maquina"
   local new_file="$new_dir/$machine_name.md"
 
   # Crear directorio y copiar plantilla
@@ -37,5 +30,5 @@ iniciar() {
   pwd
 }
 
-# Llamar a la función iniciar con el nombre de la máquina como argumento
-iniciar "$maquina"
+# Llamar a la función iniciar
+iniciar
