@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Actualizar repositorios e instalar dependencias
+sudo apt update
+sudo apt install -y neovim git curl
+
+# Clonar el repositorio de NvChad
+git clone https://github.com/NvChad/starter ~/.config/nvim
+
+# Iniciar nvim
+nvim
+

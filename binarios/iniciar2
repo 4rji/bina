@@ -7,9 +7,9 @@ if [ -z "$maquina" ]; then
 fi
 
 iniciar() {
-  local base_dir="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"
+  local base_dir="$HOME/Documents/GitHub/4rji/4rjinotes/htb"
   local new_dir="$base_dir/$maquina"
-  local template_file="/home/ass/.template.md"
+  local template_file="$home/.template.md"
   local machine_name="$maquina"
   local new_file="$new_dir/$machine_name.md"
 

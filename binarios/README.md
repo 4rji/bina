@@ -19,6 +19,8 @@ nixbus              Para buscar programas en linea de comando y tambien corregir
 nixclean            Arregla la shell de nixos para los scripts 4rji
 
 ###------utilidades 
+fire                Abre firefox con distrobox, -g para google, -d duckducl. sin - para los dos
+nviminst            Instala neovim, nvchad, 
 fkinst              Instala fk para corregir comando en terminal con pip python
 ttyinicio           Crea mensaje de inicio de tty para ver la ip del servidor debian
 wwinst              Crea el script ww que es la presentacion de colores del host
@@ -47,7 +49,7 @@ wifikali            Crea wifi redes para kali nuevos system-connections
 verip               Verifica los permisos de los archivos /etc/passwd u linux claves
 verip2              Otro para ver permisos de linux
 4rji                el programa y busqueda de scripts
-meslo               Instala las fuentes meslo
+mesloinst           Instala las fuentes meslo
 bashfun             Agrega las funciones function a las bash zsh, en zshrc bashrc mktem
 whx                 hace un xargs cat a un binario y pregunta si deseo editarlo #ejemplo whx mired     
 whr                 hace un nano a un binario    

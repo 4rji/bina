@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Verificar si se proporcionó un argumento
+if [ $# -eq 0 ]; then
+    echo "Uso: ./script [opcion] [Busqueda]"
+    echo "Opciones:"
+    echo "  -g         Buscar en Google"
+    echo "  -d         Buscar en DuckDuckGo"
+    echo "  (sin opción) Buscar en ambos motores de búsqueda"
+    exit 1
+fi
+
+# Variables para los motores de búsqueda
+google_base_url="https://www.google.com/search?q="
+duckduckgo_base_url="https://www.duckduckgo.com/?q="
+
+# Función para realizar la búsqueda
+buscar() {
+    local search_engine_url=$1
+    shift
+    local query="$*"
+    local search_query_url=$(echo "$query" | sed 's/ /%20/g')
+    local search_url="${search_engine_url}${search_query_url}"
+
+    # Abrir la URL en Firefox usando distrobox
+    distrobox enter archlinux-latest -- firefox "$search_url" &
+}
+
+# Analizar las opciones del script
+case "$1" in
+    -g)
+        shift
+        buscar "$google_base_url" "$@"
+        ;;
+    -d)
+        shift
+        buscar "$duckduckgo_base_url" "$@"
+        ;;
+    *)
+        buscar "$google_base_url" "$@"
+        buscar "$duckduckgo_base_url" "$@"
+        ;;
+esac
