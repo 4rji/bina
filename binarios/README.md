@@ -19,6 +19,7 @@ nixbus              Para buscar programas en linea de comando y tambien corregir
 nixclean            Arregla la shell de nixos para los scripts 4rji
 
 ###------utilidades 
+yazi                Como ranger para ver fotos, esta en comprimidos.
 fire                Abre firefox con distrobox, -g para google, -d duckducl. sin - para los dos
 nviminst            Instala neovim, nvchad, 
 fkinst              Instala fk para corregir comando en terminal con pip python
