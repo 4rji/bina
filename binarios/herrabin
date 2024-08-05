@@ -1,9 +1,18 @@
 #!/bin/bash
 
+
+
 # Colores
+verde='\e[0;32m'
 azul='\e[0;34m'
 reset='\e[0m'
-verde='\e[0;32m'
+
+amarillo='\e[0;33m'
+reset='\e[0m'
+
+
+
+
 
 omitir=false
 omitirPreguntas=false
@@ -122,10 +131,9 @@ fi
 # Sección de preguntas empieza aquí
 
 
-# Colores
-verde='\e[0;32m'
-azul='\e[0;34m'
-reset='\e[0m'
+
+
+
 
 
 echo ""
@@ -156,16 +164,15 @@ fi
 
 
 
-
-# Colores
-verde='\e[0;32m'
-azul='\e[0;34m'
-reset='\e[0m'
-
 echo -e "${azul}"
 echo "_________________________________________________________"
 echo ""
-# Pregunta al usuario si desea descargar los archivos comprimidos
+
+
+
+
+
+# Pregunta al usuario si desea descargar los archivos COMPRIMIDOS. 
 read -p "¿Deseas descargar los comprimidos? [s/N] " respuesta
 
 # Convertir la respuesta en minúsculas
@@ -177,7 +184,7 @@ if [[ "$respuesta" == "s" ]]; then
     sudo mkdir -p /opt/4rji/bin/
     
     # Comando para descargar el archivo
-    git clone https://github.com/4rji/archivos-b
+    git clone --depth 1 https://github.com/4rji/archivos-b
     #sudo wget -O /opt/4rji/bin/comprimidos.tar.xz "https://github.com/4rji/archivos-b/blob/d5d6d8b3418c7b452f21e1de105a4747c6c480e1/comprimidos.tar.xz?raw=true"
     cd archivos-b
     # Comando para descomprimir el archivo
@@ -188,9 +195,15 @@ else
     echo "No se realizará ninguna descarga."
 fi
 
+
+
 echo -e "${azul}"
 echo "_________________________________________________________"
 echo ""
+
+
+
+
 
 
 # Pregunta al usuario
@@ -218,13 +231,10 @@ else
 fi
 
 
-# Colores
-verde='\e[0;32m'
-azul='\e[0;34m'
-reset='\e[0m'
 
-amarillo='\e[0;33m'
-reset='\e[0m'
+
+
+
 
 echo -e "${amarillo}"
 echo "_________________________________________________________"
