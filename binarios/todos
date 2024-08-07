@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the directory
-DIR="/home/nat/Documents/GitHub/bina/binarios"
+DIR="$HOME/Documents/GitHub/bina/binarios"
 
 # Calculate total lines
 TOTAL_LINES=$(wc -l "$DIR"/* 2>/dev/null | awk 'END{print $1}' | numfmt --grouping)
@@ -24,7 +24,7 @@ echo -e "${COLOR_BLUE}==============================${COLOR_RESET}"
 
 sleep .5
 
-find /home/nat/Documents/GitHub/bina/binarios -type f | fzf --preview 'bat --color=always --style=plain {}'
+find $HOME/Documents/GitHub/bina/binarios -type f | fzf --preview 'bat --color=always --style=plain {}'
 
 
 #Este hace un nano pero el original hace un nvim automaticamente en Arch
