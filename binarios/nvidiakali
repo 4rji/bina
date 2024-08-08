@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo apt dist-upgrade
+
 # Download the NVIDIA driver
 echo "Downloading the NVIDIA driver..."
 wget https://uk.download.nvidia.com/XFree86/Linux-x86_64/555.42.02/NVIDIA-Linux-x86_64-555.42.02.run
