@@ -1,22 +1,13 @@
 #!/bin/bash
 
-echo ""
-echo "ssh-copy-id -i ~/.ssh/id_ed25519.pub -p puerto_ssh user@IP  "
-#echo "ssh-copy-id -o "ProxyJump xps" -o "Port=puerto" -i clave usuario@servidor"
-echo 'ssh-copy-id -o "ProxyJump xps" -o "Port=puerto" -i clave usuario@servidor'
-
-echo ""
-echo -e "\033[1;34m_________________________________________________________\033[0m"
-echo ""
-# Función para mostrar el mensaje de ayuda y preguntar si desea continuar
-show_help_and_confirm() {
+# Verificar si se pasó el argumento -h
+if [ "$1" == "-h" ]; then
     echo ""
     echo -e "\033[1;32mEl comando que este script ejecuta es:\033[0m"
     echo ""
-    echo -e "\033[1;33mssh-copy-id -i ~/.ssh/id_ed25519.pub -p puerto_ssh user@IP  \033[0m"
+    echo -e "\033[1;33mssh-copy-id -i ~/.ssh/id_ed25519_new.pub -p puerto_ssh usuario@IP  \033[0m"
     echo ""
-    echo ""
-echo -e "\033[1;34m_________________________________________________________\033[0m"
+    echo -e "\033[1;34m_________________________________________________________\033[0m"
     echo ""
 
     # Preguntar al usuario si desea continuar
@@ -25,24 +16,33 @@ echo -e "\033[1;34m_________________________________________________________\033
 
     # Convertir la respuesta a minúsculas y evaluar
     case "$response" in
+    c|C) echo "Cancelando..." ; exit 1 ;;
     *) echo "Continuando..." ;;
     esac
-}
-
-# Verificar si se pasó el argumento -h
-if [ "$1" == "-h" ]; then
-    show_help_and_confirm
 fi
 
-# Generar la clave SSH
-ssh-keygen -t ed25519
+# Verificar si se proporcionó el argumento usuario@IP
+if [ -z "$1" ]; then
+    echo "Error: Debes proporcionar el argumento usuario@IP"
+    exit 1
+fi
 
-# Obtener el cliente en formato usuario@IP y el puerto SSH
-echo "Ingresa el cliente en formato 'usuario@IP':"
-read cliente
+# Verificar si se proporcionó el argumento puerto_ssh
+if [ -z "$2" ]; then
+    echo "Error: Debes proporcionar el argumento puerto_ssh"
+    exit 1
+fi
 
-echo "Ingresa el puerto SSH:"
-read puerto_ssh
+# Obtener el cliente en formato usuario@IP del argumento
+cliente="$1"
+
+# Obtener el puerto SSH del segundo argumento
+puerto_ssh="$2"
+
+# Generar la nueva clave SSH
+ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_new
 
 # Copiar la clave SSH al host
-ssh-copy-id -i ~/.ssh/id_ed25519.pub -p "$puerto_ssh" "$cliente"
+ssh-copy-id -i ~/.ssh/id_ed25519_new.pub -p "$puerto_ssh" "$cliente"
+
+echo -e "\033[1;34mClave copiada exitosamente a $cliente en el puerto $puerto_ssh\033[0m"
