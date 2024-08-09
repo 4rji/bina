@@ -84,20 +84,20 @@ fi
 # Descargar y copiar el archivo de configuración de kitty
 config_file="$kitty_dir/kitty.conf"
 if [ ! -f "$config_file" ]; then
-    wget -q -O "$config_file" "https://raw.githubusercontent.com/4rji/4rji/main/kitty/kitty.conf"
+    wget -q -O "$config_file" "https://raw.githubusercontent.com/4rji/dotfiles/main/kitty/kitty.conf"
     echo -e "${green}Archivo de configuración de kitty descargado y copiado:${nocolor} $config_file"
 else
-    wget -q -O "$config_file" "https://raw.githubusercontent.com/4rji/4rji/main/kitty/kitty.conf"
+    wget -q -O "$config_file" "https://raw.githubusercontent.com/4rji/dotfiles/main/kitty/kitty.conf"
     echo -e "${yellow}El archivo de configuración de kitty ha sido reemplazado.${nocolor}"
 fi
 
 # Descargar y copiar el archivo de colores de kitty
 color_file="$kitty_dir/color.ini"
 if [ ! -f "$color_file" ]; then
-    wget -q -O "$color_file" "https://raw.githubusercontent.com/4rji/4rji/main/kitty/color.ini"
+    wget -q -O "$color_file" "https://raw.githubusercontent.com/4rji/dotfiles/main/kitty/color.ini"
     echo -e "${green}Archivo de colores de kitty descargado y copiado:${nocolor} $color_file"
 else
-    wget -q -O "$color_file" "https://raw.githubusercontent.com/4rji/4rji/main/kitty/color.ini"
+    wget -q -O "$color_file" "https://raw.githubusercontent.com/4rji/dotfiles/main/kitty/color.ini"
     echo -e "${yellow}El archivo de colores de kitty ha sido reemplazado.${nocolor}"
 fi
 

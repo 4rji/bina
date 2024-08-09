@@ -10,10 +10,14 @@ rm .tmux.conf
 #wget https://raw.githubusercontent.com/4rji/4rji/main/tmux/.tmux.conf
 
 #new estofado
-wget https://raw.githubusercontent.com/4rji/estofado/main/tmux/.tmux.conf
 
+wget https://raw.githubusercontent.com/4rji/estofado/main/tmux/.tmux.conf
 mv .tmux.conf ~/.tmux.conf
 
+
+#new with dotfiles
+#wget https://raw.githubusercontent.com/4rji/dotfiles/main/tmux.conf
+#mv tmux.conf ~/.tmux.conf
 
 
 tmux source ~/.tmux.conf
