@@ -83,7 +83,12 @@ fi
 echo "El comando a ejecutar es:"
 echo ""
 echo "$scp_command"
-$scp_command
+
 
 echo ""
+
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+
+$scp_command
+
+
