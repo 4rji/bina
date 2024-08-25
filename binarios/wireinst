@@ -66,39 +66,24 @@ done
 
 
 
-
-#!/bin/bash
-
 # Function to handle the setup of the WireGuard connection
 setup_wireguard() {
     echo -e "\033[0;34mCopying the configuration file to /etc/wireguard/\033[0m"
-    # Copy the configuration file to the WireGuard directory
     sudo cp "$config_file" "/etc/wireguard/$file_name"
-    # Adjust configuration file permissions
     sudo chmod 600 "/etc/wireguard/$file_name"
-
     echo -e "\033[0;35mBringing up the WireGuard connection...\033[0m"
-    # Bring up the WireGuard connection
     sudo wg-quick up "$interface_name"
-
     echo -e "\033[0;36mCurrent status of WireGuard:\033[0m"
-    # Display WireGuard status
     sudo wg
-    echo ""
-
     echo "Connecting."
     sleep .5
     echo "Connecting.."
     sleep 1
-    echo ""
-
     echo -e "\033[0;31mYour public IP address is:\033[0m"
-    # Display the public IP address
     curl ifconfig.me
     echo ""
 }
 
-# Check if -c flag is present or a configuration file is provided
 if [ "$1" == "-c" ]; then
     crontab_mode=true
 elif [ -z "$1" ]; then
@@ -112,33 +97,28 @@ else
     setup_wireguard
 fi
 
-# Ask the user about adding to crontab
 echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
-echo "Do you wish to schedule the WireGuard connection to restart every hour? [Y/n] "
+echo "Do you wish to schedule the WireGuard connection to restart every minute? [Y/n] "
 read -r response
 response=${response:-Y}
 
-# Check if the response is 'Y' or 'y'
-if [[ "$response" =~ ^[Yy]$ ]] || [[ -z "$response" ]]; then
-    # Add crontab entry to restart the WireGuard connection every hour
-    (crontab -l 2>/dev/null; echo "0 * * * * sudo systemctl restart wg-quick@$interface_name") | crontab -
-    echo "The WireGuard connection has been scheduled to restart every hour."
-else
-    echo "No changes have been made to the crontab."
+if [[ "$response" == "Y" || "$response" == "y" ]]; then
+    echo -e "\033[0;32mCreating /usr/local/bin/check_wg.sh...\033[0m"
+    echo "#!/bin/bash" | sudo tee /usr/local/bin/check_wg.sh > /dev/null
+    echo "INTERFACE=\"$interface_name\"" | sudo tee -a /usr/local/bin/check_wg.sh > /dev/null
+    echo "if ! wg show \"\$INTERFACE\" > /dev/null 2>&1; then" | sudo tee -a /usr/local/bin/check_wg.sh > /dev/null
+    echo "    sudo wg-quick up \"\$INTERFACE\"" | sudo tee -a /usr/local/bin/check_wg.sh > /dev/null
+    echo "fi" | sudo tee -a /usr/local/bin/check_wg.sh > /dev/null
+    sudo chmod +x /usr/local/bin/check_wg.sh
+    echo -e "\033[0;32mAdding the script to crontab to run every minute...\033[0m"
+    (sudo crontab -l 2>/dev/null; echo "* * * * * /usr/local/bin/check_wg.sh") | sudo crontab -
+    echo -e "\033[0;32mThe WireGuard connection will now be checked and restarted every minute if necessary.\033[0m"
 fi
 
-# Ask the user if they want to enable the connection to start at system startup
-echo "Do you want to enable the WireGuard connection to start automatically on system startup? [Y/n]"
-read -r startup_response
-startup_response=${startup_response:-Y}
 
-if [[ "$startup_response" =~ ^[Yy]$ ]] || [[ -z "$startup_response" ]]; then
-    # Enable the WireGuard service to start at boot
-    sudo systemctl enable wg-quick@"$interface_name"
-    echo "The interface $interface_name has been enabled to start automatically at system startup."
-else
-    echo "No changes have been made regarding system startup."
-fi
+
+
+
 
 echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
 
@@ -147,5 +127,5 @@ echo -e "\033[1;37mADVISORY: This script should be used for authorized penetrati
 echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
 
 echo ""
-crontab -l
+sudo crontab -l
 echo ""
