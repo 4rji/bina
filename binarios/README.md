@@ -176,6 +176,7 @@ findme              Usa el comando find para buscar archivos
 
 
 ###------ssh
+sships              Agrega Ips o subnets a allow or deny hosts
 sshbaner            crea un mensaje de bienvenida de ssh al logearse. diferente al de startwars
 sshsync             Sincroniza el archivo ssh con los nuevos de github. no borra nada
 sshdown             Descarga .ssh/config y crea copia

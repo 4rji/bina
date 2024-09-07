@@ -1,0 +1,88 @@
+#!/bin/bash
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo -e "\033[31mWelcome to the SSH allow/deny IP or subnet script\033[0m"
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Ask the user if they want to allow or deny an IP address or subnet
+echo -e "\033[32mDo you want to allow or deny SSH access?\033[0m"
+echo -e "\033[33m1) Allow\033[0m"
+echo -e "\033[33m2) Deny\033[0m"
+read -p "Enter 1 for allow or 2 for deny: " action
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Ask the user for the IP address or subnet to modify
+echo -e "\033[32mPlease enter the IP address or subnet (e.g., 10.0.4.0/24) you want to allow/deny for SSH access:\033[0m"
+read -p "IP Address or Subnet: " ip
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Check if the input is a valid IP address or CIDR subnet
+if [[ $ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ || $ip =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/[0-9]+$ ]]; then
+    if [[ $action == 1 ]]; then
+        echo -e "\033[33mValid IP address or subnet entered.\033[0m"
+        echo "Adding the IP or subnet to /etc/hosts.allow..."
+        
+        # Add the IP or subnet to /etc/hosts.allow for sshd
+        echo "sshd: $ip" | sudo tee -a /etc/hosts.allow > /dev/null
+
+        echo ""
+        echo "_________________________________________________________"
+        echo ""
+        echo -e "\033[36mIP or subnet $ip has been successfully added to /etc/hosts.allow for SSH access.\033[0m"
+        echo ""
+        echo "_________________________________________________________"
+        echo ""
+        
+        # Display the last 3 lines of /etc/hosts.allow
+        echo -e "\033[32mLast 3 lines of /etc/hosts.allow:\033[0m"
+        sudo tail -3 /etc/hosts.allow
+
+    elif [[ $action == 2 ]]; then
+        echo -e "\033[33mValid IP address or subnet entered.\033[0m"
+        echo "Adding the IP or subnet to /etc/hosts.deny..."
+        
+        # Add the IP or subnet to /etc/hosts.deny for sshd
+        echo "sshd: $ip" | sudo tee -a /etc/hosts.deny > /dev/null
+
+        echo ""
+        echo "_________________________________________________________"
+        echo ""
+        echo -e "\033[36mIP or subnet $ip has been successfully added to /etc/hosts.deny to block SSH access.\033[0m"
+        echo ""
+        echo "_________________________________________________________"
+        echo ""
+        
+        # Display the last 3 lines of /etc/hosts.deny
+        echo -e "\033[32mLast 3 lines of /etc/hosts.deny:\033[0m"
+        sudo tail -3 /etc/hosts.deny
+        echo ""
+    	echo "_________________________________________________________"
+    	echo ""
+
+    else
+        echo -e "\033[31mInvalid option selected. Please run the script again and choose 1 or 2.\033[0m"
+        echo ""
+        echo "_________________________________________________________"
+        echo ""
+    fi
+else
+    echo -e "\033[31mInvalid IP address or subnet. Please try again with a valid format (e.g., 10.0.4.0/24).\033[0m"
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+fi
+
+echo ""
+echo ""
+# Final advisory
+echo -e "\033[35mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\033[0m"
