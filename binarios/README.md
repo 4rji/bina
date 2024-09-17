@@ -177,6 +177,7 @@ findme              Usa el comando find para buscar archivos
 
 
 ###------ssh
+pssh                Hace un ping a un servidor y luego se conecta
 sships              Agrega Ips o subnets a allow or deny hosts
 sshbaner            crea un mensaje de bienvenida de ssh al logearse. diferente al de startwars
 sshsync             Sincroniza el archivo ssh con los nuevos de github. no borra nada

@@ -1,0 +1,48 @@
+#!/bin/bash
+
+echo -e ""
+echo ""
+
+# Check if the SSH host is provided
+if [ -z "$1" ]; then
+    echo -e " \033[31mUsage: $0 ssh_host [ssh_options]\033[0m"
+    echo ""
+    echo -e "_________________________________________________________"
+    echo ""
+    exit 1
+fi
+
+# Get the IP address from the SSH config (if it's defined in ~/.ssh/config)
+ip=$(ssh -G "$1" | awk '/^hostname / { print $2 }')
+
+# If no IP is found, try resolving it via dig or nslookup
+if [ -z "$ip" ]; then
+    ip=$(dig +short "$1" | tail -n1)
+    
+    if [ -z "$ip" ]; then
+        ip=$(nslookup "$1" | awk '/^Address: / { print $2 }' | tail -n1)
+    fi
+fi
+
+# Check if we successfully got an IP
+if [ -z "$ip" ]; then
+    echo -e " \033[31mFailed to resolve IP for $1\033[0m"
+    echo ""
+    echo -e "_________________________________________________________"
+    echo ""
+    exit 1
+fi
+
+# Ping the resolved IP
+echo -e " \033[34mPinging $ip...\033[0m"
+if ping -c 1 "$ip" > /dev/null 2>&1; then
+    echo -e " \033[32monline\033[0m"  # Green for "online"
+    echo ""
+    ssh "$@"
+else
+    echo -e " \033[31moffline\033[0m"  # Red for "offline"
+    echo ""
+    echo -e "_________________________________________________________"
+    echo ""
+    exit 1
+fi
