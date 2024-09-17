@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Obtener la ruta actual con pwd
+current_dir=$(pwd)
+
+# Copiar la ruta al portapapeles usando xclip
+echo -n "$current_dir" | xclip -selection clipboard
+
+# Mensaje de confirmación
+echo "La dirección actual ha sido copiada al portapapeles."
