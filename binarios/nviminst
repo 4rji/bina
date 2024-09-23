@@ -1,8 +1,15 @@
 #!/bin/bash
 
 # Actualizar repositorios e instalar dependencias
-sudo apt update
-sudo apt install -y neovim git curl
+#esto no sirvio, necesito actualizar a la version nueva
+#sudo apt update
+#sudo apt install -y neovim git curl
+
+git clone https://github.com/neovim/neovim
+cd neovim
+make CMAKE_BUILD_TYPE=Release
+sudo make install
+
 
 # Clonar el repositorio de NvChad
 git clone https://github.com/NvChad/starter ~/.config/nvim
@@ -10,3 +17,7 @@ git clone https://github.com/NvChad/starter ~/.config/nvim
 # Iniciar nvim
 nvim
 
+
+
+#tal vez dependencias que tal vez necesite
+#sudo apt install ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen
