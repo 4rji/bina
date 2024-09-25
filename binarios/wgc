@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# Check if interface name is provided
+if [ -z "$1" ]; then
+  echo "Usage: $0 <wireguard_interface>"
+  exit 1
+fi
+
+INTERFACE=$1
+
+# Function to display menu
+show_menu() {
+  echo ""
+  echo -e "\033[36m_________________________________________________________\033[0m"
+  echo ""
+  echo -e "\033[34mSelect an option:\033[0m"
+  echo -e "\033[32mc) Connect\033[0m"
+  echo -e "\033[33md) Disconnect\033[0m"
+  echo -e "\033[35mr) Reconnect\033[0m"
+  echo -e "\033[31ms) Show connection status\033[0m"
+  echo -e "\033[36mq) Quit\033[0m"
+  echo ""
+  echo -e "\033[36m_________________________________________________________\033[0m"
+  echo ""
+}
+
+# Main loop
+while true; do
+  show_menu
+  echo -e "\033[34mPress the corresponding key to choose an option [c/d/r/s/q]: \033[0m"
+  
+  # Read a single character without requiring Enter
+  read -n1 choice
+  echo ""
+
+  case $choice in
+    c)
+      echo -e "\033[32m\nConnecting to WireGuard interface: $INTERFACE\033[0m"
+      sudo wg-quick up $INTERFACE
+      ;;
+    d)
+      echo -e "\033[33m\nDisconnecting from WireGuard interface: $INTERFACE\033[0m"
+      sudo wg-quick down $INTERFACE
+      ;;
+    r)
+      echo -e "\033[35m\nReconnecting WireGuard interface: $INTERFACE\033[0m"
+      sudo wg-quick down $INTERFACE && sudo wg-quick up $INTERFACE
+      ;;
+    s)
+      echo -e "\033[31m\nShowing status of WireGuard interface: $INTERFACE\033[0m"
+      sudo wg show $INTERFACE
+      ;;
+    q)
+      echo -e "\033[36m\nExiting...\033[0m"
+      exit 0
+      ;;
+    *)
+      echo -e "\033[31m\nInvalid choice. Please select a valid option [c/d/r/s/q].\033[0m"
+      ;;
+  esac
+done
