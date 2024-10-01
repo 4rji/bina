@@ -1,8 +1,12 @@
 #!/bin/bash
 
 
-cp /usr/bin/tk .
-secreto tk
+
+# copia el token si esta actualizado, pero le faltan caracteres, entonces lo desencripta y lo copia en papelera con clipa
+
+
+cp /opt/4rji/bin/tk.enc .
+secreto tk.enc
 
 clipa tk
 cat tk
