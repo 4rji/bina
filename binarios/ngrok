@@ -1,31 +1,30 @@
 #!/bin/bash
 
-
-
-
-echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo ""
+echo -e "\033[1;37m_________________________________________________________\033[0m"
+echo ""
 
 # Ask for the ngrok auth token
-echo "This use docker, also you can get the token from ngroktk script"
-echo "runs in port 80, also can use apt from the website, but need root user"
-echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo -e "\033[1;32mThis uses Docker, also you can get the token from the ngroktk script\033[0m"
+echo -e "\033[1;34mruns on port 80, also can use apt from the website, but requires root user\033[0m"
+echo ""
+echo -e "\033[1;33mTo connect: ssh user@422.tcp.ngrok.io -p14765\033[0m"
+echo ""
 
-echo "Do you want to get the token? (y/n)"
+echo ""
+echo -e "\033[1;37m_________________________________________________________\033[0m"
+echo ""
+
+echo -e "\033[1;35mDo you want to get the token? (y/n)\033[0m"
 read answer
 
 if [ "$answer" = "y" ]; then
-    ngroktk
+    ngroktkt
 fi
 
-
-
-echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
-# Function to display colored messages
-print_message() {
-    local color=$1
-    local message=$2
-    echo -e "\033[${color}${message}\033[0m"
-}
+echo ""
+echo -e "\033[1;37m_________________________________________________________\033[0m"
+echo ""
 
 # Function to display spaced lines
 print_spacer() {
@@ -35,21 +34,16 @@ print_spacer() {
 }
 
 # Ask for the ngrok auth token
-print_message "0;35m" "Please enter your ngrok auth token:"
+echo -e "\033[1;36mPlease enter your ngrok auth token:\033[0m"
 read -r token
 
 # Ask to download ngrok
-print_message "0;34m" "Do you want to download ngrok? [y/n]"
+echo -e "\033[1;34mDo you want to download ngrok? [y/n]\033[0m"
 read -r download_choice
-
-
-
-
 
 if [ "$download_choice" == "y" ]; then
     print_spacer
-    print_message "0;32m" "Downloading ngrok..."
-    
+    echo -e "\033[1;32mDownloading ngrok...\033[0m"
 
     # Lista de paquetes a instalar
     paquetes=( "docker.io")
@@ -116,29 +110,33 @@ if [ "$download_choice" == "y" ]; then
 fi
 
 # Ask to use HTTP on port 80
-print_message "0;33m" "Do you want to use HTTP on port 80? [y/n]"
+echo -e "\033[1;33mDo you want to use HTTP on port 80? [y/n]\033[0m"
 read -r http_choice
 
 if [ "$http_choice" == "y" ]; then
     print_spacer
-    print_message "0;32m" "Running ngrok for HTTP on port 80..."
+    echo -e "\033[1;32mRunning ngrok for HTTP on port 80...\033[0m"
     sudo docker run --net=host -it -e NGROK_AUTHTOKEN=$token ngrok/ngrok:latest http 80
 fi
 
-echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
-echo "To access SSH, use:"
-echo "ssh asd@0.tcp.ngrok.io -p 17768 -D 1080"
-echo "Copy this before continue..."
+echo ""
+echo -e "\033[1;34m_________________________________________________________\033[0m"
+echo ""
+echo -e "\033[1;36mTo access SSH, use:\033[0m"
+echo -e "\033[1;32mssh asd@0.tcp.ngrok.io -p 17768 -D 1080\033[0m"
+echo -e "\033[1;35mCopy this before continuing...\033[0m"
 echo ""
 
 # Ask to use SSH on port 22
-print_message "0;33m" "Do you want to run SSH on port 22? [y/n]"
+echo -e "\033[1;33mDo you want to run SSH on port 22? [y/n]\033[0m"
 read -r ssh_choice
 
 if [ "$ssh_choice" == "y" ]; then
     print_spacer
-    print_message "0;32m" "Running ngrok for SSH on port 22..."
+    echo -e "\033[1;32mRunning ngrok for SSH on port 22...\033[0m"
     sudo docker run --net=host -it -e NGROK_AUTHTOKEN=$token ngrok/ngrok:latest tcp 22
 fi
 
 print_spacer
+
+echo -e "\033[1;31mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\033[0m"
