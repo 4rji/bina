@@ -6,8 +6,14 @@
 # Color codes
 green="\e[32m"
 yellow="\e[33m"
+blue="\e[34m"
 reset="\e[0m"
 
+# Verificar si el script se ejecuta con el argumento -s
+show_nmcli_info=false
+if [[ $1 == "-s" ]]; then
+    show_nmcli_info=true
+fi
 
 # Agregar un renglón de separación
 echo -e "\e[33m" # Amarillo
@@ -16,10 +22,7 @@ ifconfig | grep inet | grep -v 127.0.0.1 | sed 's/^/    /'
 echo -e "\e[31m" # Rojo
 echo ""
 
-
-
-
-# Funci  n para obtener la interfaz de red
+# Función para obtener la interfaz de red
 get_network_interface() {
     # Verificar si wlan0 existe
     if ifconfig wlan0 &>/dev/null; then
@@ -34,20 +37,18 @@ get_network_interface() {
 # Obtener la interfaz de red
 network_interface=$(get_network_interface)
 
-# Mostrar la direcci  n IP local
-#echo "${yellow}Direcci  n IP local:${reset}"
+# Mostrar la dirección IP local
 ip -4 addr show | awk '/inet/ && !/127.0.0.1/ {split($2, a, "/"); printf "\t\t\t\t%s: %s\n", $NF, a[1]}'
 echo ""
-#echo ""
 echo -e "\e[34m                  ___________________________________________________\e[0m"
-# Agregamos el mensaje con la IP local
-#echo -e "\n\t\t\t\tTu IP es: $(/usr/sbin/ifconfig "$network_interface" | grep "inet " | awk '{print $2}')\n"
-#echo -e "\n\t\t\t\tTu IP es: $(/usr/sbin/ifconfig "$network_interface" | grep "inet " | awk '{print "("$1")", $2}')\n"
 echo -e "\n\t\t\t\tTu IP de $network_interface es: $(ifconfig "$network_interface" | grep "inet " | awk '{print $2}')\n"
 
+# Si se pasó el argumento -s, ejecutar nmcli device show
+if $show_nmcli_info; then
+    echo -e "\nEjecutando nmcli device show:\n"
+    nmcli device show
+fi
 
-
-#para mac ->
-#echo ""
-#ifconfig | awk '/^[a-z]/ {iface=$1} /inet / && !/inet6/ {print iface, $2}'
-#echo ""'''
+# Mostrar el mensaje informativo en verde y agregar línea azul debajo
+echo -e "${green}For more info, execute -s${reset}"
+echo -e "${blue}___________________________________________________${reset}"
