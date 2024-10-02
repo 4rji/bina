@@ -50,5 +50,6 @@ if $show_nmcli_info; then
 fi
 
 # Mostrar el mensaje informativo en verde y agregar línea azul debajo
-echo -e "${green}For more info, execute -s${reset}"
+echo -e "${green}For more info, execute -s (nmcli device show)${reset}"
+echo -e "${green}To get a dhcp address sudo dhclient eth1${reset}"
 echo -e "${blue}___________________________________________________${reset}"
