@@ -1,0 +1,212 @@
+from flask import Flask, render_template_string, request, jsonify
+import subprocess
+import os
+import logging
+
+app = Flask(__name__)
+
+# Configure logging to help with debugging
+logging.basicConfig(level=logging.INFO)
+
+# HTML template with enhanced UI and duplicated breakmyssh buttons
+html = '''
+<!doctype html>
+<html>
+<head>
+    <title>Labs</title>
+    <style>
+        body {
+            background-color: #4169E1; /* Royal Blue */
+            font-family: Arial, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+        /* Navigation Bar */
+        .navbar {
+            overflow: hidden;
+            background-color: #333;
+            padding: 14px 20px;
+        }
+        .navbar h1 {
+            float: left;
+            color: white;
+            margin: 0;
+            font-size: 24px;
+        }
+        /* Main Container with Flex Layout */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        /* Button Row */
+        .button-row {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            width: 80%;
+            max-width: 800px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        /* Buttons */
+        .command-button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-right: 20px;
+            cursor: pointer;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+            width: 250px;
+        }
+        .command-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+        }
+        /* Description */
+        .description {
+            flex: 1;
+            font-size: 16px;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+    </style>
+    <script>
+        async function executeCommand(event, commandName) {
+            event.preventDefault(); // Prevent the default form submission
+            const response = await fetch("/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ command: commandName })
+            });
+            const result = await response.json();
+            if (response.ok) {
+                alert(result.message);
+            } else {
+                alert("Error: " + result.error);
+            }
+        }
+    </script>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <h1>Labs</h1>
+    </div>
+    
+    <!-- Main Container -->
+    <div class="main-container">
+        <!-- Button Rows -->
+        <div class="button-row">
+            <form onsubmit="executeCommand(event, 'deploy')">
+                <button type="submit" class="command-button">breakmyssh.tar</button>
+            </form>
+            <div class="description">
+                Deploys the breakmyssh.tar Docker machine with SSH access.
+            </div>
+        </div>
+        <div class="button-row">
+            <form onsubmit="executeCommand(event, 'deploy')">
+                <button type="submit" class="command-button">breakmyssh.tar</button>
+            </form>
+            <div class="description">
+                Deploys the breakmyssh.tar Docker machine with SSH access.
+            </div>
+        </div>
+        <div class="button-row">
+            <form onsubmit="executeCommand(event, 'deploy')">
+                <button type="submit" class="command-button">breakmyssh.tar</button>
+            </form>
+            <div class="description">
+                Deploys the breakmyssh.tar Docker machine with SSH access.
+            </div>
+        </div>
+        <div class="button-row">
+            <form onsubmit="executeCommand(event, 'deploy')">
+                <button type="submit" class="command-button">breakmyssh.tar</button>
+            </form>
+            <div class="description">
+                Deploys the breakmyssh.tar Docker machine with SSH access.
+            </div>
+        </div>
+        <div class="button-row">
+            <form onsubmit="executeCommand(event, 'reset_all_machines')">
+                <button type="submit" class="command-button">Reset All Machines</button>
+            </form>
+            <div class="description">
+                Removes all running Docker containers, resetting the environment.
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+'''
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        data = request.get_json()
+        cmd = data.get('command')
+        logging.info(f"Received command: {cmd}")
+        if cmd == 'deploy':
+            try:
+                # Set the DISPLAY environment variable for graphical applications
+                env = os.environ.copy()
+                env['DISPLAY'] = ':0'
+
+                # Full path to the deploy command
+                deploy_command = '/opt/4rji/bin/deploy /home/ass/labs/breakmyssh.tar'
+                # Ensure that the entire command is interpreted by the new bash shell
+                terminal_command = f'sudo {deploy_command}; exec bash'
+
+                # Execute the command in a new kitty terminal window
+                subprocess.Popen(['kitty', '-e', 'bash', '-c', terminal_command], env=env)
+
+                logging.info("Deploy command executed successfully.")
+                return jsonify(message="Command has been executed in a new terminal window."), 200
+            except Exception as e:
+                logging.error(f"Error executing deploy command: {e}")
+                return jsonify(error=str(e)), 500
+        elif cmd == 'reset_all_machines':
+            try:
+                # Set the DISPLAY environment variable for graphical applications
+                env = os.environ.copy()
+                env['DISPLAY'] = ':0'
+
+                # Command to remove all Docker containers using absolute path
+                docker_command = '/usr/bin/docker rm -f $(/usr/bin/docker ps -aq)'
+                # Ensure that the entire command is interpreted by the new bash shell
+                terminal_command = f'sudo bash -c "{docker_command}"; exec bash'
+
+                # Execute the command in a new kitty terminal window
+                subprocess.Popen(['kitty', '-e', 'bash', '-c', terminal_command], env=env)
+
+                logging.info("Reset all machines command executed successfully.")
+                return jsonify(message="All Docker containers have been removed."), 200
+            except Exception as e:
+                logging.error(f"Error executing reset_all_machines command: {e}")
+                return jsonify(error=str(e)), 500
+        else:
+            logging.warning(f"Unrecognized command: {cmd}")
+            return jsonify(error="Unrecognized command."), 400
+    return render_template_string(html)
+
+if __name__ == '__main__':
+    # Run the application on port 80
+    app.run(host='0.0.0.0', port=80)
