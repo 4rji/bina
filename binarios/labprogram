@@ -196,14 +196,12 @@ def index():
 
                 # Construir el comando de despliegue dinámicamente
                 deploy_command = f'/opt/4rji/bin/deploy /home/ass/labs/{filename}'
-                # Ensure that the entire command is interpreted by the new bash shell
-                terminal_command = f'sudo {deploy_command}; exec bash'
 
-                # Execute the command in a new kitty terminal window
-                subprocess.Popen(['kitty', '-e', 'bash', '-c', terminal_command], env=env)
+                # Ejecutar el comando directamente sin kitty
+                subprocess.Popen(deploy_command, shell=True, env=env)
 
                 logging.info(f"Deploy command for {filename} executed successfully.")
-                return jsonify(message=f"Command for {filename} has been executed in a new terminal window."), 200
+                return jsonify(message=f"Command for {filename} has been executed."), 200
             except Exception as e:
                 logging.error(f"Error executing deploy command for {filename}: {e}")
                 return jsonify(error=str(e)), 500
@@ -215,11 +213,9 @@ def index():
 
                 # Command to remove all Docker containers using absolute path
                 docker_command = '/usr/bin/docker rm -f $(/usr/bin/docker ps -aq)'
-                # Ensure that the entire command is interpreted by the new bash shell
-                terminal_command = f'sudo bash -c "{docker_command}"; exec bash'
 
-                # Execute the command in a new kitty terminal window
-                subprocess.Popen(['kitty', '-e', 'bash', '-c', terminal_command], env=env)
+                # Ejecutar el comando directamente sin kitty
+                subprocess.Popen(docker_command, shell=True, env=env)
 
                 logging.info("Reset all machines command executed successfully.")
                 return jsonify(message="All Docker containers have been removed."), 200
