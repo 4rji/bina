@@ -86,14 +86,18 @@ html = '''
         }
     </style>
     <script>
-        async function executeCommand(event, commandName) {
+        async function executeCommand(event, commandName, filename = null) {
             event.preventDefault(); // Prevent the default form submission
+            let payload = { command: commandName };
+            if (filename !== null) {
+                payload.filename = filename;
+            }
             const response = await fetch("/", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({ command: commandName })
+                body: JSON.stringify(payload)
             });
             const result = await response.json();
             if (response.ok) {
@@ -127,7 +131,7 @@ html = '''
     <div class="main-container">
         <!-- Button Rows -->
         <div class="button-row">
-            <form onsubmit="executeCommand(event, 'deploy')">
+            <form onsubmit="executeCommand(event, 'deploy', 'breakmyssh.tar')">
                 <button type="submit" class="command-button">breakmyssh.tar</button>
             </form>
             <div class="description">
@@ -135,15 +139,15 @@ html = '''
             </div>
         </div>
         <div class="button-row">
-            <form onsubmit="executeCommand(event, 'deploy')">
+            <form onsubmit="executeCommand(event, 'deploy', 'anonymouspingu.tar')">
                 <button type="submit" class="command-button">anonymouspingu.tar</button>
             </form>
             <div class="description">
-                Deploys the anonymouspingu Docker machine with SSH access.
+                Deploys the anonymouspingu.tar Docker machine with SSH access.
             </div>
         </div>
         <div class="button-row">
-            <form onsubmit="executeCommand(event, 'deploy')">
+            <form onsubmit="executeCommand(event, 'deploy', 'amor.tar')">
                 <button type="submit" class="command-button">amor.tar</button>
             </form>
             <div class="description">
@@ -151,11 +155,11 @@ html = '''
             </div>
         </div>
         <div class="button-row">
-            <form onsubmit="executeCommand(event, 'deploy')">
-                <button type="submit" class="command-button">breakmyssh.tar</button>
+            <form onsubmit="executeCommand(event, 'deploy', 'bashpariencias.tar')">
+                <button type="submit" class="command-button">anothermachine.tar</button>
             </form>
             <div class="description">
-                Deploys the breakmyssh.tar Docker machine with SSH access.
+                Deploys the anothermachine.tar Docker machine with SSH access.
             </div>
         </div>
         <div class="button-row">
@@ -176,25 +180,32 @@ def index():
     if request.method == 'POST':
         data = request.get_json()
         cmd = data.get('command')
-        logging.info(f"Received command: {cmd}")
-        if cmd == 'deploy':
+        filename = data.get('filename')  # Nuevo campo para el nombre del archivo
+        logging.info(f"Received command: {cmd}, filename: {filename}")
+        if cmd == 'deploy' and filename:
             try:
+                # Validar el nombre del archivo para evitar inyección de comandos
+                allowed_files = ['breakmyssh.tar', 'anonymouspingu.tar', 'amor.tar', 'bashpariencias.tar']
+                if filename not in allowed_files:
+                    logging.warning(f"Attempted to deploy unauthorized file: {filename}")
+                    return jsonify(error="Unauthorized file."), 403
+
                 # Set the DISPLAY environment variable for graphical applications
                 env = os.environ.copy()
                 env['DISPLAY'] = ':0'
 
-                # Full path to the deploy command
-                deploy_command = '/opt/4rji/bin/deploy /home/ass/labs/breakmyssh.tar'
+                # Construir el comando de despliegue dinámicamente
+                deploy_command = f'/opt/4rji/bin/deploy /home/ass/labs/{filename}'
                 # Ensure that the entire command is interpreted by the new bash shell
                 terminal_command = f'sudo {deploy_command}; exec bash'
 
                 # Execute the command in a new kitty terminal window
                 subprocess.Popen(['kitty', '-e', 'bash', '-c', terminal_command], env=env)
 
-                logging.info("Deploy command executed successfully.")
-                return jsonify(message="Command has been executed in a new terminal window."), 200
+                logging.info(f"Deploy command for {filename} executed successfully.")
+                return jsonify(message=f"Command for {filename} has been executed in a new terminal window."), 200
             except Exception as e:
-                logging.error(f"Error executing deploy command: {e}")
+                logging.error(f"Error executing deploy command for {filename}: {e}")
                 return jsonify(error=str(e)), 500
         elif cmd == 'reset_all_machines':
             try:
