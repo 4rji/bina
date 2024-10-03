@@ -8,7 +8,7 @@ app = Flask(__name__)
 # Configure logging to help with debugging
 logging.basicConfig(level=logging.INFO)
 
-# HTML template with enhanced UI and duplicated breakmyssh buttons
+# HTML template with enhanced UI and auto-closing alert for 5 seconds
 html = '''
 <!doctype html>
 <html>
@@ -97,7 +97,20 @@ html = '''
             });
             const result = await response.json();
             if (response.ok) {
-                alert(result.message);
+                const alertBox = document.createElement('div');
+                alertBox.textContent = result.message;
+                alertBox.style.position = 'fixed';
+                alertBox.style.bottom = '20px';
+                alertBox.style.left = '50%';
+                alertBox.style.transform = 'translateX(-50%)';
+                alertBox.style.backgroundColor = '#4CAF50';
+                alertBox.style.color = 'white';
+                alertBox.style.padding = '15px';
+                alertBox.style.borderRadius = '5px';
+                document.body.appendChild(alertBox);
+                setTimeout(() => {
+                    alertBox.remove();
+                }, 5000); // Auto-close after 5 seconds
             } else {
                 alert("Error: " + result.error);
             }
