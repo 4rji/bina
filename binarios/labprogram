@@ -13,7 +13,7 @@ html = '''
 <!doctype html>
 <html>
 <head>
-    <title>Labs</title>
+    <title>Hacking Labs by Havi</title>
     <style>
         body {
             background-color: #4169E1; /* Royal Blue */
@@ -120,7 +120,7 @@ html = '''
 <body>
     <!-- Navigation Bar -->
     <div class="navbar">
-        <h1>Labs</h1>
+        <h1>Hacking Labs by Havi</h1>
     </div>
     
     <!-- Main Container -->
@@ -136,18 +136,18 @@ html = '''
         </div>
         <div class="button-row">
             <form onsubmit="executeCommand(event, 'deploy')">
-                <button type="submit" class="command-button">breakmyssh.tar</button>
+                <button type="submit" class="command-button">anonymouspingu.tar</button>
             </form>
             <div class="description">
-                Deploys the breakmyssh.tar Docker machine with SSH access.
+                Deploys the anonymouspingu Docker machine with SSH access.
             </div>
         </div>
         <div class="button-row">
             <form onsubmit="executeCommand(event, 'deploy')">
-                <button type="submit" class="command-button">breakmyssh.tar</button>
+                <button type="submit" class="command-button">amor.tar</button>
             </form>
             <div class="description">
-                Deploys the breakmyssh.tar Docker machine with SSH access.
+                Deploys the amor.tar Docker machine with SSH access.
             </div>
         </div>
         <div class="button-row">
