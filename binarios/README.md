@@ -30,6 +30,7 @@ barrierinst         Instala barrier debian flatpat, crea alias barrier
 coll                Muestra comandos con colores con batcat y un tmp archivo
 wgetfold            descarga con wget folder completo 
 remoto              Instala xrdp, inicia el servicio y copia la configuracion para plasma #vnc
+remoto2             Remueve xrpd e instala lxde que usa Lightweight X11 para equipos lentos
 vnckali             (USAR xrdp) x11vnc, si no funciona install Xvfb and posiblemente install full kde. 
 rutainter           Definir la via ruta de internet cuando hay 2 interfaces internet
 veloint             iperf3 para medir la velocidad de ethernet o conexion, instrucciones e instala
