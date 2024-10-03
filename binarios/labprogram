@@ -8,7 +8,37 @@ app = Flask(__name__)
 # Configure logging to help with debugging
 logging.basicConfig(level=logging.INFO)
 
-# HTML template with enhanced UI and auto-closing alert for 5 seconds
+# Lista de archivos con sus descripciones
+files = [
+    {"icon": "", "filename": "aguademayo.tar", "description": "Deploys the aguademayo.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "amor.tar", "description": "Deploys the amor.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "anonymouspingu.tar", "description": "Deploys the anonymouspingu.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "asucar.tar", "description": "Deploys the asucar.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "bashpariencias.tar", "description": "Deploys the bashpariencias.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "borazuwarahctf.tar", "description": "Deploys the borazuwarahctf.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "breakmyssh.tar", "description": "Deploys the breakmyssh.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "buscalove.tar", "description": "Deploys the buscalove.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "cachopo.tar", "description": "Deploys the cachopo.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "chocolatefire.tar", "description": "Deploys the chocolatefire.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "chocolatelovers.tar", "description": "Deploys the chocolatelovers.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "collections.tar", "description": "Deploys the collections.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "consolelog.tar", "description": "Deploys the consolelog.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "dark1.tar", "description": "Deploys the dark1.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "dark2.tar", "description": "Deploys the dark2.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "database.tar", "description": "Deploys the database.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "debugme.tar", "description": "Deploys the debugme.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "dockerlabs.tar", "description": "Deploys the dockerlabs.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "dockhacklab.tar", "description": "Deploys the dockhacklab.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "domain.tar", "description": "Deploys the domain.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "inclusion.tar", "description": "Deploys the inclusion.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "injection.tar", "description": "Deploys the injection.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "move.tar", "description": "Deploys the move.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "trust.tar", "description": "Deploys the trust.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "upload.tar", "description": "Deploys the upload.tar Docker machine with SSH access."},
+    {"icon": "", "filename": "whereismywebshell.tar", "description": "Deploys the whereismywebshell.tar Docker machine with SSH access."}
+]
+
+# HTML template con UI mejorada y alertas que se cierran automáticamente después de 5 segundos
 html = '''
 <!doctype html>
 <html>
@@ -114,7 +144,7 @@ html = '''
                 document.body.appendChild(alertBox);
                 setTimeout(() => {
                     alertBox.remove();
-                }, 5000); // Auto-close after 5 seconds
+                }, 5000); // Auto-close after 5 segundos
             } else {
                 alert("Error: " + result.error);
             }
@@ -129,39 +159,19 @@ html = '''
     
     <!-- Main Container -->
     <div class="main-container">
-        <!-- Button Rows -->
+        <!-- Botones para desplegar archivos -->
+        {% for file in files %}
         <div class="button-row">
-            <form onsubmit="executeCommand(event, 'deploy', 'breakmyssh.tar')">
-                <button type="submit" class="command-button">breakmyssh.tar</button>
+            <form onsubmit="executeCommand(event, 'deploy', '{{ file.filename }}')">
+                <button type="submit" class="command-button">{{ file.icon }} {{ file.filename }}</button>
             </form>
             <div class="description">
-                Deploys the breakmyssh.tar Docker machine with SSH access.
+                {{ file.description }}
             </div>
         </div>
-        <div class="button-row">
-            <form onsubmit="executeCommand(event, 'deploy', 'anonymouspingu.tar')">
-                <button type="submit" class="command-button">anonymouspingu.tar</button>
-            </form>
-            <div class="description">
-                Deploys the anonymouspingu.tar Docker machine with SSH access.
-            </div>
-        </div>
-        <div class="button-row">
-            <form onsubmit="executeCommand(event, 'deploy', 'amor.tar')">
-                <button type="submit" class="command-button">amor.tar</button>
-            </form>
-            <div class="description">
-                Deploys the amor.tar Docker machine with SSH access.
-            </div>
-        </div>
-        <div class="button-row">
-            <form onsubmit="executeCommand(event, 'deploy', 'bashpariencias.tar')">
-                <button type="submit" class="command-button">anothermachine.tar</button>
-            </form>
-            <div class="description">
-                Deploys the anothermachine.tar Docker machine with SSH access.
-            </div>
-        </div>
+        {% endfor %}
+        
+        <!-- Botón para resetear todas las máquinas -->
         <div class="button-row">
             <form onsubmit="executeCommand(event, 'reset_all_machines')">
                 <button type="submit" class="command-button">Reset All Machines</button>
@@ -185,7 +195,7 @@ def index():
         if cmd == 'deploy' and filename:
             try:
                 # Validar el nombre del archivo para evitar inyección de comandos
-                allowed_files = ['breakmyssh.tar', 'anonymouspingu.tar', 'amor.tar', 'bashpariencias.tar']
+                allowed_files = [file['filename'] for file in files]
                 if filename not in allowed_files:
                     logging.warning(f"Attempted to deploy unauthorized file: {filename}")
                     return jsonify(error="Unauthorized file."), 403
@@ -195,7 +205,7 @@ def index():
                 env['DISPLAY'] = ':0'
 
                 # Construir el comando de despliegue dinámicamente
-                deploy_command = f'/opt/4rji/bin/deploy /home/ass/labs/{filename}'
+                deploy_command = f'/opt/4rji/bin/deploy /opt/4rji/labs/{filename}'
 
                 # Ejecutar el comando directamente sin kitty
                 subprocess.Popen(deploy_command, shell=True, env=env)
@@ -225,7 +235,8 @@ def index():
         else:
             logging.warning(f"Unrecognized command: {cmd}")
             return jsonify(error="Unrecognized command."), 400
-    return render_template_string(html)
+    # Renderizar el HTML con la lista de archivos
+    return render_template_string(html, files=files)
 
 if __name__ == '__main__':
     # Run the application on port 80
