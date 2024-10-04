@@ -1,19 +1,20 @@
 #!/bin/bash
 
-
-# Obtener el nombre del usuario actual
+# Get the current user
 USER=$(whoami)
 
-# Verificar si el usuario está en el grupo docker
+# Check if the user is in the docker group
 if groups $USER | grep &>/dev/null '\bdocker\b'; then
-    echo "El usuario $USER ya está en el grupo docker."
+    echo "User $USER is already in the docker group."
 else
-    echo "El usuario $USER no está en el grupo docker. Agregando..."
+    echo "User $USER is not in the docker group. Adding..."
     sudo usermod -aG docker $USER
 
-    # Pedir al usuario que cierre sesión para aplicar los cambios
-    echo "Se ha agregado al grupo docker. Por favor, cierra la sesión y vuelve a iniciarla."
+    # Prompt to restart the session
+    echo "You have been added to the docker group. Please restart your session for changes to take effect. It won't work until you reset all machines."
 fi
+
+
 
 
 
