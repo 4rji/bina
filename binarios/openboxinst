@@ -1,0 +1,33 @@
+#!/bin/bash
+
+echo ""
+echo "m_________________________________________________________m"
+echo ""
+
+echo "msudo apt install chromiumm"
+sudo apt install chromium -y
+
+echo ""
+echo "m_________________________________________________________m"
+echo ""
+
+echo "msudo apt install xorgm"
+sudo apt install xorg -y
+
+echo ""
+echo "m_________________________________________________________m"
+echo ""
+
+echo "msudo apt install openboxm"
+sudo apt install openbox -y
+
+echo ""
+echo "m_________________________________________________________m"
+echo ""
+
+echo "mstartxm"
+startx
+
+echo ""
+echo "m_________________________________________________________m"
+echo ""

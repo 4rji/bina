@@ -22,6 +22,7 @@ nixbus              Para buscar programas en linea de comando y tambien corregir
 nixclean            Arregla la shell de nixos para los scripts 4rji
 
 ###------utilidades 
+openboxinst         Instala openbox que es un escritorio ligero, tambien instala chromium
 pwdc                Copia el directorio actual con pwd y xclip
 yazi                Como ranger para ver fotos, esta en comprimidos.
 fire                Abre firefox con distrobox, -g para google, -d duckducl. sin - para los dos
