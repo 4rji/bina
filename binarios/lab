@@ -1,5 +1,24 @@
 #!/bin/bash
 
+
+#!/bin/bash
+
+# Obtener el nombre del usuario actual
+USER=$(whoami)
+
+# Verificar si el usuario está en el grupo docker
+if groups $USER | grep &>/dev/null '\bdocker\b'; then
+    echo "El usuario $USER ya está en el grupo docker."
+else
+    echo "El usuario $USER no está en el grupo docker. Agregando..."
+    sudo usermod -aG docker $USER
+
+    # Pedir al usuario que cierre sesión para aplicar los cambios
+    echo "Se ha agregado al grupo docker. Por favor, cierra la sesión y vuelve a iniciarla."
+fi
+
+
+
 #to avoid environment env instalation
 pip3 install Flask --break-system-packages &>/dev/null
 
