@@ -1,0 +1,79 @@
+#!/bin/bash
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Mostrar el DNS actual en letras azules
+echo -e "\033[31mCurrent DNS:\033[0m"
+echo -e "\033[34m$(cat /etc/resolv.conf)\033[0m"
+echo "_________________________________________________________"
+echo ""
+
+# Función para modificar el archivo /etc/resolv.conf con sudo
+modify_dns_file() {
+    echo -e "\033[31mOpening /etc/resolv.conf for modification\033[0m"
+    sudo nano /etc/resolv.conf
+}
+
+# Función para cambiar el DNS a 1.1.1.1 (Cloudflare)
+change_dns_cloudflare() {
+    echo -e "\033[31mCommenting all lines in /etc/resolv.conf\033[0m"
+    sudo sed -i 's/^/#/' /etc/resolv.conf
+    echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
+    echo -e "\033[33mDNS changed to Cloudflare (1.1.1.1)\033[0m"
+}
+
+# Función para cambiar el DNS a una IP específica
+change_dns_custom() {
+    read -p "Enter the desired DNS IP address: " user_ip
+    echo -e "\033[31mCommenting all lines in /etc/resolv.conf\033[0m"
+    sudo sed -i 's/^/#/' /etc/resolv.conf
+    echo "nameserver $user_ip" | sudo tee -a /etc/resolv.conf
+    echo -e "\033[33mDNS changed to $user_ip\033[0m"
+}
+
+# Función para bloquear el archivo /etc/resolv.conf
+lock_dns() {
+    sudo chattr +i /etc/resolv.conf
+    echo -e "\033[36mThe /etc/resolv.conf file has been locked.\033[0m"
+}
+
+# Función para desbloquear el archivo /etc/resolv.conf
+unlock_dns() {
+    sudo chattr -i /etc/resolv.conf
+    echo -e "\033[36mThe /etc/resolv.conf file has been unlocked.\033[0m"
+}
+
+# Función para salir del script
+quit_script() {
+    echo -e "\033[31mExiting script.\033[0m"
+    exit 0
+}
+
+# Menú de selección
+echo -e "\033[35mSelect an option:\033[0m"
+echo "1. Modify /etc/resolv.conf"
+echo "2. Change DNS to Cloudflare (1.1.1.1)"
+echo "3. Change DNS to a specific IP address"
+echo "4. Lock DNS"
+echo "5. Unlock DNS"
+echo "q. Quit"
+echo ""
+
+# Leer entrada de una sola tecla sin necesidad de Enter
+read -n 1 -s -r option
+
+# Ejecutar la opción seleccionada
+case $option in
+    1) modify_dns_file ;;
+    2) change_dns_cloudflare ;;
+    3) change_dns_custom ;;
+    4) lock_dns ;;
+    5) unlock_dns ;;
+    q) quit_script ;;
+    *) echo -e "\033[31mInvalid option. Exiting.\033[0m" ;;
+esac
+
+echo ""
+echo "_________________________________________________________"
+echo ""
