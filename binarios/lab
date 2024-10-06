@@ -1,5 +1,19 @@
 #!/bin/bash
 
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+echo "May be running on:"
+
+
+# Obteniendo las IPs de la máquina
+ips=$(ip -4 addr show | awk '/inet/ && !/127.0.0.1/ {split($2, a, "/"); printf "%s ", a[1]}')
+
+# Recorre cada IP y muestra en el formato de HTTP link
+for ip in $ips; do
+    echo " * On http://$ip:80"
+done
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+
 # Get the current user
 USER=$(whoami)
 
