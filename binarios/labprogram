@@ -1,65 +1,349 @@
-<script>
-    // Función para ejecutar comandos (deploy y reset)
-    async function executeCommand(event, commandName, filename = null) {
-        event.preventDefault(); // Evita el envío del formulario
-        let payload = { command: commandName };
-        if (filename !== null) {
-            payload.filename = filename;
-        }
-        const response = await fetch("/", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(payload)
-        });
-        const result = await response.json();
-        if (response.ok) {
-            const alertBox = document.createElement('div');
-            alertBox.textContent = result.message;
-            alertBox.style.position = 'fixed';
-            alertBox.style.bottom = '20px';
-            alertBox.style.left = '50%';
-            alertBox.style.transform = 'translateX(-50%)';
-            alertBox.style.backgroundColor = '#4CAF50';
-            alertBox.style.color = 'white';
-            alertBox.style.padding = '15px';
-            alertBox.style.borderRadius = '5px';
-            document.body.appendChild(alertBox);
-            setTimeout(() => {
-                alertBox.remove();
-            }, 5000); // Auto-cerrar después de 5 segundos
-            // No es necesario refrescar la página manualmente; el estado se actualizará automáticamente
-        } else {
-            alert("Error: " + result.error);
-        }
-    }
+from flask import Flask, render_template_string, request, jsonify
+import subprocess
+import os
+import logging
 
-    // Función para actualizar los estados de las máquinas cada 5 segundos
-    async function updateStatuses() {
-        try {
-            const response = await fetch('/status');
-            const data = await response.json();
-            data.files.forEach(file => {
-                const statusCircle = document.getElementById('status-' + file.filename.replace('.tar', ''));
-                if (statusCircle) {
-                    if (file.status === 'running') {
-                        statusCircle.classList.add('status-running');
-                        statusCircle.classList.remove('status-stopped');
-                    } else {
-                        statusCircle.classList.add('status-stopped');
-                        statusCircle.classList.remove('status-running');
-                    }
-                }
+app = Flask(__name__)
+
+# Configurar el logging para ayudar en la depuración
+logging.basicConfig(level=logging.INFO)
+
+# Lista de archivos con sus descripciones
+files = [
+    {"icon": "", "filename": "aguademayo.tar", "description": "Deploys the aguademayo Docker machine with SSH access."},
+    {"icon": "", "filename": "amor.tar", "description": "Deploys the amor Docker machine with SSH access."},
+    {"icon": "", "filename": "anonymouspingu.tar", "description": "Deploys the anonymouspingu Docker machine with SSH access."},
+    {"icon": "", "filename": "asucar.tar", "description": "Deploys the asucar Docker machine with SSH access."},
+    {"icon": "", "filename": "bashpariencias.tar", "description": "Deploys the bashpariencias Docker machine with SSH access."},
+    {"icon": "", "filename": "borazuwarahctf.tar", "description": "Deploys the borazuwarahctf Docker machine with SSH access."},
+    {"icon": "", "filename": "breakmyssh.tar", "description": "Deploys the breakmyssh Docker machine with SSH access."},
+    {"icon": "", "filename": "buscalove.tar", "description": "Deploys the buscalove Docker machine with SSH access."},
+    {"icon": "", "filename": "cachopo.tar", "description": "Deploys the cachopo Docker machine with SSH access."},
+    {"icon": "", "filename": "chocolatefire.tar", "description": "Deploys the chocolatefire Docker machine with SSH access."},
+    {"icon": "", "filename": "chocolatelovers.tar", "description": "Deploys the chocolatelovers Docker machine with SSH access."},
+    {"icon": "", "filename": "collections.tar", "description": "Deploys the collections Docker machine with SSH access."},
+    {"icon": "", "filename": "consolelog.tar", "description": "Deploys the consolelog Docker machine with SSH access."},
+    {"icon": "", "filename": "dark1.tar", "description": "Deploys the dark1 Docker machine with SSH access."},
+    {"icon": "", "filename": "dark2.tar", "description": "Deploys the dark2 Docker machine with SSH access."},
+    {"icon": "", "filename": "database.tar", "description": "Deploys the database Docker machine with SSH access."},
+    {"icon": "", "filename": "debugme.tar", "description": "Deploys the debugme Docker machine with SSH access."},
+    {"icon": "", "filename": "dockerlabs.tar", "description": "Deploys the dockerlabs Docker machine with SSH access."},
+    {"icon": "", "filename": "dockhacklab.tar", "description": "Deploys the dockhacklab Docker machine with SSH access."},
+    {"icon": "", "filename": "domain.tar", "description": "Deploys the domain Docker machine with SSH access."},
+    {"icon": "", "filename": "inclusion.tar", "description": "Deploys the inclusion Docker machine with SSH access."},
+    {"icon": "", "filename": "injection.tar", "description": "Deploys the injection Docker machine with SSH access."},
+    {"icon": "", "filename": "move.tar", "description": "Deploys the move Docker machine with SSH access."},
+    {"icon": "", "filename": "trust.tar", "description": "Deploys the trust Docker machine with SSH access."},
+    {"icon": "", "filename": "upload.tar", "description": "Deploys the upload Docker machine with SSH access."},
+    {"icon": "", "filename": "whereismywebshell.tar", "description": "Deploys the whereismywebshell Docker machine with SSH access."}
+]
+
+# Plantilla HTML con UI mejorada y alertas que se cierran automáticamente después de 5 segundos
+html = '''
+<!doctype html>
+<html>
+<head>
+    <title>Hacking Labs by Havi</title>
+    <style>
+        body {
+            background-color: #3b2f2f; /* Chocolate Negro */
+            font-family: Arial, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+        /* Navigation Bar */
+        .navbar {
+            overflow: hidden;
+            background-color: #333;
+            padding: 14px 20px;
+        }
+        .navbar h1 {
+            float: left;
+            color: white;
+            margin: 0;
+            font-size: 24px;
+        }
+        /* Main Container with Flex Layout */
+        .main-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        /* Button Row */
+        .button-row {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+            width: 90%;
+            max-width: 1000px;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        /* Buttons */
+        .command-button {
+            background-color: #4CAF50; /* Green */
+            border: none;
+            color: white;
+            padding: 15px 40px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin-right: 20px;
+            cursor: pointer;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex-shrink: 0;
+            width: 250px;
+        }
+        .command-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0,0,0,0.4);
+        }
+        /* Description */
+        .description {
+            flex: 1;
+            font-size: 16px;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 10px 15px;
+            border-radius: 5px;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        /* Estado */
+        .status {
+            margin-right: 20px;
+            text-align: center;
+            width: 100px;
+        }
+        .status-circle {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .status-running {
+            background-color: #4CAF50; /* Green */
+        }
+        .status-stopped {
+            background-color: #FF6347; /* Red */
+        }
+        /* Link a la Solucion */
+        .solution-link {
+            margin-left: 20px;
+            text-align: center;
+            font-size: 24px;
+        }
+        .solution-link a {
+            color: white;
+            text-decoration: none;
+        }
+    </style>
+    <script>
+        // Función para ejecutar comandos (deploy y reset)
+        async function executeCommand(event, commandName, filename = null) {
+            event.preventDefault(); // Evita el envío del formulario
+            let payload = { command: commandName };
+            if (filename !== null) {
+                payload.filename = filename;
+            }
+            const response = await fetch("/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
             });
-        } catch (error) {
-            console.error('Error actualizando los estados:', error);
+            const result = await response.json();
+            if (response.ok) {
+                const alertBox = document.createElement('div');
+                alertBox.textContent = result.message;
+                alertBox.style.position = 'fixed';
+                alertBox.style.bottom = '20px';
+                alertBox.style.left = '50%';
+                alertBox.style.transform = 'translateX(-50%)';
+                alertBox.style.backgroundColor = '#4CAF50';
+                alertBox.style.color = 'white';
+                alertBox.style.padding = '15px';
+                alertBox.style.borderRadius = '5px';
+                document.body.appendChild(alertBox);
+                setTimeout(() => {
+                    alertBox.remove();
+                }, 5000); // Auto-cerrar después de 5 segundos
+                // No es necesario refrescar la página manualmente; el estado se actualizará automáticamente
+            } else {
+                alert("Error: " + result.error);
+            }
         }
-    }
 
-    // Llamar a updateStatuses cada 5 segundos
-    setInterval(updateStatuses, 5000);
+        // Función para actualizar los estados de las máquinas cada 5 segundos
+        async function updateStatuses() {
+            try {
+                const response = await fetch('/status');
+                const data = await response.json();
+                data.files.forEach(file => {
+                    const statusCircle = document.getElementById('status-' + file.filename.replace('.tar', ''));
+                    if (statusCircle) {
+                        if (file.status === 'running') {
+                            statusCircle.classList.add('status-running');
+                            statusCircle.classList.remove('status-stopped');
+                        } else {
+                            statusCircle.classList.add('status-stopped');
+                            statusCircle.classList.remove('status-running');
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error actualizando los estados:', error);
+            }
+        }
 
-    // Llamada inicial para actualizar los estados al cargar la página
-    window.onload = updateStatuses;
-</script>
+        // Llamar a updateStatuses cada 5 segundos
+        setInterval(updateStatuses, 5000);
+
+        // Llamada inicial para actualizar los estados al cargar la página
+        window.onload = updateStatuses;
+    </script>
+</head>
+<body>
+    <!-- Barra de Navegación -->
+    <div class="navbar">
+        <h1>Hacking Labs by Havi</h1>
+    </div>
+    
+    <!-- Contenedor Principal -->
+    <div class="main-container">
+        <!-- Botones para desplegar archivos -->
+        {% for file in files %}
+        <div class="button-row">
+            <!-- Estado de la máquina -->
+            <div class="status">
+                <div id="status-{{ file.filename[:-4] }}" class="status-circle {% if file.status == 'running' %}status-running{% else %}status-stopped{% endif %}"></div>
+            </div>
+            <!-- Botón para desplegar la máquina -->
+            <form onsubmit="executeCommand(event, 'deploy', '{{ file.filename }}')">
+                <button type="submit" class="command-button">{{ file.icon }} {{ file.filename[:-4] }}</button>
+            </form>
+            <!-- Descripción de la máquina -->
+            <div class="description">
+                <strong>Nombre de la máquina:</strong> {{ file.filename[:-4] }}<br>
+                <strong>Descripción:</strong> {{ file.description }}
+            </div>
+            <!-- Link a la solución -->
+            <div class="solution-link">
+                <a href="/maquinas/{{ file.filename[:-4] }}.pdf" target="_blank">&#x1F517;</a>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <!-- Botón para resetear todas las máquinas -->
+        <div class="button-row">
+            <form onsubmit="executeCommand(event, 'reset_all_machines')">
+                <button type="submit" class="command-button">Reset All Machines</button>
+            </form>
+            <div class="description">
+                Removes all running Docker containers, resetting the environment.
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+'''
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    if request.method == 'POST':
+        data = request.get_json()
+        cmd = data.get('command')
+        filename = data.get('filename')  # Nuevo campo para el nombre del archivo
+        logging.info(f"Received command: {cmd}, filename: {filename}")
+        if cmd == 'deploy' and filename:
+            try:
+                # Validar el nombre del archivo para evitar inyección de comandos
+                allowed_files = [file['filename'] for file in files]
+                if filename not in allowed_files:
+                    logging.warning(f"Attempted to deploy unauthorized file: {filename}")
+                    return jsonify(error="Unauthorized file."), 403
+
+                # Set the DISPLAY environment variable for graphical applications
+                env = os.environ.copy()
+                env['DISPLAY'] = ':0'
+
+                # Construir el comando de despliegue dinámicamente
+                deploy_command = f'/opt/4rji/bin/deploy /opt/4rji/labs/{filename}'
+
+                # Ejecutar el comando directamente
+                subprocess.Popen(deploy_command, shell=True, env=env)
+
+                logging.info(f"Deploy command for {filename} executed successfully.")
+                return jsonify(message=f"Command for {filename[:-4]} has been executed."), 200
+            except Exception as e:
+                logging.error(f"Error executing deploy command for {filename}: {e}")
+                return jsonify(error=str(e)), 500
+        elif cmd == 'reset_all_machines':
+            try:
+                # Set the DISPLAY environment variable for graphical applications
+                env = os.environ.copy()
+                env['DISPLAY'] = ':0'
+
+                # Command to remove all Docker containers using absolute path
+                docker_command = '/usr/bin/docker rm -f $(/usr/bin/docker ps -aq)'
+
+                # Ejecutar el comando directamente
+                subprocess.Popen(docker_command, shell=True, env=env)
+
+                logging.info("Reset all machines command executed successfully.")
+                return jsonify(message="All Docker containers have been removed."), 200
+            except Exception as e:
+                logging.error(f"Error executing reset_all_machines command: {e}")
+                return jsonify(error=str(e)), 500
+        else:
+            logging.warning(f"Unrecognized command: {cmd}")
+            return jsonify(error="Unrecognized command."), 400
+    
+    # Actualizar el estado de cada archivo
+    for file in files:
+        try:
+            container_name = file['filename'].replace('.tar', '_container')
+            result = subprocess.run(
+                ["docker", "ps", "--filter", f"name={container_name}", "--format", "{{.Names}}"],
+                capture_output=True,
+                text=True
+            )
+            file['status'] = 'running' if container_name in result.stdout else 'stopped'
+        except Exception as e:
+            logging.error(f"Error checking status for {file['filename']}: {e}")
+            file['status'] = 'stopped'
+
+    # Renderizar el HTML con la lista de archivos
+    return render_template_string(html, files=files)
+
+# Nuevo endpoint para proporcionar el estado de las máquinas
+@app.route('/status', methods=['GET'])
+def status():
+    statuses = []
+    for file in files:
+        try:
+            container_name = file['filename'].replace('.tar', '_container')
+            result = subprocess.run(
+                ["docker", "ps", "--filter", f"name={container_name}", "--format", "{{.Names}}"],
+                capture_output=True,
+                text=True
+            )
+            status = 'running' if container_name in result.stdout else 'stopped'
+        except Exception as e:
+            logging.error(f"Error checking status for {file['filename']}: {e}")
+            status = 'stopped'
+        statuses.append({
+            'filename': file['filename'],
+            'status': status
+        })
+    return jsonify(files=statuses)
+
+if __name__ == '__main__':
+    # Ejecutar la aplicación en el puerto 80
+    app.run(host='0.0.0.0', port=80)
