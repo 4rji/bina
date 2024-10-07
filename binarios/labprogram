@@ -83,6 +83,32 @@ html = '''
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
         }
+        /* Estado */
+        .status {
+            margin-right: 20px;
+            text-align: center;
+            width: 50px;
+        }
+        .status-circle {
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .status-running {
+            background-color: #4CAF50; /* Green */
+        }
+        .status-stopped {
+            background-color: #FF6347; /* Red */
+        }
+        /* Dirección IP */
+        .ip-address {
+            margin-right: 20px;
+            text-align: center;
+            width: 120px;
+            color: #FFD700; /* Color dorado */
+            font-weight: bold;
+        }
         /* Buttons */
         .command-button {
             background-color: #4CAF50; /* Green */
@@ -91,7 +117,6 @@ html = '''
             padding: 15px 40px;
             text-align: center;
             text-decoration: none;
-            display: inline-block;
             font-size: 16px;
             margin-right: 20px;
             cursor: pointer;
@@ -113,24 +138,6 @@ html = '''
             padding: 10px 15px;
             border-radius: 5px;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
-        }
-        /* Estado */
-        .status {
-            margin-right: 20px;
-            text-align: center;
-            width: 100px;
-        }
-        .status-circle {
-            height: 20px;
-            width: 20px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        .status-running {
-            background-color: #4CAF50; /* Green */
-        }
-        .status-stopped {
-            background-color: #FF6347; /* Red */
         }
         /* Link a la Solucion */
         .solution-link {
@@ -187,13 +194,20 @@ html = '''
                 const data = await response.json();
                 data.files.forEach(file => {
                     const statusCircle = document.getElementById('status-' + file.filename.replace('.tar', ''));
+                    const ipSpan = document.getElementById('ip-' + file.filename.replace('.tar', ''));
                     if (statusCircle) {
                         if (file.status === 'running') {
                             statusCircle.classList.add('status-running');
                             statusCircle.classList.remove('status-stopped');
+                            if (ipSpan) {
+                                ipSpan.textContent = file.ip_address || 'N/A';
+                            }
                         } else {
                             statusCircle.classList.add('status-stopped');
                             statusCircle.classList.remove('status-running');
+                            if (ipSpan) {
+                                ipSpan.textContent = 'N/A';
+                            }
                         }
                     }
                 });
@@ -223,6 +237,10 @@ html = '''
             <!-- Estado de la máquina -->
             <div class="status">
                 <div id="status-{{ file.filename[:-4] }}" class="status-circle {% if file.status == 'running' %}status-running{% else %}status-stopped{% endif %}"></div>
+            </div>
+            <!-- Dirección IP de la máquina -->
+            <div class="ip-address">
+                <span id="ip-{{ file.filename[:-4] }}">{{ file.ip_address if file.status == 'running' else 'N/A' }}</span>
             </div>
             <!-- Botón para desplegar la máquina -->
             <form onsubmit="executeCommand(event, 'deploy', '{{ file.filename }}')">
@@ -304,8 +322,8 @@ def index():
         else:
             logging.warning(f"Unrecognized command: {cmd}")
             return jsonify(error="Unrecognized command."), 400
-    
-    # Actualizar el estado de cada archivo
+
+    # Actualizar el estado y la dirección IP de cada archivo
     for file in files:
         try:
             container_name = file['filename'].replace('.tar', '_container')
@@ -314,12 +332,22 @@ def index():
                 capture_output=True,
                 text=True
             )
-            file['status'] = 'running' if container_name in result.stdout else 'stopped'
+            if container_name in result.stdout:
+                file['status'] = 'running'
+                # Obtener la dirección IP
+                ip_result = subprocess.run(
+                    ["docker", "inspect", "-f", "{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}", container_name],
+                    capture_output=True,
+                    text=True
+                )
+                file['ip_address'] = ip_result.stdout.strip()
+            else:
+                file['status'] = 'stopped'
+                file['ip_address'] = ''
         except Exception as e:
             logging.error(f"Error checking status for {file['filename']}: {e}")
             file['status'] = 'stopped'
-
-    # Renderizar el HTML con la lista de archivos
+            file['ip_address'] = ''
     return render_template_string(html, files=files)
 
 # Nuevo endpoint para proporcionar el estado de las máquinas
@@ -334,13 +362,26 @@ def status():
                 capture_output=True,
                 text=True
             )
-            status = 'running' if container_name in result.stdout else 'stopped'
+            if container_name in result.stdout:
+                status = 'running'
+                # Obtener la dirección IP
+                ip_result = subprocess.run(
+                    ["docker", "inspect", "-f", "{{range.NetworkSettings.Networks}}{{.IPAddress}}{{end}}", container_name],
+                    capture_output=True,
+                    text=True
+                )
+                ip_address = ip_result.stdout.strip()
+            else:
+                status = 'stopped'
+                ip_address = ''
         except Exception as e:
             logging.error(f"Error checking status for {file['filename']}: {e}")
             status = 'stopped'
+            ip_address = ''
         statuses.append({
             'filename': file['filename'],
-            'status': status
+            'status': status,
+            'ip_address': ip_address
         })
     return jsonify(files=statuses)
 
