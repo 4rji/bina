@@ -252,8 +252,8 @@ html = '''
                 <strong>Descripción:</strong> {{ file.description }}
             </div>
             <!-- Link a la solución -->
-            <div class="solution-link">
-                <a href="docs.4rji.com/maquinas/{{ file.filename[:-4] }}.html" target="_blank">&#x1F517;</a>
+              <div class="solution-link">
+                <a href="https://docs.4rji.com/maquinas/{{ file.filename[:-4] }}.html" target="_blank">&#x1F517;</a>
             </div>
         </div>
         {% endfor %}
