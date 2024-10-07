@@ -1,53 +1,53 @@
 #!/bin/bash
 
-# Función para imprimir en color
+# Function to print in color
 print_color() {
     local color_code=$1
     shift
     echo -e "\e[1;${color_code}m$@\e[0m"
 }
 
-# Función para realizar el ping a una IP
+# Function to ping an IP
 ping_ip() {
     local ip=$1
     echo ""
-    print_color 36 "Realizando ping a la IP: $ip"
+    print_color 36 "Pinging IP: $ip"
     echo ""
     ping -c 1 "$ip"
 }
 
-# Función para determinar el sistema operativo
+# Function to determine the operating system
 determine_os() {
     local ip=$1
     local os_type
-    os_type=$(timeout 1s whichsys "$ip")  # Asignar la salida de whichsys a la variable
+    os_type=$(timeout 1s whichsys "$ip")  # Assign the output of whichsys to the variable
     echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 
     print_color 31 "$os_type"
     echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 
-    echo "$os_type" > OS-tipo  # Guardar la salida en el archivo OS-tipo
+    echo "$os_type" > OS-type  # Save the output to the OS-type file
 }
 
-# Verificar si se proporcionó un argumento
+# Check if an argument was provided
 if [ $# -eq 0 ]; then
-    echo "Por favor, proporciona un argumento para el script."
+    echo "Please provide an argument for the script."
     exit 1
 fi
 
-# Asignar el argumento a una variable
+# Assign the argument to a variable
 ip="$1"
 
-# Llamar a las funciones
+# Call the functions
 ping_ip "$ip"
 determine_os "$ip"
 
-# Luego del ping y la determinación del sistema operativo, ejecutar expo1 y expo2
+# After pinging and determining the operating system, execute expo1 and expo2
 expo1 "$ip"
 
-# Verificar si expo1 se ejecutó correctamente
+# Check if expo1 executed successfully
 if [ $? -ne 0 ]; then
-    echo "El script expo1 no se ejecutó correctamente. Saliendo del script."
+    echo "The script expo1 did not execute successfully. Exiting the script."
     exit 1
 fi
 

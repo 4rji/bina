@@ -2,14 +2,14 @@
 
 ip_address=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' allPorts | uniq)
 
-echo "Dirección IP encontrada: $ip_address"
+echo "IP address found: $ip_address"
 
-echo "Ingrese los puertos separados por comas (por ejemplo, 80,443,22) o también copie los puertos generados de expo2:"
+echo "Enter the ports separated by commas (e.g., 80,443,22) or copy the ports generated from expo2:"
 read ports
 
 command="nmap -sCV -p $ports $ip_address -oN expo3"
 echo ""
-echo "Ejecutando el comando:"
+echo "Running the command:"
 
 #echo "$command"
 echo -e "\e[1;31m$command\e[0m"

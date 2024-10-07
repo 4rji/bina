@@ -2,70 +2,67 @@
 
 echo ""
 
-
-# Función para mostrar el mensaje de ayuda y preguntar si desea continuar
+# Function to display help message and ask if the user wants to continue
 show_help_and_confirm() {
     echo
-    echo "El comando que este script ejecuta es:"
+    echo "The command this script executes is:"
     echo ""
     echo "1) - sudo nmap 10.10.10.3 -p- --open -sS --min-rate 5000 -v -n -oG allPorts "
     echo "2) - sudo nmap 10.10.10.3 -p- --open -sS --min-rate 5000 -v -n -Pn -oG allPorts"
     echo
-    read -n1 -p "Presione Enter para continuar o 'c' para salir. " response
+    read -n1 -p "Press Enter to continue or 'c' to exit. " response
 
-    echo "" # Agregar espacio después de la entrada
+    echo "" # Add space after input
     echo "_________________________________________________________"
     echo ""
 
-    # Convertir la respuesta a minúsculas y verificar si se presionó 'c'
+    # Convert response to lowercase and check if 'c' was pressed
     response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
     if [ "$response" == "c" ]; then
-        echo "Saliendo del script."
+        echo "Exiting the script."
         exit 0
     fi
 }
 
-# Verificar si se pasó el argumento -h
+# Check if -h argument is passed
 if [ "$1" == "-h" ]; then
     show_help_and_confirm
 fi
 
-# Verificar si se pasó la IP como argumento
+# Check if IP was passed as an argument
 if [ -z "$1" ]; then
-    echo "Debe especificar la IP como argumento del script."
+    echo "You must specify the IP as a script argument."
     exit 1
 fi
 
 echo ""
-echo "Selecciona el tipo de escaner que deseas usar:"
+echo "Select the type of scan you want to use:"
 echo ""
-echo "1. Ejecutar escaneo sin Pn "
-echo "2. Ejecutar escaneo con Pn "
+echo "1. Run scan without Pn "
+echo "2. Run scan with Pn "
 echo ""
 echo "_________________________________________________________"
-echo "" # Agregar espacio después de la entrada
+echo "" # Add space after input
 
+echo "The command to execute is:         sudo nmap "$1" -p- --open -sS --min-rate 5000 -v -n -oG allPorts "
+read -n1 -p "Choose (1 or 2): " choice
 
-echo "El comando a ejecutar es:         sudo nmap "$1" -p- --open -sS --min-rate 5000 -v -n -oG allPorts "
-read -n1 -p "Elige (1 o 2): " choice
-
-echo "" # Agregar espacio después de la entrada
+echo "" # Add space after input
 echo "_________________________________________________________"
 echo ""
 
 case $choice in
     1)
-        echo "Ejecutando escaneo sin Pn..."
+        echo "Running scan without Pn..."
         #nmap -p- --open -T5 -v -n "$1" -oG allPorts
         sudo nmap "$1" -p- --open -sS --min-rate 5000 -v -n -oG allPorts
         ;;
     2)
-        echo "Ejecutando escaneo con Pn..."
+        echo "Running scan with Pn..."
         #nmap -p- --open -T5 -v -n -Pn "$1" -oG allPorts
         sudo nmap "$1" -p- --open -sS --min-rate 5000 -v -n -Pn -oG allPorts
-
         ;;
     *)
-        echo "Opción no válida. Por favor, elige 1 o 2."
+        echo "Invalid option. Please choose 1 or 2."
         ;;
 esac
