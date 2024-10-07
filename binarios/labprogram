@@ -10,7 +10,7 @@ logging.basicConfig(level=logging.INFO)
 
 # Lista de archivos con sus descripciones
 files = [
-    {"icon": "", "filename": "aguademayo.tar", "description": "Deploys the aguademayo Docker machine with SSH access."},
+    {"icon": "", "filename": "aguademayo.tar", "description": "This machine involves using tools like nmap, whatweb, and feroxbuster to enumerate ports and services, discovering an accessible SSH service. SSH access is exploited using credentials hidden on the website, followed by privilege escalation via sudo and bettercap to gain root access."},
     {"icon": "", "filename": "amor.tar", "description": "Deploys the amor Docker machine with SSH access."},
     {"icon": "", "filename": "anonymouspingu.tar", "description": "Deploys the anonymouspingu Docker machine with SSH access."},
     {"icon": "", "filename": "asucar.tar", "description": "Deploys the asucar Docker machine with SSH access."},
@@ -231,6 +231,15 @@ html = '''
     
     <!-- Contenedor Principal -->
     <div class="main-container">
+        <!-- Botón para resetear todas las máquinas -->
+    <div class="button-row">
+        <form onsubmit="executeCommand(event, 'reset_all_machines')">
+            <button type="submit" class="command-button">Reset All Machines</button>
+        </form>
+        <div class="description">
+            Removes all running Docker containers, resetting the environment.
+        </div>
+    </div>
         <!-- Botones para desplegar archivos -->
         {% for file in files %}
         <div class="button-row">
@@ -248,8 +257,7 @@ html = '''
             </form>
             <!-- Descripción de la máquina -->
             <div class="description">
-                <strong>Nombre de la máquina:</strong> {{ file.filename[:-4] }}<br>
-                <strong>Descripción:</strong> {{ file.description }}
+                <strong></strong> {{ file.description }}
             </div>
             <!-- Solution Writeup Link -->
         <div class="solution-link">
