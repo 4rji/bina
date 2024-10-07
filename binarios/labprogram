@@ -139,14 +139,14 @@ html = '''
             border-radius: 5px;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
         }
-        /* Link a la Solucion */
+       /* Link to the Solution */
         .solution-link {
             margin-left: 20px;
             text-align: center;
-            font-size: 24px;
+            font-size: 16px; /* Set font size to match IP address */
         }
         .solution-link a {
-            color: white;
+            color: #FFD700; /* Change text color to red */
             text-decoration: none;
         }
     </style>
@@ -251,10 +251,12 @@ html = '''
                 <strong>Nombre de la máquina:</strong> {{ file.filename[:-4] }}<br>
                 <strong>Descripción:</strong> {{ file.description }}
             </div>
-            <!-- Link a la solución -->
-              <div class="solution-link">
-                <a href="https://docs.4rji.com/maquinas/{{ file.filename[:-4] }}.html" target="_blank">&#x1F517;</a>
-            </div>
+            <!-- Solution Writeup Link -->
+        <div class="solution-link">
+            <a href="https://docs.4rji.com/maquinas/{{ file.filename[:-4] }}.html" class="writeup-icon" title="View Writeup">
+                📝 Solution
+            </a>
+        </div>
         </div>
         {% endfor %}
         
