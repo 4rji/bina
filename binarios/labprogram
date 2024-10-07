@@ -253,7 +253,7 @@ html = '''
             </div>
             <!-- Link a la solución -->
             <div class="solution-link">
-                <a href="/maquinas/{{ file.filename[:-4] }}.html" target="_blank">&#x1F517;</a>
+                <a href="docs.4rji.com/maquinas/{{ file.filename[:-4] }}.html" target="_blank">&#x1F517;</a>
             </div>
         </div>
         {% endfor %}
