@@ -12,7 +12,7 @@ logging.basicConfig(level=logging.INFO)
 files = [
     {"icon": "", "filename": "aguademayo.tar", "description": "Tools to learn include WhatWeb, Feroxbuster, cURL, and Bettercap."},
     {"icon": "", "filename": "amor.tar", "description": "Hydra, Steghide, and Ruby are the primary tools used for cracking, extracting hidden data, and privilege escalation."},
-    {"icon": "", "filename": "anonymouspingu.tar", "description": "Deploys the anonymouspingu Docker machine with SSH access."},
+    {"icon": "", "filename": "anonymouspingu.tar", "description": "Tools to learn: netcat, FTP client, OpenSSL, sudo, chown, dpkg, sudo -l, editing /etc/passwd."},
     {"icon": "", "filename": "asucar.tar", "description": "Deploys the asucar Docker machine with SSH access."},
     {"icon": "", "filename": "bashpariencias.tar", "description": "Deploys the bashpariencias Docker machine with SSH access."},
     {"icon": "", "filename": "borazuwarahctf.tar", "description": "Deploys the borazuwarahctf Docker machine with SSH access."},
