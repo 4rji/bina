@@ -99,5 +99,10 @@ for paquete in "${paquetes[@]}"; do
     esac
 done
 
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+echo "to enter the container:"
+echo "docker exec -it b7 bash    (container id is b700b2ed47e7)"
+
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
 
 python3 /opt/4rji/bin/labprogram
