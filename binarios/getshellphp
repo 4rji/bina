@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# Define file paths
+ORIGINAL_FILE="/opt/4rji/bin/shell.php"
+COPIED_FILE="shell.php"
+
+# Start with a blue separator line
+echo -e "\033[34m_________________________________________________________\033[0m"
+echo ""
+
+# Check if the original file exists
+if [[ ! -f "$ORIGINAL_FILE" ]]; then
+    echo -e "\033[31mError: The original file $ORIGINAL_FILE does not exist.\033[0m"
+    echo ""
+    echo -e "\033[34m_________________________________________________________\033[0m"
+    exit 1
+fi
+
+# Copy the file to the current directory
+cp "$ORIGINAL_FILE" "$COPIED_FILE"
+if [[ $? -ne 0 ]]; then
+    echo -e "\033[31mError: Failed to copy $ORIGINAL_FILE to $COPIED_FILE.\033[0m"
+    echo ""
+    echo -e "\033[34m_________________________________________________________\033[0m"
+    exit 1
+fi
+
+echo -e "\033[32mSuccessfully copied to $COPIED_FILE.\033[0m"
+echo -e "\033[34m_________________________________________________________\033[0m"
+echo ""
+
+# Prompt the user for the new IP address
+echo -e "\033[36mPlease enter the new IP address:\033[0m"
+read -p "> " new_ip
+
+# Prompt the user for the new port
+echo -e "\033[36mPlease enter the new port:\033[0m"
+read -p "> " new_port
+echo ""
+
+# Validate the IP address format
+if [[ ! "$new_ip" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]]; then
+    echo -e "\033[31mError: The entered IP address is not valid.\033[0m"
+    echo ""
+    echo -e "\033[34m_________________________________________________________\033[0m"
+    exit 1
+fi
+
+# Validate the port is a number
+if ! [[ "$new_port" =~ ^[0-9]+$ ]]; then
+    echo -e "\033[31mError: The entered port is not a valid number.\033[0m"
+    echo ""
+    echo -e "\033[34m_________________________________________________________\033[0m"
+    exit 1
+fi
+
+# Modify the IP line in the copied file
+sed -i "s/^\(\$ip = \).*/\1'$new_ip';  \/\/ CHANGE THIS/" "$COPIED_FILE"
+
+# Modify the port line in the copied file
+sed -i "s/^\(\$port = \).*/\1$new_port;       \/\/ CHANGE THIS/" "$COPIED_FILE"
+
+echo -e "\033[32mThe lines have been successfully updated in $COPIED_FILE.\033[0m"
+echo ""
+
+# Add a blue separator line before displaying modified content
+echo -e "\033[34m_________________________________________________________\033[0m"
+echo ""
+
+# Display the modified content header in magenta
+echo -e "\033[35mModified content of $COPIED_FILE:\033[0m"
+
+# Display lines 48 to 50 in red
+sed -n '48,50p' "$COPIED_FILE" | while IFS= read -r line; do
+    echo -e "\033[31m$line\033[0m"
+done
+echo ""
+
+# Add another blue separator line
+echo -e "\033[34m_________________________________________________________\033[0m"
+echo ""
+
+# Final advisory message in yellow
+echo -e "\033[33mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\033[0m"
+
