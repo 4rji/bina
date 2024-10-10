@@ -21,6 +21,9 @@ tempe               or tempe -f temperatura de arch linux y -f crea un archivo c
 nixbus              Para buscar programas en linea de comando y tambien corregir bash
 nixclean            Arregla la shell de nixos para los scripts 4rji
 
+#lab
+nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
+
 ###------utilidades 
 openboxinst         Instala openbox que es un escritorio ligero, tambien instala chromium
 pwdc                Copia el directorio actual con pwd y xclip

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Check if the script is run as root
+if [ "$EUID" -ne 0 ]; then
+  echo "Please run as root"
+  exit 1
+fi
+
+# Get the username as input
+read -p "Enter the username you want to modify: " user
+
+# Remove the user from the sudo group
+sudo deluser "$user" sudo
+
+# Add the NOPASSWD rule to sudoers file using visudo
+# Ensure to use visudo safely for editing the sudoers file
+echo "$user ALL=(ALL) NOPASSWD: ALL" | sudo EDITOR='tee -a' visudo
+
+# Display the warning in red
+echo -e "\e[31mWarning: This is a root-level change. The user $user now has NOPASSWD privileges for all sudo commands!\e[0m"
