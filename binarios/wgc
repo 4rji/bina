@@ -19,7 +19,7 @@ show_menu() {
   echo -e "\033[33md) Disconnect\033[0m"
   echo -e "\033[35mr) Reconnect\033[0m"
   echo -e "\033[31ms) Show connection status\033[0m"
-  echo -e "\033[36mm) Modify configuration file\033[0m"
+  echo -e "\033[36mm) Edit configuration file\033[0m"
   echo -e "\033[36mq) Quit\033[0m"
   echo ""
   echo -e "\033[36m_________________________________________________________\033[0m"
@@ -53,7 +53,7 @@ while true; do
       sudo wg show $INTERFACE
       ;;
     m)
-      echo -e "\033[36m\nModifying configuration file for: $INTERFACE\033[0m"
+      echo -e "\033[36m\nEdit configuration file for: $INTERFACE\033[0m"
       sudo nano $CONFIG_FILE
       ;;
     q)
