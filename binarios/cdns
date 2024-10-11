@@ -52,8 +52,8 @@ quit_script() {
 
 # Menú de selección
 echo -e "\033[35mSelect an option:\033[0m"
-echo "1. Modify /etc/resolv.conf"
-echo "2. Change DNS to Cloudflare (1.1.1.1)"
+echo "1. Change DNS to Cloudflare (1.1.1.1)"
+echo "2. Modify /etc/resolv.conf"
 echo "3. Change DNS to a specific IP address"
 echo "4. Lock DNS"
 echo "5. Unlock DNS"
@@ -65,8 +65,8 @@ read -n 1 -s -r option
 
 # Ejecutar la opción seleccionada
 case $option in
-    1) modify_dns_file ;;
-    2) change_dns_cloudflare ;;
+    1) change_dns_cloudflare ;;
+    2) modify_dns_file ;;
     3) change_dns_custom ;;
     4) lock_dns ;;
     5) unlock_dns ;;
