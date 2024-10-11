@@ -378,7 +378,7 @@ sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 search              Crea datos para la pagina web, para llenar la base de busqueda search
 
 #Redstuff
-pixeltrack          Instala servidor apache con un track pixel para email pixel track 
+pixeltrack          Instala servidor apache con un track pixel para email pixel track location
 consola             Obtener una consola interactiva tty.
 shutt               como vpn sshuttle para subnets, muestra subnets disponibles en sshhost, no manda trafico
 shutall             Manda todo el trafico por ssh, como vpn sshuttle 
