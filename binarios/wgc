@@ -26,6 +26,12 @@ show_menu() {
   echo ""
 }
 
+# Check if nano is installed
+if ! command -v nano &> /dev/null; then
+  echo -e "\033[31mError: nano editor is not installed. Please install it or use a different editor.\033[0m"
+  exit 1
+fi
+
 # Main loop
 while true; do
   show_menu
@@ -53,8 +59,12 @@ while true; do
       sudo wg show $INTERFACE
       ;;
     m)
-      echo -e "\033[36m\nEdit configuration file for: $INTERFACE\033[0m"
-      sudo nano $CONFIG_FILE
+      echo -e "\033[36m\nEditing configuration file for: $INTERFACE\033[0m"
+      if [ -w "$CONFIG_FILE" ]; then
+        sudo nano $CONFIG_FILE
+      else
+        echo -e "\033[31mError: Configuration file is not writable or does not exist: $CONFIG_FILE\033[0m"
+      fi
       ;;
     q)
       echo -e "\033[36m\nExiting...\033[0m"
