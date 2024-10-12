@@ -119,8 +119,12 @@ def main():
     download_and_setup_image()
     update_apache_config()
     restart_apache()
+    print("")
     print("Installation and configuration completed successfully.")
-    print("To monitor access logs, run: sudo tail -f /var/log/image_access.log")
+    print("------------------------------------------------------------")
+    print("")
+    print("To monitor access logs, run: ")
+    print("sudo tail -f /var/log/image_access.log")
 
 if __name__ == "__main__":
     main()
