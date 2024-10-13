@@ -19,7 +19,7 @@ show_menu() {
   echo -e "\033[33md) Disconnect\033[0m"
   echo -e "\033[35mr) Reconnect\033[0m"
   echo -e "\033[31ms) Show connection status\033[0m"
-  echo -e "\033[36me) Edit configuration file\033[0m"
+  echo -e "\033[36mm) Edit configuration file\033[0m"
   echo -e "\033[36mq) Quit\033[0m"
   echo ""
   echo -e "\033[36m_________________________________________________________\033[0m"
@@ -35,7 +35,7 @@ fi
 # Main loop
 while true; do
   show_menu
-  echo -e "\033[34mPress the corresponding key to choose an option [c/d/r/s/e/q]: \033[0m"
+  echo -e "\033[34mPress the corresponding key to choose an option [c/d/r/s/m/q]: \033[0m"
   
   # Read a single character without requiring Enter
   read -n1 choice
@@ -58,7 +58,7 @@ while true; do
       echo -e "\033[31m\nShowing status of WireGuard interface: $INTERFACE\033[0m"
       sudo wg show $INTERFACE
       ;;
-    e)
+    m)
       echo -e "\033[36m\nEditing configuration file for: $INTERFACE\033[0m"
       if [ -w "$CONFIG_FILE" ]; then
         sudo nano $CONFIG_FILE
@@ -71,7 +71,7 @@ while true; do
       exit 0
       ;;
     *)
-      echo -e "\033[31m\nInvalid choice. Please select a valid option [c/d/r/s/e/q].\033[0m"
+      echo -e "\033[31m\nInvalid choice. Please select a valid option [c/d/r/s/m/q].\033[0m"
       ;;
   esac
 done
