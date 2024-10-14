@@ -46,7 +46,7 @@ html = '''
     <title>Hacking Labs by Havi</title>
     <style>
         body {
-            background-color: #3b2f2f; /* Chocolate Negro */
+            background-color: #800080; /* Chocolate Negro */
             font-family: Arial, sans-serif;
             color: white;
             margin: 0;
@@ -55,7 +55,7 @@ html = '''
         /* Navigation Bar */
         .navbar {
             overflow: hidden;
-            background-color: #333;
+            background-color: #ff0000;
             padding: 14px 20px;
         }
         .navbar h1 {
@@ -397,4 +397,4 @@ def status():
 
 if __name__ == '__main__':
     # Ejecutar la aplicación en el puerto 80
-    app.run(host='0.0.0.0', port=80)
+    app.run(host='0.0.0.0', port=800)
