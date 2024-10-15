@@ -1,93 +1,60 @@
 #!/bin/bash
 
+# List of packages to install
+packages=("scrub" "coreutils")
 
-# Lista de paquetes a instalar
-paquetes=("scrub" "coreutils")
-
-# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
-paquete_instalado_apt() {
+# Function to check if a package is installed (Debian/Ubuntu/Kali)
+package_installed_apt() {
     dpkg -l "$1" | grep -q '^ii'  
 }
 
-# Función para verificar si un paquete está instalado (CentOS/RHEL)
-paquete_instalado_yum() {
+# Function to check if a package is installed (CentOS/RHEL)
+package_installed_yum() {
     yum list installed "$1" &> /dev/null
 }
 
-# Función para verificar si un paquete está instalado (Fedora)
-paquete_instalado_dnf() {
+# Function to check if a package is installed (Fedora)
+package_installed_dnf() {
     dnf list installed "$1" &> /dev/null
 }
 
-# Función para verificar si un paquete está instalado (Arch Linux)
-paquete_instalado_pacman() {
+# Function to check if a package is installed (Arch Linux)
+package_installed_pacman() {
     pacman -Qi "$1" &> /dev/null
 }
 
-# Detectar el sistema operativo
+# Detect the operating system
 if [ -f /etc/os-release ]; then
     . /etc/os-release
     OS=$ID
 fi
 
-# Instalar paquetes basados en el sistema operativo
-for paquete in "${paquetes[@]}"; do
+# Install packages based on the operating system
+for package in "${packages[@]}"; do
     case $OS in
         "debian"|"ubuntu"|"kali")
-            if ! paquete_instalado_apt "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo apt-get install -y "$paquete"
+            if ! package_installed_apt "$package"; then
+                echo ""
+                echo "_________________________________________________________"
+                echo ""
+                echo -e "\033[31mInstalling package $package...\033[0m"
+                echo -e "\033[34msudo apt-get install -y $package\033[0m"
+                sudo apt-get install -y "$package"
             fi
             ;;
         "centos"|"rhel")
-            if ! paquete_instalado_yum "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo yum install -y "$paquete"
+            if ! package_installed_yum "$package"; then
+                echo ""
+                echo "_________________________________________________________"
+                echo ""
+                echo -e "\033[32mInstalling package $package...\033[0m"
+                echo -e "\033[34msudo yum install -y $package\033[0m"
+                sudo yum install -y "$package"
             fi
             ;;
         "fedora")
-            if ! paquete_instalado_dnf "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo dnf install -y "$paquete"
-            fi
-            ;;
-        "arch")
-            if ! paquete_instalado_pacman "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo pacman -S --noconfirm "$paquete"
-            fi
-            ;;
-        *)
-            ;;
-    esac
-done
-
-
-
-
-# Función para limpiar archivos de forma segura
-limpiar_archivos() {
-    echo "Limpieza iniciada en el directorio $1 ..."
-    # Aplicar el comando 'scrub'
-    find "$1" -type f -exec scrub -p dod {} +
-    # Aplicar el comando 'shred'
-    find "$1" -type f -exec shred -zun 10 -v {} +
-    echo "Limpieza completada."
-}
-
-# Preguntar al usuario si desea limpiar el directorio home
-read -t 30 -p "Limpiar el directorio home? [s/n]: " respuesta || respuesta="s"
-
-# Convertir la respuesta a minúsculas
-respuesta=$(echo "$respuesta" | tr '[:upper:]' '[:lower:]')
-
-# Verificar la respuesta del usuario
-if [ "$respuesta" = "s" ]; then
-    # Obtener el directorio home del usuario actual
-    directorio_home="/home/$(whoami)"
-    # Ejecutar la función de limpieza
-    limpiar_archivos "$directorio_home"
-else
-    echo "No se realizará ninguna limpieza."
-fi
-
+            if ! package_installed_dnf "$package"; then
+                echo ""
+                echo "_________________________________________________________"
+                echo ""
+                echo -e "\033[33mInstalling package $package...\033[0m"​⬤
