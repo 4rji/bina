@@ -92,7 +92,7 @@ lfcd                para moverme con cd  #copiar el plugin a zsh
 mdcolors            Genera colores para archivos md 
 maquinasova         Convierte maquinas ova para qemu
 limpiartest         Genera archivos de varios tamanos para probar
-limpiar             Limpia el home con shred y scrub 
+limpiar             Limpia el home con shred y scrub (solo home del usuario actual)
 cortes              Muestra cortes archivos con awk cut (no grep or find)
 
 genarc              genera archivos conjuntos de 100 MB
