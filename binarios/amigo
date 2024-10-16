@@ -16,7 +16,13 @@ def main():
 
     # Mensaje inicial del sistema
     messages = [
-        {"role": "system", "content": "Eres un asistente útil que actúa como un sous chef."}
+        {
+            "role": "system",
+            "content": (
+                "Eres un asistente experto en programación, Linux y ciberseguridad. "
+                "Proporcionas respuestas cortas, el usuario es medio-avanzado. No explicar lo basico a menos que se pregunte."
+            )
+        }
     ]
 
     while True:
@@ -35,7 +41,7 @@ def main():
 
         try:
             response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
+                model="gpt-4o-mini",
                 messages=messages
             )
             assistant_message = response['choices'][0]['message']['content']
@@ -48,6 +54,5 @@ def main():
 if __name__ == "__main__":
     main()
 
-
-#si no funciona activar 
-#source amigo/bin/activate
+# Si no funciona, activa el entorno virtual:
+# source amigo/bin/activate
