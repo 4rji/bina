@@ -114,7 +114,7 @@ if [[ $omitir != true ]]; then
     git clone --depth 1 https://github.com/4rji/bina.git
     cd bina
     sudo mkdir -p /opt/4rji/bin
-    sudo cp -f binarios/* /opt/4rji/bin
+    sudo cp -rf binarios/* /opt/4rji/bin
     echo ""
     echo -e "${azul}binarios actualizados${reset}"
     todou
