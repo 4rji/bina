@@ -25,7 +25,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
-amigo               chatbot para openai, requiere API, se instala con amigoinst
+amigo               chatbot para openai, requiere API, se instala con amigoinst y amigoinst2
 apache9000          Crea una carpeta y habilita otro puerto para apache2 para otro servidor
 openboxinst         Instala openbox que es un escritorio ligero, tambien instala chromium
 pwdc                Copia el directorio actual con pwd y xclip
