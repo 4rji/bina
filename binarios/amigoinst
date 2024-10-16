@@ -1,50 +1,85 @@
 #!/bin/bash
 
-# Códigos de colores
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-RESET='\033[0m'
-
-printf "${BLUE}Starting the setup for Amigo chatbot...${RESET}\n"
-
-# Actualiza los paquetes e instala pip y virtualenv
-printf "${GREEN}Installing python3-pip...${RESET}\n"
-sudo apt-get install python3-pip -y > /dev/null 2>&1
-
-printf "${GREEN}Installing python3-virtualenv...${RESET}\n"
-sudo apt-get install python3-virtualenv -y > /dev/null 2>&1
-
-# Crea y activa el entorno virtual
-printf "${GREEN}Creating the virtual environment 'amigo'...${RESET}\n"
-virtualenv amigo > /dev/null 2>&1
-
-printf "${GREEN}Activating the virtual environment...${RESET}\n"
-source amigo/bin/activate
-
-# Instala la biblioteca openai
-printf "${GREEN}Installing the openai library...${RESET}\n"
-pip install openai==0.28 > /dev/null 2>&1
-
-# Solicita la clave de API y la establece como variable de entorno
-printf "${BLUE}Please enter your OpenAI API key:${RESET}\n"
-read api_key  # La clave se mostrará mientras la ingresas
-export OPENAI_API_KEY="$api_key"
-
-# Guarda la variable en el archivo .zshrc para que persista
-echo -e "\nexport OPENAI_API_KEY='$api_key'" >> ~/.zshrc
-
-# Indica al usuario que recargue .zshrc manualmente
-printf "${GREEN}If the API key is not working, please run 'source ~/.zshrc' in your Zsh shell or export OPENAI_API_KEY=''${RESET}\n"
-
-# Muestra las instrucciones finales
-printf "${BLUE}Setup complete! To start the Amigo chatbot, use the following commands:${RESET}\n"
-printf "${GREEN}source amigo/bin/activate${RESET}\n"
-printf "${GREEN}type: amigo${RESET}\n"
-printf "${BLUE}________________________________________________________________________${RESET}\n"
+echo ""
+echo -e "\033[32mStarting the setup for Amigo chatbot...\033[0m"
+echo ""
 
 
 
+# Lista de paquetes a instalar
+paquetes=("python3-pip" "python3-virtualenv")
 
-#si no funciona activar 
-#source amigo/bin/activate
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {
+    dpkg -l "$1" | grep -q '^ii'  
+}
 
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+sleep 1
+echo -e "\033[37m_________________________________________________________\033[0m"
+echo ""
+
+echo -e "\033[33mInstalled... Now execute\033[0m"
+echo -e "\033[34mvirtualenv amigo\033[0m"
+
+echo ""
+echo -e "\033[37m_________________________________________________________\033[0m"
+echo ""
+
+echo -e "\033[35msource amigo/bin/activate\033[0m"
+echo -e "\033[36mrun amigoinst2\033[0m"
+
+echo ""
+echo -e "\033[37m_________________________________________________________\033[0m"
+echo ""

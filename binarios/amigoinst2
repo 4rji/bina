@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Códigos de colores
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+RESET='\033[0m'
+
+printf "${BLUE}Starting the setup for Amigo chatbot...${RESET}\n"
+
+
+# Instala la biblioteca openai
+printf "${GREEN}Installing the openai library...${RESET}\n"
+pip install openai==0.28 > /dev/null 2>&1
+
+# Solicita la clave de API y la establece como variable de entorno
+printf "${BLUE}Please enter your OpenAI API key:${RESET}\n"
+read api_key  # La clave se mostrará mientras la ingresas
+export OPENAI_API_KEY="$api_key"
+
+# Guarda la variable en el archivo .zshrc para que persista
+echo -e "\nexport OPENAI_API_KEY='$api_key'" >> ~/.zshrc
+
+
+echo ""
+# Indica al usuario que recargue .zshrc manualmente
+printf "${GREEN}If the API key is not working, please run 'source ~/.zshrc' in your Zsh shell or export OPENAI_API_KEY=''${RESET}\n"
+
+echo ""
+# Muestra las instrucciones finales
+printf "${BLUE}Setup complete! To start the Amigo chatbot, use the following commands:${RESET}\n"
+
+printf "${GREEN}type: amigo${RESET}\n"
+printf "${BLUE}________________________________________________________________________${RESET}\n"
+
+
+
+
+#si no funciona activar 
+#source amigo/bin/activate
