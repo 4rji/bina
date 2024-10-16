@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import os
 import openai
 
@@ -47,3 +48,6 @@ def main():
 if __name__ == "__main__":
     main()
 
+
+#si no funciona activar 
+#source amigo/bin/activate
