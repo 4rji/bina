@@ -1,4 +1,5 @@
-from flask import Flask, render_template_string, url_for
+from flask import Flask, render_template_string, url_for, redirect
+import subprocess
 
 app = Flask(__name__)
 
@@ -7,6 +8,7 @@ html_template = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- El contenido del head permanece igual -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Network Dashboard</title>
@@ -51,13 +53,20 @@ html_template = """
             border-radius: 8px;
             box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
         }
+        /* Green letters <style> tag */
+        .instruction {
+            color: #90EE90;
+            font-size: 2.2em;
+            text-align: center;
+            margin-bottom: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="navbar">
         <h1>2024 State CCDC - Virtual Machines</h1>
     </div>
-    
+
     <div class="content">
         <div class="machine">
             <a href="/start/windows10">Windows 10</a>
@@ -87,9 +96,10 @@ html_template = """
             <a href="/start/fedora_webmail">Fedora 21 Webmail/WebApps</a>
         </div>
         <div class="image-container">
-        <img src="{{ url_for('static', filename='ccdc.png') }}" alt="CCDC Logo">
+            <img src="{{ url_for('static', filename='ccdc.png') }}" alt="CCDC Logo">
+        </div>
     </div>
-    </div>
+    <p class="instruction">"Click the machine name to start it."</p>
 </body>
 </html>
 """
@@ -100,12 +110,29 @@ def index():
 
 @app.route('/start/<machine>')
 def start_machine(machine):
-    # Placeholder command for virsh
-    # Esto necesitará ser reemplazado con el comando real para iniciar la máquina
-    command = f"virsh start {machine}"
-    # Simular la ejecución del comando
-    return f"Running: {command}", 200
+    # Mapear nombres de máquina a comandos específicos
+    machine_commands = {
+        'windows10': 'virsh start windows10',
+        'docker_remote': 'virsh start docker_remote',
+        'debian_dns_ntp': 'virsh start debian_dns_ntp',
+        'ubuntu_web': 'virsh start ubuntu_web',
+        'ad_dns_dhcp': 'virsh start ad_dns_dhcp',
+        'ubuntu_wkst': 'virsh start ubuntu_wkst',
+        'splunk': 'virsh start splunk',
+        'centos_ecomm': 'sudo virsh start centos7.0-2',
+        'fedora_webmail': 'virsh start fedora_webmail',
+    }
+
+    if machine in machine_commands:
+        command = machine_commands[machine]
+        try:
+            # Ejecutar el comando de forma segura
+            subprocess.Popen(command, shell=True)
+        except Exception as e:
+            pass  # Opcionalmente, puedes registrar el error en un log
+
+    # Redirigir de vuelta a la página principal sin mostrar ningún mensaje
+    return redirect('/')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=600)
-
