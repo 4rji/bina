@@ -73,12 +73,16 @@ echo ""
 echo -e "\033[33mInstalled... Now execute\033[0m"
 echo -e "\033[34mvirtualenv amigo\033[0m"
 
+
+echo -e "\033[35msource amigo/bin/activate\033[0m"
+
+
 echo ""
 echo -e "\033[37m_________________________________________________________\033[0m"
 echo ""
 
-echo -e "\033[35msource amigo/bin/activate\033[0m"
-echo -e "\033[36mrun amigoinst2\033[0m"
+
+echo -e "\033[36mrun amigoinst2 to continue\033[0m"
 
 echo ""
 echo -e "\033[37m_________________________________________________________\033[0m"
