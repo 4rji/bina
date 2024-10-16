@@ -1,0 +1,111 @@
+from flask import Flask, render_template_string, url_for
+
+app = Flask(__name__)
+
+# HTML template with hyperlinks for each machine, blue background, and an image after the title bar
+html_template = """
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Network Dashboard</title>
+    <style>
+        body {
+            background-color: #007BFF;
+            font-family: Arial, sans-serif;
+        }
+        .navbar {
+            background-color: #333;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        .content {
+            text-align: center;
+            margin-top: 50px;
+        }
+        .machine {
+            display: inline-block;
+            margin: 20px;
+            padding: 20px;
+            background-color: #FFF;
+            border-radius: 10px;
+            box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .machine a {
+            color: #007BFF;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .machine a:hover {
+            color: #0056b3;
+        }
+        .image-container {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <h1>2024 State CCDC - Virtual Machines</h1>
+    </div>
+    
+    <div class="content">
+        <div class="machine">
+            <a href="/start/windows10">Windows 10</a>
+        </div>
+        <div class="machine">
+            <a href="/start/docker_remote">2016 Docker/Remote</a>
+        </div>
+        <div class="machine">
+            <a href="/start/debian_dns_ntp">Debian 10 DNS/NTP</a>
+        </div>
+        <div class="machine">
+            <a href="/start/ubuntu_web">Ubuntu 18 Web</a>
+        </div>
+        <div class="machine">
+            <a href="/start/ad_dns_dhcp">2019 AD/DNS/DHCP</a>
+        </div>
+        <div class="machine">
+            <a href="/start/ubuntu_wkst">Ubuntu Workstation</a>
+        </div>
+        <div class="machine">
+            <a href="/start/splunk">Splunk 9.1.1</a>
+        </div>
+        <div class="machine">
+            <a href="/start/centos_ecomm">CentOS 7 E-comm</a>
+        </div>
+        <div class="machine">
+            <a href="/start/fedora_webmail">Fedora 21 Webmail/WebApps</a>
+        </div>
+        <div class="image-container">
+        <img src="{{ url_for('static', filename='ccdc.png') }}" alt="CCDC Logo">
+    </div>
+    </div>
+</body>
+</html>
+"""
+
+@app.route('/')
+def index():
+    return render_template_string(html_template)
+
+@app.route('/start/<machine>')
+def start_machine(machine):
+    # Placeholder command for virsh
+    # Esto necesitará ser reemplazado con el comando real para iniciar la máquina
+    command = f"virsh start {machine}"
+    # Simular la ejecución del comando
+    return f"Running: {command}", 200
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=600)
+
