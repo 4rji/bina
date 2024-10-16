@@ -1,0 +1,49 @@
+import os
+import openai
+
+# Configura la clave de API
+openai.api_key = os.getenv('OPENAI_API_KEY')  # Usa la variable de entorno
+# openai.api_key = 'tu_clave_de_api'  # Descomenta esta línea si prefieres hardcodear la clave
+
+def main():
+    # Códigos de colores ANSI
+    BLUE = '\033[94m'
+    GREEN = '\033[92m'
+    RESET = '\033[0m'
+
+    print("Bienvenido al chatbot. Escribe 'salir' para terminar.\n")
+
+    # Mensaje inicial del sistema
+    messages = [
+        {"role": "system", "content": "Eres un asistente útil que actúa como un sous chef."}
+    ]
+
+    while True:
+        user_input = input(f"{BLUE}si?: {RESET}")
+
+        if user_input.lower() == 'si?':
+            print(f"{GREEN}Amigo: Sí{RESET}\n")
+            messages.append({"role": "assistant", "content": "Sí"})
+            continue
+
+        if user_input.lower() == 'salir':
+            print(f"{GREEN}Amigo: ¡Hasta luego!{RESET}")
+            break
+
+        messages.append({"role": "user", "content": user_input})
+
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=messages
+            )
+            assistant_message = response['choices'][0]['message']['content']
+            print(f"{GREEN}Amigo: {assistant_message}{RESET}\n")
+            messages.append({"role": "assistant", "content": assistant_message})
+        except Exception as e:
+            print(f"Ocurrió un error: {e}")
+            break
+
+if __name__ == "__main__":
+    main()
+
