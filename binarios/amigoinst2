@@ -12,6 +12,30 @@ printf "${BLUE}Starting the setup for Amigo chatbot...${RESET}\n"
 printf "${GREEN}Installing the openai library...${RESET}\n"
 pip install openai==0.28 > /dev/null 2>&1
 
+
+# Solicita la clave de API y la establece como variable de entorno
+printf "${BLUE}Getting the API:${RESET}\n"
+
+
+# Crear una carpeta temporal
+temp_dir=$(mktemp -d)
+
+# Ruta del archivo original
+original_file="/opt/4rji/bin/apico.enc"
+
+# Copiar el archivo a la carpeta temporal
+cp "$original_file" "$temp_dir"
+
+# Navegar a la carpeta temporal
+cd "$temp_dir"
+
+# Aplicar el script 'secreto' al archivo
+secreto "apico.enc"
+
+# Mostrar el contenido del archivo resultante
+cat "apico"
+
+
 # Solicita la clave de API y la establece como variable de entorno
 printf "${BLUE}Please enter your OpenAI API key:${RESET}\n"
 read api_key  # La clave se mostrará mientras la ingresas
