@@ -12,7 +12,7 @@ def main():
     GREEN = '\033[92m'
     RESET = '\033[0m'
 
-    print("Amigo chatbot here, Welcome. What do you want?.\n")
+    print("Amigo: What do you want?.\n")
 
     # Mensaje inicial del sistema
     messages = [
@@ -26,10 +26,10 @@ def main():
     ]
 
     while True:
-        user_input = input(f"{BLUE}Si...: {RESET}")
+        user_input = input(f"{BLUE}>  {RESET}")
 
         if user_input.lower() == 'Si...':
-            print(f"{GREEN}Amigo: Sí{RESET}\n")
+            print(f"{GREEN}> {RESET}\n")
             messages.append({"role": "assistant", "content": "Sí"})
             continue
 
@@ -45,7 +45,7 @@ def main():
                 messages=messages
             )
             assistant_message = response['choices'][0]['message']['content']
-            print(f"{GREEN}Amigo: {assistant_message}{RESET}\n")
+            print(f"{GREEN}<  {assistant_message}{RESET}\n")
             messages.append({"role": "assistant", "content": assistant_message})
         except Exception as e:
             print(f"Ocurrió un error: {e}")
