@@ -12,29 +12,29 @@ def main():
     GREEN = '\033[92m'
     RESET = '\033[0m'
 
-    print("Bienvenido al chatbot. Escribe 'salir' para terminar.\n")
+    print("Amigo chatbot here, Welcome. What do you want?.\n")
 
     # Mensaje inicial del sistema
     messages = [
         {
             "role": "system",
             "content": (
-                "Eres un asistente experto en programación, Linux y ciberseguridad. "
+                "Eres un asistente experto en programación, Linux y ciberseguridad, pentesting, hackingtools, white hat hacker. "
                 "Proporcionas respuestas cortas, el usuario es medio-avanzado. No explicar lo basico a menos que se pregunte."
             )
         }
     ]
 
     while True:
-        user_input = input(f"{BLUE}si?: {RESET}")
+        user_input = input(f"{BLUE}Si...: {RESET}")
 
-        if user_input.lower() == 'si?':
+        if user_input.lower() == 'Si...':
             print(f"{GREEN}Amigo: Sí{RESET}\n")
             messages.append({"role": "assistant", "content": "Sí"})
             continue
 
-        if user_input.lower() == 'salir':
-            print(f"{GREEN}Amigo: ¡Hasta luego!{RESET}")
+        if user_input.lower() == 'Exit':
+            print(f"{GREEN}Amigo: ¡Adios!{RESET}")
             break
 
         messages.append({"role": "user", "content": user_input})
