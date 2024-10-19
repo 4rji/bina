@@ -1,48 +1,50 @@
 #!/bin/bash
 
-# Verificar si se pasó el argumento -h
-if [ "$1" == "-h" ]; then
-    echo ""
-    echo -e "\033[1;32mEl comando que este script ejecuta es:\033[0m"
-    echo ""
-    echo -e "\033[1;33mssh-copy-id -i ~/.ssh/id_ed25519_new.pub -p puerto_ssh usuario@IP  \033[0m"
-    echo ""
-    echo -e "\033[1;34m_________________________________________________________\033[0m"
-    echo ""
-
-    # Preguntar al usuario si desea continuar
-    read -n1 -p "Continuar el script?  Cancel [c]  " response
-    echo ""  # Añadir una nueva línea para la salida
-
-    # Convertir la respuesta a minúsculas y evaluar
-    case "$response" in
-    c|C) echo "Cancelando..." ; exit 1 ;;
-    *) echo "Continuando..." ;;
-    esac
-fi
-
-# Verificar si se proporcionó el argumento usuario@IP
+# Check if the user@IP argument was provided
 if [ -z "$1" ]; then
-    echo "Error: Debes proporcionar el argumento usuario@IP"
+    echo "Error: You must provide the user@IP argument"
     exit 1
 fi
 
-# Verificar si se proporcionó el argumento puerto_ssh
+# Check if the ssh_port argument was provided
 if [ -z "$2" ]; then
-    echo "Error: Debes proporcionar el argumento puerto_ssh"
+    echo "Error: You must provide the ssh_port argument"
     exit 1
 fi
 
-# Obtener el cliente en formato usuario@IP del argumento
-cliente="$1"
+# Get the user@IP from the argument
+client="$1"
 
-# Obtener el puerto SSH del segundo argumento
-puerto_ssh="$2"
+# Get the SSH port from the second argument
+ssh_port="$2"
 
-# Generar la nueva clave SSH
-ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519_new
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+# Display the command that will be executed
+echo ""
+echo -e "\033[1;32mThe command this script executes is to copy is:\033[0m"
+echo ""
+echo -e "\033[1;33mssh-copy-id -i ~/.ssh/id_ed25519.pub -p $ssh_port $client\033[0m"
+echo ""
 
-# Copiar la clave SSH al host
-ssh-copy-id -i ~/.ssh/id_ed25519_new.pub -p "$puerto_ssh" "$cliente"
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 
-echo -e "\033[1;34mClave copiada exitosamente a $cliente en el puerto $puerto_ssh\033[0m"
+# Generate the new SSH key
+echo -e "\033[1;32mTo generate the ssh-keygen: \033[0m"
+echo -e "\033[1;32mssh-keygen -t ed25519 -f ~/.ssh/id_ed25519\033[0m"
+echo ""
+ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+# Add a space before the next command execution
+echo ""
+
+# Copy the SSH key to the host
+echo -e "\033[1;32mExecuting: \033[0m"
+echo -e "\033[1;32mssh-copy-id -i ~/.ssh/id_ed25519.pub -p $ssh_port $client\033[0m"
+echo ""
+ssh-copy-id -i ~/.ssh/id_ed25519.pub -p "$ssh_port" "$client"
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+# Final message
+echo ""
+echo -e "\033[1;34mKey successfully copied to $client on port $ssh_port\033[0m"
