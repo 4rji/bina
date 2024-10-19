@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# Salir inmediatamente si un comando falla
+set -e
+
+# Función para mostrar mensajes
+echo_info() {
+    echo -e "\e[32m[INFO]\e[0m $1"
+}
+
+echo_error() {
+    echo -e "\e[31m[ERROR]\e[0m $1" >&2
+}
+
+# Actualizar la lista de paquetes
+echo_info "Actualizando la lista de paquetes..."
+sudo apt update
+
+# Instalar las dependencias necesarias
+echo_info "Instalando dependencias..."
+sudo apt install -y build-essential libssl-dev git yasm pkg-config libgmp-dev libpcap-dev
+
+# Definir variables
+REPO_URL="https://github.com/openwall/john"
+BRANCH="bleeding-jumbo"
+DIR_NAME="john-jumbo"
+DEST_DIR="/opt/4rji/"
+
+# Clonar el repositorio
+if [ -d "$DIR_NAME" ]; then
+    echo_error "El directorio '$DIR_NAME' ya existe. Por favor, elimínalo o renómbralo antes de continuar."
+    exit 1
+fi
+
+echo_info "Clonando el repositorio de John the Ripper..."
+git clone "$REPO_URL" -b "$BRANCH" "$DIR_NAME"
+
+# Navegar al directorio de compilación
+cd "$DIR_NAME/src"
+
+# Configurar y compilar
+echo_info "Configurando el proyecto..."
+./configure
+
+echo_info "Limpiando compilaciones anteriores..."
+make -s clean
+
+echo_info "Compilando el proyecto con 4 núcleos..."
+make -sj4
+
+# Listar dispositivos OpenCL
+echo_info "Listando dispositivos OpenCL disponibles..."
+./john --list=opencl-devices
+
+# Volver al directorio raíz del proyecto
+cd ../..
+
+# Crear el directorio de destino si no existe
+echo_info "Creando el directorio de destino en '$DEST_DIR' si no existe..."
+sudo mkdir -p "$DEST_DIR"
+
+# Mover el directorio al destino
+echo_info "Moviendo '$DIR_NAME' a '$DEST_DIR'..."
+sudo mv "$DIR_NAME" "$DEST_DIR"
+
+echo_info "Proceso completado exitosamente. El directorio se ha movido a '$DEST_DIR'."
+
+echo ""
+echo "Move a /opt/4rji/ manualmente"
+echo "sudo mv john-jumbo /opt/4rji"
+echo "cd /opt/4rji/john-jumbo/run"
+echo "./john --list=opencl-devices"
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo "si funciona entonces crear un alias a ese comando con alis"
+echo "ruta john"
+echo "copiar la ruta y pegar en el alis script"
+echo "alis"
+
+
+
+
+#sudo apt install -y build-essential libssl-dev git yasm pkg-config libgmp-dev libpcap-dev
+
+
+#git clone https://github.com/openwall/john -b bleeding-jumbo john-jumbo
+#cd john-jumbo/src
+#./configure && make -s clean && make -sj4
+
+#john --list=opencl-devices
