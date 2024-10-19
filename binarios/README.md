@@ -14,7 +14,7 @@ rx6800              Instala el archivo de configuracion en Arch para que funcion
 
 ###------CCDC
 redhavi             Instala vulnerabilidades en linux.
-
+ftpinst             Instala ftp
 
 
 ###------hardware stuff
