@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Verifica si el usuario es root
+if [[ $EUID -ne 0 ]]; then
+   echo "Este script debe ser ejecutado como root."
+   exit 1
+fi
+
+# Actualiza los repositorios
+apt-get update
+
+# Instala el paquete ntp si no está instalado
+if ! dpkg -s ntp >/dev/null 2>&1; then
+    apt-get install -y ntp
+fi
+
+# Realiza una copia de seguridad del archivo de configuración original
+cp /etc/ntp.conf /etc/ntp.conf.backup
+
+# Configura la lista de servidores NTP
+cat <<EOT > /etc/ntp.conf
+# Configuración de NTP
+
+# Servidores NTP oficiales de NIST
+server time.nist.gov iburst
+server time-a.nist.gov iburst
+server time-b.nist.gov iburst
+server time-c.nist.gov iburst
+server time-d.nist.gov iburst
+
+# Restricciones de acceso
+restrict default nomodify notrap nopeer noquery
+restrict 127.0.0.1
+restrict ::1
+
+# Otras configuraciones según sea necesario
+EOT
+
+# Reinicia el servicio NTP para aplicar los cambios
+systemctl restart ntp
+
+echo "Servidor NTP configurado exitosamente."
