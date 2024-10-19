@@ -1,14 +1,28 @@
 #!/bin/bash
 
+# Define colors
+COLOR_RESET="\033[0m"
+COLOR_LINE="\033[1;37m"      # Bright white for separator lines
+COLOR_INFO="\033[1;34m"      # Blue for informational messages
+COLOR_WARNING="\033[1;31m"   # Red for warnings and errors
+COLOR_COMMAND="\033[1;33m"   # Yellow for commands
+COLOR_SUCCESS="\033[1;32m"   # Green for success messages
+
+# Print separator line
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+
+# Add a line at the beginning to indicate the start of permission verification
+echo -e "\n${COLOR_INFO}Verifying SSH key permissions...${COLOR_RESET}\n"
+
 # Check if the user@IP argument was provided
 if [ -z "$1" ]; then
-    echo "Error: You must provide the user@IP argument"
+    echo -e "${COLOR_WARNING}Error: You must provide the user@IP argument${COLOR_RESET}"
     exit 1
 fi
 
 # Check if the ssh_port argument was provided
 if [ -z "$2" ]; then
-    echo "Error: You must provide the ssh_port argument"
+    echo -e "${COLOR_WARNING}Error: You must provide the ssh_port argument${COLOR_RESET}"
     exit 1
 fi
 
@@ -18,33 +32,77 @@ client="$1"
 # Get the SSH port from the second argument
 ssh_port="$2"
 
-echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
-# Display the command that will be executed
+# Function to check permissions of a given file
+check_permissions() {
+    local file="$1"
+    local expected_perm="$2"
+    local description="$3"
+
+    if [ -f "$file" ]; then
+        echo -e "\n${COLOR_INFO}Verifying permissions for $description:${COLOR_RESET}"
+        perm=$(stat -c "%a" "$file")
+        echo -e "${COLOR_COMMAND}stat -c \"%a\" $file${COLOR_RESET}"
+        
+        if [ "$perm" != "$expected_perm" ]; then
+            echo -e "${COLOR_WARNING}Warning: Incorrect permissions on $description ($perm).${COLOR_RESET}"
+            
+            echo ""
+            echo -e "${COLOR_INFO}To fix the permissions, run the following command:${COLOR_RESET}"
+            echo -e "${COLOR_COMMAND}chmod $expected_perm $file${COLOR_RESET}"
+        else
+            echo -e "${COLOR_SUCCESS}Permissions for $description are correct ($perm).${COLOR_RESET}"
+        fi
+    else
+        echo -e "${COLOR_WARNING}Error: $description not found at $file${COLOR_RESET}"
+        exit 1
+    fi
+}
+
+# Paths to the SSH keys
+private_key=~/.ssh/id_ed25519
+public_key=~/.ssh/id_ed25519.pub
+
+# Check permissions for the private key
+check_permissions "$private_key" "600" "SSH ** PRIVATE ** key"
+
+# Print separator line
+echo -e "\n${COLOR_LINE}_________________________________________________________${COLOR_RESET}\n"
+
+# Check permissions for the public key
+check_permissions "$public_key" "644" "SSH ** PUBLIC ** key"
+
+# Print separator lines
+echo -e "\n\033[1;32m_________________________________________________________\033[0m"
+echo -e "\n\033[1;32m_________________________________________________________\033[0m"
+
+# Show the command that will be executed
 echo ""
-echo -e "\033[1;32mThe command this script executes is to copy is:\033[0m"
+echo -e "${COLOR_INFO}The command this script executes to copy the key is:${COLOR_RESET}"
 echo ""
-echo -e "\033[1;33mssh-copy-id -i ~/.ssh/id_ed25519.pub -p $ssh_port $client\033[0m"
+echo -e "${COLOR_COMMAND}ssh-copy-id -i ~/.ssh/id_ed25519.pub -p $ssh_port $client${COLOR_RESET}"
 echo ""
 
-echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo -e "\n${COLOR_LINE}_________________________________________________________${COLOR_RESET}\n"
 
 # Generate the new SSH key
-echo -e "\033[1;32mTo generate the ssh-keygen: \033[0m"
-echo -e "\033[1;32mssh-keygen -t ed25519 -f ~/.ssh/id_ed25519\033[0m"
+echo -e "${COLOR_INFO}To generate the SSH key, run:${COLOR_RESET}"
+echo -e "${COLOR_COMMAND}ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519${COLOR_RESET}"
 echo ""
 ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519
 
-echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo -e "\n${COLOR_LINE}_________________________________________________________${COLOR_RESET}\n"
+
 # Add a space before the next command execution
 echo ""
 
 # Copy the SSH key to the host
-echo -e "\033[1;32mExecuting: \033[0m"
-echo -e "\033[1;32mssh-copy-id -i ~/.ssh/id_ed25519.pub -p $ssh_port $client\033[0m"
+echo -e "${COLOR_INFO}Executing:${COLOR_RESET}"
+echo -e "${COLOR_COMMAND}ssh-copy-id -i ~/.ssh/id_ed25519.pub -p $ssh_port $client${COLOR_RESET}"
 echo ""
 ssh-copy-id -i ~/.ssh/id_ed25519.pub -p "$ssh_port" "$client"
 
-echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo -e "\n${COLOR_LINE}_________________________________________________________${COLOR_RESET}\n"
+
 # Final message
 echo ""
-echo -e "\033[1;34mKey successfully copied to $client on port $ssh_port\033[0m"
+echo -e "${COLOR_SUCCESS}Key successfully copied to $client on port $ssh_port${COLOR_RESET}"
