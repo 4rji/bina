@@ -220,7 +220,8 @@ itcpd               Enmascara ssh o cualquier puerto con tcpd, version ssh nmap 
 
 ssh80               Conecta con ssh -L para redirijir trafico desde una maquina a otra, a browser 
 fixsshhost          Seguido de la ip, para borrar la ip del localhost cuando se duplica	
-copyssh             copia mui clave a una maquina remota
+cssh                copia mui clave a una maquina remota
+ccssh               Version para M1 mac de cssh
 googlessh           Instala la authenticacion de google para ssh                                               
 fixssh              arregla cuando la clave ssh no se conecta porque hay un duplicado.                 
 sshconf             Hace un archivo .ssh/config para conectarse por medio de jump ejemplo: ssh maquina-final
