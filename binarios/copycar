@@ -1,4 +1,6 @@
 #!/bin/bash
+
+#creo copia una carpeta. 
 echo ""
 echo "_________________________________________________________"
 echo ""
