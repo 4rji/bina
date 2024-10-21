@@ -334,7 +334,7 @@ qemudebian          Descarga ISO, agrega e inicia instalador debian :)
 qemuq2              Descarga linux VM qcow2, agrega e inicia una maquina debian/kali opciones
 
 #Instalaciones         
-cowrie              Instala docker cowrie y tambien detiene con -t todos los contenedores                                                         
+cowrie              Instala docker cowrie y  detiene con -t todos los contenedores, ssh honeypot                                                     
 lockfancyinst       Bloquear fancy para pantalla, alias lockf
 instsublime         Instala sublime en kali
 instgithub          Instala github desktop en kali
