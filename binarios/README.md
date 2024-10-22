@@ -16,7 +16,8 @@ rx6800              Instala el archivo de configuracion en Arch para que funcion
 redhavi             Instala vulnerabilidades en linux.
 ftpinst             Instala ftp
 ntpinst             Para instalar npt
-
+ppt
+mibebemata
 
 
 ###------hardware stuff
