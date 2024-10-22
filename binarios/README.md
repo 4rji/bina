@@ -19,6 +19,9 @@ ntpinst             Para instalar npt
 ppt
 mibebemata
 
+#starlink
+aprender            Lista de lo que tengo que aprender.
+
 
 ###------hardware stuff
 bateriamonitor      Muestra los watts y el estado de carga en kali
