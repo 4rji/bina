@@ -1,8 +1,5 @@
 #!/bin/bash
 
-
-#!/bin/bash
-
 # Lista de paquetes a instalar
 paquetes=( "docker.io")
 
