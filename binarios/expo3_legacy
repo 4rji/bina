@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/bin/bash
 
 echo "Ingrese la dirección IP:"
 read ip_address
