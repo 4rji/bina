@@ -85,16 +85,19 @@ else
 fi
 
 
-
 #!/bin/bash
 
-read -p "Do you want to start the tunnel in Docker? (yes/no): " response
+read -p "Do you want to start the tunnel in Docker? (Y/n): " response
+response=${response:-Y}
 
-if [[ "$response" == "yes" ]]; then
-    docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token eyJhIjoiY2FhNDc0NGQ1ZjZiN2YwNmY0OGIyMGM1NmNkYzA0MmUiLCJ0IjoiZDkyYmMwMmEtYTZiYi00YzY2LTg0MzYtMTlkNzdjNmNjOThiIiwicyI6IlpHWTFNek14T0RRdE5qSTNOeTAwT0dNMkxXSmpNemt0WlRSbE0yTmhZMlExTVRsa125
+if [[ "$response" =~ ^[Yy]$ ]]; then
+
+    docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token eyJhIjoiY2FhNDc0NGQ1ZjZiN2YwNmY0OGIyMGM1NmNkYzA0MmUiLCJ0IjoiZDkyYmMwMmEtYTZiYi00YzY2LTg0MzYtMTlkNzdjNmNjOThiIiwicyI6Ik1tUXpObVk1TW1ZdFptTXdaUzAwTnpka0xXRTFNVEF0TkdRME9UY3dNbUpqWkRKa12o
+
 else
     echo "Tunnel start aborted."
 fi
+
 
 
 
