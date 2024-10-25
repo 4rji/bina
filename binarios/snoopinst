@@ -1,0 +1,116 @@
+#!/bin/bash
+echo "https://github.com/a2o/snoopy/blob/master/doc/install-from-repo.md"
+
+# Function to display the menu
+show_menu() {
+    echo "Which version would you like to install?"
+    echo ""
+    echo "1) Ubuntu 24.04 LTS (Noble Numbat)"
+    echo "2) Ubuntu 22.04 LTS (Jammy Jellyfish)"
+    echo "3) Ubuntu 20.04 LTS (Focal Fossa)"
+    echo "4) Debian 12 (Bookworm)"
+    echo "5) Debian 11 (Bullseye)"
+    echo "6) Debian 10 (Buster)"
+    echo "7) CentOS 9 Stream"
+    echo "8) CentOS 8 Stream"
+    echo ""
+    read -p "Enter the number corresponding to your choice: " choice
+}
+
+# Function to check if the script is run as root
+check_root() {
+    if [ "$EUID" -ne 0 ]; then
+        echo "Error: This script must be run as root. Please run with sudo or as root user."
+        exit 1
+    fi
+}
+
+# Function to install Snoopy based on the selected option
+install_snoopy() {
+    case $1 in
+        1)
+            # Ubuntu 24.04 LTS
+            curl https://a2o.github.io/snoopy-packages/snoopy-packages-key.pub | apt-key add - &&
+            echo "deb https://a2o.github.io/snoopy-packages/repo/ubuntu noble stable" > /etc/apt/sources.list.d/snoopy-stable.list &&
+            apt update &&
+            apt install -y snoopy
+            ;;
+        2)
+            # Ubuntu 22.04 LTS
+            curl https://a2o.github.io/snoopy-packages/snoopy-packages-key.pub | apt-key add - &&
+            echo "deb https://a2o.github.io/snoopy-packages/repo/ubuntu jammy stable" > /etc/apt/sources.list.d/snoopy-stable.list &&
+            apt update &&
+            apt install -y snoopy
+            ;;
+        3)
+            # Ubuntu 20.04 LTS
+            curl https://a2o.github.io/snoopy-packages/snoopy-packages-key.pub | apt-key add - &&
+            echo "deb https://a2o.github.io/snoopy-packages/repo/ubuntu focal stable" > /etc/apt/sources.list.d/snoopy-stable.list &&
+            apt update &&
+            apt install -y snoopy
+            ;;
+        4)
+            # Debian 12
+            curl https://a2o.github.io/snoopy-packages/snoopy-packages-key.pub | apt-key add - &&
+            echo "deb https://a2o.github.io/snoopy-packages/repo/debian bookworm stable" > /etc/apt/sources.list.d/snoopy-stable.list &&
+            apt update &&
+            apt install -y snoopy
+            ;;
+        5)
+            # Debian 11
+            curl https://a2o.github.io/snoopy-packages/snoopy-packages-key.pub | apt-key add - &&
+            echo "deb https://a2o.github.io/snoopy-packages/repo/debian bullseye stable" > /etc/apt/sources.list.d/snoopy-stable.list &&
+            apt update &&
+            apt install -y snoopy
+            ;;
+        6)
+            # Debian 10
+            curl https://a2o.github.io/snoopy-packages/snoopy-packages-key.pub | apt-key add - &&
+            echo "deb https://a2o.github.io/snoopy-packages/repo/debian buster stable" > /etc/apt/sources.list.d/snoopy-stable.list &&
+            apt update &&
+            apt install -y snoopy
+            ;;
+        7)
+            # CentOS 9 Stream
+            curl -o snoopy-packages-key.pub https://a2o.github.io/snoopy-packages/snoopy-packages-key.pub &&
+            rpm --import snoopy-packages-key.pub &&
+            echo "[snoopy-stable]
+name=Snoopy Upstream Stable Repository
+baseurl=https://a2o.github.io/snoopy-packages/repo/centos/9/stable/
+enabled=1
+gpgcheck=1
+" > /etc/yum.repos.d/snoopy-stable.repo &&
+            yum install -y snoopy
+            ;;
+        8)
+            # CentOS 8 Stream
+            curl -o snoopy-packages-key.pub https://a2o.github.io/snoopy-packages/snoopy-packages-key.pub &&
+            rpm --import snoopy-packages-key.pub &&
+            echo "[snoopy-stable]
+name=Snoopy Upstream Stable Repository
+baseurl=https://a2o.github.io/snoopy-packages/repo/centos/8/stable/
+enabled=1
+gpgcheck=1
+" > /etc/yum.repos.d/snoopy-stable.repo &&
+            yum install -y snoopy
+            ;;
+        *)
+            echo "Invalid selection. Please run the script again and choose a valid option."
+            exit 1
+            ;;
+    esac
+}
+
+# Main script execution
+check_root
+show_menu
+
+install_snoopy "$choice"
+
+echo ""
+echo "Installation completed successfully."
+echo "To see the logs visit:"
+echo "sudo tail -f /var/log/auth.log"
+
+exit 0
+

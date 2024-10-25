@@ -17,6 +17,9 @@ redhavi             Instala vulnerabilidades en linux.
 ftpinst             Instala ftp
 ntpinst             Para instalar npt
 fshell              busca procesos, muestra puerto, para shells, usa ps y ss
+newprocess          Nuevos procesos en linux
+snoop               Hace un awk a los logs de snoopy
+snoopinst           Instala snoopy
 ppt
 mibebemata
 
