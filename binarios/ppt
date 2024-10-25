@@ -103,10 +103,11 @@ preguntar_y_ejecutar_ps() {
     echo ""
     echo "_________________________________________________________"
     echo ""
-    echo -e "\033[34mComando a ejecutar: ps -eo user,comm,pid\033[0m"
+    echo -e "\033[34mComando a ejecutar: ❯ ps -fae --forest \033[0m"
     read -n1 -p $'\033[33m¿Ejecutar procesos? [Enter/c]: \033[0m' respuesta
     if [[ $respuesta != "c" ]]; then
-        ps -eo user,comm,pid
+        ps -fae --forest 
+	#ps -eo user,comm,pid
     fi
 }
 
