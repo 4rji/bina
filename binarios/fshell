@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Crear un archivo temporal
+tmp_file=$(mktemp)
+
+# Capturar la lista de procesos en el archivo temporal
+ps -eo pid,ppid,tty,stat,time,cmd --forest > "$tmp_file"
+
+# Mostrar el contenido del archivo temporal usando batcat
+batcat --paging=never -l rb "$tmp_file"
+
+# Eliminar el archivo temporal
+rm "$tmp_file"
+
+echo "Ejecutando"
+echo "ps -fae --forest"
+
+# Preguntar al usuario por el número del proceso
+read -p "Introduce el número del proceso que deseas inspeccionar: " pid
+
+# Verificar si el PID ingresado es un número válido
+if ! [[ "$pid" =~ ^[0-9]+$ ]]; then
+    echo "Error: Por favor, introduce un número de proceso válido."
+    exit 1
+fi
+
+# Verificar si el directorio /proc/<pid> existe
+if [ ! -d "/proc/$pid" ]; then
+    echo "Error: No existe el proceso con PID $pid."
+    exit 1
+fi
+
+# Ejecutar el comando para mostrar el cwd del proceso
+echo "Mostrando el cwd para el proceso $pid:"
+ls -la /proc/"$pid" | grep cwd
+echo ""
+echo "Con sudo:"
+sudo ls -la /proc/"$pid" | grep cwd
+
+# Ejecutar el comando ss para mostrar las conexiones asociadas al PID
+echo ""
+echo "Mostrando las conexiones de red para el proceso $pid:"
+ss -anp | grep "$pid"
+
+# Opcional: Verificar si el comando ss encontró alguna conexión
+if ! ss -anp | grep -q "$pid"; then
+    echo "No se encontraron conexiones de red para el PID $pid."
+fi
