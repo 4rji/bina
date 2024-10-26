@@ -96,12 +96,15 @@ else
     fi
 fi
 
+# Solicita la clave adicional al usuario
+read -p "Ingrese la clave para agregar al token: " additional_key
+
 # Preguntar al usuario si desea iniciar el túnel en Docker
 read -p "Do you want to start the tunnel in Docker? (Y/n): " response
 response=${response:-Y}
 
 if [[ "$response" =~ ^[Yy]$ ]]; then
-    docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token eyJhIjoiY2FhNDc0NGQ1ZjZiN2YwNmY0OGIyMGM1NmNkYzA0MmUiLCJ0IjoiZDkyYmMwMmEtYTZiYi00YzY2LTg0MzYtMTlkNzdjNmNjOThiIiwicyI6Ik1tUXpObVk1TW1ZdFptTXdaUzAwTnpka0xXRTFNVEF0TkdRME9UY3dNbUpqWkRKa12o
+    docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token "eyJhIjoiY2FhNDc0NGQ1ZjZiN2YwNmY0OGIyMGM1NmNkYzA0MmUiLCJ0IjoiZDkyYmMwMmEtYTZiYi00YzY2LTg0MzYtMTlkNzdjNmNjOThiIiwicyI6Ik1tUXpObVk1TW1ZdFptTXdaUzAwTnpka0xXRTFNVEF0TkdRME9UY3dNbUpqWkRKa${additional_key}"
 else
     echo "Tunnel start aborted."
 fi

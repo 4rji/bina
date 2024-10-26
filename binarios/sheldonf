@@ -4,9 +4,12 @@ import sys
 import socket
 
 if len(sys.argv) != 4:
-    print("\033[91mUsage: script.py <IP> <port> <-c command> <file>\033[0m")
+    print("\033[91mUsage: script.py <IP> <port> <file>\033[0m")
     print("\033[95mOn the other machine, run: nc -l -p 1235 > file\033[0m")
-    print("\033[92mto send commands run: nc -l -p 1234 | /bin/bash\033[0m")
+    print("\033[92mTo execute commands, place the command in a file and run\033[0m")
+    print("\033[92mnc -l -p 1234 | /bin/bash\033[0m")
+
+
     
 
 
