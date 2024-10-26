@@ -78,6 +78,32 @@ for paquete in "${paquetes[@]}"; do
     esac
 done
 
+
+
+
+
+# Pregunta al usuario si quiere arreglar los permisos
+read -p "¿Quieres arreglar los permisos? (s/enter continuar): " respuesta
+
+# Si la respuesta es 's' o 'S', ejecuta los comandos
+if [[ $respuesta == "s" || $respuesta == "S" ]]; then
+    echo "Arreglando permisos..."
+
+    # Ejecuta los comandos para arreglar permisos
+    newgrp docker
+    ls -l /var/run/docker.sock
+    sudo chown root:docker /var/run/docker.sock
+    sudo systemctl restart docker
+
+    echo "Permisos arreglados."
+else
+    echo "No se han realizado cambios."
+fi
+
+
+
+
+
 # Verificar si el servicio de Docker está activo o inactivo
 docker_service_status=$(systemctl is-active docker)
 
