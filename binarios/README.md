@@ -417,6 +417,7 @@ agenteproxy         No lo descarga, lo descomprime y conecta al servidor
 proxyserver         proxyloco ya descargado, como binario, solo ejecutarlo: proxyserver -selfcert
 torperlnipe         Script para mandar trafico por tor, no funciona aun.
 sheldon             reverse shell easy, pide todos los datos preguntas
+sheldon1            reverse shell ,ejecuta sheldon1 $ip y listo, solo presiona enter
 sheldonf            Usa sheldon para enviar un archivo, ejecutar sheldonf help
 sheldono            while loop con ip integrada a servidor nube
 sheldonos           Sin el loop, el mismo que arriba
