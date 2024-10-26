@@ -1,0 +1,123 @@
+#!/bin/bash
+
+# *** Initial Configuration ***
+
+# List of shell types to manage
+SHELL_TYPES=("bash" "zsh" "ksh" "sh")
+
+# Get the username of the user who invoked sudo, or the current user if not using sudo
+CURRENT_USER=${SUDO_USER:-$(whoami)}
+
+# Get the PIDs of the shells belonging to the current user
+CURRENT_USER_SHELL_PIDS=()
+for shell in "${SHELL_TYPES[@]}"; do
+    # Get PIDs of shells for CURRENT_USER
+    pids=$(pgrep -u "$CURRENT_USER" -x "$shell")
+    if [ -n "$pids" ]; then
+        CURRENT_USER_SHELL_PIDS+=($pids)
+    fi
+done
+
+echo "--------------------------------------------"
+echo "       Shell Session Management Script     "
+echo "--------------------------------------------"
+echo "Current user: $CURRENT_USER"
+echo "Shell types to manage: ${SHELL_TYPES[*]}"
+echo "Searching and terminating other shell sessions..."
+echo
+
+# *** Collect Users to Keep Shells For ***
+
+# Initialize an array to store usernames whose shells should be kept
+KEEP_USERS=()
+
+# Function to prompt the user with a default option
+prompt_yes_no() {
+    local prompt_message=$1
+    local default_option=$2
+    local user_input
+
+    if [[ "$default_option" == "Y" ]]; then
+        read -p "$prompt_message [Y/n]: " user_input
+        user_input=${user_input:-Y}
+    elif [[ "$default_option" == "N" ]]; then
+        read -p "$prompt_message [y/N]: " user_input
+        user_input=${user_input:-N}
+    fi
+
+    echo "$user_input"
+}
+
+# 1. Prompt to keep the current user's shell
+response=$(prompt_yes_no "Keep current user's shell" "Y")
+if [[ "$response" =~ ^[Yy]$ ]]; then
+    KEEP_USERS+=("$CURRENT_USER")
+fi
+
+# 2. Prompt to keep root user's shell
+response=$(prompt_yes_no "Keep root user's shell" "Y")
+if [[ "$response" =~ ^[Yy]$ ]]; then
+    KEEP_USERS+=("root")
+fi
+
+# 3. Prompt to keep another user's shell
+response=$(prompt_yes_no "Keep another user's shell" "N")
+if [[ "$response" =~ ^[Yy]$ ]]; then
+    read -p "Enter the username to keep shell: " other_user
+    # Validate that the user exists on the system
+    if id "$other_user" &>/dev/null; then
+        KEEP_USERS+=("$other_user")
+    else
+        echo "User '$other_user' does not exist. Skipping."
+    fi
+fi
+
+# Remove duplicate usernames, if any
+KEEP_USERS=($(echo "${KEEP_USERS[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+
+echo
+echo "Users to keep shells for: ${KEEP_USERS[*]}"
+echo "--------------------------------------------"
+echo
+
+# *** Identification and Termination of Other Shells ***
+
+for shell in "${SHELL_TYPES[@]}"; do
+    # List all PIDs of the specified shell type
+    shell_pids=$(pgrep -x "$shell")
+
+    if [[ -z "$shell_pids" ]]; then
+        echo "No active '$shell' sessions found to terminate."
+        continue
+    fi
+
+    for pid in $shell_pids; do
+        # Get the username of the process owner
+        proc_user=$(ps -p "$pid" -o user= | tr -d ' ')
+
+        # Check if the process owner is in the KEEP_USERS list
+        if [[ " ${KEEP_USERS[@]} " =~ " ${proc_user} " ]]; then
+            # Check if the PID is in CURRENT_USER_SHELL_PIDS (don't kill current user's shells)
+            if [[ "$proc_user" == "$CURRENT_USER" ]] && [[ " ${CURRENT_USER_SHELL_PIDS[@]} " =~ " $pid " ]]; then
+                echo "Keeping '$shell' with PID: $pid (User: $proc_user) - current user's shell"
+                continue
+            fi
+            echo "Keeping '$shell' with PID: $pid (User: $proc_user)"
+            continue
+        fi
+
+        echo "Terminating '$shell' with PID: $pid (User: $proc_user)"
+        kill -9 "$pid" 2>/dev/null
+
+        # Verify if the process was terminated
+        if kill -0 "$pid" 2>/dev/null; then
+            echo "Failed to terminate process with PID: $pid"
+        else
+            echo "Process with PID $pid terminated successfully."
+        fi
+    done
+    echo
+done
+
+echo "Shell session management completed."
+

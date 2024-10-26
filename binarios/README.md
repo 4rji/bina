@@ -16,12 +16,15 @@ rx6800              Instala el archivo de configuracion en Arch para que funcion
 redhavi             Instala vulnerabilidades en linux.
 ftpinst             Instala ftp
 ntpinst             Para instalar npt
-fshell              busca procesos, muestra puerto, para shells, usa ps y ss
+fshells             busca procesos, muestra puerto, para shells, usa ps y ss
+kshells             Mata shells en el sistema
 newprocess          Nuevos procesos en linux
 snoop               Hace un awk a los logs de snoopy
 snoopinst           Instala snoopy
 ppt
 mibebemata
+psss                Escanea por conexiones lsof netstat, mi bebe mibebe
+pssc                Mismo que psss pero este las cierra en 12 segundos automaticamente mibebe
 
 #starlink
 aprender            Lista de lo que tengo que aprender.
@@ -421,8 +424,8 @@ sheldonos           Sin el loop, el mismo que arriba
 sheldonsafe         Otra version de sheldono, de el curso python
 nala                Esconde cualquier proceso, como sheldon
 simbo               Es el CTL Trabaja con sheldono, y nala para esconderme sheldongo
-psss                Escanea por conexiones lsof netstat, mi bebe
-pssc                Mismo que psss pero este las cierra en 12 segundos automaticamente
+psss                Escanea por conexiones lsof netstat, mi bebe mibebe
+pssc                Mismo que psss pero este las cierra en 12 segundos automaticamente mibebe
 mapa                Busca un proceso despues del script y lo mata ps aux
 ippsec              Script de ippsec de ssh, aun no lo pruebo
 pythonroot          Usa getcap para tener una consola interactiva en python
