@@ -82,26 +82,6 @@ done
 
 
 
-# Pregunta al usuario si quiere arreglar los permisos
-read -p "¿Quieres arreglar los permisos? (s/enter continuar): " respuesta
-
-# Si la respuesta es 's' o 'S', ejecuta los comandos
-if [[ $respuesta == "s" || $respuesta == "S" ]]; then
-    echo "Arreglando permisos..."
-
-    # Ejecuta los comandos para arreglar permisos
-    newgrp docker
-    ls -l /var/run/docker.sock
-    sudo chown root:docker /var/run/docker.sock
-    sudo systemctl restart docker
-
-    echo "Permisos arreglados."
-else
-    echo "No se han realizado cambios."
-fi
-
-
-
 
 
 # Verificar si el servicio de Docker está activo o inactivo
@@ -130,7 +110,7 @@ read -p "Do you want to start the tunnel in Docker? (Y/n): " response
 response=${response:-Y}
 
 if [[ "$response" =~ ^[Yy]$ ]]; then
-    docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token "eyJhIjoiY2FhNDc0NGQ1ZjZiN2YwNmY0OGIyMGM1NmNkYzA0MmUiLCJ0IjoiZDkyYmMwMmEtYTZiYi00YzY2LTg0MzYtMTlkNzdjNmNjOThiIiwicyI6Ik1tUXpObVk1TW1ZdFptTXdaUzAwTnpka0xXRTFNVEF0TkdRME9UY3dNbUpqWkRKa${additional_key}"
+    sudo docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token "eyJhIjoiY2FhNDc0NGQ1ZjZiN2YwNmY0OGIyMGM1NmNkYzA0MmUiLCJ0IjoiZDkyYmMwMmEtYTZiYi00YzY2LTg0MzYtMTlkNzdjNmNjOThiIiwicyI6Ik1tUXpObVk1TW1ZdFptTXdaUzAwTnpka0xXRTFNVEF0TkdRME9UY3dNbUpqWkRKa${additional_key}"
 else
     echo "Tunnel start aborted."
 fi
