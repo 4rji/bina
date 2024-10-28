@@ -45,7 +45,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 ###------utilidades 
 amigo2inst          Instala ollama para linux, y descarga un modelo deepseek-coder-v2
 amigo               chatbot para openai, requiere API, se instala con amigoinst y amigoinst2
-apache9000          Crea una carpeta y habilita otro puerto para apache2 para otro servidor
+apache9000          Modifica la configuracion de apache para correr en el puerto 80 y otro puerto
 openboxinst         Instala openbox que es un escritorio ligero, tambien instala chromium
 pwdc                Copia el directorio actual con pwd y xclip
 yazi                Como ranger para ver fotos, esta en comprimidos.
@@ -127,8 +127,6 @@ mackali	            Cambia la MAC de kali
 ncdu                para ver los archivos grandes, liberar espacio disco tamano
 netevils            aun no se                                                                          
 fzf                 buscador bueno, solo tipiar fzf 
-btop                Bueno, mejor que htop top #m to see the menu
-tldr                Te dice como usar otras herramientas #ejemplo tldr ffmpeg
 procesos            Muestra los procesos de los usuarios sin PID, no PID
 proceso             Muestro los Procesos con PID 
 servicios           Encuentra servicios que no son del kernel linux corriendo.
