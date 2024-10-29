@@ -23,14 +23,14 @@ logger.addHandler(handler)
 # Definir la lista de máquinas virtuales con su nombre para mostrar y su nombre en vcenter
 machines = [
     {'display_name': 'Windows 10', 'vcenter_name': 'windows10'},
-    {'display_name': '2016 Docker/Remote', 'vcenter_name': 'docker_remote'},
-    {'display_name': 'Debian 10 DNS/NTP', 'vcenter_name': 'debian_dns_ntp'},
-    {'display_name': 'Ubuntu 18 Web', 'vcenter_name': 'ubuntu_web'},
+    {'display_name': '2016 Docker/Remote', 'vcenter_name': 'CCDC-2016-Docker-Remote'},
+    {'display_name': 'Debian 10 DNS/NTP', 'vcenter_name': 'CCDC-Debian10-DNS-NTP'},
+    {'display_name': 'Ubuntu 18 Web', 'vcenter_name': 'CCDC-Ubuntu18-Web'},
     {'display_name': '2019 AD/DNS/DHCP', 'vcenter_name': 'ad_dns_dhcp'},
-    {'display_name': 'Ubuntu Workstation', 'vcenter_name': 'ubuntu_wkst'},
-    {'display_name': 'Splunk 9.1.1', 'vcenter_name': 'splunk'},
+    {'display_name': 'Ubuntu Workstation', 'vcenter_name': 'CCDC_Ubuntu_Wkst'},
+    {'display_name': 'Splunk 9.1.1', 'vcenter_name': 'CCDC-Splunk 9.1'},
     {'display_name': 'CentOS 7 E-comm', 'vcenter_name': 'CCDC-Centos7-Ecomm'},
-    {'display_name': 'Fedora 21 Webmail/WebApps', 'vcenter_name': 'fedora_webmail'},
+    {'display_name': 'Fedora 21 Webmail/WebApps', 'vcenter_name': 'CCDC-Fedora 21 webmail%2fApps'},
 ]
 
 # Lista de nombres de máquinas válidas
@@ -180,7 +180,7 @@ def index():
                 <img src="{{ url_for('static', filename='ccdc.png') }}" alt="CCDC Logo">
             </div>
         </div>
-        <p class="instruction">"Usa los botones para Encender o Apagar las máquinas."</p>
+        <p class="instruction">"Use the buttons to Turn On or Turn Off the devices."</p>
     </body>
     </html>
     """
