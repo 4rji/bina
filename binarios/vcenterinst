@@ -1,0 +1,19 @@
+#!/bin/bash
+
+echo "Downloading govc..."
+wget -q https://github.com/vmware/govmomi/releases/latest/download/govc_Linux_x86_64.tar.gz
+
+echo "Extracting govc..."
+tar -xvf govc_Linux_x86_64.tar.gz
+
+echo "Moving govc to /opt/4rji/bin/"
+sudo mv govc /opt/4rji/bin/
+
+echo "govc installed."
+
+echo "Asignar variables, estan adentro del script."
+
+export GOVC_URL='https://192.168.140.20/sdk'
+export GOVC_USERNAME='mpls\xtID'
+export GOVC_PASSWORD='password'
+export GOVC_INSECURE=1  
