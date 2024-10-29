@@ -13,7 +13,15 @@ echo "govc installed."
 
 echo "Asignar variables, estan adentro del script."
 
-export GOVC_URL='https://192.168.140.20/sdk'
-export GOVC_USERNAME='mpls\xtID'
-export GOVC_PASSWORD='password'
-export GOVC_INSECURE=1  
+# export GOVC_URL='https://192.168.140.20/sdk'
+# export GOVC_USERNAME='mpls\xtID'
+# export GOVC_PASSWORD='password'
+# export GOVC_INSECURE=1  
+
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+echo ' Enciende la máquina virtual'
+echo 'govc vm.power -on "Nombre de la VM" '
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
