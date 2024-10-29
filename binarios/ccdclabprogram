@@ -1,6 +1,14 @@
+import os
 from flask import Flask, render_template_string, url_for, redirect
 import subprocess
 import logging
+import re
+
+# Configurar variables de entorno para govc
+os.environ['GOVC_URL'] = 'https://192.168.140.20/sdk'
+os.environ['GOVC_USERNAME'] = r'mpls\Usuario'
+os.environ['GOVC_PASSWORD'] = 'Password'
+os.environ['GOVC_INSECURE'] = '1'
 
 app = Flask(__name__)
 
@@ -30,49 +38,63 @@ valid_machines = [machine['virsh_name'] for machine in machines]
 
 def get_vm_status_and_ip(vm_name):
     try:
-        # Obtener el estado de la VM usando 'virsh domstate'
-        result_state = subprocess.run(
-            ['sudo', 'virsh', 'domstate', vm_name],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
-        state = result_state.stdout.strip().lower()
+        if vm_name == 'centos7.0-2':
+            command = ['govc', 'vm.info', 'CCDC-Centos7-Ecomm']
+            result = subprocess.run(
+                command,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
 
-        if state != 'running':
+            if result.returncode != 0:
+                logger.error(f"Error obteniendo información para {vm_name} con govc: {result.stderr.strip()}")
+                return "No-Active"
+
+            output = result.stdout.strip()
+            ip_matches = re.findall(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b', output)
+            for ip in ip_matches:
+                if ip != "127.0.0.1":
+                    return ip
             return "No-Active"
 
-        # Obtener la dirección IP usando 'virsh domifaddr'
-        result_ip = subprocess.run(
-            ['sudo', 'virsh', 'domifaddr', vm_name, '--source', 'agent'],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
+        else:
+            result_state = subprocess.run(
+                ['sudo', 'virsh', 'domstate', vm_name],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+            state = result_state.stdout.strip().lower()
 
-        if result_ip.returncode != 0:
-            # No se pudo obtener la IP, posiblemente el Guest Agent no está activo
-            logger.error(f"Error obteniendo IP para {vm_name}: {result_ip.stderr.strip()}")
+            if state != 'running':
+                return "No-Active"
+
+            result_ip = subprocess.run(
+                ['sudo', 'virsh', 'domifaddr', vm_name, '--source', 'agent'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True
+            )
+
+            if result_ip.returncode != 0:
+                logger.error(f"Error obteniendo IP para {vm_name}: {result_ip.stderr.strip()}")
+                return "No-Active"
+
+            lines = result_ip.stdout.strip().split('\n')
+            for line in lines[2:]:
+                if 'ipv4' in line:
+                    parts = line.split()
+                    if len(parts) >= 4:
+                        ip = parts[3].split('/')[0]
+                        if ip != "127.0.0.1":
+                            return ip
             return "No-Active"
-
-        lines = result_ip.stdout.strip().split('\n')
-
-        # Ignorar las dos primeras líneas (cabecera)
-        for line in lines[2:]:
-            if 'ipv4' in line:
-                parts = line.split()
-                if len(parts) >= 4:
-                    ip = parts[3].split('/')[0]
-                    if ip != "127.0.0.1":
-                        return ip
-
-        # Si no se encontró una IP válida
-        return "No-Active"
 
     except Exception as e:
-        # Registrar el error en el log
         logger.error(f"Excepción al obtener IP para {vm_name}: {e}")
         return "Error"
+
 
 @app.route('/')
 def index():
