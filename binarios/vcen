@@ -1,0 +1,121 @@
+#!/bin/bash
+
+# Configuration of the VM folder path
+VM_FOLDER="/MPLSITEC/vm/ITEC 2995/Havi"
+
+# Temporary file to store VM paths
+TMP_VM_LIST=$(mktemp)
+
+# Function to clean up temporary files on exit
+cleanup() {
+    rm -f "$TMP_VM_LIST"
+}
+trap cleanup EXIT
+
+# Function to get the list of VMs and extract only the names
+get_vm_list() {
+    govc find "$VM_FOLDER" -type m > "$TMP_VM_LIST"
+    while IFS= read -r vm_path; do
+        # Extract the VM name using parameter expansion
+        vm_name="${vm_path##*/}"
+        VM_PATHS+=("$vm_path")
+        VM_NAMES+=("$vm_name")
+    done < "$TMP_VM_LIST"
+}
+
+# Arrays to store VM paths and names
+VM_PATHS=()
+VM_NAMES=()
+
+# Get the list of VMs
+get_vm_list
+
+# Verify if any VMs were found
+if [ ${#VM_NAMES[@]} -eq 0 ]; then
+    echo ""
+    echo -e "\e[31mNo virtual machines found in the folder '$VM_FOLDER'.\e[0m"
+    echo ""
+    exit 1
+fi
+
+# Display the list of VMs
+echo ""
+echo -e "\e[36mVirtual Machines in '$VM_FOLDER':\e[0m"
+echo "_________________________________________________________"
+echo ""
+for i in "${!VM_NAMES[@]}"; do
+    printf "%d) %s\n" $((i + 1)) "${VM_NAMES[$i]}"
+done
+
+# Prompt the user to select a VM
+while true; do
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+    read -rp $'\e[33mSelect a virtual machine [1-'${#VM_NAMES[@]}$'] (or press \'q\' to exit): \e[0m' vm_choice
+    if [[ "$vm_choice" == "q" || "$vm_choice" == "Q" ]]; then
+        echo ""
+        echo -e "\e[31mExiting...\e[0m"
+        echo ""
+        exit 0
+    elif [[ "$vm_choice" =~ ^[0-9]+$ ]] && [ "$vm_choice" -ge 1 ] && [ "$vm_choice" -le "${#VM_NAMES[@]}" ]; then
+        SELECTED_VM_NAME="${VM_NAMES[$((vm_choice - 1))]}"
+        SELECTED_VM_PATH="${VM_PATHS[$((vm_choice - 1))]}"
+        break
+    else
+        echo ""
+        echo -e "\e[31mInvalid selection. Please try again.\e[0m"
+    fi
+done
+
+# Display the action menu
+while true; do
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+    echo -e "\e[36mWhat action would you like to perform?\e[0m"
+    echo -e "\e[32m1) Power on the VM\e[0m"
+    echo -e "\e[32m2) Power off the VM\e[0m"
+    echo -e "\e[32m3) View IP and status of the VM\e[0m"
+    echo -e "\e[32m4) Exit\e[0m"
+    echo ""
+    read -rp $'\e[33mSelect an option [1-4]: \e[0m' ACTION
+    ACTION=$(echo "$ACTION" | tr -d '[:space:]')
+    echo ""
+    case "$ACTION" in
+        1)
+            echo -e "\e[36mPowering on the VM: \e[0m\e[32m$SELECTED_VM_NAME\e[0m"
+            echo ""
+            govc vm.power -on "$SELECTED_VM_PATH"
+            if [ $? -eq 0 ]; then
+                echo -e "\e[32mThe VM '$SELECTED_VM_NAME' has been powered on successfully.\e[0m"
+            else
+                echo -e "\e[31mError powering on the VM '$SELECTED_VM_NAME'.\e[0m"
+            fi
+            ;;
+        2)
+            echo -e "\e[36mPowering off the VM: \e[0m\e[32m$SELECTED_VM_NAME\e[0m"
+            echo ""
+            govc vm.power -off "$SELECTED_VM_PATH"
+            if [ $? -eq 0 ]; then
+                echo -e "\e[32mThe VM '$SELECTED_VM_NAME' has been powered off successfully.\e[0m"
+            else
+                echo -e "\e[31mError powering off the VM '$SELECTED_VM_NAME'.\e[0m"
+            fi
+            ;;
+        3)
+            echo -e "\e[36mGetting information for VM: \e[0m\e[32m$SELECTED_VM_NAME\e[0m"
+            echo ""
+            govc vm.info "$SELECTED_VM_PATH" | grep -E "Name:|Power state:|IP address:"
+            ;;
+        4)
+            echo -e "\e[31mExiting...\e[0m"
+            echo ""
+            exit 0
+            ;;
+        *)
+            echo -e "\e[31mInvalid option. Please select between 1 and 4.\e[0m"
+            ;;
+    esac
+done
+
