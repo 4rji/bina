@@ -20,92 +20,57 @@ formatter = logging.Formatter('%(asctime)s %(levelname)s:%(message)s')
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
-# Definir la lista de máquinas virtuales con su nombre para mostrar y su nombre en virsh
+# Definir la lista de máquinas virtuales con su nombre para mostrar y su nombre en vcenter
 machines = [
-    {'display_name': 'Windows 10', 'virsh_name': 'windows10'},
-    {'display_name': '2016 Docker/Remote', 'virsh_name': 'docker_remote'},
-    {'display_name': 'Debian 10 DNS/NTP', 'virsh_name': 'debian_dns_ntp'},
-    {'display_name': 'Ubuntu 18 Web', 'virsh_name': 'ubuntu_web'},
-    {'display_name': '2019 AD/DNS/DHCP', 'virsh_name': 'ad_dns_dhcp'},
-    {'display_name': 'Ubuntu Workstation', 'virsh_name': 'ubuntu_wkst'},
-    {'display_name': 'Splunk 9.1.1', 'virsh_name': 'splunk'},
-    {'display_name': 'CentOS 7 E-comm', 'virsh_name': 'centos7.0-2'},
-    {'display_name': 'Fedora 21 Webmail/WebApps', 'virsh_name': 'fedora_webmail'},
+    {'display_name': 'Windows 10', 'vcenter_name': 'windows10'},
+    {'display_name': '2016 Docker/Remote', 'vcenter_name': 'docker_remote'},
+    {'display_name': 'Debian 10 DNS/NTP', 'vcenter_name': 'debian_dns_ntp'},
+    {'display_name': 'Ubuntu 18 Web', 'vcenter_name': 'ubuntu_web'},
+    {'display_name': '2019 AD/DNS/DHCP', 'vcenter_name': 'ad_dns_dhcp'},
+    {'display_name': 'Ubuntu Workstation', 'vcenter_name': 'ubuntu_wkst'},
+    {'display_name': 'Splunk 9.1.1', 'vcenter_name': 'splunk'},
+    {'display_name': 'CentOS 7 E-comm', 'vcenter_name': 'CCDC-Centos7-Ecomm'},
+    {'display_name': 'Fedora 21 Webmail/WebApps', 'vcenter_name': 'fedora_webmail'},
 ]
 
 # Lista de nombres de máquinas válidas
-valid_machines = [machine['virsh_name'] for machine in machines]
+valid_machines = [machine['vcenter_name'] for machine in machines]
 
 def get_vm_status_and_ip(vm_name):
     try:
-        if vm_name == 'centos7.0-2':
-            command = ['govc', 'vm.info', 'CCDC-Centos7-Ecomm']
-            result = subprocess.run(
-                command,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
+        command = ['govc', 'vm.info', vm_name]
+        result = subprocess.run(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
 
-            if result.returncode != 0:
-                logger.error(f"Error obteniendo información para {vm_name} con govc: {result.stderr.strip()}")
-                return "No-Active"
-
-            output = result.stdout.strip()
-            ip_matches = re.findall(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b', output)
-            for ip in ip_matches:
-                if ip != "127.0.0.1":
-                    return ip
+        if result.returncode != 0:
+            logger.error(f"Error obteniendo información para {vm_name} con govc: {result.stderr.strip()}")
             return "No-Active"
 
-        else:
-            result_state = subprocess.run(
-                ['sudo', 'virsh', 'domstate', vm_name],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
-            state = result_state.stdout.strip().lower()
-
-            if state != 'running':
-                return "No-Active"
-
-            result_ip = subprocess.run(
-                ['sudo', 'virsh', 'domifaddr', vm_name, '--source', 'agent'],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
-            )
-
-            if result_ip.returncode != 0:
-                logger.error(f"Error obteniendo IP para {vm_name}: {result_ip.stderr.strip()}")
-                return "No-Active"
-
-            lines = result_ip.stdout.strip().split('\n')
-            for line in lines[2:]:
-                if 'ipv4' in line:
-                    parts = line.split()
-                    if len(parts) >= 4:
-                        ip = parts[3].split('/')[0]
-                        if ip != "127.0.0.1":
-                            return ip
-            return "No-Active"
+        output = result.stdout.strip()
+        ip_matches = re.findall(r'\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b', output)
+        for ip in ip_matches:
+            if ip != "127.0.0.1":
+                return ip
+        return "No-Active"
 
     except Exception as e:
         logger.error(f"Excepción al obtener IP para {vm_name}: {e}")
         return "Error"
-
 
 @app.route('/')
 def index():
     machine_info = []
     for machine in machines:
         display_name = machine['display_name']
-        virsh_name = machine['virsh_name']
-        ip = get_vm_status_and_ip(virsh_name)
+        vcenter_name = machine['vcenter_name']
+        ip = get_vm_status_and_ip(vcenter_name)
         machine_info.append({
             'display_name': display_name,
-            'virsh_name': virsh_name,
+            'vcenter_name': vcenter_name,
             'ip': ip
         })
 
@@ -207,8 +172,8 @@ def index():
                 {% else %}
                     <div class="ip-address ip-active">{{ machine.ip }}</div>
                 {% endif %}
-                <button class="start-button" onclick="location.href='{{ url_for('start_machine', machine=machine.virsh_name) }}'">Encender</button>
-                <button class="shutdown-button" onclick="location.href='{{ url_for('shutdown_machine', machine=machine.virsh_name) }}'">Apagar</button>
+                <button class="start-button" onclick="location.href='{{ url_for('start_machine', machine=machine.vcenter_name) }}'">Encender</button>
+                <button class="shutdown-button" onclick="location.href='{{ url_for('shutdown_machine', machine=machine.vcenter_name) }}'">Apagar</button>
             </div>
             {% endfor %}
             <div class="image-container">
@@ -224,7 +189,7 @@ def index():
 @app.route('/start/<machine>')
 def start_machine(machine):
     if machine in valid_machines:
-        command = ['sudo', 'virsh', 'start', machine]
+        command = ['govc', 'vm.power', '-on', machine]
         try:
             subprocess.Popen(command)
         except Exception as e:
@@ -236,7 +201,7 @@ def start_machine(machine):
 @app.route('/shutdown/<machine>')
 def shutdown_machine(machine):
     if machine in valid_machines:
-        command = ['sudo', 'virsh', 'shutdown', machine]
+        command = ['govc', 'vm.power', '-off', machine]
         try:
             subprocess.Popen(command)
         except Exception as e:
