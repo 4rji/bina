@@ -1,27 +1,81 @@
 #!/bin/bash
-
-echo "Downloading govc..."
-wget -q https://github.com/vmware/govmomi/releases/latest/download/govc_Linux_x86_64.tar.gz
-
-echo "Extracting govc..."
-tar -xvf govc_Linux_x86_64.tar.gz
-
-echo "Moving govc to /opt/4rji/bin/"
-sudo mv govc /opt/4rji/bin/
-
-echo "govc installed."
-
-echo "Asignar variables, estan adentro del script."
-
-# export GOVC_URL='https://192.168.140.20/sdk'
-# export GOVC_USERNAME='mpls\xtID'
-# export GOVC_PASSWORD='password'
-# export GOVC_INSECURE=1  
+echo -e "\033[37m_________________________________________________________\033[0m"
 
 
-echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+# Define installation directory and govc path
+INSTALL_DIR="/opt/4rji/bin"
+GOVC_PATH="$INSTALL_DIR/govc"
+GOVC_URL="https://github.com/vmware/govmomi/releases/latest/download/govc_Linux_x86_64.tar.gz"
+TAR_FILE="govc_Linux_x86_64.tar.gz"
 
-echo ' Enciende la máquina virtual'
-echo 'govc vm.power -on "Nombre de la VM" '
+# Function to install govc
+install_govc() {
+    echo -e "\033[32mDownloading govc...\033[0m"
+    wget -q "$GOVC_URL" -O "$TAR_FILE"
 
-echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+    echo -e "\033[34mExtracting govc...\033[0m"
+    tar -xvf "$TAR_FILE"
+
+    echo -e "\033[35mMoving govc to $INSTALL_DIR/\033[0m"
+    sudo mv govc "$INSTALL_DIR/"
+
+    echo -e "\033[33mCleaning up...\033[0m"
+    rm "$TAR_FILE"
+
+    echo -e "\033[32mgovc installed successfully.\033[0m"
+}
+echo ""
+# Check if govc is already installed
+if [ -f "$GOVC_PATH" ]; then
+    echo -e "\033[36mgovc is already installed at $GOVC_PATH. Skipping download.\033[0m"
+else
+    install_govc
+fi
+
+echo ""
+echo -e "\033[37m_________________________________________________________\033[0m"
+echo ""
+
+echo -e "\033[32mAssigning variables. They are inside the script.\033[0m"
+echo ""
+
+# Export GOVC_URL and GOVC_INSECURE
+export GOVC_URL='https://192.168.140.20/sdk'
+export GOVC_INSECURE=1  
+
+# Prompt for GOVC_USERNAME and GOVC_PASSWORD
+echo -e "\033[34mPlease enter your Student ID (omit the 'mpls\$' prefix):\033[0m"
+read -p "> " USER_INPUT
+GOVC_USERNAME="mpls\\$USER_INPUT"
+
+echo -e "\033[34mPlease enter your Vcenter Password:\033[0m"
+read -s -p "> " GOVC_PASSWORD_INPUT
+echo
+
+export GOVC_USERNAME="$GOVC_USERNAME"
+export GOVC_PASSWORD="$GOVC_PASSWORD_INPUT"
+
+# Warn the user that the password will be stored in the zshrc
+echo ""
+echo -e "\033[31mWarning: Your password will be stored in the ~/.zshrc file.\033[0m"
+echo ""
+
+# Optionally, append the exports to ~/.zshrc for persistence
+echo "export GOVC_URL='https://192.168.140.20/sdk'" >> ~/.zshrc
+echo "export GOVC_INSECURE=1" >> ~/.zshrc
+echo "export GOVC_USERNAME='$GOVC_USERNAME'" >> ~/.zshrc
+echo "export GOVC_PASSWORD='$GOVC_PASSWORD_INPUT'" >> ~/.zshrc
+
+echo ""
+echo -e "\033[37m_________________________________________________________\033[0m"
+echo ""
+
+echo -e "\033[32mTest it with your virtual machine:\033[0m"
+echo -e "\033[34mReload the zshrc\033[0m"
+
+echo -e "\033[34mgovc vm.info \"VM_Name\"\033[0m"
+
+echo ""
+echo -e "\033[37m_________________________________________________________\033[0m"
+echo ""
+echo ""
