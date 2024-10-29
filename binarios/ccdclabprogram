@@ -25,6 +25,9 @@ machines = [
     {'display_name': 'Fedora 21 Webmail/WebApps', 'virsh_name': 'fedora_webmail'},
 ]
 
+# Lista de nombres de máquinas válidas
+valid_machines = [machine['virsh_name'] for machine in machines]
+
 def get_vm_status_and_ip(vm_name):
     try:
         # Obtener el estado de la VM usando 'virsh domstate'
@@ -54,7 +57,7 @@ def get_vm_status_and_ip(vm_name):
 
         lines = result_ip.stdout.strip().split('\n')
 
-        # Ignorar la primera línea (cabecera)
+        # Ignorar las dos primeras líneas (cabecera)
         for line in lines[2:]:
             if 'ipv4' in line:
                 parts = line.split()
@@ -83,8 +86,8 @@ def index():
             'virsh_name': virsh_name,
             'ip': ip
         })
-    
-    # HTML template con iteración sobre machine_info
+
+    # HTML template con botones de encendido y apagado para cada máquina
     html_template = """
     <!DOCTYPE html>
     <html lang="en">
@@ -117,24 +120,18 @@ def index():
                 width: 200px;
                 vertical-align: top;
             }
-            .machine a {
-                color: #007BFF;
-                text-decoration: none;
+            .machine-name {
                 font-weight: bold;
-                display: block;
                 margin-bottom: 10px;
-            }
-            .machine a:hover {
-                color: #0056b3;
             }
             .ip-address {
                 font-size: 0.9em;
             }
             .ip-active {
-                color: red;
+                color: green;
             }
             .ip-inactive {
-                color: green;
+                color: red;
             }
             .image-container {
                 text-align: center;
@@ -152,17 +149,35 @@ def index():
                 text-align: center;
                 margin-bottom: 10px;
             }
+            button {
+                padding: 10px 20px;
+                margin: 5px;
+                font-size: 0.9em;
+                border: none;
+                border-radius: 5px;
+                cursor: pointer;
+                color: white;
+            }
+            .start-button {
+                background-color: #28a745; /* green */
+            }
+            .shutdown-button {
+                background-color: #dc3545; /* red */
+            }
+            button:hover {
+                opacity: 0.8;
+            }
         </style>
     </head>
     <body>
         <div class="navbar">
             <h1>2024 State CCDC - Virtual Machines</h1>
         </div>
-    
+
         <div class="content">
             {% for machine in machine_info %}
             <div class="machine">
-                <a href="{{ url_for('start_machine', machine=machine.virsh_name) }}">{{ machine.display_name }}</a>
+                <div class="machine-name">{{ machine.display_name }}</div>
                 {% if machine.ip == "No-Active" %}
                     <div class="ip-address ip-inactive">{{ machine.ip }}</div>
                 {% elif machine.ip == "Error" %}
@@ -170,13 +185,15 @@ def index():
                 {% else %}
                     <div class="ip-address ip-active">{{ machine.ip }}</div>
                 {% endif %}
+                <button class="start-button" onclick="location.href='{{ url_for('start_machine', machine=machine.virsh_name) }}'">Encender</button>
+                <button class="shutdown-button" onclick="location.href='{{ url_for('shutdown_machine', machine=machine.virsh_name) }}'">Apagar</button>
             </div>
             {% endfor %}
             <div class="image-container">
                 <img src="{{ url_for('static', filename='ccdc.png') }}" alt="CCDC Logo">
             </div>
         </div>
-        <p class="instruction">"Click the machine name to start it."</p>
+        <p class="instruction">"Usa los botones para Encender o Apagar las máquinas."</p>
     </body>
     </html>
     """
@@ -184,29 +201,26 @@ def index():
 
 @app.route('/start/<machine>')
 def start_machine(machine):
-    # Mapear nombres de máquina a comandos específicos
-    machine_commands = {
-        'windows10': 'virsh start windows10',
-        'docker_remote': 'virsh start docker_remote',
-        'debian_dns_ntp': 'virsh start debian_dns_ntp',
-        'ubuntu_web': 'virsh start ubuntu_web',
-        'ad_dns_dhcp': 'virsh start ad_dns_dhcp',
-        'ubuntu_wkst': 'virsh start ubuntu_wkst',
-        'splunk': 'virsh start splunk',
-        'centos7.0-2': 'sudo virsh start centos7.0-2',
-        'fedora_webmail': 'virsh start fedora_webmail',
-    }
-
-    if machine in machine_commands:
-        command = machine_commands[machine]
+    if machine in valid_machines:
+        command = ['sudo', 'virsh', 'start', machine]
         try:
-            # Ejecutar el comando de forma segura
-            subprocess.Popen(command, shell=True)
+            subprocess.Popen(command)
         except Exception as e:
-            # Registrar el error en el log
             logger.error(f"Error iniciando {machine}: {e}")
+    else:
+        logger.error(f"Nombre de máquina inválido para iniciar: {machine}")
+    return redirect('/')
 
-    # Redirigir de vuelta a la página principal sin mostrar ningún mensaje
+@app.route('/shutdown/<machine>')
+def shutdown_machine(machine):
+    if machine in valid_machines:
+        command = ['sudo', 'virsh', 'shutdown', machine]
+        try:
+            subprocess.Popen(command)
+        except Exception as e:
+            logger.error(f"Error apagando {machine}: {e}")
+    else:
+        logger.error(f"Nombre de máquina inválido para apagar: {machine}")
     return redirect('/')
 
 if __name__ == '__main__':
