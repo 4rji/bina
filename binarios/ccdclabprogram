@@ -172,8 +172,8 @@ def index():
                 {% else %}
                     <div class="ip-address ip-active">{{ machine.ip }}</div>
                 {% endif %}
-                <button class="start-button" onclick="location.href='{{ url_for('start_machine', machine=machine.vcenter_name) }}'">Encender</button>
-                <button class="shutdown-button" onclick="location.href='{{ url_for('shutdown_machine', machine=machine.vcenter_name) }}'">Apagar</button>
+                <button class="start-button" onclick="location.href='{{ url_for('start_machine', machine=machine.vcenter_name) }}'">Turn on</button>
+                <button class="shutdown-button" onclick="location.href='{{ url_for('shutdown_machine', machine=machine.vcenter_name) }}'">Turn off</button>
             </div>
             {% endfor %}
             <div class="image-container">
