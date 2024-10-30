@@ -1,0 +1,44 @@
+#!/bin/bash
+
+echo "Installing Apache HTTP server..."
+sudo yum install -y httpd
+
+echo "Enabling and starting Apache service..."
+sudo systemctl enable httpd.service
+sudo systemctl start httpd.service
+
+echo "Commenting out welcome page configuration..."
+sudo sed -i 's/^/#&/g' /etc/httpd/conf.d/welcome.conf
+
+echo "Updating Apache configuration options..."
+sudo sed -i "s/Options Indexes FollowSymLinks/Options FollowSymLinks/" /etc/httpd/conf/httpd.conf
+
+echo "Displaying current IP routes..."
+ip r
+
+echo "Adding HTTP service to firewall and reloading firewall settings..."
+sudo firewall-cmd --zone=public --permanent --add-service=http
+sudo firewall-cmd --reload
+
+echo "Installing MariaDB server..."
+sudo yum install -y mariadb mariadb-server
+
+echo "Starting and enabling MariaDB service..."
+sudo systemctl start mariadb.service
+sudo systemctl enable mariadb.service
+
+echo "Running secure installation for MariaDB..."
+sudo /usr/bin/mysql_secure_installation
+
+echo "Installing PHP and additional PHP modules..."
+sudo yum install -y php php-gd php-mbstring php-mcrypt php-mysqli php-curl php-xml php-cli
+
+echo "Installation complete. Please verify the services and configurations."
+
+
+
+sudo systemctl restart httpd mariadb
+
+
+
+

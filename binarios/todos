@@ -24,9 +24,13 @@ echo -e "${COLOR_BLUE}==============================${COLOR_RESET}"
 
 sleep .5
 
-find $HOME/Documents/GitHub/bina/binarios -type f | fzf --preview 'bat --color=always --style=plain {}'
+
+#la orginal pero no abre con nano
+#find $HOME/Documents/GitHub/bina/binarios -type f | fzf --preview 'bat --color=always --style=plain {}'
 
 
 #Este hace un nano pero el original hace un nvim automaticamente en Arch
 #cd /Users/ozono/Dropbox/bina/binarios/ && nano $(fzf --preview="bat --color=always {}")
 
+#para abrir con nano
+find "$DIR" -type f | fzf --preview 'bat --color=always --style=plain {}' --bind "enter:execute(nano {})"

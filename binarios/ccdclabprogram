@@ -30,7 +30,7 @@ machines = [
     {'display_name': 'Ubuntu Workstation', 'vcenter_name': 'CCDC_Ubuntu_Wkst'},
     {'display_name': 'Splunk 9.1.1', 'vcenter_name': 'CCDC-Splunk 9.1'},
     {'display_name': 'CentOS 7 E-comm', 'vcenter_name': 'CCDC-Centos7-Ecomm'},
-    {'display_name': 'Fedora 21 Webmail/WebApps', 'vcenter_name': 'CCDC-Fedora 21 webmail%2fApps'},
+    {'display_name': 'Fedora 21 Webmail/WebApps', 'vcenter_name': 'CCDC-Fedora-21-webmail-apps'},
 ]
 
 # Lista de nombres de máquinas válidas
