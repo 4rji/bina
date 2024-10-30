@@ -1,28 +1,42 @@
 #!/bin/bash
 
-sudo apt dist-upgrade
+# Actualizar el sistema
+sudo apt update
+sudo apt dist-upgrade -y
 
-# Download the NVIDIA driver
-echo "Downloading the NVIDIA driver..."
-wget https://uk.download.nvidia.com/XFree86/Linux-x86_64/555.42.02/NVIDIA-Linux-x86_64-555.42.02.run
+# Variables para el controlador de NVIDIA
+DRIVER_URL="https://uk.download.nvidia.com/XFree86/Linux-x86_64/555.42.02/NVIDIA-Linux-x86_64-555.42.02.run"
+DRIVER_FILE="NVIDIA-Linux-x86_64-555.42.02.run"
 
-# Ensure the script is executable
-chmod +x NVIDIA-Linux-x86_64-555.42.02.run
+# Verificar si el archivo del controlador ya existe
+if [ -f "$DRIVER_FILE" ]; then
+    echo "El archivo $DRIVER_FILE ya existe. Se omite la descarga."
+else
+    echo "Descargando el controlador de NVIDIA..."
+    wget "$DRIVER_URL" -O "$DRIVER_FILE"
+    
+    # Verificar si la descarga fue exitosa
+    if [ $? -ne 0 ]; entonces
+        echo "Error al descargar el controlador de NVIDIA."
+        exit 1
+    fi
+fi
 
-# Disable the nouveau module
-echo "Disabling the nouveau module..."
+# Asegurarse de que el script sea ejecutable
+chmod +x "$DRIVER_FILE"
+
+# Deshabilitar el módulo nouveau
+echo "Deshabilitando el módulo nouveau..."
 echo "blacklist nouveau" | sudo tee /etc/modprobe.d/blacklist-nouveau.conf > /dev/null
 echo "options nouveau modeset=0" | sudo tee -a /etc/modprobe.d/blacklist-nouveau.conf > /dev/null
 
-# Install development tools and headers for the current kernel
-echo "Installing development tools and kernel headers..."
-sudo apt-get update
+# Instalar herramientas de desarrollo y encabezados del kernel actual
+echo "Instalando herramientas de desarrollo y encabezados del kernel..."
 sudo apt-get install -y build-essential linux-headers-$(uname -r)
 
-# Update initramfs
-echo "Updating initramfs..."
+# Actualizar initramfs
+echo "Actualizando initramfs..."
 sudo update-initramfs -u
 
-# Final message
-echo "Please reboot the machine to apply changes."
-
+# Mensaje final
+echo "La configuración se ha completado. Por favor, reinicia la máquina para aplicar los cambios."
