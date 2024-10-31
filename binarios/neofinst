@@ -4,7 +4,7 @@
 
 echo ""
 # Descargar el archivo desde la URL
-wget -O neoconf https://raw.githubusercontent.com/4rji/4rji/main/neoconf
+wget -O neoconf https://raw.githubusercontent.com/4rji/4rji/refs/heads/main/neoconf
 
 # Verificar si la descarga fue exitosa
 if [ $? -eq 0 ]; then
