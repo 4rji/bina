@@ -13,6 +13,7 @@ aliasarch           Arregla los alias en arch
 rx6800              Instala el archivo de configuracion en Arch para que funcione la GPU
 
 ###------CCDC
+sudoup              Hace un update de sudo de la version 9.12 adelante.
 vcen                Para manejar las maquinas en el vcenter desde cli linux, vmware, vcenter, server
 vcenterinst         Descarga govc para vcenter vmware, variables adentro del script. 
 redhavi             Instala vulnerabilidades en linux.
