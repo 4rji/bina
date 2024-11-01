@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# Obtener la versión de sudo instalada
+current_version=$(sudo -V | grep -oP '(?<=Sudo version )\d+\.\d+\.\d+' | head -n 1)
+
+# Definir la versión mínima requerida
+required_version="1.9.12"
+
+echo ""
+echo -e "\033[36m_________________________________________________________\033[0m"
+echo ""
+
+# Comparar versiones
+if [[ "$(printf '%s\n' "$current_version" "$required_version" | sort -V | head -n1)" == "$current_version" ]] && [[ "$current_version" != "$required_version" ]]; then
+    echo -e "\033[32mLa versión actual de sudo es $current_version, que es menor que $required_version. Procediendo con la actualización...\033[0m"
+    
+    echo ""
+    echo -e "\033[36m_________________________________________________________\033[0m"
+    echo ""
+
+    # Ejecutar el proceso de actualización de sudo
+    sudo apt update
+    sudo apt install -y build-essential libpam0g-dev libssl-dev libselinux1-dev libtool pkg-config libaudit-dev libbsd-dev autoconf automake 
+
+    wget https://www.sudo.ws/dist/sudo-1.9.15.tar.gz
+    tar -xzf sudo-1.9.15.tar.gz
+
+    cd sudo-1.9.15
+
+    sudo ./configure
+    sudo make
+    sudo make install
+
+    echo ""
+    echo -e "\033[33mActualización completada.\033[0m"
+    echo ""
+    echo -e "\033[36m_________________________________________________________\033[0m"
+    echo ""
+
+    # Preguntar al usuario si desea reiniciar el sistema
+    read -p $'\033[35m¿Deseas cerrar sesion? [y/n]: \033[0m' choice
+
+    echo ""
+    echo -e "\033[36m_________________________________________________________\033[0m"
+    echo ""
+
+    if [[ "$choice" =~ ^[yY]$ ]]; then
+    echo -e "\033[31mCerrando la sesión actual...\033[0m"
+    pkill -KILL -u $USER
+    else
+        echo -e "\033[33mOperación cancelada.\033[0m"
+    fi
+
+else
+    echo -e "\033[34mLa versión actual de sudo es $current_version, que es mayor o igual a $required_version. No es necesaria la actualización.\033[0m"
+    echo ""
+    echo -e "\033[36m_________________________________________________________\033[0m"
+    echo ""
+    exit 0
+fi
+
