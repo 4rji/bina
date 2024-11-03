@@ -10,7 +10,7 @@ ips=$(ip -4 addr show | awk '/inet/ && !/127.0.0.1/ {split($2, a, "/"); printf "
 
 # Recorre cada IP y muestra en el formato de HTTP link
 for ip in $ips; do
-    echo " * On http://$ip:80"
+    echo " * On http://$ip:800"
 done
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 
