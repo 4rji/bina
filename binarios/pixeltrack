@@ -87,25 +87,9 @@ def download_and_setup_image():
 
 def update_apache_config():
     print("Updating Apache configuration...")
-    # Existing configuration block
-    config_block = """
-<Directory /var/www/html>
-    Options Indexes FollowSymLinks
-    AllowOverride All
-    Require all granted
-</Directory>
-"""
-    # New VirtualHost block with DirectoryIndex
-    virtualhost_block = """
-<VirtualHost *:80>
-    DocumentRoot /var/www/html
-    ServerName localhost
-    DirectoryIndex sss.png
-</VirtualHost>
-"""
-    # Append both blocks to apache2.conf
-    run_command(f'echo "{config_block}" | tee -a /etc/apache2/apache2.conf')
-    run_command(f'echo "{virtualhost_block}" | tee -a /etc/apache2/apache2.conf')
+    config_file = '/etc/apache2/sites-available/000-default.conf'
+    # Insert 'DirectoryIndex sss.png' after 'DocumentRoot /var/www/html'
+    run_command(f"sed -i '/DocumentRoot \\/var\\/www\\/html/a \\    DirectoryIndex sss.png' {config_file}")
 
 def restart_apache():
     print("Restarting Apache...")
