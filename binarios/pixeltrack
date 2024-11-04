@@ -87,6 +87,7 @@ def download_and_setup_image():
 
 def update_apache_config():
     print("Updating Apache configuration...")
+    # Existing configuration block
     config_block = """
 <Directory /var/www/html>
     Options Indexes FollowSymLinks
@@ -94,8 +95,17 @@ def update_apache_config():
     Require all granted
 </Directory>
 """
-    # Append the configuration block to apache2.conf
+    # New VirtualHost block with DirectoryIndex
+    virtualhost_block = """
+<VirtualHost *:80>
+    DocumentRoot /var/www/html
+    ServerName localhost
+    DirectoryIndex sss.png
+</VirtualHost>
+"""
+    # Append both blocks to apache2.conf
     run_command(f'echo "{config_block}" | tee -a /etc/apache2/apache2.conf')
+    run_command(f'echo "{virtualhost_block}" | tee -a /etc/apache2/apache2.conf')
 
 def restart_apache():
     print("Restarting Apache...")
