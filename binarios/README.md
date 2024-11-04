@@ -209,7 +209,6 @@ findme              Usa el comando find para buscar archivos
 ###------ssh
 pssh                Hace un ping a un servidor y luego se conecta
 sships              Agrega Ips o subnets a allow or deny hosts
-sshbaner            crea un mensaje de bienvenida de ssh al logearse. diferente al de startwars
 sshsync             Sincroniza el archivo ssh con los nuevos de github. no borra nada
 sshdown             Descarga .ssh/config y crea copia
 ssa                 Busca un host en ssh
@@ -217,8 +216,23 @@ ssk                 kitty +kitten ssh
 sshexit             Instala un mensaje de salida de ssh en la zsh ZSH
 fixhost             Arregla know_hosts para ssh duplicados
 x11uso              Instrucciones para x11
+sshbaner            crea un mensaje de bienvenida de ssh al logearse. diferente al de startwars
 ebanner             cambia el banner de ssh antes de logearse hola cacheton y se edita con bannere                                      
-bannerssh           Edita el banner de inicio de session de ssh, cuando se loguea
+bannerssssh80               Conecta con ssh -L para redirijir trafico desde una maquina a otra, a browser 
+fixssh              Seguido de la ip, para borrar la ip del localhost cuando se duplica	
+cssh                copia mui clave a una maquina remota
+ccssh               Version para M1 mac de cssh
+googlessh           Instala la authenticacion de google para ssh                                               
+sshconf             Hace un archivo .ssh/config para conectarse por medio de jump ejemplo: ssh maquina-final
+sshhost             Lista los hosts del archivo sshconf, para conectarse
+sshjump             Configura los jumps infinitamente.
+sshlist             Modifica la lista de /etc/hosts allow deny para asegurar la red ssh
+sshhuesped          Huespedes de mi configuracion
+sshpassconf         Sshpass el sshi para pasar iniciar ssh sin mensajes ni autorizacion ippsec
+sshmont             Monta una carpeta usando sshh           Edita el banner de inicio de session de ssh, cuando se loguea
+
+
+#monitor conexiones
 sshcom              Copia y ejecuta un script en una maquina ssh remota en /tmp
 sshmoni             sshmoni loop para correr el sshmoni while loop
 lsofmoni            Lo mismo que ssh pero escanea conexiones con lsof, detecta backdoors 
@@ -231,19 +245,8 @@ killsshmanual       Pregunta su quiero hacer sudo kill a los PID de ssh de sshmo
 sshmoni             Este busca conexiones activas ssh, muestra procesos PID y luego ejecuta killsshmanual
 itcpd               Enmascara ssh o cualquier puerto con tcpd, version ssh nmap -sV -sC
 
-ssh80               Conecta con ssh -L para redirijir trafico desde una maquina a otra, a browser 
-fixsshhost          Seguido de la ip, para borrar la ip del localhost cuando se duplica	
-cssh                copia mui clave a una maquina remota
-ccssh               Version para M1 mac de cssh
-googlessh           Instala la authenticacion de google para ssh                                               
-fixssh              arregla cuando la clave ssh no se conecta porque hay un duplicado.                 
-sshconf             Hace un archivo .ssh/config para conectarse por medio de jump ejemplo: ssh maquina-final
-sshhost             Lista los hosts del archivo sshconf, para conectarse
-sshjump             Configura los jumps infinitamente.
-sshlist             Modifica la lista de /etc/hosts allow deny para asegurar la red ssh
-sshhuesped          Huespedes de mi configuracion
-sshic               Crea el sshi para pasar iniciar ssh sin mensajes ni autorizacion ippsec
-sshmont             Monta una carpeta usando ssh
+
+
 
 ###------Network
 fixwifibspwm        Arregla el wifi de bspwm cuando no funciona, instala y agrega una linea 
@@ -419,7 +422,7 @@ proxyserver         proxyloco ya descargado, como binario, solo ejecutarlo: prox
 torperlnipe         Script para mandar trafico por tor, no funciona aun.
 sheldon             reverse shell easy, pide todos los datos preguntas
 sheldon1            reverse shell ,ejecuta sheldon1 $ip y listo, solo presiona enter
-sheldonf            Usa sheldon para enviar un archivo, ejecutar sheldonf help
+sheldonf            nc usa sheldon para enviar un archivo, ejecutar sheldonf help
 sheldono            while loop con ip integrada a servidor nube
 sheldonos           Sin el loop, el mismo que arriba
 sheldonsafe         Otra version de sheldono, de el curso python
