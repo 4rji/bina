@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Direcciones IP</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f2f2f2;
+        }
+        h1 {
+            color: #333;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            color: #0066cc;
+            font-size: 18px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Lista de Direcciones IP</h1>
+    <ul id="ip-list">
+        <!-- Las IPs se cargarán aquí -->
+    </ul>
+
+    <script>
+        function loadIPs() {
+            fetch('~/ip_list.txt')
+                .then(response => response.text())
+                .then(data => {
+                    const ipArray = data.trim().split('\n');
+                    const ipList = document.getElementById('ip-list');
+                    ipList.innerHTML = '';
+
+                    ipArray.forEach(ip => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = ip;
+                        ipList.appendChild(listItem);
+                    });
+                })
+                .catch(error => console.error('Error al cargar las IPs:', error));
+        }
+
+        // Cargar las IPs al cargar la página
+        window.onload = loadIPs;
+
+        // Opcional: Actualizar la lista cada cierto tiempo (por ejemplo, cada 5 segundos)
+        setInterval(loadIPs, 5000);
+    </script>
+</body>
+</html>
+
