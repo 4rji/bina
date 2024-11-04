@@ -12,11 +12,16 @@ cp ~/.ssh/config ~/.ssh/config_$DATE
 # Descarga el nuevo archivo de configuración de SSH
 wget -O /tmp/config $URL
 
+
+#copy to .ssh
+mv /tmp/config ~/.ssh/
+
+
 # Combina los archivos de configuración sin duplicados
-awk '!seen[$0]++' ~/.ssh/config /tmp/config > /tmp/config_combined
+#awk '!seen[$0]++' ~/.ssh/config /tmp/config > /tmp/config_combined
 
 # Reemplaza el archivo de configuración SSH con el combinado
-mv /tmp/config_combined ~/.ssh/config
+#mv /tmp/config_combined ~/.ssh/config
 
 
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
