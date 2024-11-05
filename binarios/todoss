@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Define the directory
+#DIR="$HOME/Documents/GitHub/bina/binarios"
+DIR="/opt/4rji/bin"
+# Calculate total lines
+TOTAL_LINES=$(wc -l "$DIR"/* 2>/dev/null | awk 'END{print $1}' | numfmt --grouping)
+
+# Count total scripts (files)
+TOTAL_SCRIPTS=$(find "$DIR" -type f | wc -l | numfmt --grouping)
+
+# Define colors
+COLOR_RESET="\033[0m"
+COLOR_BLUE="\033[34m"
+COLOR_GREEN="\033[32m"
+
+# Print results in a table
+echo -e "${COLOR_BLUE}=============================="
+echo -e "         Statistics"
+echo -e "==============================${COLOR_RESET}"
+echo -e "${COLOR_GREEN}Total Lines: ${COLOR_RESET}$TOTAL_LINES"
+echo -e "${COLOR_GREEN}Total Scripts: ${COLOR_RESET}$TOTAL_SCRIPTS"
+echo -e "${COLOR_BLUE}==============================${COLOR_RESET}"
+
+sleep .5
+
+
+#la orginal pero no abre con nano
+#find $HOME/Documents/GitHub/bina/binarios -type f | fzf --preview 'bat --color=always --style=plain {}'
+
+
+#Este hace un nano pero el original hace un nvim automaticamente en Arch
+#cd /Users/ozono/Dropbox/bina/binarios/ && nano $(fzf --preview="bat --color=always {}")
+
+#para abrir con nano
+find "$DIR" -type f | fzf --preview 'bat --color=always --style=plain {}' --bind "enter:execute(nano {})"

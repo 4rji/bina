@@ -2,6 +2,12 @@
 
 echo ""
 
+# Verificar si se pasó el argumento -a
+if [[ "$1" == "-a" ]]; then
+    # Ejecutar el comando systemd-resolve --status
+    systemd-resolve --status
+fi
+
 # Verificar si el archivo /etc/resolv.conf existe
 if [ -f /etc/resolv.conf ]; then
     echo -e "\033[1;33mConfigured DNS servers:\033[0m"
@@ -11,5 +17,7 @@ if [ -f /etc/resolv.conf ]; then
 else
     echo -e "\033[1;33mThe /etc/resolv.conf file does not exist.\033[0m"
 fi
-
+echo ""
+echo "ejecutar con -a para ver"
+echo "systemd-resolve --status"
 echo ""
