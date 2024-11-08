@@ -3,6 +3,12 @@ Github              Binarios
 #labs
 lab                 Ejecuta el servidor http 8000 en python para labs, creado ahora htb
 
+#redhat
+epellistinst        Install epel list for redhat9
+
+
+
+
 ###------Arch linux
 instpkg             Instala un paquete en arch makepkg -si PKGBUILD
 instermius          Instala termius en arch con yay   
