@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the directory
-DIR="$HOME/Documents/GitHub/bina/binarios"
+DIR="/opt/4rji/bin/todos"
 
 # Calculate total lines
 TOTAL_LINES=$(wc -l "$DIR"/* 2>/dev/null | awk 'END{print $1}' | numfmt --grouping)
