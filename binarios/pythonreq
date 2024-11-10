@@ -1,7 +1,5 @@
 #!/bin/bash
 
-#!/bin/bash
-
 # Lista de paquetes a instalar
 paquetes=( "python3-pip" "libpcap-dev" "pipx" "python3-full")
 

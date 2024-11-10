@@ -5,7 +5,7 @@ lab                 Ejecuta el servidor http 8000 en python para labs, creado ah
 
 #redhat
 epellistinst        Install epel list for redhat9
-
+dnfrepos            Permite instalar qemu, actualiza unos repos tambien.
 
 
 
@@ -347,6 +347,7 @@ wireinst            Instala, y usa el archivo .conf para hacer la conexion. todo
 wgc                 Script que controla la coneccion de wireguard
 
 #qemu
+qemuinsredh9        Instala qemu virt en redhat9
 qemuins             Instala qemu y virtual en debian o arch
 qemuvm              Inicia la maquina virtual de qemu, desde cli y desde iso.
 qemuconsola         enable serial-getty@ttyS0.service  habilitar consola con virsh console  

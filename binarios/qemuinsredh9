@@ -1,0 +1,9 @@
+#!/bin/bash
+
+sudo dnf install qemu-system virt-manager -y
+
+
+sudo systemctl enable --now libvirtd
+
+echo ""
+echo "si no funciona usar primero dnfrepos"
