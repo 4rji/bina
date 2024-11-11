@@ -1,5 +1,32 @@
 #!/bin/bash
 
+echo "Please select an option:"
+echo "1) Enable BaseOS repository"
+echo "2) Enable AppStream repository"
+echo "3) Enable both BaseOS and AppStream repositories"
+echo "4) Exit"
 
-sudo subscription-manager repos --enable=rhel-9-for-x86_64-appstream-rpms
-sudo subscription-manager repos --enable=rhel-9-for-x86_64-baseos-rpms
+read -p "Enter your choice [1-4]: " choice
+
+case $choice in
+    1)
+        echo "Enabling BaseOS repository..."
+        sudo subscription-manager repos --enable=rhel-9-for-x86_64-baseos-rpms
+        ;;
+    2)
+        echo "Enabling AppStream repository..."
+        sudo subscription-manager repos --enable=rhel-9-for-x86_64-appstream-rpms
+        ;;
+    3)
+        echo "Enabling both BaseOS and AppStream repositories..."
+        sudo subscription-manager repos --enable=rhel-9-for-x86_64-baseos-rpms
+        sudo subscription-manager repos --enable=rhel-9-for-x86_64-appstream-rpms
+        ;;
+    4)
+        echo "Exiting."
+        exit 0
+        ;;
+    *)
+        echo "Invalid option. Please run the script again and select a valid option."
+        ;;
+esac
