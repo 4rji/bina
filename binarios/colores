@@ -1,0 +1,57 @@
+#!/bin/bash
+
+# Función para mostrar el menú de colores básicos
+mostrar_menu() {
+    echo "Seleccione un color para ver sus tonalidades:"
+    echo -e "1: Rojo"
+    echo -e "2: Verde"
+    echo -e "3: Azul"
+    echo -e "4: Amarillo"
+    echo -e "5: Magenta"
+    echo -e "6: Cian"
+    echo -e "7: Blanco"
+    echo -e "8: Negro"
+    echo -e "\nPresione un número (1-8) para seleccionar el color o 'q' para salir."
+}
+
+# Función para mostrar tonalidades de un color específico
+mostrar_tonalidades() {
+    case $1 in
+        1) base_color="Rojo"; for i in {0..15}; do red=$((255 - i * 16)); printf "\033[48;2;${red};0;0m   \033[0m #%02x0000\n" $red; done;;
+        2) base_color="Verde"; for i in {0..15}; do green=$((255 - i * 16)); printf "\033[48;2;0;${green};0m   \033[0m #00%02x00\n" $green; done;;
+        3) base_color="Azul"; for i in {0..15}; do blue=$((255 - i * 16)); printf "\033[48;2;0;0;${blue}m   \033[0m #0000%02x\n" $blue; done;;
+        4) base_color="Amarillo"; for i in {0..15}; do intensity=$((255 - i * 16)); printf "\033[48;2;${intensity};${intensity};0m   \033[0m #%02x%02x00\n" $intensity $intensity; done;;
+        5) base_color="Magenta"; for i in {0..15}; do intensity=$((255 - i * 16)); printf "\033[48;2;${intensity};0;${intensity}m   \033[0m #%02x00%02x\n" $intensity $intensity; done;;
+        6) base_color="Cian"; for i in {0..15}; do intensity=$((255 - i * 16)); printf "\033[48;2;0;${intensity};${intensity}m   \033[0m #00%02x%02x\n" $intensity $intensity; done;;
+        7) base_color="Blanco"; for i in {0..15}; do intensity=$((255 - i * 16)); printf "\033[48;2;${intensity};${intensity};${intensity}m   \033[0m #%02x%02x%02x\n" $intensity $intensity $intensity; done;;
+        8) base_color="Negro"; for i in {0..15}; do intensity=$((i * 16)); printf "\033[48;2;${intensity};${intensity};${intensity}m   \033[0m #%02x%02x%02x\n" $intensity $intensity $intensity; done;;
+        *) echo "Opción no válida.";;
+    esac
+}
+
+# Bucle principal
+while true; do
+    clear
+    mostrar_menu
+
+    # Leer la entrada sin necesidad de presionar Enter
+    read -n1 -s seleccion
+
+    # Salir si el usuario presiona 'q'
+    if [[ "$seleccion" == "q" ]]; then
+        echo -e "\nSaliendo..."
+        break
+    fi
+
+    # Mostrar las tonalidades del color seleccionado
+    case $seleccion in
+        [1-8])
+            echo -e "\nTonalidades de $(mostrar_tonalidades $seleccion)"
+            sleep 3
+            ;;
+        *) echo -e "\nOpción no válida.";;
+    esac
+
+    # Esperar antes de volver al menú principal
+    sleep 1
+done

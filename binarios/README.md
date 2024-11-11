@@ -52,6 +52,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+colores             Colores en hexadecimal
 amigo2inst          Instala ollama para linux, y descarga un modelo deepseek-coder-v2
 amigo               chatbot para openai, requiere API, se instala con amigoinst y amigoinst2
 apache9000          Modifica la configuracion de apache para correr en el puerto 80 y otro puerto
