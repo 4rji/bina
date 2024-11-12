@@ -61,6 +61,32 @@ def get_vm_status_and_ip(vm_name):
         logger.error(f"Excepción al obtener IP para {vm_name}: {e}")
         return "Error"
 
+# Función adicional para obtener el estado de potencia de la máquina
+def get_vm_power_state(vm_name):
+    try:
+        command = ['govc', 'vm.info', vm_name]
+        result = subprocess.run(
+            command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+
+        if result.returncode != 0:
+            logger.error(f"Error obteniendo información para {vm_name} con govc: {result.stderr.strip()}")
+            return "unknown"
+
+        output = result.stdout.strip()
+        match = re.search(r'Power state:\s+(\w+)', output)
+        if match:
+            return match.group(1)
+        else:
+            return "unknown"
+
+    except Exception as e:
+        logger.error(f"Excepción al obtener estado de potencia para {vm_name}: {e}")
+        return "error"
+
 @app.route('/')
 def index():
     machine_info = []
@@ -68,10 +94,12 @@ def index():
         display_name = machine['display_name']
         vcenter_name = machine['vcenter_name']
         ip = get_vm_status_and_ip(vcenter_name)
+        power_state = get_vm_power_state(vcenter_name)  # Obtener el estado de potencia
         machine_info.append({
             'display_name': display_name,
             'vcenter_name': vcenter_name,
-            'ip': ip
+            'ip': ip,
+            'power_state': power_state  # Agregar el estado de potencia al diccionario
         })
 
     # HTML template con botones de encendido y apagado para cada máquina
@@ -79,6 +107,7 @@ def index():
     <!DOCTYPE html>
     <html lang="en">
     <head>
+        <!-- (El resto del head permanece igual) -->
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Network Dashboard</title>
@@ -107,6 +136,10 @@ def index():
                 width: 200px;
                 vertical-align: top;
             }
+            /* Clase para el fondo rojo muy claro */
+            .machine-on {
+                background-color: #006f00; /* Rojo muy claro */
+            }
             .machine-name {
                 font-weight: bold;
                 margin-bottom: 10px;
@@ -115,7 +148,7 @@ def index():
                 font-size: 0.9em;
             }
             .ip-active {
-                color: green;
+                color: white;
             }
             .ip-inactive {
                 color: red;
@@ -163,7 +196,8 @@ def index():
 
         <div class="content">
             {% for machine in machine_info %}
-            <div class="machine">
+            <!-- Agregar clase 'machine-on' si la máquina está encendida -->
+            <div class="machine {% if machine.power_state == 'poweredOn' %}machine-on{% endif %}">
                 <div class="machine-name">{{ machine.display_name }}</div>
                 {% if machine.ip == "No-Active" %}
                     <div class="ip-address ip-inactive">{{ machine.ip }}</div>
