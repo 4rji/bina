@@ -91,33 +91,27 @@ def main():
     # Solicitar la IP objetivo
     ip_objetivo = input("Ingrese la IP objetivo: ")
 
-    while True:
-        # Opciones para iniciar o detener el ARP Spoofing
-        print("\nSeleccione una opción:")
-        print("1. Iniciar ARP Spoofing")
-        print("2. Cancelar ARP Spoofing")
-        print("3. Salir")
-        
-        opcion = input("Ingrese el número de la opción: ")
+    # Iniciar ARP Spoofing automáticamente después de ingresar la IP
+    iniciar_spoofing(ip_objetivo)
 
-        if opcion == '1':
-            if not ataque_en_curso:
-                iniciar_spoofing(ip_objetivo)
-            else:
-                print("El ataque ya está en curso.")
-        elif opcion == '2':
-            if ataque_en_curso:
+    # Esperar al usuario para cancelar el ataque o salir
+    try:
+        while True:
+            comando = input("\nPresione 'c' para cancelar el ataque o 's' para salir: ").lower()
+            if comando == 'c':
                 detener_spoofing()
+            elif comando == 's':
+                if ataque_en_curso:
+                    detener_spoofing()
+                print("Saliendo del programa.")
+                break
             else:
-                print("No hay un ataque en curso para detener.")
-        elif opcion == '3':
-            if ataque_en_curso:
-                detener_spoofing()
-            print("Saliendo del programa.")
-            break
-        else:
-            print("Opción inválida. Por favor, intente de nuevo.")
+                print("Comando no reconocido. Intente de nuevo.")
+    except KeyboardInterrupt:
+        # Manejo para CTRL+C
+        if ataque_en_curso:
+            detener_spoofing()
+        print("\nSaliendo del programa.")
 
 if __name__ == "__main__":
     main()
-

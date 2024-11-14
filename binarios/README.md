@@ -373,7 +373,7 @@ kittyinst           Instala kitty y baja su configuracion
 ovpninst            Instala OpenvpnServer para webadmin, 4rjiDocs
 
 #python herramientas
-nointer             bloquear internet con arp y python3 scapy, en cli
+nointer             bloquear internet con arp y python3 scapy, en cli- arp spoofing
 nointergui          Scapy con arp, para bloquear internet maquina, necesita GUI
 mitnickAttack       Usa Scapy para realizar un SYN Flood y establecer una conexión TCP falsificada
 spoofdetect         Detecta ataques con inundacion, muestra la direccion del ataque
