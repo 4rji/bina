@@ -1,10 +1,30 @@
 #!/usr/bin/env python3
+
 import os
+import sys
 import re
 import threading
 from scapy.all import ARP, Ether, send, srp
 import time
 import uuid
+import subprocess
+
+# Verifica si el script se está ejecutando como superusuario
+def is_root():
+    return os.geteuid() == 0
+
+if not is_root():
+    print("No funciona en ssh. Solicitando contraseña de sudo...")
+    try:
+        # Re-lanza el script con sudo usando subprocess y redirecciona stdin para asegurarse de que se solicite la contraseña
+        subprocess.run(['sudo', sys.executable] + sys.argv, stdin=sys.stdin)
+        sys.exit(0)  # Termina el proceso actual después de relanzar
+    except subprocess.CalledProcessError as e:
+        print(f"Error al intentar relanzar con sudo: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Error inesperado: {e}")
+        sys.exit(1)
 
 # Obtener automáticamente la puerta de enlace predeterminada
 def obtener_puerta_enlace():
@@ -31,6 +51,7 @@ def obtener_mac(ip):
     resultado = srp(paquete, timeout=2, verbose=0)[0]
     for enviado, recibido in resultado:
         return recibido.hwsrc
+    return None
 
 def spoofing_arp(ip_objetivo):
     global ataque_en_curso
