@@ -16,7 +16,7 @@ else
     wget "$DRIVER_URL" -O "$DRIVER_FILE"
     
     # Verificar si la descarga fue exitosa
-    if [ $? -ne 0 ]; entonces
+    if [ $? -ne 0 ]; then
         echo "Error al descargar el controlador de NVIDIA."
         exit 1
     fi
