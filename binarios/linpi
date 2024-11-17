@@ -1,21 +1,32 @@
 #!/bin/bash
 
-read -p "¿Deseas descargar el archivo? (y/n): " respuesta
+# Función para crear un directorio temporal en /dev/shm
+function mktem() {
+    if [ -n "$1" ]; then
+        new_dir=$(mktemp -d /dev/shm/tmp."$1".XXXXXX)
+    else
+        new_dir=$(mktemp -d /dev/shm/tmp.XXXXXX)
+    fi
+    echo "Directorio creado en: $new_dir"
+    cd "$new_dir" || return
+    echo "Cambiado al directorio: $PWD"
+}
 
-if [ "$respuesta" == "y" ]; then
-    # Descarga el archivo
-    wget https://github.com/4rji/dotfiles/blob/6fc04f3780e5807a1a8e14843b37555096920ecf/comprimidos.tar.xz -O comprimidos.tar.xz
-           
-    # Descomprime el archivo
-    tar -xJf comprimidos.tar.xz
+# Crear el directorio de destino si no existe
+mkdir -p /opt/4rji/
 
-    # Mueve el contenido a /opt/4rji/bin
-    sudo mv comprimidos/* /opt/4rji/bin/
+# Usar la función mktem para crear un directorio temporal
+mktem "download"
 
-    # Limpia archivos temporales
-    rm -rf comprimidos comprimidos.tar.xz
+# Descargar el archivo
+git clone --depth 1 https://github.com/4rji/dotfiles.git
 
-    echo "Archivos movidos exitosamente a /opt/4rji/bin/"
-else
-    echo "Operación cancelada."
-fi
+# Extraer el archivo en el directorio de destino
+tar -xvf dotfiles/comprimidos.tar.xz  
+
+sudo mv comprimidos/* /opt/4rji/bin/
+
+
+
+echo "Descarga y extracción completada en /opt/4rji/bin/"
+
