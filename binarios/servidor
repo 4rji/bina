@@ -79,13 +79,21 @@ for paquete in "${paquetes[@]}"; do
     esac
 done
 
+
+
 # Script que indica el comando ejecutado
-echo -e "\033[1;32mEl comando que este script ejecuta es:\033[0m"
-echo ""
-echo -e "\033[1;33mpython3 -m http.server 80\033[0m"
+
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 echo -e "\033[0;34mEjecutar linpi para descomprimir los otros binarios y también pyreque como sudo para secreto\033[0m"
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+echo ""
+#Pregunta linpi aqui:
+read -p "¿Descargar paquetes con linpi? (y/N): " respuesta
+
+if [[ "${respuesta,,}" == "y" ]]; then
+    linpi
+fi
 
 # Variables para opciones predeterminadas
 default_port="80"
@@ -96,7 +104,7 @@ destination_dir="/opt/4rji/bin"
 
 echo ""
 # Pregunta combinada
-read -p "¿Deseas utilizar un puerto diferente al predeterminado ($default_port)? [S/n] " custom_port
+read -p "¿Deseas utilizar un puerto diferente al predeterminado ($default_port)? [s/Enter para ejecutar servidor] " custom_port
 custom_port="${custom_port:-n}"
 
 if [[ $custom_port =~ ^[Ss]$ ]]; then
