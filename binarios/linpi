@@ -4,8 +4,8 @@ read -p "¿Deseas descargar el archivo? (y/n): " respuesta
 
 if [ "$respuesta" == "y" ]; then
     # Descarga el archivo
-    wget https://github.com/4rji/dotfiles/blob/cee148a9857f25038d025391963bea9572328422/comprimidos.tar.xz -O comprimidos.tar.xz
-         
+    wget https://github.com/4rji/dotfiles/blob/6fc04f3780e5807a1a8e14843b37555096920ecf/comprimidos.tar.xz -O comprimidos.tar.xz
+           
     # Descomprime el archivo
     tar -xJf comprimidos.tar.xz
 
