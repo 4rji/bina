@@ -1,0 +1,35 @@
+#!/bin/bash
+
+# Pregunta al usuario si desea instalar Nishang
+read -p "¿Instalar Nishang? (y/n): " respuesta
+
+# Verifica la respuesta
+if [[ "$respuesta" == "y" || "$respuesta" == "Y" ]]; then
+    echo "Descargando Nishang..."
+    
+    # Clonar el repositorio de Nishang
+    git clone https://github.com/samratashok/nishang.git
+    
+    # Verificar si la descarga fue exitosa
+    if [[ $? -eq 0 ]]; then
+        echo "Descarga exitosa. Moviendo a /opt/4rji/"
+        
+        # Crear el directorio de destino si no existe
+        sudo mkdir -p /opt/4rji/
+        
+        # Mover el repositorio clonado
+        sudo mv nishang /opt/4rji/
+        
+        # Confirmar el movimiento
+        if [[ $? -eq 0 ]]; then
+            echo "Nishang instalado en /opt/4rji/"
+        else
+            echo "Error al mover Nishang a /opt/4rji/"
+        fi
+    else
+        echo "Error al descargar Nishang. Verifica tu conexión a internet."
+    fi
+else
+    echo "Instalación cancelada."
+fi
+
