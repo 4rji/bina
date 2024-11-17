@@ -9,6 +9,12 @@ dnfrepos            Permite instalar qemu, actualiza unos repos tambien.
 
 
 
+###------shortcuts
+ippu                Ip publica con curl ifconfig.me
+
+
+
+
 ###------Arch linux
 instpkg             Instala un paquete en arch makepkg -si PKGBUILD
 instermius          Instala termius en arch con yay   
@@ -259,6 +265,7 @@ itcpd               Enmascara ssh o cualquier puerto con tcpd, version ssh nmap 
 fixwifibspwm        Arregla el wifi de bspwm cuando no funciona, instala y agrega una linea 
 wificonect          Usa el comando nmcli para conectar una red wifi en kali
 minet               Alias de ifconfig | grep "inet " | grep -v 127.0.0.1
+mine                Solo muesta las Ips y su nombre de la interface
 conexiones          Muestra nmcli conexiones nmcli -p device show y show --active red ethernet speed
 minet               Alias de ifconfig | grep "inet " | grep -v 127.0.0.1
 mired               copia eth0 al portapapeles y muestra todas las ips del equipo                      
