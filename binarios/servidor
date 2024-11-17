@@ -5,10 +5,10 @@ show_help_and_confirm() {
     echo ""
     echo -e "\033[1;32m Si no funciona (secreto, linpi) el problema son dependencias de python:\033[0m"
     echo ""
-    echo -e "\033[1;33m""Para instalar pip requirements: pyreque \033[0m"
+    echo -e "\033[1;33mPara instalar pip requirements: pyreque\033[0m"
     echo ""
     echo ""
-echo -e "\033[1;34m_________________________________________________________\033[0m"
+    echo -e "\033[1;34m_________________________________________________________\033[0m"
     exit
 }
 
@@ -17,15 +17,9 @@ if [ "$1" == "-h" ]; then
     show_help_and_confirm
 fi
 echo ""
-#echo "si no funciona instalar con el script:"
-#echo "pyreque"
-#pip3 install pycryptodome
-
-
-
 
 # Lista de paquetes a instalar
-paquetes=("python3" "python3-pip" )
+paquetes=("python3" "python3-pip")
 
 # Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
 paquete_instalado_apt() {  
@@ -85,38 +79,13 @@ for paquete in "${paquetes[@]}"; do
     esac
 done
 
-
-
-
-
-
-
-#!/bin/bash
-
+# Script que indica el comando ejecutado
 echo -e "\033[1;32mEl comando que este script ejecuta es:\033[0m"
-    echo ""
-    echo -e "\033[1;33mpython3 -m http.server 80\033[0m"
-
-
-
-echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
-
-echo -e "\033[0;34mejecutar linpi para descomprimir los otros binarios y tambien pyreque como sudo para secreto\033[0m"
-
-echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
-
-
-
 echo ""
-echo -e "\033[1;34m_________________________________________________________\033[0m"
-#echo ""
-
-#descomprimir linpeas porque github no me deja subirlo sin encriptar
-echo "PARA descomprimir linpeas, winpeas, lineenum, ejecutar "
-echo "linpi"
-echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
-
-
+echo -e "\033[1;33mpython3 -m http.server 80\033[0m"
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo -e "\033[0;34mEjecutar linpi para descomprimir los otros binarios y también pyreque como sudo para secreto\033[0m"
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 
 # Variables para opciones predeterminadas
 default_port="80"
@@ -124,9 +93,6 @@ port=$default_port
 
 # Directorio de destino para los archivos Apache
 destination_dir="/opt/4rji/bin"
-
-# Archivo de lista de nombres de archivos
-#file_list="/opt/4rji/bin/listaapache"
 
 echo ""
 # Pregunta combinada
@@ -138,43 +104,64 @@ if [[ $custom_port =~ ^[Ss]$ ]]; then
     read -p "Por favor, introduce el puerto deseado: " port
 fi
 
-# Copiar archivos de la listaapache a /tmp/apache
+# Crear el directorio de destino si no existe
 if [ ! -d "$destination_dir" ]; then
     mkdir -p "$destination_dir"
 fi
 
-while IFS= read -r filename; do
-    file_path=$(find /opt/4rji/bin/ -name "$filename" 2>/dev/null)
-    if [ -n "$file_path" ]; then
-        cp "$file_path" "$destination_dir"
-    else
-        
-        echo -e "\033[0;31mNo se encontro el archivo $filename en /opt/4rji/bin\033[0m"
-    fi
-done < "$file_list"
-
 echo ""
 echo ""
 echo -e "\033[0;34mArchivos copiados a $destination_dir\033[0m"
-#echo "linenum.sh   linpeas.sh   winpeasx64.exe   winpeasx86.exe"
-echo ""
 ls $destination_dir
 echo ""
 
+# Función para detener el servidor HTTP al recibir Ctrl+C
+cleanup() {
+    echo -e "\n\033[1;31mDeteniendo el servidor HTTP...\033[0m"
+    kill $SERVER_PID
+    exit
+}
 
-# Iniciar el servidor HTTP de Python en /tmp/apache
+# Atrapar la señal SIGINT (Ctrl+C)
+trap cleanup SIGINT
+
+# Iniciar el servidor HTTP de Python en /opt/4rji/bin
 if [[ $port =~ ^[0-9]+$ ]]; then
     cd "$destination_dir"
     echo -e "\033[1;34m_________________________________________________________\033[0m"
     echo ""
-
     echo -e "\033[33mIniciando servidor HTTP de Python en la ruta $destination_dir:$port\033[0m"
-
-#    ip -4 addr show | awk '/inet/ && !/127.0.0.1/ {split($2, a, "/"); printf "\t\t\t\t%s: %s\n", $NF, a[1]}'
     ip -4 addr show | awk '/inet/ && !/127.0.0.1/ {split($2, a, "/"); printf "\033[1;31m\t\t\t\t%s: %s\n\033[0m", $NF, a[1]}'
-
     echo ""
-    python3 -m http.server $port
+
+    # Empezar el servidor HTTP en el puerto seleccionado en segundo plano
+    python3 -m http.server $port &
+
+    # Guardar el PID del proceso para poder detenerlo después
+    SERVER_PID=$!
+
+    # Función para buscar archivos en el directorio mientras el servidor está corriendo
+    search_files() {
+        while true; do
+            read -p "Introduce un prefijo de archivo para buscar (o 'exit' para salir): " search_prefix
+            if [ "$search_prefix" == "exit" ]; then
+                break
+            fi
+            echo -e "\033[1;34mArchivos encontrados que empiezan con '$search_prefix':\033[0m"
+            # Buscar archivos y mostrar los nombres en amarillo
+            find "$destination_dir" -type f -name "$search_prefix*" -exec basename {} \; | while read line; do
+                echo -e "\033[1;33m$line\033[0m"
+            done
+        done
+    }
+
+    # Ejecutar la función de búsqueda mientras el servidor corre
+    search_files
+
+    # Detener el servidor HTTP después de salir del loop de búsqueda
+    echo -e "\033[1;31mDeteniendo el servidor HTTP...\033[0m"
+    kill $SERVER_PID
+
 else
-    echo -e "${RED}El puerto ingresado no es valido.${NC}"
+    echo -e "\033[1;31mEl puerto ingresado no es válido.\033[0m"
 fi
