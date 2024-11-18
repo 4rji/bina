@@ -1,32 +1,39 @@
 #!/bin/bash
 
-echo "Please select an option:"
-echo "1) Enable BaseOS repository"
-echo "2) Enable AppStream repository"
-echo "3) Enable both BaseOS and AppStream repositories"
-echo "4) Exit"
+echo "Por favor, seleccione una opcion:"
+echo "1) Habilitar el repositorio BaseOS"
+echo "2) Habilitar el repositorio AppStream"
+echo "3) Habilitar ambos repositorios BaseOS y AppStream"
+echo "4) Habilitar EPEL repositorios y CodeReady Builder"
+echo "5) Salir"
 
-read -p "Enter your choice [1-4]: " choice
+read -p "Ingrese su elección [1-5]: " choice
 
 case $choice in
     1)
-        echo "Enabling BaseOS repository..."
+        echo "Habilitando el repositorio BaseOS..."
         sudo subscription-manager repos --enable=rhel-9-for-x86_64-baseos-rpms
         ;;
     2)
-        echo "Enabling AppStream repository..."
+        echo "Habilitando el repositorio AppStream..."
         sudo subscription-manager repos --enable=rhel-9-for-x86_64-appstream-rpms
         ;;
     3)
-        echo "Enabling both BaseOS and AppStream repositories..."
+        echo "Habilitando ambos repositorios BaseOS y AppStream..."
         sudo subscription-manager repos --enable=rhel-9-for-x86_64-baseos-rpms
         sudo subscription-manager repos --enable=rhel-9-for-x86_64-appstream-rpms
         ;;
     4)
-        echo "Exiting."
+        echo "Habilitando CodeReady Builder y los repositorios EPEL..."
+        sudo subscription-manager repos --enable codeready-builder-for-rhel-9-$(arch)-rpms
+        sudo dnf install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm
+        sudo dnf install epel-release -y
+        ;;
+    5)
+        echo "Saliendo."
         exit 0
         ;;
     *)
-        echo "Invalid option. Please run the script again and select a valid option."
+        echo "Opción invalida. Por favor, ejecute el script nuevamente y seleccione una opción valida."
         ;;
 esac

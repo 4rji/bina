@@ -4,8 +4,7 @@ Github              Binarios
 lab                 Ejecuta el servidor http 8000 en python para labs, creado ahora htb
 
 #redhat
-epellistinst        Install epel list for redhat9
-dnfrepos            Permite instalar qemu, actualiza unos repos tambien.
+dnfrepos            Actualiza unos repos EPEL, y otros, tambien qemu se habilita.
 
 
 
