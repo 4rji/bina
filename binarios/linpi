@@ -1,63 +1,32 @@
-#!/usr/bin/env python3
-import os
-import sys
-from Cryptodome.Cipher import AES
-from Cryptodome.Protocol.KDF import PBKDF2
-from Cryptodome.Random import get_random_bytes
+#!/bin/bash
 
-# Función para derivar la clave
-def derivar_clave(frase):
-    salt = get_random_bytes(16)  
-    clave = PBKDF2(frase.encode(), salt, dkLen=32)  
-    return clave, salt
+# Función para crear un directorio temporal en /dev/shm
+function mktem() {
+    if [ -n "$1" ]; then
+        new_dir=$(mktemp -d /dev/shm/tmp."$1".XXXXXX)
+    else
+        new_dir=$(mktemp -d /dev/shm/tmp.XXXXXX)
+    fi
+    echo "Directorio creado en: $new_dir"
+    cd "$new_dir" || return
+    echo "Cambiado al directorio: $PWD"
+}
 
-# Función para desencriptar el archivo
-def desencriptar(archivo, frase):
-    try:
-        file_in = open(archivo, 'rb')
-        salt = file_in.read(16)  
-        nonce = file_in.read(16)
-        tag = file_in.read(16)
-        ciphertext = file_in.read()
+# Crear el directorio de destino si no existe
+mkdir -p /opt/4rji/
 
-        clave = PBKDF2(frase.encode(), salt, dkLen=32)
-        cipher_aes = AES.new(clave, AES.MODE_EAX, nonce)
-        data = cipher_aes.decrypt_and_verify(ciphertext, tag)
+# Usar la función mktem para crear un directorio temporal
+mktem "download"
 
-        # Verificar si el directorio /opt/4rji/bin existe, si no existe, crearlo
-        ruta_directorio = "/opt/4rji/bin"
-        if not os.path.exists(ruta_directorio):
-            os.makedirs(ruta_directorio, exist_ok=True)
+# Descargar el archivo
+git clone --depth 1 https://github.com/4rji/dotfiles.git
 
-        nombre_archivo = os.path.basename(archivo).replace(".enc", "")
-        ruta_salida = os.path.join(ruta_directorio, nombre_archivo)
+# Extraer el archivo en el directorio de destino
+tar -xvf dotfiles/comprimidos.tar.xz  
 
-        with open(ruta_salida, 'wb') as file_out:
-            file_out.write(data)
-            file_out.close()
-        
-        # Cambiar permisos del archivo a ejecutable
-        os.chmod(ruta_salida, 0o755)
+sudo mv comprimidos/* /opt/4rji/bin/
 
-    except Exception as e:
-        print(f"Error al desencriptar el archivo: {e}")
-        sys.exit(1)
 
-# Verificar si el script se está ejecutando con privilegios de root
-if not os.geteuid() == 0:
-    sys.exit("Este script necesita privilegios de superusuario. Por favor, reinicia con 'sudo'.")
 
-# Archivos a desencriptar
-archivos = [
-    "/opt/4rji/bin/winPEASx86.exe.enc",
-    "/opt/4rji/bin/winPEASx64.exe.enc",
-    "/opt/4rji/bin/linenum.sh.enc",
-    "/opt/4rji/bin/linpeas.sh.enc"
-]
+echo "Descarga y extracción completada en /opt/4rji/bin/"
 
-# Frase secreta
-frase = "ass"
-
-# Desencriptar cada archivo
-for archivo in archivos:
-    desencriptar(archivo, frase)

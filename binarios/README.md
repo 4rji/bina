@@ -57,6 +57,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+instpowershell      Descarga nishang powershell modules
 colores             Colores en hexadecimal
 amigo2inst          Instala ollama para linux, y descarga un modelo deepseek-coder-v2
 amigo               chatbot para openai, requiere API, se instala con amigoinst y amigoinst2
@@ -421,6 +422,7 @@ sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 search              Crea datos para la pagina web, para llenar la base de busqueda search
 
 #Redstuff
+linpi               Baja comprimidos, que contiene linpi, enum, chisel, pspy64, etc.
 s1pinst             Servidor, usa dockers para un reverse proxy apuntando a servidor.yop.com de cloudflare
 johninst            Install john the ripper for GPU, from github.
 busq                alias busq='/opt/4rji/BreachCompilation/query.sh'
@@ -490,7 +492,6 @@ hosthtb             Agrega el host para paginas, toma la $ip de zsh y solo pide 
 galletas            Recibe cookies de session, php js xss html injection phpsessid
 ngrok               Instala ngrok para dockers, toma token de ngroktk script, conecta ssh y http. 
 archiveinst         Archivebox para guardar paginas, instaladaro. alias archive para iniciar server tmux
-linenum.sh          Como linpeas
 getpython           Para recibir archivos con curl -T desde la otra maquina, getpython2 disponible
 getpythonsyn
 archivos            Descarga desde $ip robots y cookies
