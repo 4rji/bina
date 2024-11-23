@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Initialize an array to store the commands
+commands=()
+
+# Start message
+echo -e "\033[1;32m"  # Bright Green
+echo ""
+echo "Enter the commands to execute in the loop. Type 'done' to finish."
+echo ""
+echo "_________________________________________________________"
+echo -e "\033[0m"
+
+# Capture user-entered commands
+while true; do
+    echo -ne "\033[1;34m"  # Bright Blue
+    read -p "Command: " cmd
+    echo -e "\033[0m"
+    if [ "$cmd" == "done" ]; then
+        break
+    fi
+    commands+=("$cmd")
+done
+
+# Display the loop command that will be executed
+echo -e "\033[1;33m"  # Bright Yellow
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo "The following loop command will be executed:"
+echo ""
+echo "while true; do"
+for cmd in "${commands[@]}"; do
+    echo "    $cmd"
+done
+echo "done"
+echo ""
+echo "_________________________________________________________"
+echo -e "\033[0m"
+
+# Execution start message
+echo -e "\033[1;31m"  # Bright Red
+echo ""
+echo "Executing the loop... Press Ctrl+C to stop."
+echo ""
+echo "_________________________________________________________"
+echo -e "\033[0m"
+
+# Execute the commands in an infinite loop
+while true; do
+    for cmd in "${commands[@]}"; do
+        eval "$cmd"
+    done
+done
+

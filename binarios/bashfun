@@ -100,6 +100,25 @@ function rmk(){
         shred -zun 10 -v $1
 }
 
+loop() {
+    echo "Enter the commands to execute in the loop. Type 'done' to finish."
+    
+    local commands=()
+    
+    while true; do
+        read "cmd?Command: "
+        if [[ "$cmd" == "done" ]]; then
+            break
+        fi
+        commands+=("$cmd")
+    done
+    
+    while true; do
+        for cmd in "${commands[@]}"; do
+            eval "$cmd"
+        done
+    done
+}
 
 #Muestra el ultimo comando con colores con bat 
 function coll() {
