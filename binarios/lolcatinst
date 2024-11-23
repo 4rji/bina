@@ -1,0 +1,5 @@
+#!/bin/bash
+echo " install lolcat on redhat9"
+sudo dnf install ruby -y
+sudo gem update --system -y
+sudo gem install lolcat -y

@@ -5,7 +5,7 @@ lab                 Ejecuta el servidor http 8000 en python para labs, creado ah
 
 #redhat
 dnfrepos            Actualiza unos repos EPEL, y otros, tambien qemu se habilita.
-
+lolcatinst          Instala gem, ruby y lolcat
 
 
 ###------shortcuts
