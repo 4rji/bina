@@ -5,7 +5,7 @@ lab                 Ejecuta el servidor http 8000 en python para labs, creado ah
 
 #redhat
 dnfrepos            Actualiza unos repos EPEL, y otros, tambien qemu se habilita.
-
+lolcatinst          Instala gem, ruby y lolcat
 
 
 ###------shortcuts
@@ -57,6 +57,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+loop and loopp      While true; function and script, loop is the function.
 instpowershell      Descarga nishang powershell modules
 colores             Colores en hexadecimal
 amigo2inst          Instala ollama para linux, y descarga un modelo deepseek-coder-v2
