@@ -422,6 +422,8 @@ sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 search              Crea datos para la pagina web, para llenar la base de busqueda search
 
 #Redstuff
+ncarchivos          Muestra comandos para nc para enviar archivos o enviar comandos
+socat1              Bajado de https://github.com/aledbf/socat-static-binary/releases/download/v0.0.1/socat-linux-amd64
 linpi               Baja comprimidos, que contiene linpi, enum, chisel, pspy64, etc.
 s1pinst             Servidor, usa dockers para un reverse proxy apuntando a servidor.yop.com de cloudflare
 johninst            Install john the ripper for GPU, from github.

