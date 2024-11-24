@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-sudo cp /usr/bin/batcat /usr/bin/bat
+#sudo cp /usr/bin/batcat /usr/bin/bat
 # Colores
 verde='\e[0;32m'
 azul='\e[0;34m'
