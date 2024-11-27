@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# Variables
+FONT_URL="https://github.com/ryanoasis/nerd-fonts/releases/download/v3.2.1/Meslo.zip"
+FONT_NAME="Meslo"
+TEMP_DIR="/tmp/$FONT_NAME"
+USER_FONT_DIR="$HOME/.local/share/fonts"
+GLOBAL_FONT_DIR="/usr/share/fonts/$FONT_NAME"
+
+# Descargar la fuente
+echo "Downloading $FONT_NAME font..."
+wget -q --show-progress -O "$TEMP_DIR.zip" "$FONT_URL"
+
+# Extraer la fuente
+echo "Extracting font files..."
+mkdir -p "$TEMP_DIR"
+unzip -q "$TEMP_DIR.zip" -d "$TEMP_DIR"
+
+# Crear directorio de fuentes
+echo "Installing fonts for the user..."
+mkdir -p "$USER_FONT_DIR"
+cp "$TEMP_DIR"/*.ttf "$USER_FONT_DIR"
+
+# Opcional: Instalación global (requiere sudo)
+if [ "$1" == "--global" ]; then
+    echo "Installing fonts globally..."
+    sudo mkdir -p "$GLOBAL_FONT_DIR"
+    sudo cp "$TEMP_DIR"/*.ttf "$GLOBAL_FONT_DIR"
+fi
+
+# Regenerar caché de fuentes
+echo "Updating font cache..."
+fc-cache -fv
+
+# Verificar instalación
+echo "Verifying installation..."
+fc-list | grep "$FONT_NAME"
+
+# Limpieza
+echo "Cleaning up temporary files..."
+rm -rf "$TEMP_DIR" "$TEMP_DIR.zip"
+
+echo "Installation complete!"
