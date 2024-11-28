@@ -181,15 +181,15 @@ fi
 wallpaper_dir="$HOME/.config/Wallpaper"
 wallpaper_file="$wallpaper_dir/rocket.png"
 
-if [ ! -d "$wallpaper_dir" ]; then
-    mkdir -p "$wallpaper_dir"
-    echo -e "${green}Directorio de wallpaper creado:${nocolor} $wallpaper_dir"
-else
-    echo -e "${green}Directorio de wallpaper encontrado:${nocolor} $wallpaper_dir"
-fi
-
-wget -q -O "$wallpaper_file" "https://github.com/4rji/4rji/blob/33ebd39c63e2cbfd444d688aa8a179da9215535f/Wallpaper/rocket.png?raw=true"
-echo -e "${green}Imagen de fondo descargada y copiada:${nocolor} $wallpaper_file"
+#if [ ! -d "$wallpaper_dir" ]; then
+ #   mkdir -p "$wallpaper_dir"
+  #  echo -e "${green}Directorio de wallpaper creado:${nocolor} $wallpaper_dir"
+#else
+ #   echo -e "${green}Directorio de wallpaper encontrado:${nocolor} $wallpaper_dir"
+#fi
+#para rocket wallpaper. ya no.
+#wget -q -O "$wallpaper_file" "https://github.com/4rji/4rji/blob/33ebd39c63e2cbfd444d688aa8a179da9215535f/Wallpaper/rocket.png?raw=true"
+#echo -e "${green}Imagen de fondo descargada y copiada:${nocolor} $wallpaper_file"
 
 # Mensaje de instalación exitosa
 echo -e "${green}Instalación exitosa.${nocolor}"
