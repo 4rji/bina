@@ -82,6 +82,12 @@ function T() {
 }
 
 
+nixs() {
+  nix-shell -p zsh "$@" --run "zsh -i"
+}
+
+
+
 
 function htp() {
   pwd=$(pwd)
