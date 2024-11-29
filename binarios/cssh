@@ -17,13 +17,13 @@ echo -e "\n${COLOR_INFO}Verifying SSH key permissions...${COLOR_RESET}\n"
 # Check if the user@IP argument was provided
 if [ -z "$1" ]; then
     echo -e "${COLOR_WARNING}Error: You must provide the user@IP argument${COLOR_RESET}"
-    exit 1
+  #  exit 1
 fi
 
 # Check if the ssh_port argument was provided
 if [ -z "$2" ]; then
     echo -e "${COLOR_WARNING}Error: You must provide the ssh_port argument${COLOR_RESET}"
-    exit 1
+   # exit 1
 fi
 
 # Get the user@IP from the argument
@@ -54,7 +54,7 @@ check_permissions() {
         fi
     else
         echo -e "${COLOR_WARNING}Error: $description not found at $file${COLOR_RESET}"
-        exit 1
+        #exit 1
     fi
 }
 
