@@ -1,0 +1,12 @@
+#!/bin/bash
+
+# Actualizar el canal de NixOS
+echo "Actualizando el canal de NixOS..."
+sudo nix-channel --update
+
+# Construir y aplicar los cambios
+echo "Aplicando los cambios..."
+sudo nixos-rebuild switch --upgrade
+
+# Mostrar un mensaje de finalización
+echo "La actualización de NixOS se ha completado."
