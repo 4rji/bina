@@ -6,8 +6,8 @@ import re
 
 # Configurar variables de entorno para govc
 os.environ['GOVC_URL'] = 'https://192.168.140.20/sdk'
-os.environ['GOVC_USERNAME'] = r'mpls\Usuario'
-os.environ['GOVC_PASSWORD'] = 'Password'
+os.environ['GOVC_USERNAME'] = r'mpls\xt7750vo'
+os.environ['GOVC_PASSWORD'] = 'J@cinto12$$..'
 os.environ['GOVC_INSECURE'] = '1'
 
 app = Flask(__name__)
@@ -102,7 +102,7 @@ def index():
             'power_state': power_state  # Agregar el estado de potencia al diccionario
         })
 
-    # HTML template con botones de encendido y apagado para cada máquina
+    # HTML template con botones de encendido, apagado y reset para cada máquina
     html_template = """
     <!DOCTYPE html>
     <html lang="en">
@@ -136,9 +136,9 @@ def index():
                 width: 200px;
                 vertical-align: top;
             }
-            /* Clase para el fondo rojo muy claro */
+            /* Clase para el fondo verde cuando la máquina está encendida */
             .machine-on {
-                background-color: #006f00; /* Rojo muy claro */
+                background-color: #005f00; /* Verde claro */
             }
             .machine-name {
                 font-weight: bold;
@@ -179,10 +179,13 @@ def index():
                 color: white;
             }
             .start-button {
-                background-color: #28a745; /* green */
+                background-color: #28a745; /* verde */
             }
             .shutdown-button {
-                background-color: #dc3545; /* red */
+                background-color: #dc3545; /* rojo */
+            }
+            .reset-button {
+                background-color: #ffc107; /* amarillo */
             }
             button:hover {
                 opacity: 0.8;
@@ -208,13 +211,14 @@ def index():
                 {% endif %}
                 <button class="start-button" onclick="location.href='{{ url_for('start_machine', machine=machine.vcenter_name) }}'">Turn on</button>
                 <button class="shutdown-button" onclick="location.href='{{ url_for('shutdown_machine', machine=machine.vcenter_name) }}'">Turn off</button>
+                <button class="reset-button" onclick="location.href='{{ url_for('reset_machine', machine=machine.vcenter_name) }}'">Reset</button>
             </div>
             {% endfor %}
             <div class="image-container">
                 <img src="{{ url_for('static', filename='ccdc.png') }}" alt="CCDC Logo">
             </div>
         </div>
-        <p class="instruction">"Use the buttons to Turn On or Turn Off the devices."</p>
+        <p class="instruction">"Use the buttons to Turn On, Turn Off or Reset the devices."</p>
     </body>
     </html>
     """
@@ -242,6 +246,18 @@ def shutdown_machine(machine):
             logger.error(f"Error apagando {machine}: {e}")
     else:
         logger.error(f"Nombre de máquina inválido para apagar: {machine}")
+    return redirect('/')
+
+@app.route('/reset/<machine>')
+def reset_machine(machine):
+    if machine in valid_machines:
+        command = ['govc', 'snapshot.revert', '-vm', machine, 'last']
+        try:
+            subprocess.Popen(command)
+        except Exception as e:
+            logger.error(f"Error restaurando {machine}: {e}")
+    else:
+        logger.error(f"Nombre de máquina inválido para restaurar: {machine}")
     return redirect('/')
 
 if __name__ == '__main__':

@@ -1,42 +1,131 @@
 #!/bin/bash
 
-# Verifica si el usuario es root
-if [[ $EUID -ne 0 ]]; then
-   echo "Este script debe ser ejecutado como root."
-   exit 1
+# NTP Server Installation and Configuration Script for Debian 10
+# This script installs and configures the NTP service as a server with IPv6 support.
+
+# Exit immediately if a command exits with a non-zero status
+set -e
+
+# Function to display messages
+echo_msg() {
+    echo "=============================================="
+    echo "$1"
+    echo "=============================================="
+}
+
+# Ensure the script is run as root
+if [ "$EUID" -ne 0 ]; then
+    echo "Please run this script with sudo or as root."
+    exit 1
 fi
 
-# Actualiza los repositorios
-apt-get update
+# Step 1: Update the System
+echo_msg "Updating the system packages..."
+apt update && apt upgrade -y
 
-# Instala el paquete ntp si no está instalado
-if ! dpkg -s ntp >/dev/null 2>&1; then
-    apt-get install -y ntp
-fi
+# Step 2: Install NTP
+echo_msg "Installing NTP service..."
+apt install ntp -y
 
-# Realiza una copia de seguridad del archivo de configuración original
-cp /etc/ntp.conf /etc/ntp.conf.backup
+# Step 3: Backup Existing NTP Configuration
+echo_msg "Backing up the existing NTP configuration..."
+cp /etc/ntp.conf /etc/ntp.conf.bak
 
-# Configura la lista de servidores NTP
-cat <<EOT > /etc/ntp.conf
-# Configuración de NTP
+# Step 4: Configure NTP as a Server
+echo_msg "Configuring NTP as a server..."
 
-# Servidores NTP oficiales de NIST
-server time.nist.gov iburst
-server time-a.nist.gov iburst
-server time-b.nist.gov iburst
-server time-c.nist.gov iburst
-server time-d.nist.gov iburst
+# Define NTP servers
+NTP_SERVERS=(
+    "0.debian.pool.ntp.org iburst"
+    "1.debian.pool.ntp.org iburst"
+    "2.debian.pool.ntp.org iburst"
+    "3.debian.pool.ntp.org iburst"
+)
 
-# Restricciones de acceso
-restrict default nomodify notrap nopeer noquery
+# Start writing the new ntp.conf
+cat > /etc/ntp.conf <<EOL
+# NTP configuration for Debian 10 NTP Server
+
+# Use servers from the NTP Pool Project
+# More information: https://www.pool.ntp.org
+${NTP_SERVERS[@]/#/server }
+
+# Drift file
+driftfile /var/lib/ntp/ntp.drift
+
+# Enable IPv6 support
+interface listen on 0.0.0.0
+interface listen on ::0
+
+# Access control configuration
+# By default, restricts all access
+restrict default kod nomodify notrap nopeer noquery
+
+# Allow localhost (IPv4 and IPv6) to query and modify
 restrict 127.0.0.1
 restrict ::1
 
-# Otras configuraciones según sea necesario
-EOT
+# Allow NTP clients on the local network to synchronize
+# Replace 192.168.1.0/24 with your local network subnet
+restrict 192.168.1.0 mask 255.255.255.0 nomodify notrap
 
-# Reinicia el servicio NTP para aplicar los cambios
+# Specify the local clock as a fallback (optional)
+# server 127.127.1.0 # local clock
+# fudge 127.127.1.0 stratum 10
+
+# Enable logging (optional)
+# logfile /var/log/ntp.log
+# logconfig =all
+
+EOL
+
+# Step 5: Configure the Firewall to Allow NTP Traffic
+echo_msg "Configuring the firewall to allow NTP traffic..."
+
+# Function to check and install UFW if not present
+install_ufw_if_missing() {
+    if ! command -v ufw >/dev/null 2>&1; then
+        echo "UFW not found. Installing UFW..."
+        apt install ufw -y
+        echo "UFW installed."
+    fi
+}
+
+# Check if UFW is installed
+if command -v ufw >/dev/null 2>&1; then
+    echo "UFW is already installed."
+else
+    install_ufw_if_missing
+fi
+
+# Allow NTP through UFW
+ufw allow 123/udp
+
+# Enable UFW if not already enabled
+if ufw status | grep -qw "Status: inactive"; then
+    echo "Enabling UFW..."
+    ufw --force enable
+else
+    echo "UFW is already enabled."
+fi
+
+echo "Firewall rules updated to allow NTP traffic on UDP port 123."
+
+# Step 6: Restart and Enable NTP Service
+echo_msg "Restarting and enabling NTP service..."
 systemctl restart ntp
+systemctl enable ntp
 
-echo "Servidor NTP configurado exitosamente."
+# Step 7: Verify NTP Service Status
+echo_msg "Verifying NTP service status..."
+systemctl status ntp --no-pager
+
+# Step 8: Verify NTP Synchronization and Server Status
+echo_msg "Checking NTP synchronization and server peers..."
+ntpq -p
+
+echo_msg "NTP server installation and configuration completed successfully."
+
+echo "to verify conections"
+echo "ntpq -p" 
+
