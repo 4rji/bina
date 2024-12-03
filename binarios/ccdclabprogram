@@ -6,8 +6,8 @@ import re
 
 # Configurar variables de entorno para govc
 os.environ['GOVC_URL'] = 'https://192.168.140.20/sdk'
-os.environ['GOVC_USERNAME'] = r'mpls\xt7750vo'
-os.environ['GOVC_PASSWORD'] = 'J@cinto12$$..'
+os.environ['GOVC_USERNAME'] = r'mpls\ID'
+os.environ['GOVC_PASSWORD'] = 'Password'
 os.environ['GOVC_INSECURE'] = '1'
 
 app = Flask(__name__)
@@ -22,13 +22,13 @@ logger.addHandler(handler)
 
 # Definir la lista de máquinas virtuales con su nombre para mostrar y su nombre en vcenter
 machines = [
-    {'display_name': 'Windows 10', 'vcenter_name': 'windows10'},
+    {'display_name': 'Windows 10', 'vcenter_name': 'CCDC-Windows10'},
     {'display_name': '2016 Docker/Remote', 'vcenter_name': 'CCDC-2016-Docker-Remote'},
     {'display_name': 'Debian 10 DNS/NTP', 'vcenter_name': 'CCDC-Debian10-DNS-NTP'},
     {'display_name': 'Ubuntu 18 Web', 'vcenter_name': 'CCDC-Ubuntu18-Web'},
-    {'display_name': '2019 AD/DNS/DHCP', 'vcenter_name': 'ad_dns_dhcp'},
+    {'display_name': '2019 AD/DNS/DHCP', 'vcenter_name': 'CCDC-2019-AD-DNS-DHCP'},
     {'display_name': 'Ubuntu Workstation', 'vcenter_name': 'CCDC_Ubuntu_Wkst'},
-    {'display_name': 'Splunk 9.1.1', 'vcenter_name': 'CCDC-Splunk 9.1'},
+    {'display_name': 'Splunk 9.1.1', 'vcenter_name': 'CCDC-Splunk-9.1'},
     {'display_name': 'CentOS 7 E-comm', 'vcenter_name': 'CCDC-Centos7-Ecomm'},
     {'display_name': 'Fedora 21 Webmail/WebApps', 'vcenter_name': 'CCDC-Fedora-21-webmail-apps'},
 ]
