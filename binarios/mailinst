@@ -1,12 +1,13 @@
 #!/bin/bash
 
-# Instalar Dovecot y Postfix
-echo -e "\033[1;32mInstalando Dovecot y Postfix...\033[0m"
-sudo yum update -y && sudo yum install -y dovecot postfix
+# Instalar Dovecot, Postfix y Mutt
+echo -e "\033[1;32mInstalando Dovecot, Postfix y Mutt...\033[0m"
+sudo yum update -y && sudo yum install -y dovecot postfix mutt
 
 # Directorios de configuración
 DOVECOT_CONF_DIR="/etc/dovecot/conf.d"
 POSTFIX_CONF_DIR="/etc/postfix"
+MUTTRC_FILE="/home/sysadmin/.muttrc"
 
 # URLs de los archivos a descargar
 AUTH_CONF_URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/mail-fedora-ccdc/10-auth.conf"
@@ -23,8 +24,20 @@ sudo curl -o "$DOVECOT_CONF_DIR/10-ssl.conf" $SSL_CONF_URL
 sudo curl -o "/etc/dovecot/dovecot.conf" $DOVECOT_CONF_URL
 sudo curl -o "$POSTFIX_CONF_DIR/main.cf" $MAIN_CF_URL
 
+# Configuración de Mutt
+echo -e "\033[1;33mConfigurando Mutt...\033[0m"
+cat <<EOL > "$MUTTRC_FILE"
+set folder="/home/sysadmin/Maildir"
+set spoolfile="/home/sysadmin/Maildir"
+set mbox_type=Maildir
+set mbox="/home/sysadmin/Maildir"
+set record="~/sent"
+set postponed="~/drafts"
+EOL
+chown sysadmin:sysadmin "$MUTTRC_FILE"
+
 # Reiniciar servicios
-echo -e "\033[1;34mReiniciando servicios Dovecot y Postfix...\033[0m"
+echo -e "\033[1;33mReiniciando servicios Dovecot y Postfix...\033[0m"
 sudo systemctl restart dovecot
 sudo systemctl restart postfix
 
@@ -34,15 +47,19 @@ sudo systemctl enable postfix
 sudo systemctl stop firewalld
 
 echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
-echo -e "\033[1;31mthis script stops the firewalld, you need to configure it\033[0m"
-echo -e "\033[1;31m_________________________________________________________\033[0m\n"
+echo "this script stops the firewalld, you need to configure it"
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
 
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
-echo -e "\033[1;32mConfiguración completada.\033[0m"
-echo -e "\033[1;37m_________________________________________________________\033[0m\n"
+
+echo "Configuración completada."
 
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
-echo -e "\033[1;37mTest sending an email with:\033[0m"
-echo -e "\033[1;36mswaks --to sysadmin@ccdc.local --from test44@debian.local --server mail.ccdc.local --header 'Subject: Test from debian mail.ccdc.local' --body 'Hello, this is a test email using MAIL.CCDC.LOCAL'\033[0m"
-echo -e "\033[1;34m_________________________________________________________\033[0m\n"
-
+echo -e "\033[1;37m_________________________________________________________\033[0m\n"
+echo -e "\033[1;33mTest sending a email with:(make sure the DNS is configure it too 172.20.240.20)\033[0m"
+echo ""
+echo 'swaks --to sysadmin@ccdc.local --from test44@debian.local --server mail.ccdc.local --header "Subject: Test from debian mail.ccdc.local" --body "Hello, this is a test email using MAIL.CCDC.LOCAL"'
+echo ""
+echo -e "\033[1;32mOpen Mutt to check the mail.\033[0m"
+echo "mutt"
+echo ""
