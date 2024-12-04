@@ -1,0 +1,185 @@
+#!/bin/bash
+
+# Script de Instalación y Configuración de Servidor DNS con BIND9 en Debian 10
+# Autor: [Tu Nombre]
+# Fecha: [Fecha Actual]
+
+# Salir si ocurre un error
+set -e
+
+# Función para mostrar mensajes
+echo_msg() {
+    echo "=============================================="
+    echo "$1"
+    echo "=============================================="
+}
+
+# 1. Verificar si se ejecuta como root
+if [ "$EUID" -ne 0 ]; then
+    echo "Por favor, ejecuta este script como root o usando sudo."
+    exit 1
+fi
+
+# 2. Actualizar el sistema
+echo_msg "Actualizando el sistema..."
+apt update && apt upgrade -y
+
+# 3. Verificar si BIND9 está instalado e instalar si es necesario
+echo_msg "Verificando si BIND9 está instalado..."
+if ! dpkg -l | grep -qw bind9; then
+    echo "BIND9 no está instalado. Instalando BIND9 y herramientas relacionadas..."
+    apt install bind9 bind9utils bind9-doc dnsutils -y
+else
+    echo "BIND9 ya está instalado."
+fi
+
+# 4. Solicitar al usuario la dirección IP y el nombre de dominio
+echo_msg "Configuración del Servidor DNS"
+
+read -p "Ingresa la dirección IP del servidor DNS: " SERVER_IP
+read -p "Ingresa el nombre de dominio (ejemplo: ejemplo.com): " DOMAIN_NAME
+
+# Validar la dirección IP
+if [[ ! $SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "La dirección IP ingresada no es válida."
+    exit 1
+fi
+
+# Obtener la red y el bloque de la zona reversa
+IFS='.' read -r -a IP_ARRAY <<< "$SERVER_IP"
+REVERSE_ZONE="${IP_ARRAY[2]}.${IP_ARRAY[1]}.${IP_ARRAY[0]}.in-addr.arpa"
+REVERSE_SUBNET="${IP_ARRAY[0]}.${IP_ARRAY[1]}.${IP_ARRAY[2]}"
+
+# 5. Configurar BIND9
+echo_msg "Configurando BIND9..."
+
+# 5.1. Configurar /etc/bind/named.conf.options
+echo "Configurando /etc/bind/named.conf.options..."
+cat > /etc/bind/named.conf.options <<EOL
+options {
+    directory "/var/cache/bind";
+
+    recursion yes;
+    allow-query { any; };
+    forwarders {
+        8.8.8.8;
+        8.8.4.4;
+    };
+
+    dnssec-validation auto;
+
+    auth-nxdomain no;    # Conforma a RFC1035
+    listen-on { any; };
+    listen-on-v6 { any; };
+};
+EOL
+
+# 5.2. Configurar /etc/bind/named.conf.local
+echo "Configurando /etc/bind/named.conf.local..."
+cat > /etc/bind/named.conf.local <<EOL
+//
+// Do any local configuration here
+//
+
+zone "${DOMAIN_NAME}" {
+    type master;
+    file "/etc/bind/zones/db.${DOMAIN_NAME}";
+};
+
+zone "${REVERSE_ZONE}" {
+    type master;
+    file "/etc/bind/zones/db.${REVERSE_SUBNET}";
+};
+EOL
+
+# 6. Crear directorio de zonas si no existe
+mkdir -p /etc/bind/zones
+
+# 7. Configurar la zona directa
+echo "Creando archivo de zona directa para ${DOMAIN_NAME}..."
+cat > /etc/bind/zones/db.${DOMAIN_NAME} <<EOL
+\$TTL    604800
+@       IN      SOA     ns1.${DOMAIN_NAME}. admin.${DOMAIN_NAME}. (
+                                $(date +%Y%m%d%H) ; Serial
+                                604800         ; Refresh
+                                86400          ; Retry
+                                2419200        ; Expire
+                                604800 )       ; Negative Cache TTL
+;
+@       IN      NS      ns1.${DOMAIN_NAME}.
+@       IN      NS      ns2.${DOMAIN_NAME}.
+
+ns1     IN      A       ${SERVER_IP}
+ns2     IN      A       ${SERVER_IP}
+
+@       IN      A       ${SERVER_IP}
+www     IN      A       ${SERVER_IP}
+EOL
+
+# 8. Configurar la zona reversa
+echo "Creando archivo de zona reversa para ${REVERSE_ZONE}..."
+cat > /etc/bind/zones/db.${REVERSE_SUBNET} <<EOL
+\$TTL    604800
+@       IN      SOA     ns1.${DOMAIN_NAME}. admin.${DOMAIN_NAME}. (
+                                $(date +%Y%m%d%H) ; Serial
+                                604800         ; Refresh
+                                86400          ; Retry
+                                2419200        ; Expire
+                                604800 )       ; Negative Cache TTL
+;
+@       IN      NS      ns1.${DOMAIN_NAME}.
+
+${IP_ARRAY[3]}      IN      PTR     ${DOMAIN_NAME}.
+EOL
+
+# 9. Verificar archivos de configuración
+echo_msg "Verificando archivos de configuración..."
+
+named-checkconf
+
+named-checkzone "${DOMAIN_NAME}" "/etc/bind/zones/db.${DOMAIN_NAME}"
+
+named-checkzone "${REVERSE_ZONE}" "/etc/bind/zones/db.${REVERSE_SUBNET}"
+
+# 10. Configurar el firewall
+echo_msg "Configurando el firewall..."
+
+if command -v ufw >/dev/null 2>&1; then
+    echo "UFW está instalado. Configurando reglas..."
+    ufw allow 53/tcp
+    ufw allow 53/udp
+    echo "Reglas del firewall actualizadas para permitir tráfico DNS."
+else
+    echo "UFW no está instalado. Instalándolo..."
+    apt install ufw -y
+    ufw allow 53/tcp
+    ufw allow 53/udp
+    ufw enable
+    echo "UFW instalado y configurado."
+fi
+
+# 11. Reiniciar y habilitar el servicio BIND9
+echo_msg "Reiniciando y habilitando el servicio BIND9..."
+systemctl restart bind9
+systemctl enable bind9
+
+# 12. Mostrar estado del servicio
+echo_msg "Estado del servicio BIND9:"
+systemctl status bind9 --no-pager
+
+# 13. Instrucciones finales
+echo_msg "Configuración completada."
+echo "Puedes verificar el funcionamiento del servidor DNS usando los siguientes comandos:"
+echo ""
+echo "Desde el servidor DNS:"
+echo "  dig @localhost ${DOMAIN_NAME}"
+echo "  dig @localhost -x ${SERVER_IP}"
+echo ""
+echo "Desde otra máquina en la red (asegúrate de que el cliente use este servidor DNS):"
+echo "  dig @${SERVER_IP} ${DOMAIN_NAME}"
+echo "  dig @${SERVER_IP} -x ${SERVER_IP}"
+echo ""
+echo "¡El servidor DNS debería estar funcionando correctamente!"
+
+exit 0
+

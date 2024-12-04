@@ -24,6 +24,8 @@ aliasarch           Arregla los alias en arch
 rx6800              Instala el archivo de configuracion en Arch para que funcione la GPU
 
 ###------CCDC
+dnsinst             Instala dns en debian10 
+ntpinst             Instala ntp en debian10
 mailinst            Instala mail server en fedora 21. baja archivos de conf y todo.
 updatecentos7       Para actualizar centos7
 sudoup              Hace un update de sudo de la version 9.12 adelante.
