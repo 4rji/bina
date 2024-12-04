@@ -31,6 +31,8 @@ machines = [
     {'display_name': 'Splunk 9.1.1', 'vcenter_name': 'CCDC-Splunk-9.1'},
     {'display_name': 'CentOS 7 E-comm', 'vcenter_name': 'CCDC-Centos7-Ecomm'},
     {'display_name': 'Fedora 21 Webmail/WebApps', 'vcenter_name': 'CCDC-Fedora-21-webmail-apps'},
+    {'display_name': 'Palo Alto', 'vcenter_name': 'PA-VM-ESX-10.0.6'},
+
 ]
 
 # Lista de nombres de máquinas válidas
@@ -55,7 +57,8 @@ def get_vm_status_and_ip(vm_name):
         for ip in ip_matches:
             if ip != "127.0.0.1":
                 return ip
-        return "No-Active"
+#to delete No-active message add it between "" or not
+        return ""
 
     except Exception as e:
         logger.error(f"Excepción al obtener IP para {vm_name}: {e}")
