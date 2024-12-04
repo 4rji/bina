@@ -1,0 +1,48 @@
+#!/bin/bash
+
+# Instalar Dovecot y Postfix
+echo -e "\033[1;32mInstalando Dovecot y Postfix...\033[0m"
+sudo yum update -y && sudo yum install -y dovecot postfix
+
+# Directorios de configuración
+DOVECOT_CONF_DIR="/etc/dovecot/conf.d"
+POSTFIX_CONF_DIR="/etc/postfix"
+
+# URLs de los archivos a descargar
+AUTH_CONF_URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/mail-fedora-ccdc/10-auth.conf"
+MAIL_CONF_URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/mail-fedora-ccdc/10-mail.conf"
+SSL_CONF_URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/mail-fedora-ccdc/10-ssl.conf"
+DOVECOT_CONF_URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/mail-fedora-ccdc/dovecot.conf"
+MAIN_CF_URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/mail-fedora-ccdc/main.cf"
+
+# Descargar y reemplazar archivos de configuración
+echo -e "\033[1;33mDescargando y reemplazando archivos de configuración...\033[0m"
+sudo curl -o "$DOVECOT_CONF_DIR/10-auth.conf" $AUTH_CONF_URL
+sudo curl -o "$DOVECOT_CONF_DIR/10-mail.conf" $MAIL_CONF_URL
+sudo curl -o "$DOVECOT_CONF_DIR/10-ssl.conf" $SSL_CONF_URL
+sudo curl -o "/etc/dovecot/dovecot.conf" $DOVECOT_CONF_URL
+sudo curl -o "$POSTFIX_CONF_DIR/main.cf" $MAIN_CF_URL
+
+# Reiniciar servicios
+echo -e "\033[1;34mReiniciando servicios Dovecot y Postfix...\033[0m"
+sudo systemctl restart dovecot
+sudo systemctl restart postfix
+
+# Habilitar servicios para inicio automático
+sudo systemctl enable dovecot
+sudo systemctl enable postfix
+sudo systemctl stop firewalld
+
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+echo -e "\033[1;31mthis script stops the firewalld, you need to configure it\033[0m"
+echo -e "\033[1;31m_________________________________________________________\033[0m\n"
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo -e "\033[1;32mConfiguración completada.\033[0m"
+echo -e "\033[1;37m_________________________________________________________\033[0m\n"
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+echo -e "\033[1;37mTest sending an email with:\033[0m"
+echo -e "\033[1;36mswaks --to sysadmin@ccdc.local --from test44@debian.local --server mail.ccdc.local --header 'Subject: Test from debian mail.ccdc.local' --body 'Hello, this is a test email using MAIL.CCDC.LOCAL'\033[0m"
+echo -e "\033[1;34m_________________________________________________________\033[0m\n"
+
