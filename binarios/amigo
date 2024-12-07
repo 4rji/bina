@@ -56,3 +56,6 @@ if __name__ == "__main__":
 
 # Si no funciona, activa el entorno virtual:
 # source amigo/bin/activate
+#instalar esa version que funciona, si no desinstalar primero la otra ( pip uninstall openai ) y luego esta: 
+#pip install openai==0.27.8
+
