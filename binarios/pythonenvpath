@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# Obtener el usuario a partir del HOME
+USERNAME=$(basename "$HOME")
+
+# Directorio donde buscar
+SEARCH_DIR="/opt/4rji/bin"
+
+# Shebangs originales y nuevo
+OLD_SHEBANG1="#!/bin/python3"
+OLD_SHEBANG2="#!/usr/bin/env python3"
+OLD_SHEBANG3="#!/usr/bin/python3"
+NEW_SHEBANG="#!/home/$USERNAME/.amigo/bin/python"
+
+# Buscar archivos que contengan cualquiera de los shebangs
+for file in $(grep -Erl "^(#!/bin/python3|#!/usr/bin/env python3|#!/usr/bin/python3)" "$SEARCH_DIR"); do
+    echo "Procesando archivo: $file"
+    sudo sed -i \
+        -e "s|^$OLD_SHEBANG1|$NEW_SHEBANG|" \
+        -e "s|^$OLD_SHEBANG2|$NEW_SHEBANG|" \
+        -e "s|^$OLD_SHEBANG3|$NEW_SHEBANG|" \
+        "$file"
+    echo "Shebang reemplazado en: $file"
+done
+
+echo "Proceso completo."
+

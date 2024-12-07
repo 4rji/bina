@@ -305,6 +305,7 @@ ataquepython        (DoS) enviando múltiples solicitudes HTTP a una dirección 
 encryptar           encrypta archivos con python, cambiar la ruta dentro del script para que funcione
 encryptar1          el original de encryptar 
 logt                crea un log.txt de un binario en un bucle while true
+pythonenvpath       cambia el python env a .amigo para crear acceso director de binarios a el virtualenv
 
 ###------distrobox
 dockercp            Alias que muestra el formato para copiar archivos en docker
