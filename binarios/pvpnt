@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Obtener la ruta del script actual
 script_path=$(realpath "$0")

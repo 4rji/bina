@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 print("to receive files with Python 2, from the other machine, do a curl like this:")
 print("curl -T secrec http://192.168.88.19:8000")

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Solicitar al usuario el comando a monitorear
 read -r "comando?Ingresa el comando a monitorear con watch: "

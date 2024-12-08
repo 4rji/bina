@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Pedir al usuario que ingrese la dirección IP a bloquear
 echo "Ingresa la dirección IP que deseas bloquear: \c"

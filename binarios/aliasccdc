@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Añadir cada comando con un alias numerado al archivo .zshrc
 echo "alias kittyconf='nano ~/.config/kitty/kitty.conf'" >> ~/.zshrc

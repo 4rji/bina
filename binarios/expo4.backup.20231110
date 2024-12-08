@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Obtener el contenido del portapapeles y dividirlo en palabras separadas por comas
 CLIP_CONTENT=$(xclip -selection clipboard -o)

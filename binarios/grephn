@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Comprueba si se proporcionó un directorio
 if [ "$#" -ne 1 ]; then

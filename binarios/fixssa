@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Ruta del binario
 binario="/usr/bin/ssa"

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Solicitar palabras y caracteres
 printf "Ingresa las palabras separadas por espacios: "

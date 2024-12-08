@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Verificar que se proporcionó una dirección IP como argumento
 if [ $# -eq 0 ]; then

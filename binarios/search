@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 #para crear la base de datos del archivo data.json para la pagina web, pregunta titutlo, contenido y link
 #el link esta ligado a la pagina, donde el script solo cambia el nombre de la pagina pero el dominio es el mismo

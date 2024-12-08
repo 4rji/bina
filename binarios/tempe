@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 if [ "$1" = "-f" ]; then
     output_file="temp-$(date +"%Y%m%d%H%M%S")"  # Nombre del archivo con la marca de tiempo actual

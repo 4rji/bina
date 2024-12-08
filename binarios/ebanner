@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Paso 1: Eliminar la línea 'Banner no'
 sed -i '/Banner no/d' /etc/ssh/sshd_config

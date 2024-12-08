@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 echo ""
 
 # Función para verificar si un paquete está instalado

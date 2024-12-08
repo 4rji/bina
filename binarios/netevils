@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Deshabilitar los caminos de comunicación no seguros
 sudo systemctl --now mask ftpd

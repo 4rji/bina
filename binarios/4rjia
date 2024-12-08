@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Copiar ~/.zshrc a /tmp/
 cp ~/.zshrc /tmp/
@@ -18,7 +18,7 @@ column -t -s "=" /tmp/list.txt > /tmp/lists.txt
 # Mover el archivo formateado a ~/.config/aliase
 mv /tmp/lists.txt ~/.aliaseses.md
 
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Definir la ruta completa al archivo README.md
 file="$HOME/.aliaseses.md"

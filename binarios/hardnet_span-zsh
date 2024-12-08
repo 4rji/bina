@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Preguntar si se desea modificar /etc/sysctl.conf para Network Hardening
 read -p "¿Desea ejecutar Network Hardening a /etc/sysctl.conf? (s/no-enter-): " response

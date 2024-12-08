@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Función para verificar si un valor está dentro de un rango
 function dentro_de_rango() {

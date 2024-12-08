@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Solicitar al usuario el nombre de la carpeta principal
 echo "Ingrese el nombre de la carpeta principal:"

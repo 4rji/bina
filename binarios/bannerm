@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Crear el archivo /etc/mctcbanner
 sudo touch /etc/mctcbanner

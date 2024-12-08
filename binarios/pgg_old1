@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Ejecutar hostnamectl y guardar la salida en un archivo temporal
 tmpfile=$(mktemp)

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Función para comprobar la conexión a Internet
 check_internet_connection() {

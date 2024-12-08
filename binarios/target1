@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Preguntar al usuario si desea cancelar
 read "cancelar?Para continuar, presiona Enter. Para restaurar el estado de la batería, escribe 'no': "

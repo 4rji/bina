@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 
 interfaces=$(ip addr | awk '/^[0-9]+:/ {gsub(/:/,"",$2); iface=$2} /^    inet / {print iface, $2}')

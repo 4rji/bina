@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Guardar una copia de seguridad del archivo sources.list original
 sudo cp /etc/apt/sources.list /etc/apt/sources.list.backup

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Obtener la dirección IP de wlan0
 ip_wlan0=$(ifconfig wlan0 | grep -oP 'inet \K\S+')

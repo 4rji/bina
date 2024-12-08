@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Ruta al archivo que contiene la lista de archivos a modificar
 file_list="list.txt"

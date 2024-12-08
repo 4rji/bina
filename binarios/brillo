@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Mensaje al usuario
 echo "Por favor, ingresa el nivel de brillo deseado (entre 50 y 7500):"

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Verificar si se proporciona un argumento que representa el archivo
 if [ -z "$1" ]; then

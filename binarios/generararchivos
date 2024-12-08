@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Crear directorio para los archivos de prueba
 mkdir test_files

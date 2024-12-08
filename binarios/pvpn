@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Obtener la lista de archivos en la carpeta "$HOME/Downloads/vpnitos"
 file_list=($HOME/Downloads/.vpnitos/*)

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 #fix scripts
 sudo mv ~/4rji/binarios/* /usr/bin/

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Pedir al usuario que ingrese la dirección IP
 echo "Ingresa la dirección IP que deseas remover del jail: \c"

@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Obtener la dirección IP de eth0
 ip=$(ifconfig eth0 | grep -oP 'inet \K\S+')

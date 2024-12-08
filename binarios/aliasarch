@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Archivo donde se realizarán los cambios
 archivo_zshrc=~/.zshrc

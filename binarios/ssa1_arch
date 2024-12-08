@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Ejecutar el comando y almacenar la salida en una variable
 output=$(systemctl status sshd)

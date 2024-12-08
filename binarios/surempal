@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Preguntar por la palabra a reemplazar
 echo "¿Qué palabra deseas reemplazar?"

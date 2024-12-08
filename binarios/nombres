@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Obtener la ruta completa del archivo "ips.txt" en el directorio actual
 ips_file="$(pwd)/ips.txt"

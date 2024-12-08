@@ -1,4 +1,4 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
 # Verifica si el archivo ~/.zshrc existe
 if [ -f "$HOME/.zshrc" ]; then
