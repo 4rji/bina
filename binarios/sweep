@@ -117,8 +117,10 @@ if [ "$auto_arp" = false ]; then
     echo -e "\033[0;32msudo arp-scan -I $arp_interface --localnet\033[0m"
     
     # Execute the ARP scan, display the output, and save it to arp-scan.txt
-    sudo arp-scan -I "$arp_interface" --localnet | tee arp-scan.txt
-    
+#    sudo arp-scan -I "$arp_interface" --localnet | tee arp-scan.txt
+     sudo arp-scan -I "$arp_interface" --localnet 
+
+   
     echo ""
     selected_interface_number=$arp_interface_number
 else
