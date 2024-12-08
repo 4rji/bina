@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Verificar si se proporciona un archivo como argumento
 if [ $# -ne 1 ]; then

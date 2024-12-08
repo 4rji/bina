@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Actualizar e instalar paquetes necesarios
 sudo apt update

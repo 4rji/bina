@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Verificar si el usuario tiene privilegios de superusuario
 if [ "$(id -u)" != "0" ]; then

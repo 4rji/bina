@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Función para crear un directorio temporal
 function mktem() {

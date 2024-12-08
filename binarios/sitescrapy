@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Comprobación e instalación de Scrapy si es necesario
 echo -e "\033[0;34m"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #para instalar prestashop, se ejecuta este script para hacer el usuario en la base de datos Mysql
 

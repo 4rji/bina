@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 ssa1
 
 # Función para imprimir una línea violeta centrada

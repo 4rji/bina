@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo ""
 echo "Se ejecutará un escaneo de puertos y se generará un archivo"

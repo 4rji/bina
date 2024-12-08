@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo ""
 echo "./agent -connect IP:11601 -ignore-cert"

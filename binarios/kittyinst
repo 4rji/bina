@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Lista de paquetes a instalar
 paquetes=("kitty" )
@@ -67,7 +67,7 @@ done
 
 
 
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Lista de paquetes a instalar
 paquetes=("kitty" )

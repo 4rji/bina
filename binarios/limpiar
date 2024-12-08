@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # List of packages to install
 packages=("scrub" "coreutils")

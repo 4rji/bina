@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Comprobar si se ha proporcionado un directorio como argumento
 if [ -z "$1" ]; then

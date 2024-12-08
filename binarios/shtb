@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Definir las ubicaciones de las carpetas en el servidor y en tu máquina local
 carpeta_servidor="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"

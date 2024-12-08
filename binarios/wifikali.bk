@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Función para obtener una respuesta S/N del usuario
 get_response() {

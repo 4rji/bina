@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo ""
 # Check crontabs for the current user
 echo "Crontab of the current user ($USER):"

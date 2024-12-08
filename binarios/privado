@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Copiar el contenido del archivo privado.c al portapapeles
 xclip -selection clipboard -i /usr/bin/privado.c

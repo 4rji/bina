@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Configuration of the VM folder path
 VM_FOLDER="/MPLSITEC/vm/ITEC 2995/Havi"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Comprueba si se ha proporcionado un argumento (nombre del binario)
 if [ $# -eq 0 ]; then

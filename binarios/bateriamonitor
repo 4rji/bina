@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Paths to the necessary files
 current_now_path="/sys/class/power_supply/BAT0/current_now"

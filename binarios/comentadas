@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Función para mostrar el uso del script
 mostrar_uso() {

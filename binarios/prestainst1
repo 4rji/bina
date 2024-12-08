@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "Installing Apache HTTP server..."
 sudo yum install -y httpd

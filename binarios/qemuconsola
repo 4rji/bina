@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 sudo systemctl enable serial-getty@ttyS0.service
 sudo systemctl start serial-getty@ttyS0.service

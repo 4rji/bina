@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Restart the Artillery server
 sudo python3 /var/artillery/restart_server.py

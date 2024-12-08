@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Instalar Chrony en sistemas que usan apt
 #sudo apt-get update

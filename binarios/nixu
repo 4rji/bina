@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Actualizar el canal de NixOS
 echo "Actualizando el canal de NixOS..."

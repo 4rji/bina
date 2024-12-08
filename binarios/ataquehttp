@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Descomprime el archivo ZIP
 unzip -d /tmp /usr/bin/GoldenEye-master.zip

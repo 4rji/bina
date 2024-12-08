@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Pide al usuario el nombre del alias y el comando a ejecutar
 echo -n "Ingresa el nombre del alias: "

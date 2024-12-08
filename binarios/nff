@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 figlet -f slant -c "casiton" | lolcat
 echo -e "\n\033[1;34m$(printf "%*s" $(( ($(tput cols) + $((${#USER} + 4))) / 4)) "_________   $(whoami)  _________")\033[0m\n"
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #crea the fuck que corrige un comando mal escrito, con el alias fk
 #cambia el theme de batcat por el descargado,

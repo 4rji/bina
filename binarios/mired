@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Obtener la lista de interfaces de red y sus direcciones IP
 echo

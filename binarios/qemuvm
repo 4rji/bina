@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #inicia la maquina desde el iso pero con qemudebian la descargo y la inicio, es una version de esa
 echo "_________________________________________________________"

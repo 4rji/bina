@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 se descarga en la maquina y se compila si tiene gcc
 

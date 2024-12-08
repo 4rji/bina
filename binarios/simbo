@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Ask the user if they want to use the default script path (/usr/bin/)
 read -p "Do you want to use the default script path (/usr/bin/)? [c]hange/enter default: " use_default

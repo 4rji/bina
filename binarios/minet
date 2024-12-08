@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #para mac :
 #ifconfig | awk '/^[a-z]/ {iface=$1} /inet / && !/inet6/ {print iface, $2}'

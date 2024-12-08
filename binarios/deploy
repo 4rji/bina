@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 stop_and_remove_container() {
     IMAGE_NAME="${TAR_FILE%.tar}"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #for kali install this inside the VM
 #follow this  after I run this scritp and reboot:

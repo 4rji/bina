@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 echo "ssh -L 8080:center.campus.edu:443 usuario@servidor_remoto"
 echo "Para acceder en el navegador https://localhost:8080/"

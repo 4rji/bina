@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Salir inmediatamente si un comando falla
 set -e

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Lista de colores disponibles
 colores=("Red" "Blue" "Green" "Yellow" "Orange" "Purple" "Pink" "Gray" "Black" "White" "Cyan" "Magenta" "Brown" "Gold" "Silver" "Turquoise" "Lavender" "Olive" "Teal" "Lime")

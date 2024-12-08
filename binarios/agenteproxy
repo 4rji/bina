@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo ""
 # Colores ANSI
 ROJO="\033[31m"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # La ruta del archivo que contiene la lista de nombres de archivos a eliminar está predefinida
 LIST_FILE="/opt/4rji/bin/listaherrabin"

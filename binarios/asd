@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Ejecuta el script
 resultado=$(~/.config/bin/bateria.sh)

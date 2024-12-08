@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Asegurar que el archivo de lista de IPs existe
 touch ~/ip_list.txt

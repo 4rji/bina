@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Verifica si el usuario es root
 if [[ $EUID -ne 0 ]]; then

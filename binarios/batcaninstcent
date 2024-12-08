@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Función para instalar bat desde el repositorio EPEL
 install_bat_from_epel() {

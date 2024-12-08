@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Ruta del archivo de configuración
 archivo_config="docker-conexion"

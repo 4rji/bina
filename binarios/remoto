@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 sudo apt install -y kde-plasma-desktop xrdp dbus-x11 xorgxrdp
 
 

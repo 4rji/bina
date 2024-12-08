@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "Este es el comando:"
 echo "sudo mount -t cifs //server_name/shared_directory mount_point -o username=username,password=password"

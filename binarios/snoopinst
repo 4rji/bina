@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo "https://github.com/a2o/snoopy/blob/master/doc/install-from-repo.md"
 
 # Function to display the menu

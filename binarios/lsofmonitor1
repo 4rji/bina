@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Intervalo en segundos para verificar nuevas conexiones
 INTERVALO=5

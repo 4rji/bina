@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Verificar si se proporciona un argumento para el nombre del paquete o servicio
 if [ -z "$1" ]; then

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 sudo apt install gdebi
 # Descarga y añade la clave GPG

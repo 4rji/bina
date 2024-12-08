@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 mostrar_procesos() {
     ps_output=$(ps -eo user,comm)

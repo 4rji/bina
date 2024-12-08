@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Función para iniciar la red predeterminada
 function iniciar_network {

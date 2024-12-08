@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Función para instalar Chrony y reiniciar el servicio
 install_chrony() {

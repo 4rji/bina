@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Backup /etc/sysctl.conf
     sudo cp /etc/sysctl.conf /etc/sysctl.conf.backup

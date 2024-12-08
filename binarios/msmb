@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Lista de paquetes a instalar
 paquetes=("smbclient")
@@ -60,7 +60,7 @@ for paquete in "${paquetes[@]}"; do
             ;;
     esac
 done
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo -e "\n\033[1;31m_________________________________________________________\033[0m"
 echo "smbclient -L 10.129.150.233 -U administrator"

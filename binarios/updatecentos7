@@ -1,3 +1,3 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 sudo curl -o /etc/yum.repos.d/CentOS-Base.repo https://el7.repo.almalinux.org/centos/CentOS-Base.repo

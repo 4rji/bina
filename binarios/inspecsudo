@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 sudo ls /etc/sudoers.d/*  # you should see /etc/sudoers.d/mctc
 

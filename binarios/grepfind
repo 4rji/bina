@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Este script busca una palabra en todos los archivos de un directorio especificado y sus subdirectorios
 # Se debe proporcionar un directorio y una palabra como argumentos al ejecutar el script

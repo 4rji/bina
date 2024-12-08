@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Función para crear un nuevo directorio y cambiar a este
 function mktempdir() {

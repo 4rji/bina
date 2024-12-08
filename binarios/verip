@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Verificar si se está ejecutando con privilegios de superusuario (sudo)
 if [ "$EUID" -ne 0 ]; then

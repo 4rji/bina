@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Variables
 SERVICE_PATH="/etc/systemd/system/openvpn.service"

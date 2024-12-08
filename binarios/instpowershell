@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Pregunta al usuario si desea instalar Nishang
 read -p "¿Instalar Nishang? (y/n): " respuesta

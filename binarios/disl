@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Obtener la lista de distribuciones de distrobox, omitiendo la primera línea (cabecera)
 distros=$(distrobox list | awk 'NR>1 {print $3}')

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Función para mostrar el menú de colores básicos
 mostrar_menu() {

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Script de Instalación y Configuración de Servidor DNS con BIND9 en Debian 10
 # Autor: [Tu Nombre]

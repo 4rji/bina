@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Location of the Ansible inventory file
 INVENTORY_FILE="ansible_hosts"

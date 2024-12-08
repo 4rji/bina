@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Crear un archivo temporal
 tmp_file=$(mktemp)

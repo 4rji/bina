@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # NTP Server Installation and Configuration Script for Debian 10
 # This script installs and configures the NTP service as a server with IPv6 support.

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "Selecciona el sistema para instalar QEMU y Virt-Manager:"
 echo "1. Debian"

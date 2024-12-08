@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo ""
 # Buscar archivos con el bit setuid activado:
 echo -e "\e[1;36mfind / -perm -u=s -type f 2>/dev/null\e[0m"

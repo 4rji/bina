@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "Ingrese los datos para crear una MACVLAN:"
 

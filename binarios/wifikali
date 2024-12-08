@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Preguntar por el nombre de la red
 read -p "Nombre de la red: " network_name

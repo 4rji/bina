@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Función para mostrar el mensaje de ayuda y preguntar si desea continuar
 show_help_and_confirm() {

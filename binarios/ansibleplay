@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
 # Ask the user which action they want to perform
 echo -e "\033[1;34mSelect the ansible playboot to create:\033[0m"

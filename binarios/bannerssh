@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo ""
 # Deshabilita los scripts dinámicos del MOTD moviéndolos a otra ubicación
 for file in /etc/update-motd.d/*; do

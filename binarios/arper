@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
 # Colores para resaltar las líneas y preguntas
 color1="\e[32m"  # Verde

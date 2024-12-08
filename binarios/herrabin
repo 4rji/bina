@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 
 #sudo cp /usr/bin/batcat /usr/bin/bat

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 set_python_capabilities() {
     system=$(uname -s)

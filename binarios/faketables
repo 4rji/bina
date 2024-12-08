@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "Ingresa el puerto que deseas proteger:"
 read puerto_protegido

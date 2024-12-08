@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Start the SMB server
 sudo impacket-smbserver smbFolder $(pwd) -smb2support &

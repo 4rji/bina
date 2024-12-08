@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/usr/bin/env bash
 figlet -f slant -c "Mac-mini" | lolcat
 #hostname -I | awk -v term_width="$(tput cols)" '{ line=$0; gsub(/ /, "", line); printf "%*s\n", term_width/2 + length(line)/2, $0 }' 
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Color codes
 green="\033[32m"

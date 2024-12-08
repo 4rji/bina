@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ -z "$1" ]; then
     echo -e "\e[1;33mError: Debes proporcionar una URL como argumento.\e[0m"

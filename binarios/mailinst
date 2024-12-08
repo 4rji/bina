@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Instalar Dovecot, Postfix y Mutt
 echo -e "\033[1;32mInstalando Dovecot, Postfix y Mutt...\033[0m"

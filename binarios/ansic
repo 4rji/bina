@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo ""
 # Ubicación del archivo de inventario de Ansible
 #ARCHIVO_INVENTARIO="ansible_hosts"

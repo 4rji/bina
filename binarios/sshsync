@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Define la URL de descarga
 URL="https://raw.githubusercontent.com/4rji/archivos-b/main/config"

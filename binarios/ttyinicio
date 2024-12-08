@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Intenta cargar el nombre del host desde la variable, si no, pedirlo
 if [ -z "$host_nombre" ]; then

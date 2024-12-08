@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo ""
 echo ' llamar a la shell desde curl localhost/bash | bash '
 echo ""

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Create a working account `mctc`:
 groupadd -g 999999 mctc

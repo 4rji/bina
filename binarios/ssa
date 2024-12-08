@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Verifica si se proporcionó una palabra
 if [ -z "$1" ]; then

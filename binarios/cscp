@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 archivo_config="$HOME/.ssh/config"  # Ruta al archivo config de SSH
 

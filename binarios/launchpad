@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Verificar si se proporcionó un argumento
 if [ $# -eq 0 ]; then

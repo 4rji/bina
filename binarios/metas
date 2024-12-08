@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Comprobamos si estamos ejecutando el script como root
 if [[ $EUID -ne 0 ]]; then

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Define el path del archivo de configuración de knockd
 KNOCKD_CONF="/etc/knockd.conf"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Define file paths
 ORIGINAL_FILE="/opt/4rji/bin/shell.php"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Definir las opciones y sus URLs
 declare -A options

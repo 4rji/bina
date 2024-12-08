@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Lista de 50 puertos comunes para escanear
 common_ports=(

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Verificar si se proporciona un nombre de archivo como argumento
 if [ $# -eq 0 ]; then

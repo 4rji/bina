@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Función para manejar Ctrl+C
 function ctrl_c {

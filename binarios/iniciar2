@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Verificar si la variable maquina está definida en el entorno
 if [ -z "$maquina" ]; then

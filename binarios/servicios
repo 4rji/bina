@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Listar todos los servicios en ejecución
 echo "Servicios en ejecución que no son del kernel de Linux:"

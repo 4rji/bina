@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Actualizar repositorios e instalar dependencias
 #esto no sirvio, necesito actualizar a la version nueva

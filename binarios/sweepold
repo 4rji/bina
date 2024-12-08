@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Asegúrate de que se haya proporcionado una subred como argumento
 if [ $# -ne 1 ]; then

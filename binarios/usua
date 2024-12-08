@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Definir la ruta y nombre del archivo
 ruta="$htcon"

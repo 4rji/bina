@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo "Por favor, seleccione una opcion:"
 echo "1) Habilitar el repositorio BaseOS"

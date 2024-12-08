@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Disable non-secure communication paths
 sudo systemctl --now mask ftpd  

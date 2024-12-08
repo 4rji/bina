@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Ruta del archivo p10k
 p10k_file="$HOME/.p10k.zsh"

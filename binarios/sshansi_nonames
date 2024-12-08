@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Ruta al archivo de inventario de Ansible
 INVENTARIO="$HOME/.ssh/ansible_hosts"

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Backup the sshd_config file
 sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup

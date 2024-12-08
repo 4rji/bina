@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo ""
 echo "This script is a simple Python web server designed to create a  by generating web pages with random or predefined links. It includes configurable parameters such as the number of links per page, the length of each link, the server port, and a delay before serving each page. The server can use a provided file of webpage names or generate random links if no file is specified."

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Solicitar la dirección IP de destino al usuario
 read -p "Por favor, ingresa la nueva dirección IP de destino: " ip_target

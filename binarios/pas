@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Obtener el contenido del portapapeles
 clipboard=$(xclip -selection clipboard -o)

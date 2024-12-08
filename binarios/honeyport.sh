@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Name of the file to save IPs
 output_file="block-ips.txt"

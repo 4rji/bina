@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #alias para iniciar
 echo "alias splunk='sudo /opt/splunk/bin/splunk start'"  >> ~/.zshrc

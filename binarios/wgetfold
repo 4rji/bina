@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Verificar si se ha proporcionado al menos un argumento
 if [ -z "$1" ]; then

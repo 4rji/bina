@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 #crea un mensaje de bienvenida de ssh al logearse. diferente al de startwars
 

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo -e "\n\033[1;34mEste para ver los recursos disponibles:\033[0m"
 echo "smbclient -L //IP_name -U "

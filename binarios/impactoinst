@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Clonar el repositorio de Impacket
 if [ -d "impacket" ]; then

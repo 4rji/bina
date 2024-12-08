@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 echo ""
 # Muestra todas las líneas sin comentar de /etc/hosts.deny
 echo "Mostrando las lineas sin comentar de /etc/hosts.DENY:"

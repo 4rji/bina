@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 echo ""
 echo -e "\033[32mStarting the setup for Amigo chatbot...\033[0m"

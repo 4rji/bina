@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 paquetes=("clamav")
 paquete_instalado() {  
@@ -18,7 +18,7 @@ sudo systemctl start clamav-freshclam
 
 #el scaneo
 #sudo clamscan -i -r --move /tmp --max-scansize=1024M --max-filesize=500M /var/
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Pedir al usuario la ruta a escanear
 echo "Por favor, introduce la ruta que quieres escanear:"

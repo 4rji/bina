@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Comprueba si se proporcionó un argumento al script
 if [ "$#" -ne 1 ]; then

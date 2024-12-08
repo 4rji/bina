@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Solicitar la dirección IP a escanear
 read -p "Introduce la direccion IP a escanear (formato X.X.X.XD/x): " ip
