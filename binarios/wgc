@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+
+reset
 echo ""
 # Check if interface name is provided
 if [ -z "$1" ]; then
