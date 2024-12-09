@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-reset
+echo ""
 # Check if interface name is provided
 if [ -z "$1" ]; then
   echo "Usage: $0 <wireguard_interface>"
@@ -8,6 +8,16 @@ fi
 
 INTERFACE=$1
 CONFIG_FILE="/etc/wireguard/$INTERFACE.conf"
+
+# Verificar systemd-resolved
+if ! systemctl is-active --quiet systemd-resolved; then
+  echo "systemd-resolved no esta activo. Desea activarlo? (s/n)"
+  read -n1 activate_resolved
+  echo ""
+  if [ "$activate_resolved" = "s" ]; then
+    sudo systemctl start systemd-resolved
+  fi
+fi
 
 # Function to display menu
 show_menu() {
@@ -23,11 +33,6 @@ show_menu() {
   echo -e "\033[36mq) Quit\033[0m"
   echo ""
   echo -e "\033[36m_________________________________________________________\033[0m"
-  echo -e "\033[36m_________________________________________________________\033[0m"
-  echo ""
-  echo ""
-  echo ""
-  echo ""
   echo ""
 }
 
