@@ -2,18 +2,19 @@
 
 reset
 echo ""
-# Check if interface name is provided
+
+# Verificar si se proporcionó el nombre de la interfaz
 if [ -z "$1" ]; then
-  echo "Usage: $0 <wireguard_interface>"
+  echo "Uso: $0 <interfaz_wireguard>"
   exit 1
 fi
 
 INTERFACE=$1
 CONFIG_FILE="/etc/wireguard/$INTERFACE.conf"
 
-# Verificar systemd-resolved
+# Verificar si systemd-resolved está activo
 if ! systemctl is-active --quiet systemd-resolved; then
-  echo "systemd-resolved no esta activo. Desea activarlo? (s/n)"
+  echo "systemd-resolved no está activo. ¿Desea activarlo? (s/n)"
   read -n1 activate_resolved
   echo ""
   if [ "$activate_resolved" = "s" ]; then
@@ -21,69 +22,65 @@ if ! systemctl is-active --quiet systemd-resolved; then
   fi
 fi
 
-# Function to display menu
+# Función para mostrar el menú
 show_menu() {
   echo ""
   echo -e "\033[36m_________________________________________________________\033[0m"
   echo ""
-  echo -e "\033[34mSelect an option:\033[0m"
-  echo -e "\033[32mc) Connect\033[0m"
-  echo -e "\033[33md) Disconnect\033[0m"
-  echo -e "\033[35mr) Reconnect\033[0m"
-  echo -e "\033[31ms) Show connection status\033[0m"
-  echo -e "\033[36mm) Edit configuration file\033[0m"
-  echo -e "\033[36mq) Quit\033[0m"
+  echo -e "\033[34mSelecciona una opción:\033[0m"
+  echo -e "\033[32mc) Conectar\033[0m"
+  echo -e "\033[33md) Desconectar\033[0m"
+  echo -e "\033[35mr) Reconectar\033[0m"
+  echo -e "\033[31ms) Mostrar estado de la conexión\033[0m"
+  echo -e "\033[36mm) Modificar archivo de configuración\033[0m"
+  echo -e "\033[36mq) Salir\033[0m"
   echo ""
   echo -e "\033[36m_________________________________________________________\033[0m"
   echo ""
 }
 
-# Check if nano is installed
+# Verificar si nano está instalado
 if ! command -v nano &> /dev/null; then
-  echo -e "\033[31mError: nano editor is not installed. Please install it or use a different editor.\033[0m"
+  echo -e "\033[31mError: El editor nano no está instalado. Por favor, instálalo o usa otro editor.\033[0m"
   exit 1
 fi
 
-# Main loop
+# Bucle principal
 while true; do
   show_menu
-  echo -e "\033[34mPress the corresponding key to choose an option [c/d/r/s/m/q]: \033[0m"
-  
-  # Read a single character without requiring Enter
+  echo -e "\033[34mPresiona la tecla correspondiente para elegir una opción [c/d/r/s/m/q]: \033[0m"
+
+  # Leer una sola tecla sin necesidad de presionar Enter
   read -n1 choice
   echo ""
 
   case $choice in
     c)
-      echo -e "\033[32m\nConnecting to WireGuard interface: $INTERFACE\033[0m"
+      echo -e "\033[32m\nConectando a la interfaz WireGuard: $INTERFACE\033[0m"
       sudo wg-quick up $INTERFACE
       ;;
     d)
-      echo -e "\033[33m\nDisconnecting from WireGuard interface: $INTERFACE\033[0m"
+      echo -e "\033[33m\nDesconectando la interfaz WireGuard: $INTERFACE\033[0m"
       sudo wg-quick down $INTERFACE
       ;;
     r)
-      echo -e "\033[35m\nReconnecting WireGuard interface: $INTERFACE\033[0m"
+      echo -e "\033[35m\nReconectando la interfaz WireGuard: $INTERFACE\033[0m"
       sudo wg-quick down $INTERFACE && sudo wg-quick up $INTERFACE
       ;;
     s)
-      echo -e "\033[31m\nShowing status of WireGuard interface: $INTERFACE\033[0m"
+      echo -e "\033[31m\nMostrando el estado de la interfaz WireGuard: $INTERFACE\033[0m"
       sudo wg show $INTERFACE
       ;;
     m)
-      echo -e "\033[36m\nEditing configuration file for: $INTERFACE\033[0m"
-      if [ -w "$CONFIG_FILE" ]; then
-        sudo nano $CONFIG_FILE
-      else
-        echo -e "\033[31mError: Configuration file is not writable or does not exist: $CONFIG_FILE\033[0m"
-      fi
+      echo -e "\033[36m\nModificando archivo de configuración para: $INTERFACE\033[0m"
+      sudo nano $CONFIG_FILE
       ;;
     q)
-      echo -e "\033[36m\nExiting...\033[0m"
+      echo -e "\033[36m\nSaliendo...\033[0m"
       exit 0
       ;;
     *)
-      echo -e "\033[31m\nInvalid choice. Please select a valid option [c/d/r/s/m/q].\033[0m"
+      echo -e "\033[31m\nOpción inválida. Por favor, selecciona una opción válida [c/d/r/s/m/q].\033[0m"
       ;;
   esac
 done
