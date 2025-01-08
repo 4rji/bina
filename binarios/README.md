@@ -102,8 +102,8 @@ wifikali            Crea wifi redes para kali nuevos system-connections
 verip               Verifica los permisos de los archivos /etc/passwd u linux claves
 verip2              Otro para ver permisos de linux
 4rji                el programa y busqueda de scripts
-mesloinst           Instala las fuentes meslo
-mesloinst2          Para instalar manualmente las fuentes (nixos) pero funciona otras
+mesloinst           Instala las fuentes meslo - font
+mesloinst2          Para instalar manualmente las fuentes (nixos) pero funciona otras - font
 bashfun             Agrega las funciones function a las bash zsh, en zshrc bashrc mktem
 whx                 hace un xargs cat a un binario y pregunta si deseo editarlo #ejemplo whx mired     
 whr                 hace un nano a un binario    
