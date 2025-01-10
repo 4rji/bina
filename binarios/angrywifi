@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Función para instalar descargar
+# Función para instalar y descargar
 descargarangry() {
     echo "Seleccione la opción de descarga:"
     echo "1- Linux amx X86"
@@ -11,7 +11,7 @@ descargarangry() {
 
     case $opcion in
         1)
-            wget https://github.com/Ragnt/AngryOxide/releases/download/v0.8.9/angryoxide-linux-x86_64.tar.gz -P ~/.angry/
+            wget https://github.com/Ragnt/AngryOxide/releases/download/v0.8.28/angryoxide-linux-x86_64.tar.gz -P ~/.angry/
             ;;
         2)
             wget https://github.com/Ragnt/AngryOxide/releases/download/v0.8.9/angryoxide-linux-aarch64-musl.tar.gz -P ~/.angry/
@@ -27,7 +27,7 @@ descargarangry() {
 
     cd ~/.angry || return
 
-    archivo_descargado=$(basename $(ls -t1 | head -n1))
+    archivo_descargado=$(basename "$(ls -t1 | head -n1)")
 
     if [ -f "$archivo_descargado" ]; then
         tar -xf "$archivo_descargado"
@@ -42,11 +42,6 @@ descargarangry() {
         echo "Ejecute 'sudo install.sh install' si marca error, luego solo ejecute el comando 'angry'."
     fi
 }
-
-
-
-
-
 
 # Función para mostrar las redes WLAN disponibles y pedir al usuario que elija una
 choose_interface() {
@@ -66,7 +61,14 @@ choose_interface() {
 # Verificar si se proporcionó el argumento -i
 if [ "$1" = "-i" ]; then
     descargarangry
-else
-    choose_interface
+    exit 0
 fi
 
+# Verificación de existencia del archivo después de comprobar el argumento
+if [ ! -f "$HOME/.angry/angryoxide" ]; then
+    echo "El archivo '$HOME/.angry/angryoxide' no se encontró. Ejecute el script con el argumento '-i' para instalarlo."
+    exit 1
+fi
+
+# Si el archivo existe y no se usó -i, proceder a elegir la interfaz
+choose_interface
