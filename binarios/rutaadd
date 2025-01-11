@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+echo -e "\033[32mNombre de la nueva interfaz (ej: dummy0): \033[0m"
+read NEW_IFACE
+
+echo -e "\033[34mIP y máscara para la nueva interfaz (ej: 10.0.4.2/24): \033[0m"
+read NEW_IP
+
+echo -e "\033[36mSubred destino (ej: 10.0.4.0/24): \033[0m"
+read DEST
+
+echo -e "\033[33mGateway (ej: 10.0.4.1): \033[0m"
+read GW
+
+# Crear interfaz dummy
+sudo ip link add "$NEW_IFACE" type dummy
+sudo ip addr add "$NEW_IP" dev "$NEW_IFACE"
+sudo ip link set "$NEW_IFACE" up
+
+# Agregar la ruta
+sudo ip route add "$DEST" via "$GW" dev "$NEW_IFACE" || {
+  echo "Error al agregar la ruta."
+  exit 1
+}
+
+echo "Interfaz $NEW_IFACE creada y ruta agregada."
