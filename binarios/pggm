@@ -1,0 +1,118 @@
+#!/bin/bash
+
+
+# Función para verificar la IP pública desde varios servicios
+check_ip() {
+    local url_list=(
+        'https://ipinfo.io/json'
+        'https://api.myip.com'
+        'https://ifconfig.me/all.json'
+    )
+
+    for url in "${url_list[@]}"; do
+        echo -e "${yellow}Información IP de $url...${reset}"
+        echo ""
+        local request="$(curl -s "$url")"
+        local response="$?"
+
+        if [[ "$response" -ne 0 ]]; then
+            echo "Error al conectar con $url"
+            continue
+        fi
+
+        if [[ "$url" == "https://ipinfo.io/json" ]]; then
+            echo "$request" | jq -r '.ip, .city, .region, .country, .postal // empty' | awk '{print "\033[33m" $0 "\033[0m"}'
+            return 0
+        elif [[ "$url" == "https://api.myip.com" ]]; then
+            # api.myip.com proporciona ip, country, y country code, pero no ciudad o región
+            echo "$request" | jq -r '.ip, .country // empty' | awk '{print "\033[33m" $0 "\033[0m"}'
+            return 0
+        elif [[ "$url" == "https://ifconfig.me/all.json" ]]; then
+            # ifconfig.me ofrece un conjunto de datos más amplio, pero nos centraremos en ip_addr y country
+            echo "$request" | jq -r '.ip_addr, .country // empty' | awk '{print "\033[33m" $0 "\033[0m"}'
+            return 0
+        fi
+    done
+
+    echo "No se pudo obtener la dirección IP pública desde las fuentes disponibles."
+}
+
+
+# Color codes
+green="\033[32m"
+yellow="\033[33m"
+reset="\033[0m"
+
+# Función para obtener la interfaz de red
+get_network_interface() {
+    # Verificar si en0 existe (común en macOS)
+    if ifconfig en0 &>/dev/null; then
+        echo "en0"
+    else
+        # Obtener el nombre de la interfaz de red
+        interface=$(route get default | awk '/interface/ { print $2 }')
+        echo "$interface"
+    fi
+}
+
+# Instalar coreutils si gtimeout no está disponible
+if ! command -v gtimeout &>/dev/null; then
+    echo "Installing coreutils for gtimeout..."
+    brew install coreutils
+fi
+
+# Obtener la interfaz de red
+network_interface=$(get_network_interface)
+
+printf "${yellow}                _______________ INTERFACES _______________${reset}\n\n"
+
+# Mostrar la dirección IP local
+/sbin/ifconfig | awk '/inet / && !/127.0.0.1/ {print "\t\t\t\t" $1 ": " $2}'
+
+echo ""
+echo -e "${green}                  ___________________________________________________${reset}"
+# Agregamos el mensaje con la IP local
+echo -e "\n\t\t\tTu IP Local: $(/sbin/ifconfig "$network_interface" | awk '/inet / {print $2}' | head -n 1)\n"
+echo -e "\t\t\t  ${green}---   $(whoami)   ---${reset}\n"
+
+echo ""
+printf "${yellow}_________________________________________________________${reset}\n\n"
+echo ""
+printf "${yellow}      IP pública encontrada con dig${reset}\n"
+echo ""
+
+# Usamos gtimeout para obtener la IP pública y ajustamos la salida para centrarla
+gtimeout 1.5 dig +short myip.opendns.com @resolver1.opendns.com | while read -r ip; do
+    cols=$(tput cols)
+    ip_length=${#ip}
+    spaces=$(( (cols - ip_length) / 2 ))
+    printf "%$((spaces - 35))s${red}%s${reset}\n" "" "$ip"
+done
+
+printf "${yellow}_________________________________________________________${reset}\n"
+echo ""
+echo ""
+
+# DNS server check
+if [ -f /etc/resolv.conf ]; then
+    echo -e "${yellow}Configured DNS servers:${reset}"
+    grep "nameserver" /etc/resolv.conf | awk '{print "\033[1;31m" $2 "\033[0m"}'
+else
+    echo -e "${yellow}The /etc/resolv.conf file does not exist.${reset}"
+fi
+
+echo ""
+
+host="google.com"
+gtimeout 1.5 ping -c 1 "$host" > /dev/null 2>&1
+
+if [[ $? -eq 0 ]]; then
+  echo -e "${green}The Internet connection is active.${reset}"
+else
+  echo -e "${red}Unable to access the Internet.${reset}"
+fi 
+
+check_ip
+
+echo ""
+
