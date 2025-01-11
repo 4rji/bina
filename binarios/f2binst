@@ -13,6 +13,8 @@ else
     echo "iptables no se encontró en el PATH."
 fi
 
+echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
+
 # Verificar si iptables está instalado
 if paquete_instalado "iptables"; then
     echo "El paquete iptables ya está instalado."
@@ -20,6 +22,8 @@ else
     echo "Instalando el paquete iptables..."
     sudo apt-get install -y iptables
 fi
+
+echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
 
 paquetes=("rsyslog" "fail2ban")
 
@@ -34,7 +38,8 @@ done
 
 sleep .5
 
-echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
+
 
 
 sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
