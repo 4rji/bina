@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo ""
 # Función para verificar si un paquete está instalado
 paquete_instalado() {
     dpkg -l "$1" | grep -q '^ii'
@@ -31,7 +32,10 @@ for paquete in "${paquetes[@]}"; do
     fi
 done
 
-sleep 1
+sleep .5
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
 
 sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
 
@@ -46,7 +50,7 @@ else
     echo "El archivo $JAIL_FILE no existe."
 fi
 
-sleep 1
+sleep .5
 
 # Aliases para .bashrc
 echo "alias rs2='sudo nano /etc/rsyslog.conf'" >> ~/.bashrc
