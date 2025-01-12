@@ -8,6 +8,7 @@ echo -e "\n\033[1;37m_________________________________________________________\0
 # Mostrar las rutas predeterminadas
 echo -e "\033[0;34m=== Rutas predeterminadas actuales ===\033[0m"
 echo ""
+echo "ip route show | grep 'default via'"
 ip route show | grep 'default via'
 echo "_________________________________________________________"
 echo ""
