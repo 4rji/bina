@@ -350,7 +350,7 @@ prandom             Cambia de VPN cada 5 min
 fixprotonvpns       Baja los archivos de proton.
 grafanainst         Instala grafana y prometheus 
 instpalabras        El diccionario para crear palabras o al revez nwiz se llama, cewl para website diccionario
-tailscaleinst       El que mas he usado
+tailsinst           El que mas he usado, con yx y la inicial de yoyou... perro mayuscula
 zerotierinst        Zerotier scrip like tailscale yo uso tailscale 
 emailscraper        ejecuta una herramienta de un curso para buscar emails                             
 crackmapexec	    Ejecutaria crackmapexec smb {ip} para active directory

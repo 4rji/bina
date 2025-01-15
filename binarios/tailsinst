@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+echo ""
+echo ""
+
+  echo -e "\033[1;33mReminder: Keep track of both tokens for future use.\033[0m"
+        echo ""
+        echo "_________________________________________________________"
+        echo ""
+
+sleep 2
+
+# Function to install Tailscale automatically
+function install_tailscale {
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+    echo -e "\033[1;35mStarting Tailscale installation...\033[0m"
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+    
+    curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up --auth-key=tskey-auth-kLLn5eTqP911CNTRL-yEXWEXNDfCHXwsZSSYAyBH1UHmYRFxxK
+    
+    if [ $? -eq 0 ]; then
+        echo ""
+        echo "_________________________________________________________"
+        echo ""
+        echo -e "\033[1;32mTailscale was successfully installed.\033[0m"
+        echo "_________________________________________________________"
+        echo ""
+
+      
+    else
+        echo ""
+        echo "_________________________________________________________"
+        echo ""
+        echo -e "\033[1;31mThere was an issue during the Tailscale installation.\033[0m"
+        echo ""
+        echo "_________________________________________________________"
+        echo ""
+    fi
+}
+
+# Main execution
+install_tailscale
