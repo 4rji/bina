@@ -298,7 +298,7 @@ ansihost            Cat a los hosts y pregunta si quiero editarlo ansible
 snifferip           Sniffer paquetes red que captura las cabeceras IP en dirección IP especifica.
 iarpon              Arpon para protejer de arp poising. arp sniff 
 iicmp               para protejer de ataques icmp, solo cambia el 0 a 1 este script
-bucle               Ejecute un while true; do en bucle, pregunta tiempo y comando
+bucle               Ejecute un while true; do en bucle, pregunta tiempo y comando, loop
 ataquehttp          HTTP DoS Test Tool de goldeneye, descomprime en tmp y de ahi dice como ejecutarlo.
 inundacion          hping3 un ataque de inundacion flood para pruebas de carga, pregunta por dos ataques
 metas               Script que inicia metasploit con base de datos

@@ -1,11 +1,15 @@
 #!/usr/bin/env python3
 import subprocess
+from datetime import datetime
 
 counter = 0
+
 while True:
-    # Executes the 'sshmoni' binary. Make sure 'sshmoni' is accessible in the PATH,
-    # or provide the absolute path to the binary.
+    # Ejecuta el comando 'sshmonitor'. Asegúrate de que esté en el PATH.
     subprocess.run(["sshmonitor"])
     
     counter += 1
-    print(f"Scan number: {counter}")
+    # Obtiene la fecha y hora actuales
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    print(f"Scan number: {counter} | Timestamp: {current_time}")
