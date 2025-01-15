@@ -520,6 +520,5 @@ hosthtb             Agrega el host para paginas, toma la $ip de zsh y solo pide 
 galletas            Recibe cookies de session, php js xss html injection phpsessid
 ngrok               Instala ngrok para dockers, toma token de ngroktk script, conecta ssh y http. 
 archiveinst         Archivebox para guardar paginas, instaladaro. alias archive para iniciar server tmux
-getpython           Para recibir archivos con curl -T desde la otra maquina, getpython2 disponible
-getpythonsyn
+recibepython           Para recibir archivos con curl -T desde la otra maquina, recibepython2 disponible
 archivos            Descarga desde $ip robots y cookies
