@@ -4,10 +4,10 @@ echo ""
 
   echo -e "\033[1;33mReminder: Keep track of both tokens for future use.\033[0m"
         echo ""
-        echo "_________________________________________________________"
-        echo ""
+       # echo "_________________________________________________________"
+        #echo ""
 
-sleep 2
+sleep 1
 
 # Function to install Tailscale automatically
 function install_tailscale {
@@ -26,9 +26,12 @@ function install_tailscale {
         echo "_________________________________________________________"
         echo ""
         echo -e "\033[1;32mTailscale was successfully installed.\033[0m"
-        echo "_________________________________________________________"
+        echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+        echo "tailip"
         echo ""
 
+        sudo tailscale status | grep -v offline
+        echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
       
     else
         echo ""
