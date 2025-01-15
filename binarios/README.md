@@ -24,15 +24,12 @@ aliasarch           Arregla los alias en arch
 rx6800              Instala el archivo de configuracion en Arch para que funcione la GPU
 
 ###------CCDC
+mapa                Busca un proceso despues del script y lo mata ps aux
 backd               Usa python para buscar backdoors, conexiones activas
 dnsinst             Instala dns en debian10 
 ntpinst             Instala ntp en debian10
-mailinst            Instala mail server en fedora 21. baja archivos de conf y todo.
 updatecentos7       Para actualizar centos7
 sudoup              Hace un update de sudo de la version 9.12 adelante.
-vcen                Para manejar las maquinas en el vcenter desde cli linux, vmware, vcenter, server
-vcenterinst         Descarga govc para vcenter vmware, variables adentro del script. 
-redhavi             Instala vulnerabilidades en linux.
 ftpinst             Instala ftp
 ntpinst             Para instalar npt
 fshells             busca procesos, muestra puerto, para shells, usa ps y ss
@@ -46,6 +43,11 @@ psss                Escanea por conexiones lsof netstat, mi bebe mibebe
 pssc                Mismo que psss pero este las cierra en 12 segundos automaticamente mibebe
 sshmoni
 
+#ccdclab
+vcen                Para manejar las maquinas en el vcenter desde cli linux, vmware, vcenter, server
+vcenterinst         Descarga govc para vcenter vmware, variables adentro del script. 
+mailinst            Instala mail server en fedora 21. baja archivos de conf y todo.
+redhavi             Instala vulnerabilidades en linux.
 
 #starlink
 aprender            Lista de lo que tengo que aprender.
