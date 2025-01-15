@@ -2,6 +2,18 @@
 import subprocess
 from datetime import datetime
 
+print('')
+print('---------------------------------------------------------')
+print('')
+print('     EJECUTAR como:  tee file')
+print('')
+print('luego usar la funcion awkmoni file para ver las conexiones')
+print('')
+print('---------------------------------------------------------')
+print('')
+print('')
+
+
 counter = 0
 
 while True:

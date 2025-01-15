@@ -142,6 +142,24 @@ function coll() {
 }
 
 
+#limpia el archivo que genera sshmoni para ver las conexiones ssh y tcp de nc
+awkmoni() {
+    if [ -z "$1" ]; then
+        echo "Usage: archivo <file>"
+        return 1
+    fi
+
+    if [ ! -f "$1" ]; then
+        echo "Error: File '$1' not found."
+        return 1
+    fi
+
+    awk '/ESTABLISHED/ || /Connection/' "$1" | sort | uniq | grep -vi "other"
+}
+
+
+
+
 """
 
 # Función para agregar texto a un archivo
