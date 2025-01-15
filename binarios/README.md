@@ -44,6 +44,8 @@ ppt
 mibebemata
 psss                Escanea por conexiones lsof netstat, mi bebe mibebe
 pssc                Mismo que psss pero este las cierra en 12 segundos automaticamente mibebe
+sshmoni
+
 
 #starlink
 aprender            Lista de lo que tengo que aprender.

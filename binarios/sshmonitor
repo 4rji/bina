@@ -1,23 +1,23 @@
 #!/usr/bin/env bash
 
-# Función para verificar si un paquete está instalado
-paquete_instalado() {  
-    dpkg -l "$1" | grep -q '^ii'  
+# Function to check if a package is installed
+package_installed() {
+    dpkg -l "$1" | grep -q '^ii'
 }
 
-# Instalar paquetes necesarios
-paquetes=("net-tools")
-for paquete in "${paquetes[@]}"; do 
-    if ! paquete_instalado "$paquete"; then  
-        sudo apt-get install -y "$paquete"  
-    fi  
+# Install required packages
+packages=("net-tools")
+for package in "${packages[@]}"; do
+    if ! package_installed "$package"; then
+        sudo apt-get install -y "$package"
+    fi
 done
 
-# SSH Port y PID File
+# SSH Port and PID File
 SSH_PORT=22
 PID_FILE="/tmp/pidssh"
 
-# Colores
+# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -25,97 +25,109 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 SEPARATOR='-----------------------------------------------------------------------------'
 
-# Función para verificar las conexiones SSH
+# Function to check SSH connections
 check_ssh_connections() {
     > "$PID_FILE"
-    local connections=$(sudo netstat -tnp | grep ':'"$SSH_PORT" | grep 'ESTABLISHED')
-    if [ ! -z "$connections" ]; then
+    local connections
+    connections=$(sudo netstat -tnp | grep ":$SSH_PORT" | grep 'ESTABLISHED')
+    if [ -n "$connections" ]; then
         echo ""
         echo -e "${RED}${SEPARATOR}${NC}"
-        echo -e "${RED}       ALERTA: Conexión activa de SSH detectada.      ${NC}"
+        echo -e "${RED}       ALERT: Active SSH connection detected.      ${NC}"
         echo -e "${RED}${SEPARATOR}${NC}"
         echo ""
         local count=1
         echo "$connections" | while IFS= read -r line; do
-            local ip=$(echo "$line" | awk '{print $5}' | cut -d':' -f1)
-            local pid=$(echo "$line" | awk '{print $7}' | grep -o '[0-9]*')
-            local user=$(sudo ps -o user= -p "$pid" 2>/dev/null)
-            echo -e "${YELLOW}$count) Usuario SSH: $user, IP: $ip, PID: $pid, Conexión: $user@$ip${NC}"
+            local ip
+            ip=$(echo "$line" | awk '{print $5}' | cut -d':' -f1)
+            local pid
+            pid=$(echo "$line" | awk '{print $7}' | grep -o '[0-9]*')
+            local user
+            user=$(sudo ps -o user= -p "$pid" 2>/dev/null)
+            echo -e "${YELLOW}$count) SSH User: $user, IP: $ip, PID: $pid, Connection: $user@$ip${NC}"
             echo "$pid" >> "$PID_FILE"
             ((count++))
         done
         echo -e "${RED}${SEPARATOR}${NC}"
-        ask_to_kill_connection
     else
         echo ""
-        echo -e "${GREEN}No hay conexiones SSH activas en este momento.${NC}"
+        echo -e "${GREEN}No active SSH connections detected at this time.${NC}"
         echo ""
-        exit_after_delay
     fi
 }
 
-# Función para preguntar al usuario si desea terminar una conexión
+# Function to check other ESTABLISHED connections
+check_other_connections() {
+    echo ""
+    local other
+    other=$(sudo netstat -tnp | grep 'ESTABLISHED' | grep -v ":$SSH_PORT")
+    if [ -n "$other" ]; then
+        echo -e "${BLUE}${SEPARATOR}${NC}"
+        echo -e "${BLUE}    Other ESTABLISHED connections detected:    ${NC}"
+        echo -e "${BLUE}${SEPARATOR}${NC}"
+        echo "$other"
+        echo -e "${BLUE}${SEPARATOR}${NC}"
+    else
+        echo -e "${GREEN}No other ESTABLISHED connections.${NC}"
+    fi
+}
+
+# Function to ask the user if they want to terminate a connection
 ask_to_kill_connection() {
     echo ""
-    echo ""
-    echo ""
-    echo -e "Selecciona numero o [s] para terminar TODAS "
-    echo ""
+    echo -e "Select a number or [s] to terminate ALL"
     read -n 1 -t 4 -p ">  " selection
     echo ""
-
     if [ -z "$selection" ]; then
         echo ""
-
-        echo -e "${BLUE}Escanenado de nuevo...${NC}"
-        echo ""
-        exit 0
-    elif [ "$selection" = "A" ] || [ "$selection" = "a" ]; then
-        kill_all_connections
+        echo -e "${BLUE}Rescanning...${NC}"
     elif [[ "$selection" =~ ^[0-9]+$ ]]; then
         handle_connection_selection "$selection"
-    elif [ "$selection" = "S" ] || [ "$selection" = "s" ]; then
+    elif [[ "$selection" =~ ^[sS]$|^[aA]$ ]]; then
         kill_all_connections
     else
-        echo -e "${RED}Selección inválida. Saliendo...${NC}"
-        echo ""
+        echo -e "${RED}Invalid selection. Exiting...${NC}"
         exit 1
     fi
 }
 
-# Función para manejar la selección del usuario
+# Function to handle user's selection
 handle_connection_selection() {
     local selection=$1
     mapfile -t pids < "$PID_FILE"
 
-    if [ "$selection" -gt 0 ] && [ "$selection" -le ${#pids[@]} ]; then
+    if [ "$selection" -gt 0 ] && [ "$selection" -le "${#pids[@]}" ]; then
         local selected_pid=${pids[$selection-1]}
         sudo kill "$selected_pid"
-        echo -e "${GREEN}Se ha ejecutado 'sudo kill' en el PID $selected_pid.${NC}"
+        echo -e "${GREEN}Executed 'sudo kill' on PID $selected_pid.${NC}"
     else
-        echo -e "${RED}Selección inválida.${NC}"
+        echo -e "${RED}Invalid selection.${NC}"
     fi
 }
 
-# Función para terminar todas las conexiones
+# Function to terminate all SSH connections
 kill_all_connections() {
-    echo "Terminando todas las conexiones SSH..."
+    echo "Terminating all SSH connections..."
     while read -r pid; do
         sudo kill "$pid"
-        echo "Conexión terminada para PID $pid."
+        echo "Terminated connection for PID $pid."
     done < "$PID_FILE"
 }
 
-# Función para salir del script después de un retraso
+# Function to exit the script after a delay
 exit_after_delay() {
-    echo "    --- Comprobando nuevamente en 4 segundos...    --- "
-    echo ""
-    echo ""
-    echo ""
-    echo ""
+    echo "    --- Checking again in 4 seconds...    --- "
     sleep 3
     exit 0
 }
 
-# Llamar a la función de comprobación una vez
+# Execute connection checks
 check_ssh_connections
+check_other_connections
+
+# At the end, prompt the user to terminate connections if any SSH connections exist
+if [ -s "$PID_FILE" ]; then
+    ask_to_kill_connection
+fi
+
+exit_after_delay
