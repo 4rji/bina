@@ -47,8 +47,9 @@ else
     echo -e "${GREEN}Iniciando búsqueda del puerto ${puerto}...${NC}"
     while IFS= read -r line; do
         # Ejecuta nc y filtra solo líneas con "open", luego muestra la línea sin modificar el color.
-        nc -nv -w 1 -z "$line" $puerto 2>&1 | grep "open"
-    done < ips-n.txt
+#        nc -nv -w 1 -z "$line" $puerto 2>&1 | grep "open"
+        nc -nv -w 1 -z "$line" $puerto 2>&1  
+   done < ips-n.txt
 fi
 
 echo -e "${NC}"

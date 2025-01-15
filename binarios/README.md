@@ -31,6 +31,7 @@ ntpinst             Instala ntp en debian10
 updatecentos7       Para actualizar centos7
 sudoup              Hace un update de sudo de la version 9.12 adelante.
 ftpinst             Instala ftp
+sftpinst            Para sftp instalador
 ntpinst             Para instalar npt
 fshells             busca procesos, muestra puerto, para shells, usa ps y ss
 kshells             Mata shells en el sistema
@@ -42,6 +43,18 @@ mibebemata
 psss                Escanea por conexiones lsof netstat, mi bebe mibebe
 pssc                Mismo que psss pero este las cierra en 12 segundos automaticamente mibebe
 sshmoni
+
+
+bannerm = Hace un banner para ssh
+hardnet = modifica ipv4 y tambien ipv6
+nameser = cambia name server y hace copia
+netevils = 
+rootcheck = checa varios archivos .bash ...
+sntp = instala chrony
+sshmod = modifica ssh y hace copia
+Bannerm2 = modifica el banner por dark
+
+
 
 #ccdclab
 vcen                Para manejar las maquinas en el vcenter desde cli linux, vmware, vcenter, server
