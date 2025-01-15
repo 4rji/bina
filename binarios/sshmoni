@@ -5,11 +5,12 @@ from datetime import datetime
 counter = 0
 
 while True:
-    # Ejecuta el comando 'sshmonitor'. Asegúrate de que esté en el PATH.
+    # Execute the 'sshmonitor' command. Make sure 'sshmonitor' is in the PATH.
     subprocess.run(["sshmonitor"])
     
     counter += 1
-    # Obtiene la fecha y hora actuales
+    # Get the current date and time
     current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     
-    print(f"Scan number: {counter} | Timestamp: {current_time}")
+    # Print the scan number and timestamp with immediate flush
+    print(f"Scan number: {counter} | Timestamp: {current_time}", flush=True)
