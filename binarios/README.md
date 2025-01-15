@@ -24,6 +24,7 @@ aliasarch           Arregla los alias en arch
 rx6800              Instala el archivo de configuracion en Arch para que funcione la GPU
 
 ###------CCDC
+
 mapa                Busca un proceso despues del script y lo mata ps aux
 backd               Usa python para buscar backdoors, conexiones activas
 dnsinst             Instala dns en debian10 
@@ -79,6 +80,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+transf              Enviar recibir archivos instrucciones
 rutaadd             Agrega dev, ruta a ip r, no funciona aun.
 loop and loopp      While true; function and script, loop is the function.
 instpowershell      Descarga nishang powershell modules
@@ -520,5 +522,5 @@ hosthtb             Agrega el host para paginas, toma la $ip de zsh y solo pide 
 galletas            Recibe cookies de session, php js xss html injection phpsessid
 ngrok               Instala ngrok para dockers, toma token de ngroktk script, conecta ssh y http. 
 archiveinst         Archivebox para guardar paginas, instaladaro. alias archive para iniciar server tmux
-recibepython           Para recibir archivos con curl -T desde la otra maquina, recibepython2 disponible
+recibepython        Para recibir archivos con curl -T desde la otra maquina, recibepython2 disponible
 archivos            Descarga desde $ip robots y cookies

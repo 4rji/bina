@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo $'\e[1;34mPara transferir archivos se puede usar:\e[0m'
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo $'\e[1;32mEnviar con Python server:\e[0m'
+echo $'\e[1;33mDesde la máquina que recibe se ejecuta el script:\e[0m'
+echo $'\e[1;36mrecibepython\e[0m'
+echo ""
+echo $'\e[1;33mDesde la máquina que envía se ejecuta:\e[0m'
+echo $'\e[1;36mcurl -T archivo http://ip:8000\e[0m'
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo $'\e[1;32mEnviar con Sheldon:\e[0m'
+echo $'\e[1;33mEn la máquina que recibe:\e[0m'
+echo $'\e[1;36mwhile true; do nc -l -p 1234 | tee -a file; done\e[0m'
+echo ""
+echo $'\e[1;33mO también:\e[0m'
+echo $'\e[1;36mnc -l -p 1234 > file\e[0m'
+echo ""
+echo $'\e[1;33mEn la máquina que envía:\e[0m'
+echo $'\e[1;36msheldonf -ip- 1234 file\e[0m'
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo $'\e[1;31mADVISORY: This script should be used for authorized purposes only. Misuse is not the responsibility of the author.\e[0m'
