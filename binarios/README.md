@@ -29,6 +29,7 @@ mapa                Busca un proceso despues del script y lo mata ps aux
 backd               Usa python para buscar backdoors, conexiones activas
 dnsinst             Instala dns en debian10 
 ntpinst             Instala ntp en debian10
+ntpcon              Conecta el servicio ntp
 updatecentos7       Para actualizar centos7
 sudoup              Hace un update de sudo de la version 9.12 adelante.
 ftpinst             Instala ftp
@@ -48,8 +49,8 @@ sshmoni
 
 bannerm = Hace un banner para ssh
 hardnet = modifica ipv4 y tambien ipv6
-nameser = cambia name server y hace copia
-netevils = 
+
+netevils = apt = remove -y telnet ftp ftpd tftp talk talkd tftp tftpd
 rootcheck = checa varios archivos .bash ...
 sntp = instala chrony
 sshmod = modifica ssh y hace copia

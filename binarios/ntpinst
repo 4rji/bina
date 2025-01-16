@@ -1,21 +1,26 @@
 #!/usr/bin/env bash
-
-# NTP Server Installation and Configuration Script for Debian 10
-# This script installs and configures the NTP service as a server with IPv6 support.
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo " NTP Server Installation and Configuration Script for Debian 10"
+echo "_________________________________________________________"
+echo ""
 
 # Exit immediately if a command exits with a non-zero status
 set -e
 
 # Function to display messages
 echo_msg() {
-    echo "=============================================="
-    echo "$1"
-    echo "=============================================="
+    echo ""
+    echo $'\033[1;34m==============================================\033[0m'
+    echo $'\033[1;36m'"$1"$'\033[0m'
+    echo $'\033[1;34m==============================================\033[0m'
+    echo ""
 }
 
 # Ensure the script is run as root
 if [ "$EUID" -ne 0 ]; then
-    echo "Please run this script with sudo or as root."
+    echo $'\033[1;31mPlease run this script with sudo or as root.\033[0m'
     exit 1
 fi
 
@@ -29,26 +34,23 @@ apt install ntp -y
 
 # Step 3: Backup Existing NTP Configuration
 echo_msg "Backing up the existing NTP configuration..."
-cp /etc/ntp.conf /etc/ntp.conf.bak
+if [ -f /etc/ntp.conf ]; then
+    cp /etc/ntp.conf /etc/ntp.conf.bak
+    echo $'\033[1;32mBackup created: /etc/ntp.conf.bak\033[0m'
+else
+    echo $'\033[1;33mNo existing /etc/ntp.conf found. Skipping backup.\033[0m'
+fi
 
 # Step 4: Configure NTP as a Server
 echo_msg "Configuring NTP as a server..."
-
-# Define NTP servers
-NTP_SERVERS=(
-    "0.debian.pool.ntp.org iburst"
-    "1.debian.pool.ntp.org iburst"
-    "2.debian.pool.ntp.org iburst"
-    "3.debian.pool.ntp.org iburst"
-)
-
-# Start writing the new ntp.conf
 cat > /etc/ntp.conf <<EOL
 # NTP configuration for Debian 10 NTP Server
 
 # Use servers from the NTP Pool Project
-# More information: https://www.pool.ntp.org
-${NTP_SERVERS[@]/#/server }
+server 0.debian.pool.ntp.org iburst
+server 1.debian.pool.ntp.org iburst
+server 2.debian.pool.ntp.org iburst
+server 3.debian.pool.ntp.org iburst
 
 # Drift file
 driftfile /var/lib/ntp/ntp.drift
@@ -58,58 +60,31 @@ interface listen on 0.0.0.0
 interface listen on ::0
 
 # Access control configuration
-# By default, restricts all access
 restrict default kod nomodify notrap nopeer noquery
-
-# Allow localhost (IPv4 and IPv6) to query and modify
 restrict 127.0.0.1
 restrict ::1
-
-# Allow NTP clients on the local network to synchronize
-# Replace 192.168.1.0/24 with your local network subnet
 restrict 192.168.1.0 mask 255.255.255.0 nomodify notrap
-
-# Specify the local clock as a fallback (optional)
-# server 127.127.1.0 # local clock
-# fudge 127.127.1.0 stratum 10
-
-# Enable logging (optional)
-# logfile /var/log/ntp.log
-# logconfig =all
-
 EOL
 
 # Step 5: Configure the Firewall to Allow NTP Traffic
 echo_msg "Configuring the firewall to allow NTP traffic..."
 
-# Function to check and install UFW if not present
-install_ufw_if_missing() {
-    if ! command -v ufw >/dev/null 2>&1; then
-        echo "UFW not found. Installing UFW..."
-        apt install ufw -y
-        echo "UFW installed."
-    fi
-}
-
-# Check if UFW is installed
 if command -v ufw >/dev/null 2>&1; then
-    echo "UFW is already installed."
+    echo $'\033[1;32mUFW is already installed.\033[0m'
 else
-    install_ufw_if_missing
+    echo $'\033[1;33mUFW not found. Installing UFW...\033[0m'
+    apt install ufw -y
+    echo $'\033[1;32mUFW installed.\033[0m'
 fi
 
-# Allow NTP through UFW
 ufw allow 123/udp
 
-# Enable UFW if not already enabled
 if ufw status | grep -qw "Status: inactive"; then
-    echo "Enabling UFW..."
+    echo $'\033[1;33mEnabling UFW...\033[0m'
     ufw --force enable
 else
-    echo "UFW is already enabled."
+    echo $'\033[1;32mUFW is already enabled.\033[0m'
 fi
-
-echo "Firewall rules updated to allow NTP traffic on UDP port 123."
 
 # Step 6: Restart and Enable NTP Service
 echo_msg "Restarting and enabling NTP service..."
@@ -125,7 +100,8 @@ echo_msg "Checking NTP synchronization and server peers..."
 ntpq -p
 
 echo_msg "NTP server installation and configuration completed successfully."
-
-echo "to verify conections"
-echo "ntpq -p" 
-
+echo ""
+echo "_________________________________________________________"
+echo $'\033[1;33mTo verify connections, run: ntpq -p\033[0m'
+echo "_________________________________________________________"
+echo ""

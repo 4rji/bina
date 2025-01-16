@@ -1,0 +1,137 @@
+#!/usr/bin/env bash
+
+# Lista de paquetes a instalar
+paquetes=("ntp" )
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+
+
+# Function to display messages with separators and ANSI colors
+echo_msg() {
+    echo ""
+    echo ""
+    echo $'\e[1;34m_________________________________________________________\e[0m'
+    echo $'\e[1;36m'"$1"$'\e[0m'
+    echo $'\e[1;34m_________________________________________________________\e[0m'
+    echo ""
+    echo ""
+}
+
+echo_msg "NTP Configuration and Server Setup Script"
+
+# Step 1: Show current NTP server status
+echo_msg "Checking current NTP server status..."
+ntpq -p
+echo ""
+echo ""
+
+# Step 2: Locate the ntp.conf file
+echo_msg "Searching for the NTP configuration file..."
+ntp_conf=$(sudo find / -name "ntp.conf" 2>/dev/null)
+
+if [[ -z "$ntp_conf" ]]; then
+    echo_msg "No ntp.conf file found. Exiting."
+    exit 1
+fi
+
+echo_msg "Configuration file found: $ntp_conf"
+read -p $'\e[1;33mIs the configuration file located at /etc/ntp.conf? [Press Enter for Yes, \'n\' for No]: \e[0m' confirm
+
+if [[ "$confirm" == "n" || "$confirm" == "N" ]]; then
+    read -p $'\e[1;33mPlease provide the full path to the NTP configuration file: \e[0m' ntp_conf
+    if [[ ! -f "$ntp_conf" ]]; then
+        echo_msg "Invalid path. Exiting."
+        exit 1
+    fi
+fi
+
+# Step 3: Ask for the new NTP server IP
+read -p $'\e[1;33mEnter the IP address of the NTP server to use: \e[0m' server_ip
+if [[ -z "$server_ip" ]]; then
+    echo_msg "No IP address entered. Exiting."
+    exit 1
+fi
+
+# Step 4: Modify the ntp.conf file
+echo_msg "Modifying $ntp_conf to use server $server_ip..."
+sudo sed -i.bak '/^server /s/^/#/' "$ntp_conf"
+echo "server $server_ip iburst" | sudo tee -a "$ntp_conf" > /dev/null
+echo_msg "Configuration updated. Backup created at $ntp_conf.bak"
+
+# Step 5: Restart NTP service
+echo_msg "Restarting NTP service..."
+sudo systemctl restart ntp
+if [[ $? -ne 0 ]]; then
+    echo_msg $'\e[1;31mIf the service is missing, use the command: findpak ntp.\e[0m'
+    echo""
+    
+fi
+
+echo ""
+
+
+# Step 6: Verify the new configuration
+echo_msg "Verifying the new NTP configuration *** ntpq -p ***"
+ntpq -p
+
+echo_msg "NTP configuration updated successfully!"
+
+
+
