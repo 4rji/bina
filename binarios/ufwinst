@@ -1,43 +1,147 @@
 #!/usr/bin/env bash
 
-# Función para instalar UFW en sistemas basados en Debian
-install_ufw_debian() {
-    sudo apt-get update
-    sudo apt-get install ufw -y
+
+#!/bin/bash
+
+# Lista de paquetes a instalar
+paquetes=("ufw" )
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {
+    dpkg -l "$1" | grep -q '^ii'  
 }
 
-# Función para instalar UFW en sistemas basados en Red Hat
-install_ufw_redhat() {
-    sudo yum install ufw -y
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
 }
 
-# Función para habilitar UFW y configurar reglas
-configure_ufw() {
-    # Habilitar UFW
-    sudo ufw enable
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
 
-    # Permitir el tráfico SSH en el puerto 22
-    sudo ufw allow 22
-
-    # Recargar UFW para aplicar los cambios
-    sudo ufw reload
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
 }
 
 # Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Function to install UFW on Debian-based systems
+install_ufw_debian() {
+    echo $'\e[1;32mUpdating package list and installing UFW on Debian-based systems...\e[0m'
+    echo ""
+    sudo apt-get update
+    sudo apt-get install ufw -y
+    echo $'\e[1;34mUFW installation completed.\e[0m'
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+}
+
+# Function to install UFW on Red Hat-based systems
+install_ufw_redhat() {
+    echo $'\e[1;32mInstalling UFW on Red Hat-based systems...\e[0m'
+    echo ""
+    sudo yum install ufw -y
+    echo $'\e[1;34mUFW installation completed.\e[0m'
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+}
+
+# Change ICMP echo-request to DROP
+change_icmp_rule() {
+    echo $'\e[1;33mModifying UFW rules to drop ICMP echo-request...\e[0m'
+    echo ""
+    sudo sed -i 's|-A ufw-before-input -p icmp --icmp-type echo-request -j ACCEPT|-A ufw-before-input -p icmp --icmp-type echo-request -j DROP|' /etc/ufw/before.rules
+    echo $'\e[1;31mICMP echo-request rule changed to DROP.\e[0m'
+    echo $'\e[1;31mMay need ufwr again\e[0m'
+
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+}
+
+# Function to enable UFW and configure rules
+configure_ufw() {
+    echo $'\e[1;34mEnabling UFW and configuring rules...\e[0m'
+    echo ""
+    sudo ufw enable
+    echo $'\e[1;32mDefault SSH rule: Port 22 allowed.\e[0m'
+    echo ""
+    echo $'\e[1;36mWhich ports do you want to allow (22 default allowed)? (e.g., 80 443): \e[0m'
+    read -p $'' ports
+    for port in $ports; do
+        sudo ufw allow "$port"
+        echo $'\e[1;32mPort '"$port"$' allowed.\e[0m'
+        echo ""
+    done
+    echo $'\e[1;34mReloading UFW to apply changes...\e[0m'
+    sudo ufw reload
+    echo $'\e[1;32mUFW rules configured successfully.\e[0m'
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+}
+
+# Detect the operating system
 if [ -f /etc/debian_version ]; then
-    # Sistema basado en Debian (Ubuntu)
-    echo "Instalando UFW en sistema Debian..."
+    echo $'\e[1;36mInstalling UFW on a Debian-based system...\e[0m'
+    echo ""
     install_ufw_debian
     configure_ufw
-    echo "Configuración completa."
+    change_icmp_rule
+    echo $'\e[1;32mConfiguration complete for Debian-based system.\e[0m'
 elif [ -f /etc/redhat-release ]; then
-    # Sistema basado en Red Hat (CentOS o Fedora)
-    echo "Instalando UFW en sistema Red Hat..."
+    echo $'\e[1;36mInstalling UFW on a Red Hat-based system...\e[0m'
+    echo ""
     install_ufw_redhat
     configure_ufw
-    echo "Configuración completa."
+    change_icmp_rule
+    echo $'\e[1;32mConfiguration complete for Red Hat-based system.\e[0m'
 else
-    # Sistema no compatible
-    echo "Este sistema no es compatible con el script."
+    echo $'\e[1;31mThis system is not supported by the script.\e[0m'
     exit 1
 fi
