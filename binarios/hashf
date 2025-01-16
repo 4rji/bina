@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+# Directorio que contiene los archivos del sitio web
+WEB_DIR="/var/www/html"
+
+# Archivos de logs y hashes
+HASH_FILE="/var/log/web_hashes.txt"
+REPORT_FILE="/var/log/web_changes_report.txt"
+TEMP_HASH_FILE="/tmp/web_hashes_new.txt"
+
+# Función para mostrar mensajes con separadores y colores
+echo_msg() {
+    echo ""
+    echo -e "\033[1;34m=========================================================\033[0m"
+    echo -e "\033[1;36m  $1  \033[0m"
+    echo -e "\033[1;34m=========================================================\033[0m"
+    echo ""
+}
+
+# Función para mostrar mensajes con colores y separadores llamativos
+echo_msg22() {
+    echo ""
+    echo -e "\033[1;34m=========================================================\033[0m"
+    echo -e "$1"
+    echo -e "\033[1;34m=========================================================\033[0m"
+    echo ""
+}
+
+
+# Asegurarse de que los archivos existan con los permisos correctos
+sudo touch "$HASH_FILE" "$REPORT_FILE"
+sudo chmod 644 "$HASH_FILE" "$REPORT_FILE"
+
+# Generar hashes iniciales si no existe el archivo de hashes
+if [ ! -f "$HASH_FILE" ]; then
+    echo_msg "Generating initial hashes..."
+    sudo find "$WEB_DIR" -type f -exec sha256sum {} \; | sudo tee "$HASH_FILE" > /dev/null
+    echo_msg "Hashes generated and saved to $HASH_FILE."
+    exit 0
+fi
+
+
+
+# Crear un archivo temporal para los nuevos hashes
+sudo find "$WEB_DIR" -type f -exec sha256sum {} \; | sudo tee "$TEMP_HASH_FILE" > /dev/null
+
+# Comparar los hashes nuevos con los antiguos
+if ! sudo diff "$HASH_FILE" "$TEMP_HASH_FILE" > /dev/null; then
+    echo_msg "\033[1;31mUnauthorized changes detected on $(date).\033[0m"
+    echo -e "\033[1;33mUnauthorized changes detected on $(date).\033[0m" | sudo tee "$REPORT_FILE" > /dev/null
+    sudo diff "$HASH_FILE" "$TEMP_HASH_FILE" | sudo tee -a "$REPORT_FILE" > /dev/null
+    echo_msg "Report generated at $REPORT_FILE."
+    
+    # Preguntar si desea abrir el archivo con cat
+    echo ""
+    echo -e "\033[1;32mDo you want to view the changes? [Y/n]: \033[0m"
+    read -r view_changes
+    view_changes=${view_changes:-Y}  # Si presiona Enter, asigna "Y" por defecto
+    if [[ "$view_changes" =~ ^[Yy]$ ]]; then
+        sudo cat "$REPORT_FILE"
+    fi
+else
+    echo_msg "No changes detected on $(date)."
+    echo_msg22 "\033[1;31m        ***** Protecting  $WEB_DIR  *****\033[0m"
+fi
+
+# Actualizar los hashes antiguos con los nuevos
+sudo mv -f "$TEMP_HASH_FILE" "$HASH_FILE"

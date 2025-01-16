@@ -24,7 +24,7 @@ aliasarch           Arregla los alias en arch
 rx6800              Instala el archivo de configuracion en Arch para que funcione la GPU
 
 ###------CCDC
-
+hashf               crea hash5 de el directorio www/html
 mapa                Busca un proceso despues del script y lo mata ps aux
 backd               Usa python para buscar backdoors, conexiones activas
 ntpinst             Instala ntp en debian10 
