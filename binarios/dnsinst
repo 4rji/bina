@@ -1,9 +1,5 @@
 #!/usr/bin/env bash
 
-# Script de Instalación y Configuración de Servidor DNS con BIND9 en Debian 10
-# Autor: [Tu Nombre]
-# Fecha: [Fecha Actual]
-
 # Salir si ocurre un error
 set -e
 
@@ -14,75 +10,120 @@ echo_msg() {
     echo "=============================================="
 }
 
-# 1. Verificar si se ejecuta como root
-if [ "$EUID" -ne 0 ]; then
-    echo "Por favor, ejecuta este script como root o usando sudo."
-    exit 1
-fi
-echo ""
 
-# 2. Actualizar el sistema
-echo_msg "Actualizando el sistema..."
-apt update && apt upgrade -y
 
-# 3. Verificar si BIND9 está instalado e instalar si es necesario
-echo_msg "Verificando si BIND9 está instalado..."
-if ! dpkg -l | grep -qw bind9; then
-    echo "BIND9 no está instalado. Instalando BIND9 y herramientas relacionadas..."
-    apt install bind9 bind9utils bind9-doc dnsutils -y
-else
-    echo "BIND9 ya está instalado."
+# Lista de paquetes a instalar
+paquetes=("bind9utils" "bind9-doc" "dnsutils")
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
 fi
-echo ""
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
 
 # 4. Solicitar al usuario la dirección IP y el nombre de dominio
 echo_msg "Configuración del Servidor DNS"
 
+echo ""
+#mostar ip
+ip -4 addr show | awk '/inet/ && !/127\.0\.0\.1/ {split($2, a, "/"); printf "\033[1;34m%s\033[0m: \033[1;32m%s\033[0m\n", $NF, a[1]}'
+
 read -p "Ingresa la dirección IP de esta maquina: " SERVER_IP
 read -p "Ingresa el nombre de dominio (ejemplo: ccdc.com): " DOMAIN_NAME
 
-# Validar la dirección IP
 if [[ ! $SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
     echo "La dirección IP ingresada no es válida."
     exit 1
 fi
 
-# Obtener la red y el bloque de la zona reversa
 IFS='.' read -r -a IP_ARRAY <<< "$SERVER_IP"
 REVERSE_ZONE="${IP_ARRAY[2]}.${IP_ARRAY[1]}.${IP_ARRAY[0]}.in-addr.arpa"
 REVERSE_SUBNET="${IP_ARRAY[0]}.${IP_ARRAY[1]}.${IP_ARRAY[2]}"
 
+echo ""
+echo ""
+
 # 5. Configurar BIND9
 echo_msg "Configurando BIND9..."
 
-
-
-echo ""
-
 # 5.1. Configurar /etc/bind/named.conf.options
 echo "Configurando /etc/bind/named.conf.options..."
-cat > /etc/bind/named.conf.options <<EOL
+sudo tee /etc/bind/named.conf.options > /dev/null <<EOL
 options {
     directory "/var/cache/bind";
-
     recursion yes;
     allow-query { any; };
     forwarders {
         8.8.8.8;
         8.8.4.4;
     };
-
     dnssec-validation auto;
-
     auth-nxdomain no;    # Conforma a RFC1035
     listen-on { any; };
     listen-on-v6 { any; };
 };
 EOL
+
+
+
 echo ""
-# 5.2. Configurar /etc/bind/named.conf.local
 echo "Configurando /etc/bind/named.conf.local..."
-cat > /etc/bind/named.conf.local <<EOL
+sudo tee /etc/bind/named.conf.local > /dev/null <<EOL
 //
 // Do any local configuration here
 //
@@ -98,114 +139,146 @@ zone "${REVERSE_ZONE}" {
 };
 EOL
 
-
 # 6. Crear directorio de zonas si no existe
-mkdir -p /etc/bind/zones
+sudo mkdir -p /etc/bind/zones
 
 
-echo ""
+
+
 # 7. Configurar la zona directa
 echo "Creando archivo de zona directa para ${DOMAIN_NAME}..."
-cat > /etc/bind/zones/db.${DOMAIN_NAME} <<EOL
+sudo tee /etc/bind/zones/db.${DOMAIN_NAME} > /dev/null <<EOL
+; Archivo de zona directa para ${DOMAIN_NAME}
+; Establece el TTL (Time To Live)
 \$TTL    604800
+
+; Define la zona SOA (Start of Authority)
 @       IN      SOA     ns1.${DOMAIN_NAME}. admin.${DOMAIN_NAME}. (
-                                $(date +%Y%m%d%H) ; Serial
-                                604800         ; Refresh
-                                86400          ; Retry
-                                2419200        ; Expire
-                                604800 )       ; Negative Cache TTL
+                                $(date +%Y%m%d%H)  ; Número de serie
+                                604800             ; Refresh
+                                86400              ; Retry
+                                2419200            ; Expire
+                                604800 )           ; Neg. Cache TTL
 ;
+
+; Registros NS (Name Server)
 @       IN      NS      ns1.${DOMAIN_NAME}.
 @       IN      NS      ns2.${DOMAIN_NAME}.
 
+; Definición de direcciones IP para los servidores
 ns1     IN      A       ${SERVER_IP}
 ns2     IN      A       ${SERVER_IP}
 
+; Definición de IP para el dominio y www
 @       IN      A       ${SERVER_IP}
 www     IN      A       ${SERVER_IP}
 EOL
 
 # 8. Configurar la zona reversa
 echo "Creando archivo de zona reversa para ${REVERSE_ZONE}..."
-cat > /etc/bind/zones/db.${REVERSE_SUBNET} <<EOL
+sudo tee /etc/bind/zones/db.${REVERSE_SUBNET} > /dev/null <<EOL
+; Archivo de zona reversa para ${REVERSE_ZONE}
+; Establece el TTL (Time To Live)
 \$TTL    604800
+
+; Define la zona SOA (Start of Authority)
 @       IN      SOA     ns1.${DOMAIN_NAME}. admin.${DOMAIN_NAME}. (
-                                $(date +%Y%m%d%H) ; Serial
-                                604800         ; Refresh
-                                86400          ; Retry
-                                2419200        ; Expire
-                                604800 )       ; Negative Cache TTL
+                                $(date +%Y%m%d%H)  ; Número de serie
+                                604800             ; Refresh
+                                86400              ; Retry
+                                2419200            ; Expire
+                                604800 )           ; Neg. Cache TTL
 ;
+
+; Registros NS (Name Server)
 @       IN      NS      ns1.${DOMAIN_NAME}.
 
+; Asocia la IP ${IP_ARRAY[3]} con el nombre de dominio
 ${IP_ARRAY[3]}      IN      PTR     ${DOMAIN_NAME}.
 EOL
 
+
+
+
 # 9. Verificar archivos de configuración
 echo_msg "Verificando archivos de configuración..."
-
 named-checkconf
-
 named-checkzone "${DOMAIN_NAME}" "/etc/bind/zones/db.${DOMAIN_NAME}"
-
 named-checkzone "${REVERSE_ZONE}" "/etc/bind/zones/db.${REVERSE_SUBNET}"
 
-echo ""
-echo ""
-
-# 13. Instrucciones finales
 echo_msg "Configuración completada."
-echo "Puedes verificar el funcionamiento del servidor DNS usando los siguientes comandos:"
-echo ""
-echo "Desde el servidor DNS:"
+echo "Puedes verificar el funcionamiento del servidor DNS con:"
 echo "  dig @localhost ${DOMAIN_NAME}"
 echo "  dig @localhost -x ${SERVER_IP}"
-echo ""
-echo "Desde otra máquina en la red (asegúrate de que el cliente use este servidor DNS):"
-echo "  dig @${SERVER_IP} ${DOMAIN_NAME}"
-echo "  dig @${SERVER_IP} -x ${SERVER_IP}"
 echo ""
 echo "¡El servidor DNS debería estar funcionando correctamente!"
 
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 
-
 # 10. Configurar el firewall
 echo_msg "Configurando el firewall..."
-
 if command -v ufw >/dev/null 2>&1; then
     echo "UFW está instalado. Configurando reglas..."
-    ufw allow 53/tcp
-    ufw allow 53/udp
-    echo "Reglas del firewall actualizadas para permitir tráfico DNS."
+    sudo ufw allow 53/tcp
+    sudo ufw allow 53/udp
+    echo "Reglas del firewall actualizadas."
 else
     echo "UFW no está instalado. Instalándolo..."
-    apt install ufw -y
-    ufw allow 53/tcp
-    ufw allow 53/udp
-    ufw enable
+    sudo apt install ufw -y
+    sudo ufw allow 53/tcp
+    sudo ufw allow 53/udp
+    sudo ufw enable
     echo "UFW instalado y configurado."
 fi
 
 # 11. Reiniciar y habilitar el servicio BIND9
 echo_msg "Reiniciando y habilitando el servicio BIND9..."
-systemctl restart bind9
-systemctl enable named.service
+sudo systemctl restart bind9
+sudo systemctl enable named.service
 
-echo "systemctl status bind9"
-
+echo "sudo systemctl status bind9"
 
 # 12. Mostrar estado del servicio
 echo_msg "Estado del servicio BIND9:"
-systemctl status bind9 --no-pager
-
+sudo systemctl status bind9 --no-pager
 
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
-echo ""
+
+echo_msg "Archivos de configuracion"
 echo "ls /etc/bind"
-
 ls /etc/bind
-
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
-exit 0
 
+
+
+
+# DNS
+echo ""
+
+# Verificar si se pasó el argumento -a
+if [[ "$1" == "-a" ]]; then
+    # Ejecutar el comando systemd-resolve --status
+    systemd-resolve --status
+fi
+
+# Verificar si el archivo /etc/resolv.conf existe
+if [ -f /etc/resolv.conf ]; then
+    echo -e "\033[1;33mConfigured DNS servers:\033[0m"
+    
+    # Extraer y mostrar las líneas no comentadas que contienen "nameserver"
+    grep -v '^\s*#' /etc/resolv.conf | grep "nameserver" | awk '{print "\033[1;31m" $2 "\033[0m"}'
+else
+    echo -e "\033[1;33mThe /etc/resolv.conf file does not exist.\033[0m"
+fi
+echo ""
+echo "ejecutar con -a para ver"
+echo "systemd-resolve --status"
+echo ""
+
+echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
+echo_msg "Mostrando puerto abierto: netstat -tulpn | grep udp"
+netstat -tulpn | grep 53
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+
+exit 0
