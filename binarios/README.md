@@ -27,14 +27,16 @@ rx6800              Instala el archivo de configuracion en Arch para que funcion
 
 mapa                Busca un proceso despues del script y lo mata ps aux
 backd               Usa python para buscar backdoors, conexiones activas
-dnsinst             Instala dns en debian10 
-ntpinst             Instala ntp en debian10
+ntpinst             Instala ntp en debian10 
+dnsinst             Instala bind9 dns 
+dnsblock            usa dns bind9 - Bloquea url, dominios o redirige dns trafico a localhost 
+dnsred              Cambia un dominio a un ip redireccionando trafico en bind9
 ntpcon              Conecta el servicio ntp
 updatecentos7       Para actualizar centos7
 sudoup              Hace un update de sudo de la version 9.12 adelante.
 ftpinst             Instala ftp
-sftpinst            Para sftp instalador
-ntpinst             Para instalar npt
+sftpinst            Para sftp instalador de ssh, servidor
+
 fshells             busca procesos, muestra puerto, para shells, usa ps y ss
 kshells             Mata shells en el sistema
 newprocess          Nuevos procesos en linux

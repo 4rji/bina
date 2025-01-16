@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo -e "\e[1;36m============================================\e[0m"
+echo -e "\e[1;36mScript para redirigir un dominio en BIND9\e[0m"
+echo -e "\e[1;36m============================================\e[0m"
+echo ""
+
+# Función para mostrar mensajes con formato
+echo_msg() {
+    echo ""
+    echo "_________________________________________________________"
+    echo -e "\e[1;34m$1\e[0m"
+    echo "_________________________________________________________"
+    echo ""
+}
+
+# Preguntar por el dominio y la IP
+echo_msg "Ingresa la información del dominio"
+read -p $'\e[1;33mIngresa el dominio que deseas redirigir (ejemplo: example.com): \e[0m' DOMAIN
+read -p $'\e[1;33mIngresa la IP a la que deseas redirigir el dominio: \e[0m' IP
+
+# Variables para los archivos de configuración
+BIND_CONF="/etc/bind/named.conf.local"
+ZONE_DIR="/etc/bind/zones"
+ZONE_FILE="$ZONE_DIR/db.$DOMAIN"
+
+# Verificar si el dominio ya existe en la configuración
+echo_msg "Verificando si el dominio ya está configurado en BIND9"
+if grep -q "zone \"$DOMAIN\"" "$BIND_CONF"; then
+    echo -e "\e[1;31mEl dominio $DOMAIN ya está configurado en BIND9.\e[0m"
+    echo ""
+    echo -e "\e[1;33mPor favor, elimínalo manualmente abriendo el archivo con:\e[0m"
+    echo "sudo nano $BIND_CONF"
+    echo ""
+    echo -e "\e[1;33mTambién revisa y elimina el archivo de zona asociado si es necesario:\e[0m"
+    echo "sudo nano $ZONE_FILE"
+    echo ""
+    exit 1
+fi
+
+# Crear la configuración de la zona en named.conf.local
+echo_msg "Añadiendo la configuración de la zona al archivo $BIND_CONF"
+sudo bash -c "cat >> $BIND_CONF" <<EOL
+
+zone "$DOMAIN" {
+    type master;
+    file "$ZONE_FILE";
+};
+EOL
+
+# Crear el directorio de zonas si no existe
+echo_msg "Creando directorio de zonas si no existe"
+sudo mkdir -p "$ZONE_DIR"
+
+# Crear el archivo de zona para el dominio
+echo_msg "Creando el archivo de zona para el dominio $DOMAIN"
+sudo bash -c "cat > $ZONE_FILE" <<EOL
+;
+; Archivo de zona para $DOMAIN
+;
+\$TTL    86400
+@       IN      SOA     ns1.$DOMAIN. admin.$DOMAIN. (
+                        $(date +%Y%m%d%H) ; Serial
+                        3600       ; Refresh
+                        1800       ; Retry
+                        604800     ; Expire
+                        86400 )    ; Minimum TTL
+
+        IN      NS      ns1.$DOMAIN.
+
+ns1     IN      A       $IP
+@       IN      A       $IP
+www     IN      A       $IP
+EOL
+
+# Validar la configuración de BIND
+echo_msg "Validando la configuración de BIND"
+sudo named-checkconf
+sudo named-checkzone "$DOMAIN" "$ZONE_FILE"
+
+if [ $? -eq 0 ]; then
+    echo -e "\e[1;32mLa configuración es válida.\e[0m"
+else
+    echo -e "\e[1;31mError en la configuración. Revisa los archivos generados.\e[0m"
+    exit 1
+fi
+
+# Reiniciar el servicio de BIND
+echo_msg "Reiniciando el servicio de BIND9"
+sudo systemctl restart bind9
+
+if [ $? -eq 0 ]; then
+    echo -e "\e[1;32mEl dominio $DOMAIN ahora redirige a la IP $IP correctamente.\e[0m"
+else
+    echo -e "\e[1;31mError al reiniciar BIND9. Verifica los logs para más detalles.\e[0m"
+fi
