@@ -19,6 +19,7 @@ if [ "$EUID" -ne 0 ]; then
     echo "Por favor, ejecuta este script como root o usando sudo."
     exit 1
 fi
+echo ""
 
 # 2. Actualizar el sistema
 echo_msg "Actualizando el sistema..."
@@ -32,12 +33,13 @@ if ! dpkg -l | grep -qw bind9; then
 else
     echo "BIND9 ya está instalado."
 fi
+echo ""
 
 # 4. Solicitar al usuario la dirección IP y el nombre de dominio
 echo_msg "Configuración del Servidor DNS"
 
-read -p "Ingresa la dirección IP del servidor DNS: " SERVER_IP
-read -p "Ingresa el nombre de dominio (ejemplo: ejemplo.com): " DOMAIN_NAME
+read -p "Ingresa la dirección IP de esta maquina: " SERVER_IP
+read -p "Ingresa el nombre de dominio (ejemplo: ccdc.com): " DOMAIN_NAME
 
 # Validar la dirección IP
 if [[ ! $SERVER_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
@@ -52,6 +54,10 @@ REVERSE_SUBNET="${IP_ARRAY[0]}.${IP_ARRAY[1]}.${IP_ARRAY[2]}"
 
 # 5. Configurar BIND9
 echo_msg "Configurando BIND9..."
+
+
+
+echo ""
 
 # 5.1. Configurar /etc/bind/named.conf.options
 echo "Configurando /etc/bind/named.conf.options..."
@@ -73,7 +79,7 @@ options {
     listen-on-v6 { any; };
 };
 EOL
-
+echo ""
 # 5.2. Configurar /etc/bind/named.conf.local
 echo "Configurando /etc/bind/named.conf.local..."
 cat > /etc/bind/named.conf.local <<EOL
@@ -92,9 +98,12 @@ zone "${REVERSE_ZONE}" {
 };
 EOL
 
+
 # 6. Crear directorio de zonas si no existe
 mkdir -p /etc/bind/zones
 
+
+echo ""
 # 7. Configurar la zona directa
 echo "Creando archivo de zona directa para ${DOMAIN_NAME}..."
 cat > /etc/bind/zones/db.${DOMAIN_NAME} <<EOL
@@ -141,6 +150,26 @@ named-checkzone "${DOMAIN_NAME}" "/etc/bind/zones/db.${DOMAIN_NAME}"
 
 named-checkzone "${REVERSE_ZONE}" "/etc/bind/zones/db.${REVERSE_SUBNET}"
 
+echo ""
+echo ""
+
+# 13. Instrucciones finales
+echo_msg "Configuración completada."
+echo "Puedes verificar el funcionamiento del servidor DNS usando los siguientes comandos:"
+echo ""
+echo "Desde el servidor DNS:"
+echo "  dig @localhost ${DOMAIN_NAME}"
+echo "  dig @localhost -x ${SERVER_IP}"
+echo ""
+echo "Desde otra máquina en la red (asegúrate de que el cliente use este servidor DNS):"
+echo "  dig @${SERVER_IP} ${DOMAIN_NAME}"
+echo "  dig @${SERVER_IP} -x ${SERVER_IP}"
+echo ""
+echo "¡El servidor DNS debería estar funcionando correctamente!"
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+
 # 10. Configurar el firewall
 echo_msg "Configurando el firewall..."
 
@@ -161,25 +190,22 @@ fi
 # 11. Reiniciar y habilitar el servicio BIND9
 echo_msg "Reiniciando y habilitando el servicio BIND9..."
 systemctl restart bind9
-systemctl enable bind9
+systemctl enable named.service
+
+echo "systemctl status bind9"
+
 
 # 12. Mostrar estado del servicio
 echo_msg "Estado del servicio BIND9:"
 systemctl status bind9 --no-pager
 
-# 13. Instrucciones finales
-echo_msg "Configuración completada."
-echo "Puedes verificar el funcionamiento del servidor DNS usando los siguientes comandos:"
-echo ""
-echo "Desde el servidor DNS:"
-echo "  dig @localhost ${DOMAIN_NAME}"
-echo "  dig @localhost -x ${SERVER_IP}"
-echo ""
-echo "Desde otra máquina en la red (asegúrate de que el cliente use este servidor DNS):"
-echo "  dig @${SERVER_IP} ${DOMAIN_NAME}"
-echo "  dig @${SERVER_IP} -x ${SERVER_IP}"
-echo ""
-echo "¡El servidor DNS debería estar funcionando correctamente!"
 
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+echo ""
+echo "ls /etc/bind"
+
+ls /etc/bind
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 exit 0
 

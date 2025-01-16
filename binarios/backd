@@ -1,5 +1,14 @@
 #!/usr/bin/env python3
-import psutil
+import os
+import sys
+
+# Verificar si psutil está instalado
+try:
+    import psutil
+except ImportError:
+    print("El módulo 'psutil' no está instalado. Ejecutando el script 'pythonreq' para instalar dependencias...")
+    os.system("pythonreq")
+    sys.exit(1)
 
 def network_monitor():
     processes = psutil.net_connections(kind="inet")
@@ -24,4 +33,3 @@ def get_process_details(pid):
 
 if __name__ == '__main__':
     network_monitor()
-
