@@ -1,31 +1,152 @@
-#!/bin/zsh
+#!/usr/bin/env bash
 
-# Verifica si el usuario es root
-if [[ $EUID -ne 0 ]]; then
-   echo "Este script debe ser ejecutado como root" 
-   exit 1
+echo -e "\n\e[92mVerificando e instalando OpenSSH Server...\e[0m\n"
+
+
+
+
+
+# Lista de paquetes a instalar
+paquetes=( "openssh-server")
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
 fi
 
-# Instala el servidor SSH si no está instalado
-if ! dpkg -s openssh-server >/dev/null 2>&1; then
-    apt-get update
-    apt-get install -y openssh-server
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+
+
+
+
+# Función para mostrar mensajes importantes
+echo_msg() {
+    echo -e "\n\e[95m==============================================\e[0m"
+    echo -e "  \e[93m$1\e[0m"
+    echo -e "\e[95m==============================================\e[0m\n"
+}
+
+# Función para agregar un usuario SFTP adicional
+agregar_usuario_sftp() {
+    echo -e "\n\e[94mCreando usuario SFTP adicional...\e[0m\n"
+
+    echo -e "\e[94mIngrese el nombre de usuario:\e[0m"
+    read nuevo_usuario
+
+    echo -e "\n\e[94mIngrese la contraseña:\e[0m"
+    read nueva_contra
+
+    sudo useradd -g sftp_users -m -d /home/"$nuevo_usuario" -s /bin/false "$nuevo_usuario" 2>/dev/null
+    echo "${nuevo_usuario}:${nueva_contra}" | sudo chpasswd
+
+    sudo chown root:root /home/"$nuevo_usuario"
+    sudo chmod 755 /home/"$nuevo_usuario"
+    sudo mkdir -p /home/"$nuevo_usuario"/upload
+    sudo chown "$nuevo_usuario":sftp_users /home/"$nuevo_usuario"/upload
+    sudo chmod 755 /home/"$nuevo_usuario"/upload
+
+    sudo service ssh restart
+
+    echo -e "\n\e[92mUsuario SFTP $nuevo_usuario agregado con éxito.\e[0m\n"
+    exit 0
+}
+
+# Si se ejecuta con el parámetro -a, agrega un usuario SFTP y sale
+if [[ "$1" == "-a" ]]; then
+    agregar_usuario_sftp
 fi
 
-# Crea un nuevo grupo para SFTP
-groupadd sftp_users
 
-# Configura el archivo de configuración de SSH para SFTP
-cat <<EOT >> /etc/ssh/sshd_config
+echo -e "\n\e[94mCreando grupo y usuario SFTP...\e[0m\n"
+
+sudo groupadd sftp_users 2>/dev/null
+sudo useradd -g sftp_users -m -d /home/sftp_ccdc -s /bin/false sftp_ccdc 2>/dev/null
+echo "sftp_ccdc:itecitec" | sudo chpasswd
+
+echo -e "\n\e[92mUsuario asignado:\e[0m sftp_ccdc"
+echo -e "\e[92mContraseña:\e[0m    itecitec"
+
+echo -e "\n\e[95mConfigurando permisos de chroot...\e[0m\n"
+
+sudo chown root:root /home/sftp_ccdc
+sudo chmod 755 /home/sftp_ccdc
+sudo mkdir -p /home/sftp_ccdc/upload
+sudo chown sftp_ccdc:sftp_users /home/sftp_ccdc/upload
+sudo chmod 755 /home/sftp_ccdc/upload
+
+echo -e "\n\e[91mVerificando subsistema SFTP...\e[0m\n"
+
+if ! grep -q "^Subsystem sftp" /etc/ssh/sshd_config; then
+    echo "Subsystem sftp internal-sftp" | sudo tee -a /etc/ssh/sshd_config
+fi
+
+echo -e "\n\e[93mAgregando configuración de bloqueo por grupo...\e[0m\n"
+
+sudo bash -c 'cat <<EOT >> /etc/ssh/sshd_config
+
 Match Group sftp_users
-ChrootDirectory %h
-X11Forwarding no
-AllowTcpForwarding no
-ForceCommand internal-sftp
-EOT
+    ChrootDirectory %h
+    X11Forwarding no
+    AllowTcpForwarding no
+    ForceCommand internal-sftp
+EOT'
 
-# Reinicia el servicio SSH
-service ssh restart
+echo -e "\n\e[94mReiniciando el servicio SSH...\e[0m\n"
 
-echo "Servidor SFTP configurado exitosamente."
+sudo service ssh restart
 
+echo_msg "Servidor SFTP configurado exitosamente."
+
+echo -e "\n\e[96mPara agregar usuario ejecutar ./script -a\e[0m\n"

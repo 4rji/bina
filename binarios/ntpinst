@@ -2,14 +2,12 @@
 echo ""
 echo "_________________________________________________________"
 echo ""
-echo " NTP Server Installation and Configuration Script for Debian 10"
+echo " NTP Server Installation and Configuration Script for Debian 10 (with sudo)"
 echo "_________________________________________________________"
 echo ""
 
-# Exit immediately if a command exits with a non-zero status
 set -e
 
-# Function to display messages
 echo_msg() {
     echo ""
     echo $'\033[1;34m==============================================\033[0m'
@@ -18,32 +16,83 @@ echo_msg() {
     echo ""
 }
 
-# Ensure the script is run as root
-if [ "$EUID" -ne 0 ]; then
-    echo $'\033[1;31mPlease run this script with sudo or as root.\033[0m'
-    exit 1
+echo_msg "Updating the system packages..."
+
+
+# Lista de paquetes a instalar
+paquetes=("ntp" )
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
 fi
 
-# Step 1: Update the System
-echo_msg "Updating the system packages..."
-apt update && apt upgrade -y
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
 
-# Step 2: Install NTP
-echo_msg "Installing NTP service..."
-apt install ntp -y
 
-# Step 3: Backup Existing NTP Configuration
+
+
 echo_msg "Backing up the existing NTP configuration..."
 if [ -f /etc/ntp.conf ]; then
-    cp /etc/ntp.conf /etc/ntp.conf.bak
+    sudo cp /etc/ntp.conf /etc/ntp.conf.bak
     echo $'\033[1;32mBackup created: /etc/ntp.conf.bak\033[0m'
 else
     echo $'\033[1;33mNo existing /etc/ntp.conf found. Skipping backup.\033[0m'
 fi
 
-# Step 4: Configure NTP as a Server
 echo_msg "Configuring NTP as a server..."
-cat > /etc/ntp.conf <<EOL
+sudo bash -c 'cat > /etc/ntp.conf <<EOL
 # NTP configuration for Debian 10 NTP Server
 
 # Use servers from the NTP Pool Project
@@ -64,44 +113,27 @@ restrict default kod nomodify notrap nopeer noquery
 restrict 127.0.0.1
 restrict ::1
 restrict 192.168.1.0 mask 255.255.255.0 nomodify notrap
-EOL
+EOL'
 
-# Step 5: Configure the Firewall to Allow NTP Traffic
-echo_msg "Configuring the firewall to allow NTP traffic..."
 
-if command -v ufw >/dev/null 2>&1; then
-    echo $'\033[1;32mUFW is already installed.\033[0m'
-else
-    echo $'\033[1;33mUFW not found. Installing UFW...\033[0m'
-    apt install ufw -y
-    echo $'\033[1;32mUFW installed.\033[0m'
-fi
+sudo ufw allow 123/udp
 
-ufw allow 123/udp
 
-if ufw status | grep -qw "Status: inactive"; then
-    echo $'\033[1;33mEnabling UFW...\033[0m'
-    ufw --force enable
-else
-    echo $'\033[1;32mUFW is already enabled.\033[0m'
-fi
+echo_msg "Restarting and enabling NTP service (if fail try findpak ntp)."
+sudo systemctl restart ntp
+#sudo systemctl enable ntp
+echo_msg "the ntp is not ENABLE, try findpak ntp to do it."
 
-# Step 6: Restart and Enable NTP Service
-echo_msg "Restarting and enabling NTP service..."
-systemctl restart ntp
-systemctl enable ntp
-
-# Step 7: Verify NTP Service Status
 echo_msg "Verifying NTP service status..."
-systemctl status ntp --no-pager
+sudo systemctl status ntp --no-pager
 
-# Step 8: Verify NTP Synchronization and Server Status
 echo_msg "Checking NTP synchronization and server peers..."
-ntpq -p
+sudo ntpq -p
 
 echo_msg "NTP server installation and configuration completed successfully."
 echo ""
 echo "_________________________________________________________"
 echo $'\033[1;33mTo verify connections, run: ntpq -p\033[0m'
+echo $'\033[1;33mntpq -p\033[0m'
 echo "_________________________________________________________"
 echo ""
