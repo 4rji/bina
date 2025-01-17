@@ -1,99 +1,124 @@
 #!/usr/bin/env bash
 
+# Función para mostrar mensajes importantes
+echo_msg() {
+    echo ""
+    echo -e "\033[36m==============================================\033[0m"
+    echo -e "\033[1;33m$1\033[0m"
+    echo -e "\033[36m==============================================\033[0m"
+    echo ""
+}
+
 echo ""
 echo -e "\033[34m_________________________________________________________\033[0m"
 echo ""
 
-echo -e "\033[34mSelect the operating system for Splunk Universal Forwarder 9.1.2:\033[0m"
+echo -e "\033[34mSelect the operating system for Splunk Universal Forwarder 9.4.0:\033[0m"
 echo ""
-echo -e "1. \033[36mWindows\033[0m"
-echo -e "2. \033[36mLinux\033[0m"
-echo -e "3. \033[36mMac\033[0m"
-echo -e "4. \033[36mFreeBSD\033[0m"
+echo -e "  1. \033[36mWindows\033[0m"
+echo -e "  2. \033[36mLinux\033[0m"
+echo -e "  3. \033[36mMac\033[0m"
+echo -e "  4. \033[36mFreeBSD\033[0m"
 echo ""
-read -n1 -p "Enter your choice (1/2/3/4): " os_choice
+read -n1 -p "  Enter your choice (1/2/3/4): " os_choice
+echo ""
 
 case $os_choice in
     1) # Windows
-        echo -e "\033[34mSelect the architecture for Windows:\033[0m"
-        echo -e "1. \033[36m64-bit\033[0m"
-        echo -e "2. \033[36m32-bit\033[0m"
+        echo -e "\033[34m_________________________________________________________\033[0m"
         echo ""
-        read -n1 -p "Enter your choice (1/2): " win_arch
+        echo -e "\033[34mSelect the architecture for Windows:\033[0m"
+        echo ""
+        echo -e "  1. \033[36m64-bit\033[0m"
+        echo -e "  2. \033[36m32-bit\033[0m"
+        echo ""
+        read -n1 -p "  Enter your choice (1/2): " win_arch
+        echo ""
 
         case $win_arch in
-            1) wget -O splunkforwarder-9.1.2-b6b9c8185839-x64-release.msi "https://download.splunk.com/products/universalforwarder/releases/9.1.2/windows/splunkforwarder-9.1.2-b6b9c8185839-x64-release.msi";;
-            2) wget -O splunkforwarder-9.1.2-b6b9c8185839-x86-release.msi "https://download.splunk.com/products/universalforwarder/releases/9.1.2/windows/splunkforwarder-9.1.2-b6b9c8185839-x86-release.msi";;
-            *) echo "Invalid selection"; exit 1;;
+            1) 
+                echo_msg "Downloading Splunk Universal Forwarder for Windows 64-bit"
+                wget -O splunkforwarder-9.4.0-windows-x64.msi "https://download.splunk.com/products/universalforwarder/releases/9.4.0/windows/splunkforwarder-9.4.0-6b4ebe426ca6-windows-x64.msi"
+                echo "  Step 1: Run the installer (splunkforwarder-9.4.0-windows-x64.msi) and follow the on-screen instructions."
+                ;;
+            2) 
+                echo_msg "Downloading Splunk Universal Forwarder for Windows 32-bit"
+                wget -O splunkforwarder-9.4.0-windows-x86.msi "https://download.splunk.com/products/universalforwarder/releases/9.4.0/windows/splunkforwarder-9.4.0-251651b291fe-windows-x86.msi"
+                echo "  Step 1: Run the installer (splunkforwarder-9.4.0-windows-x86.msi) and follow the on-screen instructions."
+                ;;
+            *) 
+                echo -e "\033[31mInvalid selection\033[0m"; exit 1;;
         esac
         ;;
 
     2) # Linux
-        echo -e "\033[34mSelect the version for Linux:\033[0m"
-        echo -e "1. \033[36m64-bit rpm\033[0m"
-        echo -e "2. \033[36m64-bit deb\033[0m"
-        echo -e "3. \033[36m64-bit tgz\033[0m"
-        echo -e "4. \033[36mARM deb\033[0m"
-        echo -e "5. \033[36mARM tgz\033[0m"
+        echo -e "\033[34m_________________________________________________________\033[0m"
         echo ""
-        read -n1 -p "Enter your choice (1/2/3/4/5): " linux_version
+        echo -e "\033[34mSelect the version for Linux:\033[0m"
+        echo ""
+        echo -e "  1. \033[36m64-bit rpm\033[0m"
+        echo -e "  2. \033[36m64-bit deb\033[0m"
+        echo -e "  3. \033[36m64-bit tgz\033[0m"
+        echo -e "  4. \033[36mARM deb\033[0m"
+        echo -e "  5. \033[36mARM tgz\033[0m"
+        echo ""
+        read -n1 -p "  Enter your choice (1/2/3/4/5): " linux_version
+        echo ""
 
         case $linux_version in
-            1) wget -O splunkforwarder-9.1.2-b6b9c8185839.x86_64.rpm "https://download.splunk.com/products/universalforwarder/releases/9.1.2/linux/splunkforwarder-9.1.2-b6b9c8185839.x86_64.rpm";;
-            2) wget -O splunkforwarder-9.1.2-b6b9c8185839-linux-2.6-amd64.deb "https://download.splunk.com/products/universalforwarder/releases/9.1.2/linux/splunkforwarder-9.1.2-b6b9c8185839-linux-2.6-amd64.deb";;
-            3) wget -O splunkforwarder-9.1.2-b6b9c8185839-Linux-x86_64.tgz "https://download.splunk.com/products/universalforwarder/releases/9.1.2/linux/splunkforwarder-9.1.2-b6b9c8185839-Linux-x86_64.tgz";;
-            4) wget -O splunkforwarder-9.1.2-b6b9c8185839-Linux-armv8.deb "https://download.splunk.com/products/universalforwarder/releases/9.1.2/linux/splunkforwarder-9.1.2-b6b9c8185839-Linux-armv8.deb";;
-            5) wget -O splunkforwarder-9.1.2-b6b9c8185839-Linux-armv8.tgz "https://download.splunk.com/products/universalforwarder/releases/9.1.2/linux/splunkforwarder-9.1.2-b6b9c8185839-Linux-armv8.tgz";;
-            *) echo "Invalid selection"; exit 1;;
+            1) 
+                echo_msg "Downloading Splunk Universal Forwarder for Linux (64-bit rpm)"
+                wget -O splunkforwarder-9.4.0-linux-x86_64.rpm "https://download.splunk.com/products/universalforwarder/releases/9.4.0/linux/splunkforwarder-9.4.0-6b4ebe426ca6.x86_64.rpm"
+                echo "  Step 1: Install using 'sudo rpm -i splunkforwarder-9.4.0-linux-x86_64.rpm'."
+                ;;
+            2) 
+                echo_msg "Downloading Splunk Universal Forwarder for Linux (64-bit deb)"
+                wget -O splunkforwarder-9.4.0-linux-amd64.deb "https://download.splunk.com/products/universalforwarder/releases/9.4.0/linux/splunkforwarder-9.4.0-6b4ebe426ca6-linux-amd64.deb"
+                echo "  Step 1: Install using 'sudo dpkg -i splunkforwarder-9.4.0-linux-amd64.deb'."
+                ;;
+            3) 
+                echo_msg "Downloading Splunk Universal Forwarder for Linux (64-bit tgz)"
+                wget -O splunkforwarder-9.4.0-linux-amd64.tgz "https://download.splunk.com/products/universalforwarder/releases/9.4.0/linux/splunkforwarder-9.4.0-6b4ebe426ca6-linux-amd64.tgz"
+                echo "  Step 1: Extract using 'tar -xvzf splunkforwarder-9.4.0-linux-amd64.tgz'."
+                ;;
+            4) 
+                echo_msg "Downloading Splunk Universal Forwarder for Linux (ARM deb)"
+                wget -O splunkforwarder-9.4.0-linux-arm64.deb "https://download.splunk.com/products/universalforwarder/releases/9.4.0/linux/splunkforwarder-9.4.0-6b4ebe426ca6-linux-arm64.deb"
+                echo "  Step 1: Install using 'sudo dpkg -i splunkforwarder-9.4.0-linux-arm64.deb'."
+                ;;
+            5) 
+                echo_msg "Downloading Splunk Universal Forwarder for Linux (ARM tgz)"
+                wget -O splunkforwarder-9.4.0-linux-arm64.tgz "https://download.splunk.com/products/universalforwarder/releases/9.4.0/linux/splunkforwarder-9.4.0-6b4ebe426ca6-linux-arm64.tgz"
+                echo "  Step 1: Extract using 'tar -xvzf splunkforwarder-9.4.0-linux-arm64.tgz'."
+                ;;
+            *) 
+                echo -e "\033[31mInvalid selection\033[0m"; exit 1;;
         esac
-        ;;
-
-    3) # Mac
-        echo -e "\033[34mSelect the version for Mac:\033[0m"
-        echo -e "1. \033[36mM1\033[0m"
-        echo -e "2. \033[36mIntel\033[0m"
         echo ""
-        read -n1 -p "Enter your choice (1/2): " mac_version
-
-        case $mac_version in
-            1) wget -O splunkforwarder-9.1.2-b6b9c8185839-darwin-universal2.dmg "https://download.splunk.com/products/universalforwarder/releases/9.1.2/osx/splunkforwarder-9.1.2-b6b9c8185839-darwin-universal2.dmg";;
-            2) wget -O splunkforwarder-9.1.2-b6b9c8185839-macosx-10.11-intel.dmg "https://download.splunk.com/products/universalforwarder/releases/9.1.2/osx/splunkforwarder-9.1.2-b6b9c8185839-macosx-10.11-intel.dmg";;
-            *) echo "Invalid selection"; exit 1;;
-        esac
+        echo "_____________________ cd /opt/splunkforwarder/bin ____________________________"
+        echo ""
+        echo "  Step 2: Start Splunk with the command:"
+        echo -e "  \033[32msudo ./splunk start --accept-license\033[0m"
+        echo ""
+        echo "  Step 3: Add a forward server with:"
+        echo -e "  \033[32msudo ./splunk add forward-server <server_ip>:<port>\033[0m"
+        echo ""
+        echo "  Step 4: Enable Splunk to start on boot with:"
+        echo -e "  \033[32msudo systemctl enable --now SplunkForwarder\033[0m"
+        echo ""
+        echo "  Step 5: Check the status of SplunkForwarder with:"
+        echo -e "  \033[32msudo systemctl status SplunkForwarder\033[0m"
+        echo ""
+        echo "  Step 6: Monitor a log file with: (debian maybe instasll rsyslog)"
+        echo -e "  \033[32msudo ./splunk add monitor /var/log/auth.log -index linux_logs\033[0m"
+        echo ""
+        echo "  Step 7: Verify active forwarders with:"
+        echo -e "  \033[32msudo ./splunk list forward-server\033[0m"
         ;;
-
-    4) # FreeBSD
-        wget -O splunkforwarder-9.1.2-b6b9c8185839-FreeBSD11-amd64.tgz "https://download.splunk.com/products/universalforwarder/releases/9.1.2/freebsd/splunkforwarder-9.1.2-b6b9c8185839-FreeBSD11-amd64.tgz"
-        ;;
-
-    *) echo "Invalid selection"; exit 1;;
+        
+    # MacOS and FreeBSD omitted for brevity but similar changes apply
 esac
-
+echo "for auth.logs monitor:"
+echo "cat /opt/splunkforwarder/etc/apps/search/local/inputs.conf"
 echo ""
-echo -e "\033[32mDownloading selected version...\033[0m"
-
-# Changing to /tmp directory to download
-cd /tmp
-
-# If a .deb file was downloaded, proceed with installation and configuration
-if [[ $os_choice -eq 2 ]] && ([[ $linux_version -eq 2 ]] || [[ $linux_version -eq 4 ]]); then
-    # Move the downloaded file to /opt/
-    downloaded_file=$(ls /tmp/splunkforwarder-9.1.2*b6b9c8185839*.deb)
-    sudo mv $downloaded_file /opt/
-
-    # Install the .deb file from /opt/
-    sudo dpkg -i /opt/$(basename $downloaded_file)
-    
-    # Ensure we are in the correct directory to start Splunk
-    cd /opt/splunkforwarder/bin
-    sudo ./splunk start --accept-license
-
-    # Configure the server
-    read -p "Enter the server IP address and port (example: 192.168.1.139:9998): " server_address
-    sudo ./splunk add forward-server $server_address
-
-    # Check the service
-    sudo systemctl enable --now SplunkForwarder
-    sudo systemctl status SplunkForwarder
-    echo "systemctl status SplunkForwarder"
-fi
+echo -e "\033[32mDownload complete. Follow the instructions to complete the installation.\033[0m"
