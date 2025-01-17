@@ -65,7 +65,7 @@ if ! sudo diff "\$HASH_FILE" "\$TEMP_HASH_FILE" >/dev/null; then
             echo "\$(date): Unauthorized changes detected."
             sudo diff "\$HASH_FILE" "\$TEMP_HASH_FILE"
         } | tee -a "\$REPORT_FILE" "\$HISTORICAL_FILE" "\$ALERT_FILE" >/dev/null
-        wall "ALERT: Unauthorized changes detected in \$WEB_DIR. Check \$ALERT_FILE for details.
+        wall "ALERT: Unauthorized changes detected in \$WEB_DIR Check \$ALERT_FILE for details.
 
         check:
         sudo cat \$ALERT_FILE
