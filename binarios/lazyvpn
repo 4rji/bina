@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+#sacado de https://youtu.be/04EmeXSZo_0?si=YpWDS_5d2Ov5EcoF
+# Preguntar al usuario si desea descargar el script no verificado
+echo ""
+echo "El script que deseas descargar no está verificado."
+read -p "¿Deseas continuar? (s/n): " confirmacion
+
+# Verificar la respuesta del usuario
+if [[ "$confirmacion" == "s" ]]; then
+    echo ""
+    echo "Descargando y ejecutando el script..."
+    wget https://git.io/vpn -O openvpn-install.sh && bash openvpn-install.sh
+else
+    echo ""
+    echo "Operación cancelada por el usuario."
+fi

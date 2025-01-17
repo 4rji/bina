@@ -49,7 +49,9 @@ pssc                Mismo que psss pero este las cierra en 12 segundos automatic
 sshmoni
 
 
-bannerm = Hace un banner para ssh
+bannerm = Hace un banner para ssh, necesita hacerlo dos veces. 
+sshbanerA = mensaje bienvenida de ssh ANTES de conectarse
+sshbanerD = mensaje bienvenida de ssh DESPUES de conectarse
 hardnet = modifica ipv4 y tambien ipv6
 
 netevils = apt = remove -y telnet ftp ftpd tftp talk talkd tftp tftpd
@@ -259,8 +261,8 @@ ssk                 kitty +kitten ssh
 sshexit             Instala un mensaje de salida de ssh en la zsh ZSH
 fixhost             Arregla know_hosts para ssh duplicados
 x11uso              Instrucciones para x11
-sshbaner            crea un mensaje de bienvenida de ssh al logearse. diferente al de startwars
-ebanner             cambia el banner de ssh antes de logearse hola cacheton y se edita con bannere                                      
+sshbaner            crea un mensaje de bienvenida de ssh Despues logearse.
+sshbanner           cambia el banner de ssh ANTES de logearse hola cacheton y se edita con bannere                                      
 bannerssssh80               Conecta con ssh -L para redirijir trafico desde una maquina a otra, a browser 
 fixssh              Seguido de la ip, para borrar la ip del localhost cuando se duplica	
 cssh                copia mui clave a una maquina remota
@@ -355,6 +357,7 @@ suricatainst        Instala suricata, largo proceso
 suricatalog         tail -f /var/log/suricata/fast.log
 
 ###------utilidades instalaciones
+lazyvpn             Script que instala openvpn en debian, facil y rapido, lazy openvpn vpn
 impactoinst         instala impacket smb server para montar con impacto
 flatpakinst         Instala flatpak en debian, no probado pero los pasos estan ahi.
 joplininst          Trabaja con joplininst2 para instalarlo, se usan los dos. 
