@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 echo -e "\033[0;34m"
 echo "_________________________________________________________"
 echo -e "\033[0m"
@@ -11,23 +12,21 @@ interfaces=( $(ip -o link show | awk -F': ' '{print $2}') )
 i=1
 for interface in "${interfaces[@]}"
 do
-    # Obtener la dirección IP de cada interfaz
-    ip_address=$(ip -f inet addr show $interface | grep -Po 'inet \K[\d.]+' | head -1)
-    # Verificar si hay una dirección IP, si no, mostrar "No IP"
-    if [ -z "$ip_address" ]; then
-        ip_address="No IP"
+    ip_address=$(ip -f inet addr show "$interface" | grep -Po 'inet \K[\d.]+' | head -1)
+    [[ -z "$ip_address" ]] && ip_address="No IP"
+    if [ "$ip_address" = "No IP" ]; then
         echo -e "$i) \033[1;35m$interface\033[0m (\033[0;31m$ip_address\033[0m)"
     else
         echo -e "$i) \033[1;35m$interface\033[0m (\033[0;33m$ip_address\033[0m)"
     fi
-    let i++
+    ((i++))
 done
+
 echo ""
 echo -e "\033[0;33mPor favor, selecciona el número de la interfaz de red que deseas capturar:\033[0m"
-read choice
+read -r choice
 selected_interface=${interfaces[$choice-1]}
 
-# Verificar si el usuario seleccionó una interfaz válida
 if [ -z "$selected_interface" ]; then
     echo -e "\033[0;31mSelección no válida. Saliendo.\033[0m"
     exit 1
@@ -37,11 +36,11 @@ fi
 if [ -e "captura.cap" ]; then
     echo -e "\033[0;31mEl archivo captura.cap ya existe.\033[0m"
     read -p "¿Quieres sobrescribirlo? [S/n]: " overwrite
-    overwrite=${overwrite:-S}  # Si la entrada es vacía, asume "S"
-    if [ "$overwrite" != "S" ] && [ "$overwrite" != "s" ]; then
+    overwrite=${overwrite:-S}
+    if [[ "$overwrite" != [Ss] ]]; then
         timestamp=$(date +%Y%m%d%H%M%S)
         new_filename="captura_$timestamp.cap"
-        echo -e "\033[0;32mSe creará un nuevo archivo: $new_filename en lugar de sobrescribir.\033[0m"
+        echo -e "\033[0;32mSe creará un nuevo archivo: $new_filename.\033[0m"
     else
         new_filename="captura.cap"
     fi
@@ -49,17 +48,14 @@ else
     new_filename="captura.cap"
 fi
 
-# Mostrar el comando a ejecutar
 echo -e "\033[0;32mEjecutando: sudo tcpdump -i $selected_interface -w $new_filename -v\033[0m"
 sudo tcpdump -i "$selected_interface" -w "$new_filename" -v
 
 echo -e "\033[0;32mCaptura completada y guardada en $new_filename.\033[0m"
 echo ""
 
-# Preguntar si desea ver el archivo con tshark o el resumen con python
-echo -e "\033[0;33m[t] para tshark, [p] Python Resumen /Enter para cancelar]: \033[0m"
-
-read -p "¿Ver captura con tshark o con python? " choice
+echo -e "\033[0;33m[t] para tshark, [p] Python Resumen /Enter para cancelar:\033[0m"
+read -r choice
 case "$choice" in
   t|T)
     tshark -r "$new_filename"
@@ -75,7 +71,40 @@ esac
 echo ""
 echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
 echo -e "\033[0;34mUsa 'tshark -r captura.cap' para verlo de nuevo\033[0m"
-echo -e "\033[1;33mO tambien para verlo con python solo ejecuta:\033[0m"
+echo -e "\033[1;33mO con python:\033[0m"
 echo -e "\033[0;34mmonitcp\033[0m"
-echo "para ver solo las ips y puertos atacados:"
-echo "tshark -r captura.cap -T fields -e ip.src -e ip.dst -e tcp.dstport | sort -u > file1 | tee"
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+
+echo "Desea ver solo las IPs y puertos atacados? [y/n]"
+read -r user_input
+
+if [[ "$user_input" == [Yy] ]]; then
+    # Verificar si el archivo ips-ports ya existe
+    if [ -e "ips-ports" ]; then
+        echo "El archivo 'ips-ports' ya existe."
+        read -p "¿Deseas sobrescribirlo? [S/n]: " overwrite_ips
+        overwrite_ips=${overwrite_ips:-S}
+        if [[ "$overwrite_ips" != [Ss] ]]; then
+            timestamp=$(date +%Y%m%d%H%M%S)
+            new_ips_file="ips-ports_$timestamp"
+            echo "Se creará un nuevo archivo: $new_ips_file"
+        else
+            new_ips_file="ips-ports"
+        fi
+    else
+        new_ips_file="ips-ports"
+    fi
+
+    echo "Procesando la captura y generando el archivo '$new_ips_file'..."
+    tshark -r "$new_filename" -T fields -e ip.dst | sort | uniq -c | sort -nr | head -n 1 \
+    | awk '{print $2}' \
+    | while read -r ip; do
+          tshark -r "$new_filename" -T fields -e ip.src -e ip.dst -e tcp.dstport \
+          | awk -v dst_ip="$ip" '$2 == dst_ip' | sort -u
+      done > "$new_ips_file"
+
+    echo "El resultado ha sido guardado en '$new_ips_file':"
+    cat "$new_ips_file"
+else
+    echo "Operación cancelada. No se ha generado ningún archivo."
+fi
