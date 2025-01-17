@@ -77,3 +77,5 @@ echo -e "\n\033[1;32m_________________________________________________________\0
 echo -e "\033[0;34mUsa 'tshark -r captura.cap' para verlo de nuevo\033[0m"
 echo -e "\033[1;33mO tambien para verlo con python solo ejecuta:\033[0m"
 echo -e "\033[0;34mmonitcp\033[0m"
+echo "para ver solo las ips y puertos atacados:"
+echo "tshark -r captura.cap -T fields -e ip.src -e ip.dst -e tcp.dstport | sort -u > file1 | tee"
