@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+# Usage: ./script.sh /path/to/splunk_installer
+
+if [ -z "$1" ]; then
+    echo "Usage: $0 installer_file"
+    exit 1
+fi
+
+INSTALLER="$1"
+FILE_EXT="${INSTALLER##*.}"
+
+# Step 1: Install Splunk Forwarder based on file extension
+case "$FILE_EXT" in
+    deb)
+        echo "Detected deb installer."
+        sudo dpkg -i "$INSTALLER"
+        ;;
+    rpm)
+        echo "Detected rpm installer."
+        sudo rpm -i "$INSTALLER"
+        ;;
+    *)
+        echo "Unsupported installer type: $FILE_EXT"
+        exit 1
+        ;;
+esac
+
+# Confirm that the Splunk command exists before continuing
+if [ ! -x /opt/splunkforwarder/bin/splunk ]; then
+    echo "Splunk executable not found at /opt/splunkforwarder/bin/splunk"
+    exit 1
+fi
+
+# Step 2: Start Splunk Forwarder with license acceptance
+echo "Starting Splunk Forwarder..."
+sudo /opt/splunkforwarder/bin/splunk start --accept-license
+
+# Step 3: Ask for Splunk server IP and port; then add forward-server
+read -p "Enter the IP of the Splunk server: " SPLUNK_SERVER_IP
+read -p "Enter the port of the Splunk server: " SPLUNK_SERVER_PORT
+sudo /opt/splunkforwarder/bin/splunk add forward-server "$SPLUNK_SERVER_IP:$SPLUNK_SERVER_PORT"
+
+# Step 4: Enable and start the SplunkForwarder system service
+sudo systemctl enable --now SplunkForwarder
+
+# Step 5: Install rsyslog (or similar logging system)
+echo "Installing rsyslog..."
+if command -v apt-get &>/dev/null; then
+    sudo apt-get update
+    sudo apt-get install -y rsyslog
+elif command -v yum &>/dev/null; then
+    sudo yum install -y rsyslog
+elif command -v dnf &>/dev/null; then
+    sudo dnf install -y rsyslog
+else
+    echo "No supported package manager found to install rsyslog."
+    exit 1
+fi
+
+# Step 6: Ask for Splunk index to monitor auth.log and add monitor
+read -p "Enter the Splunk index for monitoring logs: " SPLUNK_INDEX
+sudo /opt/splunkforwarder/bin/splunk add monitor /var/log/auth.log -index "$SPLUNK_INDEX"
+
+# Step 7: List configured forward servers and display inputs.conf
+sudo /opt/splunkforwarder/bin/splunk list forward-server
+
+echo "Displaying contents of inputs.conf:"
+cat /opt/splunkforwarder/etc/apps/search/local/inputs.conf

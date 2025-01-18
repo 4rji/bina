@@ -352,6 +352,7 @@ apachenombre        Instrucciones para remover el nombre del banner de apache y 
 clamavinst          instala antivirus e inicia un scaneo solo ingresando la ruta, y se actualiza tambien 
 splunkinst          instala Splunk y crea un alias para uniciar en zsh
 splunkforw          Splunk universal forwarder, instala .deb automaticamente. Win-Linux-Mac-freebsd 
+splunkforw2         Instala splunk forwarder, el primero lo descarga version 9.4
 testnids            curl http://testmynids.org/uid/index.html 
 suricatainst        Instala suricata, largo proceso
 suricatalog         tail -f /var/log/suricata/fast.log
