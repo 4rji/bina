@@ -3,7 +3,9 @@
 # Usage: ./script.sh /path/to/splunk_installer
 
 if [ -z "$1" ]; then
-    echo "Usage: $0 installer_file"
+    echo -e "\n\033[31m==============================================\033[0m"
+    echo -e "\033[31mUsage: $0 installer_file\033[0m"
+    echo -e "\033[31m==============================================\033[0m\n"
     exit 1
 fi
 
@@ -11,59 +13,119 @@ INSTALLER="$1"
 FILE_EXT="${INSTALLER##*.}"
 
 # Step 1: Install Splunk Forwarder based on file extension
+echo -e "\n\033[34m=================================================\033[0m"
+echo -e "\033[34mSTEP 1: Detecting installer type...\033[0m"
+echo -e "\033[34m=================================================\033[0m\n"
+
 case "$FILE_EXT" in
     deb)
-        echo "Detected deb installer."
+        echo -e "\n\033[32mDetected deb installer.\033[0m\n"
+        echo -e "____________________________"
+        echo -e "\033[34msudo dpkg -i \"$INSTALLER\"\033[0m"
+        echo -e "____________________________"
         sudo dpkg -i "$INSTALLER"
         ;;
     rpm)
-        echo "Detected rpm installer."
+        echo -e "\n\033[32mDetected rpm installer.\033[0m\n"
+        echo -e "____________________________"
+        echo -e "\033[34msudo rpm -i \"$INSTALLER\"\033[0m"
+        echo -e "____________________________"
         sudo rpm -i "$INSTALLER"
         ;;
     *)
-        echo "Unsupported installer type: $FILE_EXT"
+        echo -e "\n\033[31mUnsupported installer type: $FILE_EXT\033[0m\n"
         exit 1
         ;;
 esac
 
 # Confirm that the Splunk command exists before continuing
 if [ ! -x /opt/splunkforwarder/bin/splunk ]; then
-    echo "Splunk executable not found at /opt/splunkforwarder/bin/splunk"
+    echo -e "\n\033[31m==============================================\033[0m"
+    echo -e "\033[31mSplunk executable not found at /opt/splunkforwarder/bin/splunk\033[0m"
+    echo -e "\033[31m==============================================\033[0m\n"
     exit 1
 fi
 
 # Step 2: Start Splunk Forwarder with license acceptance
-echo "Starting Splunk Forwarder..."
+echo -e "\n\033[33m==============================================\033[0m"
+echo -e "\033[33mStarting Splunk Forwarder...\033[0m"
+echo -e "\033[33m==============================================\033[0m\n"
+echo -e "____________________________"
+echo -e "\033[34msudo /opt/splunkforwarder/bin/splunk start --accept-license\033[0m"
+echo -e "____________________________"
 sudo /opt/splunkforwarder/bin/splunk start --accept-license
 
 # Step 3: Ask for Splunk server IP and port; then add forward-server
+echo -e "\n\033[36m==============================================\033[0m"
+echo -e "\033[36mConfiguring forward server...\033[0m"
+echo -e "\033[36m==============================================\033[0m\n"
 read -p "Enter the IP of the Splunk server: " SPLUNK_SERVER_IP
 read -p "Enter the port of the Splunk server: " SPLUNK_SERVER_PORT
+echo -e "____________________________"
+echo -e "\033[34msudo /opt/splunkforwarder/bin/splunk add forward-server \"$SPLUNK_SERVER_IP:$SPLUNK_SERVER_PORT\"\033[0m"
+echo -e "____________________________"
 sudo /opt/splunkforwarder/bin/splunk add forward-server "$SPLUNK_SERVER_IP:$SPLUNK_SERVER_PORT"
 
 # Step 4: Enable and start the SplunkForwarder system service
+echo -e "\n\033[32m==============================================\033[0m"
+echo -e "\033[32mEnabling and starting SplunkForwarder service...\033[0m"
+echo -e "\033[32m==============================================\033[0m\n"
+echo -e "____________________________"
+echo -e "\033[34msudo systemctl enable --now SplunkForwarder\033[0m"
+echo -e "____________________________"
 sudo systemctl enable --now SplunkForwarder
 
 # Step 5: Install rsyslog (or similar logging system)
-echo "Installing rsyslog..."
+echo -e "\n\033[34m==============================================\033[0m"
+echo -e "\033[34mInstalling rsyslog...\033[0m"
+echo -e "\033[34m==============================================\033[0m\n"
 if command -v apt-get &>/dev/null; then
+    echo -e "____________________________"
+    echo -e "\033[34msudo apt-get update\033[0m"
+    echo -e "____________________________"
     sudo apt-get update
+    echo -e "____________________________"
+    echo -e "\033[34msudo apt-get install -y rsyslog\033[0m"
+    echo -e "____________________________"
     sudo apt-get install -y rsyslog
 elif command -v yum &>/dev/null; then
+    echo -e "____________________________"
+    echo -e "\033[34msudo yum install -y rsyslog\033[0m"
+    echo -e "____________________________"
     sudo yum install -y rsyslog
 elif command -v dnf &>/dev/null; then
+    echo -e "____________________________"
+    echo -e "\033[34msudo dnf install -y rsyslog\033[0m"
+    echo -e "____________________________"
     sudo dnf install -y rsyslog
 else
-    echo "No supported package manager found to install rsyslog."
+    echo -e "\n\033[31mNo supported package manager found to install rsyslog.\033[0m\n"
     exit 1
 fi
 
 # Step 6: Ask for Splunk index to monitor auth.log and add monitor
+echo -e "\n\033[35m==============================================\033[0m"
+echo -e "\033[35mConfiguring log monitoring...\033[0m"
+echo -e "\033[35m==============================================\033[0m\n"
 read -p "Enter the Splunk index for monitoring logs: " SPLUNK_INDEX
+echo -e "____________________________"
+echo -e "\033[34msudo /opt/splunkforwarder/bin/splunk add monitor /var/log/auth.log -index \"$SPLUNK_INDEX\"\033[0m"
+echo -e "____________________________"
 sudo /opt/splunkforwarder/bin/splunk add monitor /var/log/auth.log -index "$SPLUNK_INDEX"
 
 # Step 7: List configured forward servers and display inputs.conf
+echo -e "\n\033[33m==============================================\033[0m"
+echo -e "\033[33mListing configured forward servers...\033[0m"
+echo -e "\033[33m==============================================\033[0m\n"
+echo -e "____________________________"
+echo -e "\033[34msudo /opt/splunkforwarder/bin/splunk list forward-server\033[0m"
+echo -e "____________________________"
 sudo /opt/splunkforwarder/bin/splunk list forward-server
 
-echo "Displaying contents of inputs.conf:"
-cat /opt/splunkforwarder/etc/apps/search/local/inputs.conf
+echo -e "\n\033[36m==============================================\033[0m"
+echo -e "\033[36mDisplaying contents of inputs.conf...\033[0m"
+echo -e "\033[36m==============================================\033[0m\n"
+echo -e "____________________________"
+echo -e "\033[34msudo cat /opt/splunkforwarder/etc/apps/search/local/inputs.conf\033[0m"
+echo -e "____________________________"
+sudo cat /opt/splunkforwarder/etc/apps/search/local/inputs.conf
