@@ -1,59 +1,58 @@
 #!/usr/bin/env bash
 
-# Crear un archivo temporal
+# Create a temporary file
 echo ""
 echo $'\e[1;34m_________________________________________________________\e[0m'
 echo ""
-#echo $'\e[1;32mCreando un archivo temporal...\e[0m'
+#echo $'\e[1;32mCreating a temporary file...\e[0m'
 tmp_file=$(mktemp)
-#echo $'\e[1;33mComando ejecutado: mktemp\e[0m'
+#echo $'\e[1;33mCommand executed: mktemp\e[0m'
 #echo ""
 
-# Capturar la lista de procesos en el archivo temporal
-#echo $'\e[1;36mCapturando la lista de procesos en el archivo temporal...\e[0m'
-#echo $'\e[1;33mComando ejecutado: ps -eo pid,ppid,tty,stat,time,cmd --forest > '"$tmp_file"$'\e[0m'
+# Capture the process list in the temporary file
+#echo $'\e[1;36mCapturing the process list in the temporary file...\e[0m'
+#echo $'\e[1;33mCommand executed: ps -eo pid,ppid,tty,stat,time,cmd --forest > '"$tmp_file"$'\e[0m'
 ps -eo pid,ppid,tty,stat,time,cmd --forest > "$tmp_file"
 echo ""
 echo $'\e[1;34m_________________________________________________________\e[0m'
 echo ""
 #read -rp $'\e[1;36m...\e[0m'
 
-# Mostrar el contenido del archivo temporal usando batcat
-#echo $'\e[1;32mMostrando el contenido del archivo temporal:\e[0m'
-#echo $'\e[1;33mComando ejecutado: batcat --paging=never -l rb '"$tmp_file"$'\e[0m'
+# Display the content of the temporary file using batcat
+#echo $'\e[1;32mDisplaying the content of the temporary file:\e[0m'
+#echo $'\e[1;33mCommand executed: batcat --paging=never -l rb '"$tmp_file"$'\e[0m'
 batcat --paging=never -l rb "$tmp_file"
 echo ""
 #read -rp $'\e[1;36m...\e[0m'
 
-# Eliminar el archivo temporal
+# Remove the temporary file
 rm "$tmp_file"
 
-# Mostrar lista de procesos (solo se muestra el comando, no su ejecución)
+# Display process list (only showing the command, not executing it)
 echo $'\e[1;33mps -fae --forest\e[0m'
 echo ""
 #read -rp $'\e[1;36m...\e[0m'
 
-# Preguntar al usuario por el número del proceso
-read -p $'\e[1;36mIntroduce el número del proceso que deseas inspeccionar: \e[0m' pid
+# Ask the user for the process number
+read -p $'\e[1;36mEnter the process number you want to inspect: \e[0m' pid
 echo ""
 echo $'\e[1;34m_________________________________________________________\e[0m'
 echo ""
 
-# Verificar si el PID ingresado es un número válido
+# Verify if the entered PID is a valid number
 if ! [[ "$pid" =~ ^[0-9]+$ ]]; then
-    echo $'\e[1;31mError: Por favor, introduce un número de proceso válido.\e[0m'
+    echo $'\e[1;31mError: Please enter a valid process number.\e[0m'
     exit 1
 fi
 
-# Verificar si el directorio /proc/<pid> existe
+# Check if the directory /proc/<pid> exists
 if [ ! -d "/proc/$pid" ]; then
-    echo $'\e[1;31mError: No existe el proceso con PID '"$pid"$'.\e[0m'
+    echo $'\e[1;31mError: Process with PID '"$pid"$' does not exist.\e[0m'
     exit 1
 fi
 
-
-# Mostrar el cwd usando sudo
-echo $'\e[1;36mCon sudo:\e[0m'
+# Display the cwd using sudo
+echo $'\e[1;36mWith sudo:\e[0m'
 echo $'\e[1;33msudo ls -la /proc/'"$pid"$' | grep cwd\e[0m'
 sudo ls -la /proc/"$pid" | grep cwd
 echo ""
@@ -61,10 +60,9 @@ echo $'\e[1;34m_________________________________________________________\e[0m'
 echo ""
 read -rp $'\e[1;36m...\e[0m'
 
-
 echo ""
-# Mostrar la línea de comando con la que se inició el proceso
-echo $'\e[1;32mMostrando la línea de comando:\e[0m'
+# Display the command line used to start the process
+echo $'\e[1;32mDisplaying the command line:\e[0m'
 echo ""
 echo -e "\e[1;33mcat /proc/${pid}/cmdline | tr '\\0' ' '\e[0m"
 sudo cat /proc/"$pid"/cmdline | tr '\0' ' '
@@ -74,9 +72,8 @@ echo ""
 read -rp $'\e[1;36m...\e[0m'
 echo ""
 
-
-# Mostrar el archivo ejecutable asociado al proceso
-echo $'\e[1;32mMostrando el archivo ejecutable asociado:\e[0m'
+# Display the executable file associated with the process
+echo $'\e[1;32mDisplaying the associated executable file:\e[0m'
 echo ""
 echo $'\e[1;33msudo ls -l /proc/'"$pid"'/exe\e[0m'
 sudo ls -l /proc/"$pid"/exe
@@ -86,10 +83,8 @@ echo ""
 read -rp $'\e[1;36m...\e[0m'
 echo ""
 
-
-
-# Mostrar los descriptores de archivo abiertos por el proceso
-echo $'\e[1;32mMostrando los descriptores de archivo abiertos:\e[0m'
+# Display the file descriptors opened by the process
+echo $'\e[1;32mDisplaying open file descriptors:\e[0m'
 echo ""
 echo $'\e[1;33msudo ls -l /proc/'"$pid"'/fd\e[0m'
 sudo ls -l /proc/"$pid"/fd
@@ -99,8 +94,8 @@ echo ""
 read -rp $'\e[1;36m...\e[0m'
 echo ""
 
-# Mostrar las variables de entorno del proceso
-echo $'\e[1;32mMostrando las variables de entorno:\e[0m'
+# Display the environment variables of the process
+echo $'\e[1;32mDisplaying environment variables:\e[0m'
 echo ""
 echo $'\e[1;33mcat /proc/'"$pid"'/environ | tr '\''\0'\'' '\''\n'\''\e[0m'
 cat /proc/"$pid"/environ | tr '\0' '\n'
@@ -109,8 +104,8 @@ echo $'\e[1;34m_________________________________________________________\e[0m'
 echo ""
 read -rp $'\e[1;36m...\e[0m'
 
-# Mostrar el estado del proceso
-echo $'\e[1;32mMostrando el estado:\e[0m'
+# Display the process status
+echo $'\e[1;32mDisplaying status:\e[0m'
 echo ""
 echo $'\e[1;33mcat /proc/'"$pid"'/status\e[0m'
 cat /proc/"$pid"/status
@@ -119,8 +114,8 @@ echo $'\e[1;34m_________________________________________________________\e[0m'
 echo ""
 read -rp $'\e[1;36m...\e[0m'
 
-# Mostrar nuevamente las conexiones de red para el proceso
-echo $'\e[1;32mMostrando las conexiones de red:\e[0m'
+# Display the network connections of the process
+echo $'\e[1;32mDisplaying network connections:\e[0m'
 echo ""
 echo $'\e[1;33mss -anp | grep '"$pid"$'\e[0m'
 ss -anp | grep "$pid"
@@ -128,23 +123,22 @@ echo ""
 echo $'\e[1;34m_________________________________________________________\e[0m'
 echo ""
 
-# Verificar si ss encontró conexiones para el proceso
+# Verify if ss found connections for the process
 if ! ss -anp | grep -q "$pid"; then
-    echo $'\e[1;31mNo se encontraron conexiones de red para el PID '"$pid"$'.\e[0m'
+    echo $'\e[1;31mNo network connections found for PID '"$pid"$'.\e[0m'
     echo ""
     echo $'\e[1;34m_________________________________________________________\e[0m'
     echo ""
 fi
 
-
 echo "END"
 echo ""
 
-# Preguntar si desea matar el proceso
-read -p $'\e[1;31m¿Desea matar el proceso? (s para sí, enter para continuar): \e[0m' respuesta
-if [[ "$respuesta" == "s" || "$respuesta" == "S" ]]; then
+# Ask if the user wants to kill the process
+read -p $'\e[1;31mDo you want to kill the process? (s for yes, press enter to continue): \e[0m' response
+if [[ "$response" == "s" || "$response" == "S" ]]; then
     sudo kill -9 "$pid"
-    echo $'\e[1;32mEl proceso con PID '"$pid"$' ha sido terminado.\e[0m'
+    echo $'\e[1;32mProcess with PID '"$pid"$' has been terminated.\e[0m'
 else
-    echo $'\e[1;33mEl proceso con PID '"$pid"$' no fue terminado.\e[0m'
+    echo $'\e[1;33mProcess with PID '"$pid"$' was not terminated.\e[0m'
 fi
