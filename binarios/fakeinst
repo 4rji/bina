@@ -1,28 +1,69 @@
 #!/usr/bin/env bash
 
-echo "Ingresa el puerto que deseas proteger:"
-read puerto_protegido
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 
-# Añadir la regla de excepción para el puerto especificado
-sudo iptables -t nat -A PREROUTING -p tcp --dport $puerto_protegido -j ACCEPT
+# Función para mostrar mensajes importantes
+echo_msg() {
+    echo -e "\n\033[1;35m==============================================\033[0m"
+    echo -e "\033[1;35m$1\033[0m"
+    echo -e "\033[1;35m==============================================\033[0m\n"
+}
 
-# Preguntar al usuario si desea redirigir todos los demás puertos
-echo "¿Quieres redirigir todos los demás puertos al puerto de spoofing? [s/n]"
+# Título
+echo_msg "Iniciando ejecución de comandos"
+
+# Mostrar comando y ejecutar: ss -lntp
+echo -e "\033[1;32mss -lntp\033[0m"
+echo -e "\n\033[1;34m---------------------------------------------------------\033[0m\n"
+
+# Mostrar comando y ejecutar: sudo lsof -i -P -n
+echo -e "\033[1;33msudo lsof -i -P -n\033[0m"
+sudo lsof -i -P -n  
+echo -e "\n\033[1;36m---------------------------------------------------------\033[0m\n"
+
+# Pregunta para los puertos a proteger
+echo -e "\033[1;31mIngresa el/los puertos que deseas proteger (separados por espacio, ejemplo: 80 22):\033[0m"
+read puertos_input
+
+# Procesar cada puerto ingresado
+for puerto in $puertos_input; do
+    echo -e "\n\033[1;34m-------------- Comandos ejecutados: ------------------------------\033[0m\n"
+    echo -e "\n\033[1;32msudo iptables -t nat -A PREROUTING -p tcp --dport $puerto -j ACCEPT\033[0m"
+    sudo iptables -t nat -A PREROUTING -p tcp --dport "$puerto" -j ACCEPT
+    #echo -e "\n\033[1;34m---------------------------------------------------------\033[0m\n"
+done
+
+# Pregunta para redirigir demás puertos
+echo -e "\n\033[1;34m---------------------------------------------------------\033[0m\n"
+echo -e "\033[1;31m¿Quieres redirigir todos los demás puertos al puerto de spoofing? [s/n]\033[0m"
 read respuesta_redireccion
 
 if [ "$respuesta_redireccion" = "s" ]; then
+    echo -e "\n\033[1;32msudo iptables -t nat -A PREROUTING -p tcp -m tcp --dport 1:65535 -j REDIRECT --to-ports 4444\033[0m"
     sudo iptables -t nat -A PREROUTING -p tcp -m tcp --dport 1:65535 -j REDIRECT --to-ports 4444
+    #echo -e "\n\033[1;34m---------------------------------------------------------\033[0m\n"
 elif [ "$respuesta_redireccion" = "n" ]; then
-    echo "¿Quieres eliminar la regla de redirección? [s/n]"
+    echo -e "\033[1;31m¿Quieres eliminar la regla de redirección? [s/n]\033[0m"
     read respuesta_eliminar
     if [ "$respuesta_eliminar" = "s" ]; then
+        echo -e "\n\033[1;32msudo iptables -t nat -D PREROUTING -p tcp -m tcp --dport 1:65535 -j REDIRECT --to-ports 4444\033[0m"
         sudo iptables -t nat -D PREROUTING -p tcp -m tcp --dport 1:65535 -j REDIRECT --to-ports 4444
+        echo -e "\n\033[1;34m---------------------------------------------------------\033[0m\n"
     fi
 fi
 
-sudo iptables-save
-
+# Guardar reglas actuales
 echo ""
-echo "para ver las reglas actuales:"
-echo "sudo iptables-save "
-echo "sudo iptables -t nat -L -v -n "
+echo -e "\033[1;32msalvando reglas:sudo iptables-save\033[0m"
+echo ""
+sudo iptables-save
+echo -e "\n\033[1;34m---------------------------------------------------------\033[0m\n"
+
+
+# Flush de la tabla NAT
+echo -e "\033[1;32mPara eliminar todo lo anterior (alias ftables)\033[0m"
+echo -e "\033[1;32msudo iptables -t nat -F\033[0m"
+echo -e "\n\033[1;34m---------------------------------------------------------\033[0m\n"
+
+# Mensaje final de asesoría
+echo -e "\033[1;31mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\033[0m"

