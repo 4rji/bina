@@ -1,12 +1,9 @@
 #!/usr/bin/env bash
 
-# Paso 1: Eliminar líneas conflictivas del banner anterior en /etc/ssh/sshd_config
-sudo sed -i '/Banner no/d' /etc/ssh/sshd_config
+# Paso 1: Eliminar cualquier directiva "Banner" previa en sshd_config
+sudo sed -i '/^[[:space:]]*Banner[[:space:]]\+/d' /etc/ssh/sshd_config
 
-# Paso 2: Habilitar la característica de pre login banner en sshd
-sudo sed -i 's/#Banner/Banner/g' /etc/ssh/sshd_config
-
-# Paso 3: Crear el archivo de banner de inicio de sesión con el nuevo mensaje sin asteriscos laterales
+# Paso 2: Crear el archivo de banner en /etc/ssh/sshd-banner
 sudo tee /etc/ssh/sshd-banner > /dev/null << 'EOF'
 
                               Rubber Ducks inc.
@@ -29,14 +26,12 @@ Activity logs and other recorded information may be used to investigate, prosecu
 
 EOF
 
-# Paso 4: Agregar la línea 'Banner /etc/ssh/sshd-banner' a sshd_config si no existe
-if ! sudo grep -q "Banner /etc/ssh/sshd-banner" /etc/ssh/sshd_config; then
-  echo "Banner /etc/ssh/sshd-banner" | sudo tee -a /etc/ssh/sshd_config > /dev/null
-  echo "¡Listo! El banner de pre login de OpenSSH ha sido configurado."
-fi
+# Paso 3: Agregar la línea correcta 'Banner /etc/ssh/sshd-banner' a sshd_config
+echo "Banner /etc/ssh/sshd-banner" | sudo tee -a /etc/ssh/sshd_config > /dev/null
+echo "¡Listo! El banner pre login de OpenSSH ha sido configurado."
 
-# Paso 5: Reiniciar el servicio sshd para aplicar los cambios
-sudo systemctl restart ssh
+# Paso 4: Reiniciar el servicio sshd para aplicar los cambios
+sudo systemctl restart sshd
 
-# Alias para editar el banner con nano en futuras ocasiones
+# Paso 5: Agregar alias para editar el banner fácilmente
 echo "alias bannere='sudo nano /etc/ssh/sshd-banner'" >> ~/.zshrc
