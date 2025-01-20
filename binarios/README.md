@@ -86,6 +86,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
 batinst             Instala batcat en debian .deb -i dpkg
+lsdinst             Instala lsd en debian .deb -i dpkg
 transf              Enviar recibir archivos instrucciones
 rutaadd             Agrega dev, ruta a ip r, no funciona aun.
 loop and loopp      While true; function and script, loop is the function.

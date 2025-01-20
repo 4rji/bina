@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+
+# Definir URL y nombre del paquete
+URL="https://github.com/lsd-rs/lsd/releases/download/v1.1.5/lsd-musl_1.1.5_amd64.deb"
+PACKAGE_NAME="lsd-musl_1.1.5_amd64.deb"
+
+# Descargar el paquete
+echo "Downloading $PACKAGE_NAME..."
+curl -L -o "$PACKAGE_NAME" "$URL"
+
+# Verificar si la descarga fue exitosa
+if [ $? -ne 0 ]; then
+    echo "Error downloading $PACKAGE_NAME."
+    exit 1
+fi
+
+# Instalar el paquete
+echo "Installing $PACKAGE_NAME..."
+sudo dpkg -i "$PACKAGE_NAME"
+
+# Verificar si la instalación fue exitosa
+if [ $? -ne 0 ]; then
+    echo "Error installing $PACKAGE_NAME."
+    exit 1
+fi
+
+# Copiar el binario a /bin con el nuevo nombre (si aplica)
+echo "Copying 'lsd' to '/usr/bin/lsd'..."
+sudo cp /usr/bin/lsd /usr/bin/lsd
+
+# Verificar si la copia fue exitosa
+if [ $? -ne 0 ]; then
+    echo "Error copying 'lsd' to '/usr/bin/lsd'."
+    exit 1
+fi
+
+echo "Installation and setup completed successfully!"
