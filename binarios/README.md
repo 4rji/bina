@@ -386,7 +386,7 @@ instsurf            instala surfeando
 gatin               hashcat que usa todos los diccionarios en wordlists/4rji
 gatinesta           Verifica si una palabra esta en los diccionarios password contrasena 
 xxelab              xxe lab docker instala 
-wireinst            Instala, y usa el archivo .conf para hacer la conexion. todo ahi wireguard vpn.
+wginst              Instala, y usa el archivo .conf para hacer la conexion. todo ahi wireguard vpn.
 wgc                 Script que controla la coneccion de wireguard
 
 #qemu

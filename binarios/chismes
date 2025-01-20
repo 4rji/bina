@@ -138,8 +138,10 @@ echo -e "\033[1;33mO con python:\033[0m"
 echo -e "\033[0;34mmonitcp\033[0m"
 echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
 
-echo "Desea ver solo las IPs y puertos atacados? [y/n]"
+echo "Desea ver solo las IPs y puertos atacados? [Y/n]"
 read -r user_input
+user_input=${user_input:-Y}
+user_input=$(echo "$user_input" | tr '[:lower:]' '[:upper:]')
 
 if [[ "$user_input" == [Yy] ]]; then
     # Verificar si el archivo ips-ports ya existe
@@ -167,7 +169,10 @@ if [[ "$user_input" == [Yy] ]]; then
       done > "$new_ips_file"
 
     echo "El resultado ha sido guardado en '$new_ips_file':"
-    cat "$new_ips_file"
+    echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+    cat "$new_ips_file" | col
+    echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+    batcat -l rb "$new_ips_file" | col
 else
     echo "Operación cancelada. No se ha generado ningún archivo."
 fi
