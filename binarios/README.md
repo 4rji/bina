@@ -50,8 +50,8 @@ sshmoni
 
 
 bannerm = Hace un banner para ssh, necesita hacerlo dos veces. 
-sshbanerA = mensaje bienvenida de ssh ANTES de conectarse
-sshbanerD = mensaje bienvenida de ssh DESPUES de conectarse
+sshbanerlogin = mensaje bienvenida de ssh ANTES de conectarse
+sshbanerwelcome = mensaje bienvenida de ssh DESPUES de conectarse
 hardnet = modifica ipv4 y tambien ipv6
 
 netevils = apt = remove -y telnet ftp ftpd tftp talk talkd tftp tftpd
