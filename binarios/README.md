@@ -85,6 +85,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+batinst             Instala batcat en debian .deb -i dpkg
 transf              Enviar recibir archivos instrucciones
 rutaadd             Agrega dev, ruta a ip r, no funciona aun.
 loop and loopp      While true; function and script, loop is the function.
