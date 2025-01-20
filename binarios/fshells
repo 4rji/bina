@@ -1,144 +1,145 @@
 #!/usr/bin/env bash
 
-# Create a temporary file
+# Definir un único archivo de log global
+LOGFILE="$HOME/fshells_$(date +'%Y%m%d%H%M%S').log"
+
+# Función para ejecutar comandos y guardar su salida (se añade al log global)
+log_exec() {
+    local cmd="$*"
+    echo -e "\n## Ejecutando: $cmd\n" | tee -a "$LOGFILE"
+    eval "$cmd" 2>&1 | tee -a "$LOGFILE"
+}
+
 echo ""
-echo $'\e[1;34m_________________________________________________________\e[0m'
-echo ""
-#echo $'\e[1;32mCreating a temporary file...\e[0m'
+echo $'\e[1;34m_________________________________________________________\e[0m' | tee -a "$LOGFILE"
+echo "" | tee -a "$LOGFILE"
+
+# Crear archivo temporal
 tmp_file=$(mktemp)
-#echo $'\e[1;33mCommand executed: mktemp\e[0m'
-#echo ""
-
-# Capture the process list in the temporary file
-#echo $'\e[1;36mCapturing the process list in the temporary file...\e[0m'
-#echo $'\e[1;33mCommand executed: ps -eo pid,ppid,tty,stat,time,cmd --forest > '"$tmp_file"$'\e[0m'
-ps -eo pid,ppid,tty,stat,time,cmd --forest > "$tmp_file"
+# Capturar la lista de procesos en el archivo temporal
+log_exec "ps -eo pid,ppid,tty,stat,time,cmd --forest > \"$tmp_file\""
 echo ""
-echo $'\e[1;34m_________________________________________________________\e[0m'
+echo $'\e[1;34m_________________________________________________________\e[0m' | tee -a "$LOGFILE"
 echo ""
-#read -rp $'\e[1;36m...\e[0m'
 
-# Display the content of the temporary file using batcat
-#echo $'\e[1;32mDisplaying the content of the temporary file:\e[0m'
-#echo $'\e[1;33mCommand executed: batcat --paging=never -l rb '"$tmp_file"$'\e[0m'
-batcat --paging=never -l rb "$tmp_file"
+# Mostrar el contenido del archivo temporal con batcat
+log_exec "cat \"$tmp_file\""
 echo ""
-#read -rp $'\e[1;36m...\e[0m'
-
-# Remove the temporary file
 rm "$tmp_file"
 
-# Display process list (only showing the command, not executing it)
-echo $'\e[1;33mps -fae --forest\e[0m'
+# Mostrar el comando ps -fae --forest (solo se muestra)
+echo $'\e[1;33mps -fae --forest\e[0m' | tee -a "$LOGFILE"
 echo ""
-#read -rp $'\e[1;36m...\e[0m'
 
-# Ask the user for the process number
+# Pedir al usuario el número de proceso a inspeccionar
 read -p $'\e[1;36mEnter the process number you want to inspect: \e[0m' pid
 echo ""
-echo $'\e[1;34m_________________________________________________________\e[0m'
+echo $'\e[1;34m_________________________________________________________\e[0m' | tee -a "$LOGFILE"
 echo ""
 
-# Verify if the entered PID is a valid number
+# Verificar si el PID es válido
 if ! [[ "$pid" =~ ^[0-9]+$ ]]; then
-    echo $'\e[1;31mError: Please enter a valid process number.\e[0m'
+    echo $'\e[1;31mError: Please enter a valid process number.\e[0m' | tee -a "$LOGFILE"
     exit 1
 fi
 
-# Check if the directory /proc/<pid> exists
+# Comprobar si existe el directorio /proc/<pid>
 if [ ! -d "/proc/$pid" ]; then
-    echo $'\e[1;31mError: Process with PID '"$pid"$' does not exist.\e[0m'
+    echo $'\e[1;31mError: Process with PID '"$pid"$' does not exist.\e[0m' | tee -a "$LOGFILE"
     exit 1
 fi
 
-# Display the cwd using sudo
-echo $'\e[1;36mWith sudo:\e[0m'
-echo $'\e[1;33msudo ls -la /proc/'"$pid"$' | grep cwd\e[0m'
-sudo ls -la /proc/"$pid" | grep cwd
+# Registrar identificación del proceso (PID) seleccionado en el log
+echo "Proceso seleccionado: $pid" | tee -a "$LOGFILE"
+
+# Mostrar el cwd usando sudo
+echo $'\e[1;36mWith sudo:\e[0m' | tee -a "$LOGFILE"
+echo $'\e[1;33msudo ls -la /proc/'"$pid"'/ | grep cwd\e[0m' | tee -a "$LOGFILE"
+log_exec "sudo ls -la /proc/$pid | grep cwd"
 echo ""
-echo $'\e[1;34m_________________________________________________________\e[0m'
+echo $'\e[1;34m_________________________________________________________\e[0m' | tee -a "$LOGFILE"
 echo ""
 read -rp $'\e[1;36m...\e[0m'
 
 echo ""
-# Display the command line used to start the process
-echo $'\e[1;32mDisplaying the command line:\e[0m'
+# Mostrar la línea de comandos utilizada para iniciar el proceso
+echo $'\e[1;32mDisplaying the command line:\e[0m' | tee -a "$LOGFILE"
 echo ""
-echo -e "\e[1;33mcat /proc/${pid}/cmdline | tr '\\0' ' '\e[0m"
-sudo cat /proc/"$pid"/cmdline | tr '\0' ' '
+echo -e "\e[1;33mcat /proc/${pid}/cmdline | tr '\\0' ' '\e[0m" | tee -a "$LOGFILE"
+log_exec "sudo cat /proc/$pid/cmdline | tr '\0' ' '"
 echo ""
-echo $'\e[1;34m_________________________________________________________\e[0m'
-echo ""
-read -rp $'\e[1;36m...\e[0m'
-echo ""
-
-# Display the executable file associated with the process
-echo $'\e[1;32mDisplaying the associated executable file:\e[0m'
-echo ""
-echo $'\e[1;33msudo ls -l /proc/'"$pid"'/exe\e[0m'
-sudo ls -l /proc/"$pid"/exe
-echo ""
-echo $'\e[1;34m_________________________________________________________\e[0m'
+echo $'\e[1;34m_________________________________________________________\e[0m' | tee -a "$LOGFILE"
 echo ""
 read -rp $'\e[1;36m...\e[0m'
 echo ""
 
-# Display the file descriptors opened by the process
-echo $'\e[1;32mDisplaying open file descriptors:\e[0m'
+# Mostrar el archivo ejecutable asociado al proceso
+echo $'\e[1;32mDisplaying the associated executable file:\e[0m' | tee -a "$LOGFILE"
 echo ""
-echo $'\e[1;33msudo ls -l /proc/'"$pid"'/fd\e[0m'
-sudo ls -l /proc/"$pid"/fd
+echo $'\e[1;33msudo ls -l /proc/'"$pid"'/exe\e[0m' | tee -a "$LOGFILE"
+log_exec "sudo ls -l /proc/$pid/exe"
 echo ""
-echo $'\e[1;34m_________________________________________________________\e[0m'
+echo $'\e[1;34m_________________________________________________________\e[0m' | tee -a "$LOGFILE"
+echo ""
+read -rp $'\e[1;36m...\e[0m'
+echo ""
+
+# Mostrar los descriptores de archivo abiertos por el proceso
+echo $'\e[1;32mDisplaying open file descriptors:\e[0m' | tee -a "$LOGFILE"
+echo ""
+echo $'\e[1;33msudo ls -l /proc/'"$pid"'/fd\e[0m' | tee -a "$LOGFILE"
+log_exec "sudo ls -l /proc/$pid/fd"
+echo ""
+echo $'\e[1;34m_________________________________________________________\e[0m' | tee -a "$LOGFILE"
 echo ""
 read -rp $'\e[1;36m...\e[0m'
 echo ""
 
-# Display the environment variables of the process
-echo $'\e[1;32mDisplaying environment variables:\e[0m'
+# Mostrar las variables de entorno del proceso
+echo $'\e[1;32mDisplaying environment variables:\e[0m' | tee -a "$LOGFILE"
 echo ""
-echo $'\e[1;33mcat /proc/'"$pid"'/environ | tr '\''\0'\'' '\''\n'\''\e[0m'
-cat /proc/"$pid"/environ | tr '\0' '\n'
+echo $'\e[1;33mcat /proc/'"$pid"'/environ | tr '\''\0'\'' '\''\n'\''\e[0m' | tee -a "$LOGFILE"
+log_exec "cat /proc/$pid/environ | tr '\0' '\n'"
 echo ""
-echo $'\e[1;34m_________________________________________________________\e[0m'
-echo ""
-read -rp $'\e[1;36m...\e[0m'
-
-# Display the process status
-echo $'\e[1;32mDisplaying status:\e[0m'
-echo ""
-echo $'\e[1;33mcat /proc/'"$pid"'/status\e[0m'
-cat /proc/"$pid"/status
-echo ""
-echo $'\e[1;34m_________________________________________________________\e[0m'
+echo $'\e[1;34m_________________________________________________________\e[0m' | tee -a "$LOGFILE"
 echo ""
 read -rp $'\e[1;36m...\e[0m'
 
-# Display the network connections of the process
-echo $'\e[1;32mDisplaying network connections:\e[0m'
+# Mostrar el estado del proceso
+echo $'\e[1;32mDisplaying status:\e[0m' | tee -a "$LOGFILE"
 echo ""
-echo $'\e[1;33mss -anp | grep '"$pid"$'\e[0m'
-ss -anp | grep "$pid"
+echo $'\e[1;33mcat /proc/'"$pid"'/status\e[0m' | tee -a "$LOGFILE"
+log_exec "cat /proc/$pid/status"
 echo ""
-echo $'\e[1;34m_________________________________________________________\e[0m'
+echo $'\e[1;34m_________________________________________________________\e[0m' | tee -a "$LOGFILE"
+echo ""
+read -rp $'\e[1;36m...\e[0m'
+
+# Mostrar las conexiones de red del proceso
+echo $'\e[1;32mDisplaying network connections:\e[0m' | tee -a "$LOGFILE"
+echo ""
+echo $'\e[1;33mss -anp | grep '"$pid"$'\e[0m' | tee -a "$LOGFILE"
+log_exec "ss -anp | grep $pid"
+echo ""
+echo $'\e[1;34m_________________________________________________________\e[0m' | tee -a "$LOGFILE"
 echo ""
 
-# Verify if ss found connections for the process
+# Verificar si se encontraron conexiones de red
 if ! ss -anp | grep -q "$pid"; then
-    echo $'\e[1;31mNo network connections found for PID '"$pid"$'.\e[0m'
+    echo $'\e[1;31mNo network connections found for PID '"$pid"$'.\e[0m' | tee -a "$LOGFILE"
     echo ""
-    echo $'\e[1;34m_________________________________________________________\e[0m'
+    echo $'\e[1;34m_________________________________________________________\e[0m' | tee -a "$LOGFILE"
     echo ""
 fi
 
-echo "END"
+echo "END" | tee -a "$LOGFILE"
 echo ""
 
-# Ask if the user wants to kill the process
+# Preguntar si se desea matar el proceso
 read -p $'\e[1;31mDo you want to kill the process? (s for yes, press enter to continue): \e[0m' response
 if [[ "$response" == "s" || "$response" == "S" ]]; then
-    sudo kill -9 "$pid"
-    echo $'\e[1;32mProcess with PID '"$pid"$' has been terminated.\e[0m'
+    log_exec "sudo kill -9 $pid"
+    echo $'\e[1;32mProcess with PID '"$pid"$' has been terminated.\e[0m' | tee -a "$LOGFILE"
 else
-    echo $'\e[1;33mProcess with PID '"$pid"$' was not terminated.\e[0m'
+    echo $'\e[1;33mProcess with PID '"$pid"$' was not terminated.\e[0m' | tee -a "$LOGFILE"
 fi
