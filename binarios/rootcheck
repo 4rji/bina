@@ -1,48 +1,126 @@
 #!/usr/bin/env bash
 
+# Función para mostrar mensajes
+echo_msg() {
+    echo -e "\033[32m==============================================\033[0m"
+    echo -e "\033[33m  $1  \033[0m"
+    echo -e "\033[32m==============================================\033[0m"
+    echo ""
+    echo ""
+}
 
+##############################################################################
+#                              ROOT CONFIGURATION                            #
+##############################################################################
 
-        read -p "Press Enter to execute 'sudo cat /root/.bashrc': " 
-        sudo cat /root/.bashrc
+echo_msg "Displaying configuration files for ROOT"
 
-        echo ""
-        echo "**************** END ****************"
+echo ""
+echo -e "\033[31m_________________________________________________________\033[0m"
+echo ""
+read -p "Press Enter to execute 'sudo cat /root/.bashrc': " 
+sudo cat /root/.bashrc
 
-        echo ""
-        read -p "Press Enter to execute 'sudo cat /root/.shrc': " 
-        sudo cat /root/.shrc
-        echo ""
-        echo ""
-        echo "**************** END ****************"
-        echo ""
-        read -p "Press Enter to execute 'sudo cat /root/.cshrc': " 
-        sudo cat /root/.cshrc
-        echo ""
-        echo ""
-        echo "**************** END ****************"
-        echo ""
-        read -p "Press Enter to execute 'sudo cat /root/.tcshrc': " 
-        sudo cat /root/.tcshrc
-        echo ""
-        echo ""
-        echo "**************** END ****************"
+echo ""
+echo -e "\033[34m_________________________________________________________\033[0m"
+echo ""
+read -p "Press Enter to execute 'sudo cat /root/.shrc': " 
+sudo cat /root/.shrc
 
-        echo ""
-        read -p "Press Enter to execute 'sudo cat /root/.profile': " 
-        sudo cat /root/.profile
-        echo ""
-        echo ""
-        echo "**************** END ****************"
+echo ""
+echo -e "\033[35m_________________________________________________________\033[0m"
+echo ""
+read -p "Press Enter to execute 'sudo cat /root/.cshrc': " 
+sudo cat /root/.cshrc
 
-        echo ""
-        read -p "Press Enter to execute 'sudo cat /root/.bash_profile': " 
-        sudo cat /root/.bash_profile
-        echo ""
-        
-        echo ""
-        echo "**************** END ****************"
-        echo ""
-        echo ""
-                 
-        
-        
+echo ""
+echo -e "\033[36m_________________________________________________________\033[0m"
+echo ""
+read -p "Press Enter to execute 'sudo cat /root/.tcshrc': " 
+sudo cat /root/.tcshrc
+
+echo ""
+echo -e "\033[31m_________________________________________________________\033[0m"
+echo ""
+read -p "Press Enter to execute 'sudo cat /root/.zsrch': " 
+sudo cat /root/.zsrch
+
+echo ""
+echo -e "\033[34m_________________________________________________________\033[0m"
+echo ""
+read -p "Press Enter to execute 'sudo cat /root/.profile': " 
+sudo cat /root/.profile
+
+echo ""
+echo -e "\033[35m_________________________________________________________\033[0m"
+echo ""
+read -p "Press Enter to execute 'sudo cat /root/.bash_profile': " 
+sudo cat /root/.bash_profile
+
+echo ""
+echo -e "\033[36m_________________________________________________________\033[0m"
+echo ""
+echo_msg "End of ROOT configuration files"
+
+##############################################################################
+#                              USERS CONFIGURATION                           #
+##############################################################################
+
+read -p "Do you want to see the users? (y/n) [Y]: " see_users
+see_users=${see_users:-Y}
+if [[ "$see_users" =~ ^[Yy]$ ]]; then
+    echo ""
+    echo -e "\033[33m==============================================\033[0m"
+    echo -e "\033[31m  Available users (UID>=1000, excluding nobody):  \033[0m"
+    echo -e "\033[33m==============================================\033[0m"
+    echo ""
+    mapfile -t users < <(awk -F: '($3>=1000)&&($1!="nobody"){print $1}' /etc/passwd)
+    for user in "${users[@]}"; do
+        echo -e "\033[32m  - $user\033[0m"
+    done
+
+    echo ""
+    echo -e "\033[34m_________________________________________________________\033[0m"
+    echo ""
+    read -p "Enter username to view its shell configuration files (or type 'all' to check all): " choice
+    if [ "$choice" == "all" ]; then
+        for user in "${users[@]}"; do
+            home_dir=$(getent passwd "$user" | cut -d: -f6)
+            echo ""
+            echo_msg "Files for user: $user (Home: $home_dir)"
+            for file in .bashrc .shrc .cshrc .tcshrc .zshrc .schrc .profile .bash_profile; do
+                if [ -f "$home_dir/$file" ]; then
+                    echo ""
+                    echo -e "\033[35m_________________________________________________________\033[0m"
+                    echo ""
+                    read -p "Press Enter to view 'cat $home_dir/$file': " 
+                    cat "$home_dir/$file"
+                    echo ""
+                    echo -e "\033[35m_________________________________________________________\033[0m"
+                    echo ""
+                fi
+            done
+        done
+    else
+        user="$choice"
+        home_dir=$(getent passwd "$user" | cut -d: -f6)
+        if [ -z "$home_dir" ]; then
+            echo -e "\033[31mUser not found or no home directory.\033[0m"
+        else
+            echo ""
+            echo_msg "Files for user: $user (Home: $home_dir)"
+            for file in .bashrc .shrc .cshrc .tcshrc .zshrc .schrc .profile .bash_profile; do
+                if [ -f "$home_dir/$file" ]; then
+                    echo ""
+                    echo -e "\033[32m_________________________________________________________\033[0m"
+                    echo ""
+                    read -p "Press Enter to view 'cat $home_dir/$file': " 
+                    cat "$home_dir/$file"
+                    echo ""
+                    echo -e "\033[32m_________________________________________________________\033[0m"
+                    echo ""
+                fi
+            done
+        fi
+    fi
+fi
