@@ -1,56 +1,103 @@
 #!/usr/bin/env bash
 
-while true; do
-  echo ""
-  echo "Selecciona una opción:"
-  echo "1) Ver logs de sshd (journalctl -xeu sshd.service)"
-  echo "2) Mostrar ruta del ejecutable sshd (which sshd)"
-  echo "3) Recargar systemd y reiniciar sshd (sudo systemctl daemon-reload && sudo systemctl restart sshd)"
-  echo "4) Listar archivos del paquete openssh-server (rpm -ql openssh-server | grep sshd)"
-  echo "5) Reinstalar openssh-server (sudo dnf reinstall openssh-server)"
-  echo "6) Instalar openssh-server (sudo dnf install openssh-server)"
-  echo "7) Instalar openssh-clients (sudo dnf install openssh-clients)"
-  echo "8) Ejecutar comando personalizado"
-  echo "9) Salir"
-  read -rp "Ingresa el número de opción: " opt
+# Check if running with superuser privileges (sudo)
+if [ "$EUID" -ne 0 ]; then
+    echo "This script must be run with superuser privileges (sudo)."
+    exit 1
+fi
 
-  case "$opt" in
-    1)
-      cmd="journalctl -xeu sshd.service"
-      ;;
-    2)
-      cmd="which sshd"
-      ;;
-    3)
-      cmd="sudo systemctl daemon-reload && sudo systemctl restart sshd"
-      ;;
-    4)
-      cmd="rpm -ql openssh-server | grep sshd"
-      ;;
-    5)
-      cmd="sudo dnf reinstall openssh-server"
-      ;;
-    6)
-      cmd="sudo dnf install openssh-server"
-      ;;
-    7)
-      cmd="sudo dnf install openssh-clients"
-      ;;
-    8)
-      read -rp "Ingresa el comando a ejecutar: " cmd
-      ;;
-    9)
-      exit 0
-      ;;
-    *)
-      echo "Opción no válida."
-      continue
-      ;;
-  esac
 
-  echo ""
-  echo "Ejecutando: $cmd"
-  echo "--------------------------------------------"
-  eval "$cmd"
-  echo "--------------------------------------------"
-done
+# Fix specific permissions for /etc/shadow and /etc/gshadow
+if getent group shadow > /dev/null; then
+    sudo chown root:shadow /etc/gshadow
+    sudo chmod 600 /etc/gshadow
+else
+    echo "Group 'shadow' does not exist. Skipping chown for /etc/gshadow."
+fi
+
+sudo chown root:root /etc/shadow
+sudo chmod 600 /etc/shadow
+
+
+
+
+# Define colors
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# Define the list of files and their expected permissions
+files=(
+    "/etc/passwd:644"
+    "/etc/shadow:600"
+    "/etc/group:644"
+    "/etc/gshadow:600"
+    "/etc/sudoers:440"
+    "/etc/ssh/sshd_config:644"
+    "/etc/hosts.allow:644"
+    "/etc/hosts.deny:644"
+    "/etc/cron.allow:644"
+    "/etc/cron.deny:644"
+    "/etc/securetty:600"
+    "/etc/security/limits.conf:644"
+    "/etc/audit/auditd.conf:644"
+    "/etc/sysctl.conf:644"
+    "/var/log/secure:640"
+    "/var/log/auth.log:640"
+    "/var/log/audit/audit.log:640"
+)
+
+# Initialize the list of files to fix
+files_to_fix=()
+
+# Function to check permissions
+check_permissions() {
+    for file_info in "${files[@]}"; do
+        file=$(echo "$file_info" | cut -d ":" -f 1)
+        expected_perm=$(echo "$file_info" | cut -d ":" -f 2)
+
+        # Check if the file exists
+        if [ -e "$file" ]; then
+            actual_perm=$(stat -c "%a" "$file")
+
+            if [ "$actual_perm" -eq "$expected_perm" ]; then
+                echo -e "[$file] - ${GREEN}Permissions are correctly set ($expected_perm).${NC}"
+            else
+                echo -e "[$file] - ${RED}Permissions are NOT correctly set. Current permissions: $actual_perm${NC}"
+                files_to_fix+=("$file")
+            fi
+        else
+            echo -e "[$file] - File does not exist on the system."
+        fi
+    done
+}
+
+# Function to fix permissions
+fix_permissions() {
+    for file in "${files_to_fix[@]}"; do
+        chmod $(echo "$file_info" | cut -d ":" -f 2) "$file"
+        echo "Permissions for [$file] have been corrected."
+    done
+
+    # Fix specific permissions for /etc/shadow and /etc/gshadow
+    sudo chown root:root /etc/shadow
+    sudo chmod 600 /etc/shadow
+    sudo chown root:shadow /etc/gshadow
+    sudo chmod 600 /etc/gshadow
+
+    echo "Incorrect permissions have been fixed."
+}
+
+# Check permissions
+check_permissions
+
+if [ ${#files_to_fix[@]} -eq 0 ]; then
+    echo "All permissions are correctly set."
+else
+    read -p "Do you want to fix incorrect permissions? (Y/N): " answer
+    if [ "$answer" == "Y" ] || [ "$answer" == "y" ]; then
+        fix_permissions
+    else
+        echo "No changes have been made to permissions."
+    fi
+fi

@@ -136,8 +136,8 @@ echo "END" | tee -a "$LOGFILE"
 echo ""
 
 # Preguntar si se desea matar el proceso
-read -p $'\e[1;31mDo you want to kill the process? (s for yes, press enter to continue): \e[0m' response
-if [[ "$response" == "s" || "$response" == "S" ]]; then
+read -p $'\e[1;31mDo you want to kill the process? [y/n]: \e[0m' response
+if [[ "$response" == "y" || "$response" == "Y" ]]; then
     log_exec "sudo kill -9 $pid"
     echo $'\e[1;32mProcess with PID '"$pid"$' has been terminated.\e[0m' | tee -a "$LOGFILE"
 else
