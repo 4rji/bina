@@ -229,8 +229,8 @@ unbanar {IP}        Comenta la ip de banlist de artilleria, si no especifico IP 
 artires             Reinicia el servicio artilleria
 
 ###------portspoof
-portfinst           aplica las reglas para portspoof, IPTABLES, proteje puertos y redirecciona trafico
-portfinst2          Instala portspoof emula servicios para nmap, instala todo
+fakeinst            aplica las reglas para portspoof, IPTABLES, proteje puertos y redirecciona trafico
+fakeinst2           Instala portspoof emula servicios para nmap, instala todo
 fakei               alias para iniciar el portspoof, despues de instalarlo
 
                                
