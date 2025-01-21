@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 echo ""
+echo "buscar el secreto de amor de secreto"
+
 echo ""
 
   echo -e "\033[1;33mReminder: Keep track of both tokens for future use.\033[0m"
@@ -20,7 +22,7 @@ function install_tailscale {
     echo ""
     
     #curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up --auth-key=tskey-auth-kLLn5eTqP911CNTRL-yEXWEXNDfCHXwsZSSYAyBH1UHmYRFxxK
-    curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up --auth-key=tskey-auth-kHgPWE5oNf11CNTRL-txtvEAMn16F2sPpyvZHD5FDScPYRwmPXX
+    curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up --auth-key=tskey-auth-kHgPWE5oNf11CNTRL-txtvEAMn16F2sPpyvZHD5FDScPYRwmPXR
 
     if [ $? -eq 0 ]; then
         echo ""
