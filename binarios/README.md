@@ -368,6 +368,7 @@ splunkinst          instala Splunk y crea un alias para uniciar en zsh
 splunkforw          Splunk universal forwarder, instala .deb automaticamente. Win-Linux-Mac-freebsd 
 splunkforw2         Instala splunk forwarder, el primero lo descarga version 9.4
 splunk998           Para servidor, crea el archivo inputs para recibir conexiones
+splunktestport      ejecuta un tcpdump para ver si recibe datos el puerto 998
 
 suricatainst        Instala suricata, largo proceso
 suricatalog         tail -f /var/log/suricata/fast.log
