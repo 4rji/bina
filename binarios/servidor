@@ -96,7 +96,7 @@ if [[ "${respuesta,,}" == "y" ]]; then
 fi
 
 # Variables para opciones predeterminadas
-default_port="80"
+default_port="8884"
 port=$default_port
 
 # Directorio de destino para los archivos Apache
