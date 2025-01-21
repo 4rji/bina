@@ -19,8 +19,9 @@ function install_tailscale {
     echo "_________________________________________________________"
     echo ""
     
-    curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up --auth-key=tskey-auth-kLLn5eTqP911CNTRL-yEXWEXNDfCHXwsZSSYAyBH1UHmYRFxxK
-    
+    #curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up --auth-key=tskey-auth-kLLn5eTqP911CNTRL-yEXWEXNDfCHXwsZSSYAyBH1UHmYRFxxK
+    curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up --auth-key=tskey-auth-kHgPWE5oNf11CNTRL-txtvEAMn16F2sPpyvZHD5FDScPYRwmPXX
+
     if [ $? -eq 0 ]; then
         echo ""
         echo "_________________________________________________________"
