@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+echo "Seleccione el administrador de paquetes que desea usar para actualizar los certificados CA:"
+echo "1) sudo yum update ca-certificates (RHEL/CentOS)"
+echo "2) sudo apt update && sudo apt install --reinstall ca-certificates (Ubuntu/Debian)"
+echo "3) sudo pacman -Syu ca-certificates (Arch/Manjaro)"
+echo "4) sudo dnf update ca-certificates (Fedora)"
+read -p "Ingrese el número de la opción: " opcion
+
+case $opcion in
+    1)
+        echo "Ejecutando: 'yum update ca-certificates' para actualizar certificados en RHEL/CentOS."
+        sudo yum update ca-certificates
+        ;;
+    2)
+        echo "Ejecutando: 'apt update && apt install --reinstall ca-certificates' para actualizar certificados en Ubuntu/Debian."
+        sudo apt update && sudo apt install --reinstall ca-certificates
+        ;;
+    3)
+        echo "Ejecutando: 'pacman -Syu ca-certificates' para actualizar certificados en Arch/Manjaro."
+        sudo pacman -Syu ca-certificates
+        ;;
+    4)
+        echo "Ejecutando: 'dnf update ca-certificates' para actualizar certificados en Fedora."
+        sudo dnf update ca-certificates
+        ;;
+    *)
+        echo "Opción no válida. Salida."
+        exit 1
+        ;;
+esac
+
