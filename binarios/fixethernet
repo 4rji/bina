@@ -18,3 +18,5 @@ sed -i "s/\(\/usr\/sbin\/ifconfig \)[^ ]*\( \|$\)/\1$nuevo_valor\2/g" "$archivo"
 
 echo "Se ha modificado el archivo $archivo. Se reemplazó la palabra en la posición específica con $nuevo_valor."
 
+#nalanga
+#popocho

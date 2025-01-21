@@ -1,47 +1,65 @@
 #!/usr/bin/env bash
 
+# Función para mostrar mensajes destacados
+echo_msg() {
+    echo -e "\n\e[1;36m==============================================\e[0m"
+    echo -e "\e[1;32m$1\e[0m"
+    echo -e "\e[1;36m==============================================\e[0m\n"
+}
+
 # Comprobar si se ha proporcionado un directorio como argumento
 if [ -z "$1" ]; then
-    echo "Por favor, especifica el directorio en el que buscar (ejemplo: ./script /ruta/del/directorio)."
+    echo -e "\n\e[1;31mPor favor, especifica el directorio en el que buscar (ejemplo: ./script /ruta/del/directorio).\e[0m\n"
     exit 1
 else
     directorio=$1
 fi
 
-echo "Elige una opción para tu búsqueda:"
-echo "1. Buscar por nombre"
-echo "2. Buscar por extensión"
-echo "3. Buscar archivo específico"
-echo "4. Buscar por tamaño"
-echo "5. Buscar directorio"
-read opcion
+# Mostrar menú de opciones
+echo_msg "Elige una opción para tu búsqueda:"
+echo -e "\e[1;33m  1.\e[0m Buscar por palabra dentro de archivos"
+echo -e "\e[1;33m  2.\e[0m Buscar por nombre"
+echo -e "\e[1;33m  3.\e[0m Buscar por extensión"
+echo -e "\e[1;33m  4.\e[0m Buscar archivo específico"
+echo -e "\e[1;33m  5.\e[0m Buscar por tamaño"
+echo -e "\e[1;33m  6.\e[0m Buscar directorio"
+echo ""
+read -p "Selecciona una opción (1-6): " opcion
 
 # Pregunta específica según la opción elegida
 case $opcion in
     1)
-        echo "Ingresa el nombre (o parte del nombre) del archivo o directorio:"
+        echo -e "\n\e[1;34mIngresa la palabra o texto que deseas buscar dentro de los archivos (deja en blanco para buscar todo):\e[0m\n"
         ;;
     2)
-        echo "Ingresa la extensión del archivo sin el punto (ejemplo: jpg, txt):"
+        echo -e "\n\e[1;34mIngresa el nombre (o parte del nombre) del archivo o directorio:\e[0m\n"
         ;;
     3)
-        echo "Ingresa el nombre exacto del archivo (incluyendo extensión si aplica):"
+        echo -e "\n\e[1;34mIngresa la extensión del archivo sin el punto (ejemplo: jpg, txt):\e[0m\n"
         ;;
     4)
-        echo "Ingresa el tamaño del archivo (ejemplo: +50M para archivos mayores de 50 MB, -100k para archivos menores de 100 KB):"
+        echo -e "\n\e[1;34mIngresa el nombre exacto del archivo (incluyendo extensión si aplica):\e[0m\n"
         ;;
     5)
-        echo "Ingresa el nombre (o parte del nombre) del directorio:"
+        echo -e "\n\e[1;34mIngresa el tamaño del archivo (ejemplo: +50M para archivos mayores de 50 MB, -100k para archivos menores de 100 KB):\e[0m\n"
+        ;;
+    6)
+        echo -e "\n\e[1;34mIngresa el nombre (o parte del nombre) del directorio:\e[0m\n"
         ;;
     *)
-        echo "Opción no válida"
+        echo -e "\n\e[1;31mOpción no válida\e[0m\n"
         exit 1
         ;;
 esac
 read busqueda
 
-echo "Max depth (ingresa un número o presiona Enter para sin límite):"
-read maxdepth
+# Preguntar por maxdepth y explicar su propósito
+echo -e "\n\e[1;36mMax depth (profundidad máxima):\e[0m\n"
+echo -e "\e[1;32m- Define hasta qué nivel de subdirectorios buscar. Por ejemplo:\e[0m"
+echo -e "\e[1;32m  • 1: Solo busca en el directorio actual.\e[0m"
+echo -e "\e[1;32m  • 2: Incluye subdirectorios a un nivel más profundo.\e[0m"
+echo -e "\e[1;32m  • Enter: Busca en todos los niveles.\e[0m\n"
+read -p "Ingresa un número o presiona Enter para buscar en todos los niveles: " maxdepth
 
 # Construir el comando find base
 comando="find $directorio"
@@ -54,37 +72,49 @@ fi
 # Agregar opciones basadas en la elección del usuario
 case $opcion in
     1)
+        # Buscar por palabra dentro de archivos
+        comando="find $directorio -type f -exec grep -l \"$busqueda\" {} + | xargs grep -H \"$busqueda\""
+        ;;
+    2)
         # Buscar por nombre, insensible a mayúsculas y minúsculas
         comando="$comando -iname \"*${busqueda}*\""
         ;;
-    2)
+    3)
         # Buscar por extensión
         comando="$comando -type f -name \"*.${busqueda}\""
         ;;
-    3)
+    4)
         # Buscar archivo específico
         comando="$comando -name \"${busqueda}\""
         ;;
-    4)
+    5)
         # Buscar por tamaño
         comando="$comando -size ${busqueda}"
         ;;
-    5)
+    6)
         # Buscar directorio
         comando="$comando -type d -iname \"*${busqueda}*\""
         ;;
     *)
-        echo "Opción no válida"
+        echo -e "\n\e[1;31mOpción no válida\e[0m\n"
         exit 1
         ;;
 esac
 
-echo "Ejecutando comando:"
-echo ""
-echo "$comando"
-echo ""
-echo "comando copiado al portapapeles"
-sleep 1
-echo "$comando" | xclip -selection clipboard
-echo ""
+# Mostrar y ejecutar el comando
+echo_msg "Ejecutando comando:"
+echo -e "\n\e[1;35m$comando\e[0m\n"
+echo -e "\e[1;36mResultado:\e[0m"
+#echo -e "\e[1;34m_________________________________________________________\e[0m\n"
+
+echo -e "\n\033[1;33m_________________________________________________________\033[0m"
+echo -e "\033[1;33m_________________________________________________________\033[0m\n"
 eval $comando
+echo -e "\n\033[1;33m_________________________________________________________\033[0m"
+echo -e "\033[1;33m_________________________________________________________\033[0m\n"
+
+#echo -e "\n\e[1;34m_________________________________________________________\e[0m\n"
+
+# Copiar el comando al portapapeles
+echo -e "\e[1;32mComando copiado al portapapeles\e[0m\n"
+echo "$comando" | xclip -selection clipboard
