@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+
+# Define the commands
+commands=(
+    "chronyc sources"
+    "chronyc sourcestats"
+    "chronyc tracking"
+    "sudo chronyc ntpdata"
+)
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Loop through each command and execute it
+for cmd in "${commands[@]}"; do
+    echo -e "\033[1;34mWould you like to run the following command? [Y/n]\033[0m"
+    echo ""
+    echo -e "\033[0;33m$cmd\033[0m"
+    echo ""
+    read -r answer
+    echo ""
+
+    # Default to "yes" if Enter is pressed
+    answer=${answer:-y}
+
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+        echo "=========================================================="
+        echo -e "\033[1;36mRunning: $cmd\033[0m"
+        echo "=========================================================="
+        echo ""
+        eval "$cmd"
+        echo ""
+    else
+        echo -e "\033[0;31mSkipped: $cmd\033[0m"
+        echo ""
+    fi
+done
+
+# Separator for clarity
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Ask if the user wants to search for the configuration file
+echo -e "\033[1;36mWould you like to search for the configuration file? [Y/n]\033[0m"
+read -r modify_answer
+echo ""
+
+# Default to "yes" if Enter is pressed
+modify_answer=${modify_answer:-y}
+
+if [[ "$modify_answer" =~ ^[Yy]$ ]]; then
+    echo "=========================================================="
+    echo -e "\033[0;32mSearching for configuration files...\033[0m"
+    echo "=========================================================="
+    echo ""
+    echo -e "\033[1;35mfind / -name 'chrony.conf' 2>/dev/null\033[0m"
+    echo ""
+    find / -name "chrony.conf" 2>/dev/null
+    echo ""
+    echo "=========================================================="
+    echo -e "\033[1;35mTo edit the file, use the following command:\033[0m"
+    echo "=========================================================="
+    echo ""
+    echo -e "\033[0;33msudo nano /path/to/chrony.conf\033[0m"
+    echo ""
+    echo "=========================================================="
+    echo -e "\033[1;31mAdd or modify the line to point to another server, e.g.:\033[0m"
+    echo "=========================================================="
+    echo ""
+    echo -e "\033[1;34mserver <new_server_ip> iburst\033[0m"
+    echo ""
+fi
+
+echo ""
+echo "_________________________________________________________"
+echo ""

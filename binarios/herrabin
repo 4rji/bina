@@ -64,19 +64,20 @@ if [[ $omitir != true ]]; then
         OS=$ID
     fi
 
+
     # Instalar paquetes basados en el sistema operativo
     for paquete in "${paquetes[@]}"; do
         case $OS in
             "debian"|"ubuntu"|"kali")
                 if ! paquete_instalado_apt "$paquete"; then
                     echo "Instalando el paquete $paquete..."
-                    sudo apt install -y "$paquete" 
+                    sudo apt install -y "$paquete"
                 fi
                 ;;
-            "centos"|"rhel")
+            "centos"|"rhel"|"ol")
                 if ! paquete_instalado_yum "$paquete"; then
                     echo "Instalando el paquete $paquete..."
-                    sudo yum install -y "$paquete" 
+                    sudo yum install -y "$paquete"
                 fi
                 ;;
             "fedora")
@@ -88,10 +89,11 @@ if [[ $omitir != true ]]; then
             "arch")
                 if ! paquete_instalado_pacman "$paquete"; then
                     echo "Instalando el paquete $paquete..."
-                    sudo pacman -S --noconfirm "$paquete" 
+                    sudo pacman -S --noconfirm "$paquete"
                 fi
                 ;;
             *)
+                echo "Sistema operativo no soportado: $OS"
                 ;;
         esac
     done

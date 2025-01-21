@@ -31,7 +31,8 @@ ntpinst             Instala ntp en debian10
 dnsinst             Instala bind9 dns 
 dnsblock            usa dns bind9 - Bloquea url, dominios o redirige dns trafico a localhost 
 dnsred              Cambia un dominio a un ip redireccionando trafico en bind9
-ntpcon              Conecta el servicio ntp
+ntpcon              Conecta el servicio ntp time
+chroncon            Conecta el servicio chrony time
 updatecentos7       Para actualizar centos7
 sudoup              Hace un update de sudo de la version 9.12 adelante.
 ftpinst             Instala ftp
@@ -355,7 +356,7 @@ clamavinst          instala antivirus e inicia un scaneo solo ingresando la ruta
 splunkinst          instala Splunk y crea un alias para uniciar en zsh
 splunkforw          Splunk universal forwarder, instala .deb automaticamente. Win-Linux-Mac-freebsd 
 splunkforw2         Instala splunk forwarder, el primero lo descarga version 9.4
-splunk998           Para servidor
+splunk998           Para servidor, crea el archivo inputs para recibir conexiones
 
 suricatainst        Instala suricata, largo proceso
 suricatalog         tail -f /var/log/suricata/fast.log
