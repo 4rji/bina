@@ -68,13 +68,17 @@ echo "_________________________________________________________"
 echo -e "\033[0m"
 echo ""
 
+
+
+#!/usr/bin/env bash
+
 # Mostrar la lista de interfaces disponibles y permitir al usuario seleccionar una
-echo -e "\033[0;32mInterfaces disponibles:\033[0m"
+echo ""
+echo -e "\033[1;32mInterfaces disponibles:\033[0m"
 echo ""
 interfaces=( $(ip -o link show | awk -F': ' '{print $2}') )
 i=1
-for interface in "${interfaces[@]}"
-do
+for interface in "${interfaces[@]}"; do
     ip_address=$(ip -f inet addr show "$interface" | grep -Po 'inet \K[\d.]+' | head -1)
     [[ -z "$ip_address" ]] && ip_address="No IP"
     if [ "$ip_address" = "No IP" ]; then
@@ -86,13 +90,33 @@ do
 done
 
 echo ""
-echo -e "\033[0;33mPor favor, selecciona el número de la interfaz de red que deseas capturar:\033[0m"
+echo -e "\033[1;33mPor favor, selecciona el número de la interfaz de red que deseas capturar:\033[0m"
 read -r choice
 selected_interface=${interfaces[$choice-1]}
 
 if [ -z "$selected_interface" ]; then
     echo -e "\033[0;31mSelección no válida. Saliendo.\033[0m"
     exit 1
+fi
+
+# Preguntar si desea escuchar un puerto específico
+echo ""
+echo -e "\033[1;33m¿Deseas escuchar un puerto específico? [y/N]:\033[0m"
+read -r listen_choice
+listen_choice=${listen_choice:-n}
+listen_choice=$(echo "$listen_choice" | tr '[:upper:]' '[:lower:]')
+
+if [[ "$listen_choice" == "y" ]]; then
+    echo ""
+    echo -e "\033[1;36mPor favor, ingresa el puerto que deseas escuchar:\033[0m"
+    read -r port
+    if [[ -z "$port" || ! "$port" =~ ^[0-9]+$ ]]; then
+        echo -e "\033[0;31mPuerto inválido. Saliendo.\033[0m"
+        exit 1
+    fi
+    capture_filter="port $port"
+else
+    capture_filter=""
 fi
 
 # Verificar si el archivo captura.cap ya existe
@@ -111,8 +135,12 @@ else
     new_filename="captura.cap"
 fi
 
-echo -e "\033[0;32mEjecutando: sudo tcpdump -i $selected_interface -w $new_filename -v\033[0m"
-sudo tcpdump -i "$selected_interface" -w "$new_filename" -v
+# Ejecutar tcpdump con el filtro opcional
+echo -e "\033[0;32msudo tcpdump -i $selected_interface $capture_filter -w $new_filename -v\033[0m"
+echo "Para verlo sin guardar nada : sudo tcpdump -i any (port 9998) port optional"
+echo ""
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+sudo tcpdump -i "$selected_interface" $capture_filter -w "$new_filename" -v
 
 echo -e "\033[0;32mCaptura completada y guardada en $new_filename.\033[0m"
 echo ""
