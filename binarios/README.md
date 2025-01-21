@@ -51,6 +51,9 @@ sshmoni
 fwcom               firewall-cmd commands, comandos para manejar el firewall
 finddb              Busca una database corriendo ya sea sqlite mariadb
 python9inst         instala python 3.9 compila para yum 
+zshupdate           actualiza descargando compidor a 5.9
+passl 
+curlfix             Se supone arregla curl, no probado.
 
 
 bannerm = Hace un banner para ssh, necesita hacerlo dos veces. 
