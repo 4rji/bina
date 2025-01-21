@@ -159,7 +159,6 @@ echo -e "\033[0;34mUsa 'tshark -r $new_filename' para verlo de nuevo\033[0m"
 echo -e "\033[1;33mO con python:\033[0m"
 echo -e "\033[0;34mmonitcp\033[0m"
 echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
-
 echo "Desea ver solo las IPs y puertos atacados? [Y/n]"
 read -r user_input
 user_input=${user_input:-Y}
@@ -194,6 +193,40 @@ if [[ "$user_input" == [Yy] ]]; then
     cat "$new_ips_file" | col
     echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
     batcat -l rb "$new_ips_file" | col
+
+echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
+
+    echo "¿Deseas realizar 'dig' a las IPs del archivo y guardar los dominios? [Y/n]"
+    read -r dig_choice
+    dig_choice=${dig_choice:-Y}
+    dig_choice=$(echo "$dig_choice" | tr '[:lower:]' '[:upper:]')
+
+    if [[ "$dig_choice" == [Yy] ]]; then
+        if [ -e "domains" ]; then
+            echo "El archivo 'domains' ya existe."
+            read -p "¿Deseas sobrescribirlo? [S/n]: " overwrite_domains
+            overwrite_domains=${overwrite_domains:-S}
+            if [[ "$overwrite_domains" != [Ss] ]]; then
+                timestamp=$(date +%Y%m%d%H%M%S)
+                new_domains_file="domains_$timestamp"
+                echo "Se creará un nuevo archivo: $new_domains_file"
+            else
+                new_domains_file="domains"
+            fi
+        else
+            new_domains_file="domains"
+        fi
+
+        echo "Resolviendo dominios..."
+        awk '{print $1; print $2}' "$new_ips_file" | sort | uniq | xargs -n1 dig -x | grep 'PTR' | awk '{print $5}' | sed 's/\.$//' > "$new_domains_file"
+
+        echo "Los dominios han sido guardados en '$new_domains_file':"
+        echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+        cat "$new_domains_file"
+        echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+    else
+        echo "Operación de 'dig' cancelada. No se han generado dominios."
+    fi
 else
     echo "Operación cancelada. No se ha generado ningún archivo."
 fi
