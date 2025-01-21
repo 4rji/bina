@@ -33,13 +33,19 @@ while getopts "op" opt; do
     esac
 done
 
+
 if [[ $omitir != true ]]; then
     # Lista de paquetes a instalar
     paquetes=("sudo" "fzf" "curl" "git" "kitty" "nano" "ifupdown" "zsh" "xclip" "python3" "bat" "lsd" "tldr" "iproute2" "net-tools" "iputils" "moreutils")
 
-    # Instalar paquetes
+    # Verificar e instalar paquetes necesarios
+    echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
     echo "Instalando paquetes necesarios..."
-    sudo dnf update -y && sudo dnf install -y "${paquetes[@]}"
+    for paquete in "${paquetes[@]}"; do
+        if ! dnf list installed "$paquete" >/dev/null 2>&1; then
+            sudo dnf install -y "$paquete" 
+        fi
+    done
 
     # Función para crear directorios temporales
     function mktem() {
@@ -49,13 +55,12 @@ if [[ $omitir != true ]]; then
             new_dir=$(mktemp -d /dev/shm/tmp.XXXXXX)
         fi
 
-        echo "Directorio creado en: $new_dir"
         cd "$new_dir" || return
-        echo "Cambiado al directorio: $PWD"
     }
 
     # Crear directorio temporal y realizar operaciones
     mktem
+    echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
     git clone --depth 1 https://github.com/4rji/bina.git
     cd bina || exit 1
     sudo mkdir -p /opt/4rji/bin

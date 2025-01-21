@@ -32,13 +32,20 @@ while getopts "op" opt; do
             ;;
     esac
 done
+
+
 if [[ $omitir != true ]]; then
     # Lista de paquetes a instalar
     paquetes=("sudo" "fzf" "curl" "git" "kitty" "nano" "ifupdown" "zsh" "xclip" "python3" "bat" "lsd" "tldr" "iproute2" "net-tools" "iputils-ping" "moreutils")
 
-    # Instalar paquetes
+    # Verificar e instalar paquetes necesarios
+    echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
     echo "Instalando paquetes necesarios..."
-    sudo apt update && sudo apt install -y "${paquetes[@]}"
+    for paquete in "${paquetes[@]}"; do
+        if ! dpkg -l | grep -q "^ii.*$paquete "; then
+            sudo apt install -y "$paquete" 
+        fi
+    done
 
     # Función para crear directorios temporales
     function mktem() {
@@ -48,13 +55,15 @@ if [[ $omitir != true ]]; then
             new_dir=$(mktemp -d /dev/shm/tmp.XXXXXX)
         fi
 
-        echo "Directorio creado en: $new_dir"
+        #echo "Directorio creado en: $new_dir"
         cd "$new_dir" || return
-        echo "Cambiado al directorio: $PWD"
+        #echo "Cambiado al directorio: $PWD"
     }
 
     # Crear directorio temporal y realizar operaciones
+
     mktem
+    echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
     git clone --depth 1 https://github.com/4rji/bina.git
     cd bina || exit 1
     sudo mkdir -p /opt/4rji/bin
@@ -84,7 +93,7 @@ echo -e "${verde}_________________________________________________________${rese
 
 
 
-
+echo ""
 
 # Preguntar al usuario si desea agregar la ruta al PATH
 read -p "Do you want to add /opt/4rji/bin to your PATH? (y/n): " -n 1 -r
