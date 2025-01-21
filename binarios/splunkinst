@@ -45,8 +45,3 @@ cd splunk/bin/
 # Iniciar Splunk
 sudo /opt/splunk/bin/splunk start
 
-
-
-# Recargar el archivo .bashrc para aplicar los cambios
-source ~/.zshrc
-source ~/.bashrc

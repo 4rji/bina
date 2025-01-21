@@ -48,6 +48,7 @@ mibebemata
 psss                Escanea por conexiones lsof netstat, mi bebe mibebe
 pssc                Mismo que psss pero este las cierra en 12 segundos automaticamente mibebe
 sshmoni
+fwcom               firewall-cmd commands, comandos para manejar el firewall
 
 
 bannerm = Hace un banner para ssh, necesita hacerlo dos veces. 
