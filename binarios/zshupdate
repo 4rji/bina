@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+
+# Función para instalar las dependencias necesarias
+instalar_dependencias() {
+    echo "Instalando dependencias necesarias..."
+    yum groupinstall -y "Development Tools"
+    yum install -y gcc zlib zlib-devel bzip2 bzip2-devel \
+                   readline readline-devel sqlite sqlite-devel \
+                   openssl openssl-devel tk-devel libffi-devel \
+                   xz-devel wget make git
+}
+
+# Función para compilar e instalar ZSH sin las páginas de manual
+compilar_zsh() {
+    echo "Descargando y compilando ZSH..."
+    cd /usr/src || exit
+    git clone https://github.com/zsh-users/zsh.git
+    cd zsh || exit
+
+    # Cambiar a la última versión estable
+    git checkout zsh-5.9
+
+    echo "Configurando compilación..."
+    ./Util/preconfig
+    ./configure
+
+    echo "Compilando ZSH (esto puede tardar un poco)..."
+    make
+
+    echo "Instalando ZSH sin páginas de manual..."
+    make install.bin
+}
+
+# Ejecutar las funciones
+instalar_dependencias
+compilar_zsh
+
+echo "ZSH instalado sin páginas de manual. Verifica la versión con 'zsh --version'."

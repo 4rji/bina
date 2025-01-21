@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+
+# Función para instalar las dependencias necesarias
+instalar_dependencias() {
+    echo "Instalando dependencias necesarias..."
+    yum groupinstall -y "Development Tools"
+    yum install -y gcc zlib zlib-devel bzip2 bzip2-devel \
+                   readline readline-devel sqlite sqlite-devel \
+                   openssl openssl-devel tk-devel libffi-devel \
+                   xz-devel wget make
+}
+
+# Función para instalar Python 3 desde yum
+instalar_python3_yum() {
+    echo "Intentando instalar Python 3 desde yum..."
+    yum install -y python3 python3-pip
+
+    if command -v python3 >/dev/null 2>&1; then
+        echo "Python 3 instalado correctamente desde yum:"
+        python3 --version
+    else
+        echo "Python 3 no está disponible en yum. Se procederá a compilar Python 3.9 desde el código fuente."
+    fi
+}
+
+# Función para compilar e instalar Python 3.9 desde el código fuente
+compilar_python39() {
+    echo "Descargando Python 3.9..."
+    cd /usr/src || exit
+    wget https://www.python.org/ftp/python/3.9.0/Python-3.9.0.tgz
+    tar xzf Python-3.9.0.tgz
+    cd Python-3.9.0 || exit
+
+    echo "Configurando compilación de Python 3.9..."
+    ./configure --enable-optimizations
+
+    echo "Compilando e instalando Python 3.9 (esto puede tardar un poco)..."
+    make altinstall
+
+    if command -v python3.9 >/dev/null 2>&1; then
+        echo "Python 3.9 instalado correctamente:"
+        python3.9 --version
+    else
+        echo "Error al instalar Python 3.9."
+        exit 1
+    fi
+}
+
+# Ejecutar las funciones
+instalar_dependencias
+instalar_python3_yum
+compilar_python39
+
+echo "Instalación completada. Python 3.9 debería estar disponible como 'python3.9'."

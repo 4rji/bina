@@ -50,6 +50,7 @@ pssc                Mismo que psss pero este las cierra en 12 segundos automatic
 sshmoni
 fwcom               firewall-cmd commands, comandos para manejar el firewall
 finddb              Busca una database corriendo ya sea sqlite mariadb
+python9inst         instala python 3.9 compila para yum 
 
 
 bannerm = Hace un banner para ssh, necesita hacerlo dos veces. 
