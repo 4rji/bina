@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+#PARA PACMAN
+
+
 
 #sudo cp /usr/bin/batcat /usr/bin/bat
 # Colores
@@ -32,13 +35,15 @@ while getopts "op" opt; do
             ;;
     esac
 done
+
+
 if [[ $omitir != true ]]; then
     # Lista de paquetes a instalar
-    paquetes=("sudo" "fzf" "curl" "git" "kitty" "nano" "ifupdown" "zsh" "xclip" "python3" "bat" "lsd" "tldr" "iproute2" "net-tools" "iputils-ping" "moreutils")
+    paquetes=("sudo" "fzf" "curl" "git" "kitty" "nano" "zsh" "xclip" "python" "bat" "lsd" "tldr" "iproute2" "net-tools" "iputils" "moreutils")
 
     # Instalar paquetes
     echo "Instalando paquetes necesarios..."
-    sudo apt update && sudo apt install -y "${paquetes[@]}"
+    sudo pacman -Syu --noconfirm "${paquetes[@]}"
 
     # Función para crear directorios temporales
     function mktem() {
@@ -71,6 +76,7 @@ if [[ $omitirPreguntas == true ]]; then
     echo ""
     exit 0
 fi
+
 # Sección de preguntas empieza aquí
 
 

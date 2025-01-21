@@ -49,6 +49,7 @@ psss                Escanea por conexiones lsof netstat, mi bebe mibebe
 pssc                Mismo que psss pero este las cierra en 12 segundos automaticamente mibebe
 sshmoni
 fwcom               firewall-cmd commands, comandos para manejar el firewall
+finddb              Busca una database corriendo ya sea sqlite mariadb
 
 
 bannerm = Hace un banner para ssh, necesita hacerlo dos veces. 
@@ -154,6 +155,7 @@ servidor            Inicia y detiene un servidor apache en 8080
 adio                borra un archivo con scrub                                                         
 adios               borra toda una carpeta con scrub                                                   
 herrabin            actualiza los binarios, funciones, alias y 2-4rji.sh,   -o para omitir binarios 
+herrabinp           para pacman, existe para yum, y para dnf, y apt es la normal de arriba herrabin
 herralias           Actualiza los binarios descargando solo alias
 worms               Comprime una carpeta y la manda por worms, se ejecuta: worms ruta_carpeta          
 cscp                copiar archivos en scp en lugar de sftp    

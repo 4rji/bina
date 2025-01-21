@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+clear
+
+# Function to execute and display the command
+execute_command() {
+    echo ""
+    echo -e "\033[1;34m_________________________________________________________\033[0m"
+    echo -e "\033[1;36m$1\033[0m"
+    echo -e "\033[1;34m_________________________________________________________\033[0m"
+    eval "$1"
+    echo ""
+}
+
+# Function to display important messages
+echo_msg() {
+    echo ""
+    echo -e "\033[1;35m==============================================\033[0m"
+    echo -e "\033[1;32m$1\033[0m"
+    echo -e "\033[1;35m==============================================\033[0m"
+    echo ""
+}
+
+# List of commands
+commands=(
+    "ps aux | grep -E 'mysql|postgres|mongo|sqlite|oracle|mariadb'"
+    "sudo lsof -i -P -n | grep -E ':3306|:5432|:27017|:1521'"
+    "sudo find / -name '*.conf' | grep -E 'mysql|postgresql|mongo|sqlite|oracle'"
+    "sudo find / -name '*.db' -o -name '*.sqlite' -o -name '*.sql'"
+    "dpkg -l | grep -E 'mysql|postgres|mariadb|mongo|sqlite|oracle'"
+    "rpm -qa | grep -E 'mysql|postgres|mariadb|mongo|sqlite|oracle'"
+    "systemctl list-units --type=service | grep -E 'mysql|postgres|mongo|sqlite|oracle|mariadb'"
+    "sudo netstat -tulnp | grep -E '3306|5432|27017|1521'"
+    "sudo ss -tulnp | grep -E '3306|5432|27017|1521'"
+    
+)
+
+# Execute each command and wait for Enter
+for cmd in "${commands[@]}"; do
+    execute_command "$cmd"
+    read -rp $'\033[1;33m  Press Enter to continue...  \033[0m'
+done
+
+echo_msg "All commands executed."
