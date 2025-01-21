@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# Function to prompt with a default answer
+prompt_default() {
+    local prompt_message=$1
+    local default_choice=$2
+    read -rp "$prompt_message [$default_choice/n]: " choice
+    choice="${choice,,}"  # Convert to lowercase
+    choice="${choice:-$default_choice}"  # Use default if Enter is pressed
+    echo "$choice"
+}
+
+# Step 1: Backup /etc/passwd with a timestamp
+backup_choice=$(prompt_default "Do you want to save a backup of /etc/passwd?" "y")
+if [[ "$backup_choice" == "y" ]]; then
+    timestamp=$(date +"%Y%m%d%H%M%S")
+    backup_file="/etc/passwd.bak.$timestamp"
+    sudo cp /etc/passwd "$backup_file"
+    echo "Backup saved as $backup_file"
+else
+    echo "Backup skipped."
+fi
+
+# Step 2: Execute the command to filter users with UID >= 1000
+echo "Processing users with UID >= 1000..."
+sudo egrep -v '^\+' /etc/passwd | awk -F: '$3 >= 1000 {printf "%-15s %-15s\n", $1, $NF}'
+
+# Step 3: Create a user list if requested
+list_choice=$(prompt_default "Do you want to create a list of users in your home directory?" "y")
+if [[ "$list_choice" == "y" ]]; then
+    user_file="$HOME/users-pw"
+    sudo egrep -v '^\+' /etc/passwd | awk -F: '$3 >= 1000 {print $1}' > "$user_file"
+    echo "User list saved as $user_file"
+else
+    echo "User list creation skipped."
+fi

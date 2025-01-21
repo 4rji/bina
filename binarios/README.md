@@ -52,8 +52,12 @@ fwcom               firewall-cmd commands, comandos para manejar el firewall
 finddb              Busca una database corriendo ya sea sqlite mariadb
 python9inst         instala python 3.9 compila para yum 
 zshupdate           actualiza descargando compidor a 5.9
-passl 
+passl               version SIN batcat
+pasw                version de passwd con batcat
 curlfix             Se supone arregla curl, no probado.
+
+setnologin         Crea una lista con los usuarios en la home, y hace backup de passwd, modificar archivo
+setnologin2        Hace un nologin a el archivo ~/users-pw, modificarlo primero porque le hace a todos de lista
 
 
 bannerm = Hace un banner para ssh, necesita hacerlo dos veces. 
