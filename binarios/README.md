@@ -355,7 +355,8 @@ clamavinst          instala antivirus e inicia un scaneo solo ingresando la ruta
 splunkinst          instala Splunk y crea un alias para uniciar en zsh
 splunkforw          Splunk universal forwarder, instala .deb automaticamente. Win-Linux-Mac-freebsd 
 splunkforw2         Instala splunk forwarder, el primero lo descarga version 9.4
-testnids            curl http://testmynids.org/uid/index.html 
+splunk998           Para servidor
+
 suricatainst        Instala suricata, largo proceso
 suricatalog         tail -f /var/log/suricata/fast.log
 
