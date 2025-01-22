@@ -1,11 +1,5 @@
 #!/usr/bin/env bash
 
-if [ -z "$1" ]; then
-    echo "Uso: $0 <archivo>"
-    exit 1
-fi
-
-archivo="$1"
-chmod +x "$archivo" 
-
-./"$archivo"
+echo ""
+echo "ahora es una function"
+echo ""

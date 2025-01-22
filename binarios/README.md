@@ -24,6 +24,7 @@ aliasarch           Arregla los alias en arch
 rx6800              Instala el archivo de configuracion en Arch para que funcione la GPU
 
 ###------CCDC
+sshlist             Para allow en hosts
 hashf               crea script para monitorear carpetas, manda alertas wall y logs a /root/
 mapa                Busca un proceso despues del script y lo mata ps aux
 backd               Usa python para buscar backdoors, conexiones activas
