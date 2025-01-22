@@ -198,12 +198,13 @@ function cxx() {
 
     # Ejecutar el archivo desde el directorio actual
     "$script_dir/$archivo"
-}s
+}
 
 
 
 #limpia el archivo que genera sshmoni para ver las conexiones ssh y tcp de nc
-awkmoni() {
+#mas bien limpia ls de lsof, generadas lsof -Pin, sin la n,  muestra dominios
+lsofmoni() {
     if [ -z "$1" ]; then
         echo "Usage: archivo <file>"
         return 1
