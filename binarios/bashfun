@@ -14,34 +14,32 @@ text = r"""function extractPorts(){
 }
 
 
-
-#muestra los host en el ssh
+#SSH ping
 function __fzf_ssh_host_search() {
   local selected host
   selected=$(
-    awk '{
-      if (tolower($1) == "host") {
-        if (host != "" && ip != "") { print host " - " ip }
+    awk '
+      BEGIN { OFS=" - " }
+      tolower($1)=="host" {
+        if(host != "" && ip != "") { print host, ip }
         host = $2; ip = ""
-      } else if (tolower($1) == "hostname" && NF > 1) {
-        ip = $2
       }
-    }
-    END { if (host != "" && ip != "") print host " - " ip }' ~/.ssh/config \
-    | sort \
-    | fzf --tac +s --tiebreak=index --toggle-sort=ctrl-r
+      tolower($1)=="hostname" && NF > 1 { ip = $2 }
+      END { if (host != "" && ip != "") print host, ip }
+    ' ~/.ssh/config | sort | \
+    fzf --tac +s --tiebreak=index --toggle-sort=ctrl-r \
+      --preview 'ping -c 1 -W 1 $(echo {} | awk -F " - " "{print \$2}") > /dev/null 2>&1 && echo -e "\e[32monline\e[0m" || echo -e "\e[31moffline\e[0m"'
   )
   
   if [[ -n $selected ]]; then
-    host=${selected%% -*}
+    host=$(echo "$selected" | awk -F ' - ' '{print $1}')
     ssh "$host" < /dev/tty
   fi
 }
 
-# En Zsh, registra el widget y asigna la combinación de teclas ssh_host
+# En Zsh, registra el widget y asigna la combinación de teclas
 zle -N __fzf_ssh_host_search
 bindkey '^S' __fzf_ssh_host_search
-
 
 
 function mktem() {
