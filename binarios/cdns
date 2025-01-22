@@ -5,22 +5,81 @@ echo ""
 
 # Mostrar el DNS actual en letras azules
 echo -e "\033[31mCurrent DNS:\033[0m"
-echo -e "\033[34m$(cat /etc/resolv.conf)\033[0m"
-echo "_________________________________________________________"
+#!/usr/bin/env bash
+
 echo ""
+
+# Verificar si se pasó el argumento -a
+if [[ "$1" == "-a" ]]; then
+    # Ejecutar el comando systemd-resolve --status
+    systemd-resolve --status
+fi
+
+# Verificar si el archivo /etc/resolv.conf existe
+if [ -f /etc/resolv.conf ]; then
+    echo -e "\033[1;33mConfigured DNS servers /etc/resolv.conf :\033[0m"
+    
+    # Mostrar todas las líneas no comentadas de /etc/resolv.conf
+    grep -v '^\s*#' /etc/resolv.conf | awk '{print "\033[1;31m" $0 "\033[0m"}'
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m"
+
+    # Mostrar las líneas no comentadas de /etc/systemd/resolved.conf después de esta sección
+    if [ -f /etc/systemd/resolved.conf ]; then
+        echo -e "\033[1;34mRESOLVED - Non-commented lines in /etc/systemd/resolved.conf:\033[0m"
+        grep -v '^\s*#' /etc/systemd/resolved.conf | awk '{print "\033[1;34m" $0 "\033[0m"}'
+    else
+        echo -e "\033[1;33mThe /etc/systemd/resolved.conf file does not exist.\033[0m"
+    fi
+
+else
+    echo -e "\033[1;33mThe /etc/resolv.conf file does not exist.\033[0m"
+fi
+
+
+echo "__________________________________________________________________________________________"
+echo ""
+
+
+
+
+# Función para cambiar el DNS de systemd-resolved a Cloudflare
+change_systemd_resolved_dns() {
+    echo -e "\033[31mUpdating systemd-resolved DNS settings to Cloudflare (1.1.1.1)\033[0m"
+    sudo sed -i '/^DNS=/ s/^/#/' /etc/systemd/resolved.conf
+    echo "DNS=1.1.1.1" | sudo tee -a /etc/systemd/resolved.conf > /dev/null
+    sudo systemctl restart systemd-resolved
+    echo -e "\033[33msystemd-resolved DNS updated to Cloudflare and restarted successfully.\033[0m"
+}
+
+# Función para cambiar el DNS de systemd-resolved a una IP específica
+change_systemd_resolved_custom() {
+    read -p "Enter the desired DNS IP address for systemd-resolved: " user_ip
+    echo -e "\033[31mCommenting all DNS lines in /etc/systemd/resolved.conf\033[0m"
+    sudo sed -i '/^DNS=/ s/^/#/' /etc/systemd/resolved.conf
+    echo "DNS=$user_ip" | sudo tee -a /etc/systemd/resolved.conf > /dev/null
+    sudo systemctl restart systemd-resolved
+    echo -e "\033[33mDNS in systemd-resolved changed to $user_ip and service restarted successfully.\033[0m"
+}
+
+# Función para modificar el archivo /etc/systemd/resolved.conf con sudo
+modify_resolved_conf() {
+    echo -e "\033[31mOpening /etc/systemd/resolved.conf for modification\033[0m"
+    sudo nano /etc/systemd/resolved.conf
+}
+
+# Función para cambiar el DNS a 1.1.1.1 (Cloudflare) en /etc/resolv.conf
+change_dns_cloudflare() {
+    echo -e "\033[31mCommenting all lines in /etc/resolv.conf\033[0m"
+    sudo sed -i 's/^/#/' /etc/resolv.conf
+    echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
+    echo -e "\033[33mDNS changed to Cloudflare (1.1.1.1) in /etc/resolv.conf\033[0m"
+}
 
 # Función para modificar el archivo /etc/resolv.conf con sudo
 modify_dns_file() {
     echo -e "\033[31mOpening /etc/resolv.conf for modification\033[0m"
     sudo nano /etc/resolv.conf
-}
-
-# Función para cambiar el DNS a 1.1.1.1 (Cloudflare)
-change_dns_cloudflare() {
-    echo -e "\033[31mCommenting all lines in /etc/resolv.conf\033[0m"
-    sudo sed -i 's/^/#/' /etc/resolv.conf
-    echo "nameserver 1.1.1.1" | sudo tee -a /etc/resolv.conf
-    echo -e "\033[33mDNS changed to Cloudflare (1.1.1.1)\033[0m"
 }
 
 # Función para cambiar el DNS a una IP específica
@@ -52,11 +111,14 @@ quit_script() {
 
 # Menú de selección
 echo -e "\033[35mSelect an option:\033[0m"
-echo "1. Change DNS to Cloudflare (1.1.1.1)"
-echo "2. Modify /etc/resolv.conf"
-echo "3. Change DNS to a specific IP address"
-echo "4. Lock DNS"
-echo "5. Unlock DNS"
+echo "1. Change DNS in systemd-resolved to Cloudflare (1.1.1.1)"
+echo "2. Change DNS in systemd-resolved to a specific IP address"
+echo "3. Modify /etc/systemd/resolved.conf"
+echo "4. Change DNS to Cloudflare (1.1.1.1) in /etc/resolv.conf"
+echo "5. Modify /etc/resolv.conf"
+echo "6. Change DNS to a specific IP address"
+echo "7. Lock DNS"
+echo "8. Unlock DNS"
 echo "q. Quit"
 echo ""
 
@@ -65,11 +127,14 @@ read -n 1 -s -r option
 
 # Ejecutar la opción seleccionada
 case $option in
-    1) change_dns_cloudflare ;;
-    2) modify_dns_file ;;
-    3) change_dns_custom ;;
-    4) lock_dns ;;
-    5) unlock_dns ;;
+    1) change_systemd_resolved_dns ;;
+    2) change_systemd_resolved_custom ;;
+    3) modify_resolved_conf ;;
+    4) change_dns_cloudflare ;;
+    5) modify_dns_file ;;
+    6) change_dns_custom ;;
+    7) lock_dns ;;
+    8) unlock_dns ;;
     q) quit_script ;;
     *) echo -e "\033[31mInvalid option. Exiting.\033[0m" ;;
 esac
