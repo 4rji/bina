@@ -77,7 +77,8 @@ case $opcion in
         ;;
     2)
         # Buscar por nombre, insensible a mayúsculas y minúsculas
-        comando="$comando -iname \"*${busqueda}*\""
+        comando="$comando -iname \"*${busqueda}*\" 2&>/dev/null"
+
         ;;
     3)
         # Buscar por extensión
