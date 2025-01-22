@@ -13,6 +13,37 @@ text = r"""function extractPorts(){
     cat extractPorts.tmp; rm extractPorts.tmp
 }
 
+
+
+#muestra los host en el ssh
+function __fzf_ssh_host_search() {
+  local selected host
+  selected=$(
+    awk '{
+      if (tolower($1) == "host") {
+        if (host != "" && ip != "") { print host " - " ip }
+        host = $2; ip = ""
+      } else if (tolower($1) == "hostname" && NF > 1) {
+        ip = $2
+      }
+    }
+    END { if (host != "" && ip != "") print host " - " ip }' ~/.ssh/config \
+    | sort \
+    | fzf --tac +s --tiebreak=index --toggle-sort=ctrl-r
+  )
+  
+  if [[ -n $selected ]]; then
+    host=${selected%% -*}
+    ssh "$host" < /dev/tty
+  fi
+}
+
+# En Zsh, registra el widget y asigna la combinación de teclas ssh_host
+zle -N __fzf_ssh_host_search
+bindkey '^S' __fzf_ssh_host_search
+
+
+
 function mktem() {
     if [ -n "$1" ]; then
         new_dir=$(mktemp -d /dev/shm/tmp."$1".XXXXXX)
