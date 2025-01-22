@@ -40,7 +40,8 @@ if [[ $omitir != true ]]; then
 
     # Verificar e instalar paquetes necesarios
     echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
-    echo "Instalando paquetes necesarios..."
+    echo "Installing necessary packages...
+#     echo "Instalando paquetes necesarios..."
     for paquete in "${paquetes[@]}"; do
         if ! dpkg -l | grep -q "^ii.*$paquete "; then
             sudo apt install -y "$paquete" 
@@ -69,7 +70,7 @@ if [[ $omitir != true ]]; then
     sudo mkdir -p /opt/4rji/bin
     sudo cp -rf binarios/* /opt/4rji/bin
     echo ""
-    echo -e "\033[1;34mbinarios actualizados\033[0m"
+    echo -e "\033[1;34mBinaries updated.\033[0m"
     todou
     cd || exit 1
     echo ""
