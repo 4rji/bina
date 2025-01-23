@@ -367,6 +367,7 @@ rkhun               Instala, actualiza y ejecuta el scaneo rkhunter, tambien ins
 apachenombre        Instrucciones para remover el nombre del banner de apache y nginx
 clamavinst          instala antivirus e inicia un scaneo solo ingresando la ruta, y se actualiza tambien 
 splunkinst          instala Splunk y crea un alias para uniciar en zsh
+splunkuninstall     Desinstala splunky
 splunkforw          Splunk universal forwarder, instala .deb automaticamente. Win-Linux-Mac-freebsd 
 splunkforw2         Instala splunk forwarder, el primero lo descarga version 9.4
 splunk998           Para servidor, crea el archivo inputs para recibir conexiones

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# Colores para salida
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+RESET='\033[0m'
+
+echo -e "${GREEN}Desinstalando Splunk...${RESET}"
+
+# Verifica si Splunk está instalado
+if rpm -qa | grep -q "splunk"; then
+    echo -e "${GREEN}Eliminando paquete Splunk...${RESET}"
+    sudo rpm -e splunk || { echo -e "${RED}Error al eliminar el paquete Splunk.${RESET}"; exit 1; }
+else
+    echo -e "${RED}Splunk no está instalado.${RESET}"
+fi
+
+# Eliminar directorios de Splunk
+echo -e "${GREEN}Eliminando directorios de Splunk...${RESET}"
+sudo rm -rf /opt/splunk /etc/splunk /var/lib/splunk /var/log/splunk || {
+    echo -e "${RED}Error al eliminar directorios de Splunk.${RESET}"
+    exit 1
+}
+
+# Verifica si los directorios todavía existen
+if [ -d "/opt/splunk" ] || [ -d "/etc/splunk" ] || [ -d "/var/lib/splunk" ] || [ -d "/var/log/splunk" ]; then
+    echo -e "${RED}Algunos directorios de Splunk no se pudieron eliminar.${RESET}"
+    exit 1
+fi
+
+echo -e "${GREEN}Splunk ha sido desinstalado y todos los archivos han sido eliminados.${RESET}"
+
+
+echo "in case"
+echo "rpm -qa | grep splunk"
+echo "sudo rpm -ivh --force splunk-9.4.0-6b4ebe426ca6.x86_64.rpm"
