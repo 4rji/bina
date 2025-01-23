@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+sudo apt install docker.io
+
+docker pull cowrie/cowrie
+
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 echo "cowrie -t to stop the containers"
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"5;9u
