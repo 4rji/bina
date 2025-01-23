@@ -173,30 +173,30 @@ function coll() {
 
 
 #funcion cxx para ejecutar archivos 
-function cxx() {
-    if [ -z "$1" ]; then
-        echo "Uso: ejecutar_desde_portapapeles <nombre>"
-        return 1
-    fi
+#function cxx() {
+ #   if [ -z "$1" ]; then
+  #      echo "Uso: ejecutar_desde_portapapeles <nombre>"
+   #     return 1
+#    fi
 
-    local archivo="$1"
-    local script_dir
+#    local archivo="$1"
+ #   local script_dir
 
-    # Obtener el directorio del script
-    if [[ -n "${BASH_SOURCE[0]}" ]]; then
-        script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
-    else
+#    # Obtener el directorio del script
+ #   if [[ -n "${BASH_SOURCE[0]}" ]]; then
+  #      script_dir=$(dirname "$(realpath "${BASH_SOURCE[0]}")")
+   # else
         # Usar el directorio actual si BASH_SOURCE no está disponible
-        script_dir=$(pwd)
-    fi
+  #      script_dir=$(pwd)
+   # fi
 
     # Crear el archivo en el directorio actual
-    xclip -selection clipboard -o > "$script_dir/$archivo"
-    chmod +x "$script_dir/$archivo"
+#    xclip -selection clipboard -o > "$script_dir/$archivo"
+ #   chmod +x "$script_dir/$archivo"
 
     # Ejecutar el archivo desde el directorio actual
-    "$script_dir/$archivo"
-}
+  #  "$script_dir/$archivo"
+# }
 
 
 
