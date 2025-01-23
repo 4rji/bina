@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+# Colors for output
+GREEN='\e[0;32m'
+YELLOW='\e[0;33m'
+RED='\e[0;31m'
+RESET='\e[0m'
+
+echo -e "${YELLOW}This script will help you schedule a task using crontab.${RESET}"
+
+# Ask for the interval in minutes
+echo -e "${GREEN}Enter the interval in minutes for the cron job (e.g., 5 for every 5 minutes):${RESET}"
+read -r minutes
+
+# Validate the interval
+if ! [[ "$minutes" =~ ^[0-9]+$ ]] || ((minutes < 1 || minutes > 59)); then
+    echo -e "${RED}Invalid interval. Please enter a number between 1 and 59.${RESET}"
+    exit 1
+fi
+
+# Ask for the command or script path
+echo -e "${GREEN}Enter the command or script path you want to run:${RESET}"
+read -r command
+
+# Validate the command input
+if [[ -z "$command" ]]; then
+    echo -e "${RED}No command provided. Exiting.${RESET}"
+    exit 1
+fi
+
+# Ask if the job is for the user or root
+echo -e "${GREEN}Do you want to add this cron job for the current user or as root?${RESET}"
+echo -e "Type 'user' for the current user or 'root' for sudo:"
+read -r user_type
+
+# Build the cron job entry
+cron_entry="*/$minutes * * * * $command"
+
+# Add the cron job
+if [[ "$user_type" == "user" ]]; then
+    (crontab -l 2>/dev/null; echo "$cron_entry") | crontab -
+    echo -e "${GREEN}Cron job added successfully for the current user.${RESET}"
+elif [[ "$user_type" == "root" ]]; then
+    echo -e "${YELLOW}Adding cron job as root. You may need to provide your password.${RESET}"
+    sudo bash -c "(crontab -l 2>/dev/null; echo \"$cron_entry\") | crontab -"
+    echo -e "${GREEN}Cron job added successfully for root.${RESET}"
+else
+    echo -e "${RED}Invalid choice. Exiting without adding the cron job.${RESET}"
+    exit 1
+fi
