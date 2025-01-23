@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-echo ""
-echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+#echo ""
+
 
 # Verificar si se pasó el argumento -a
 if [[ "$1" == "-a" ]]; then
@@ -9,20 +9,35 @@ if [[ "$1" == "-a" ]]; then
     systemd-resolve --status
 fi
 
+    echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
+    echo -e "\033[34m    systemd-resolved.service\033[0m"
+
+
+echo "resolvectl status | grep 'DNS Servers'"
+resolvectl status | grep 'DNS Servers'
+    echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
+
+
 # Verificar si el archivo /etc/resolv.conf existe
 if [ -f /etc/resolv.conf ]; then
-    echo -e "\033[1;33mConfigured DNS servers /etc/resolv.conf :\033[0m"
     
-    # Mostrar todas las líneas no comentadas de /etc/resolv.conf
-    grep -v '^\s*#' /etc/resolv.conf | awk '{print "\033[1;31m" $0 "\033[0m"}'
-
-echo -e "\n\033[1;34m_________________________________________________________\033[0m"
-echo -e "\033[1;34m_________________________________________________________\033[0m\n"
 
     # Mostrar las líneas no comentadas de /etc/systemd/resolved.conf después de esta sección
     if [ -f /etc/systemd/resolved.conf ]; then
         echo -e "\033[1;34mNon-commented lines in /etc/systemd/resolved.conf:\033[0m"
         grep -v '^\s*#' /etc/systemd/resolved.conf | awk '{print "\033[1;34m" $0 "\033[0m"}'
+
+        echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
+
+
+    # Mostrar todas las líneas no comentadas de /etc/resolv.conf
+    
+    echo -e "\033[1;33mConfigured DNS servers /etc/resolv.conf :\033[0m"
+    grep -v '^\s*#' /etc/resolv.conf | awk '{print "\033[1;31m" $0 "\033[0m"}'
+
+
+
+    
     else
         echo -e "\033[1;33mThe /etc/systemd/resolved.conf file does not exist.\033[0m"
     fi
@@ -32,9 +47,14 @@ else
 fi
 
 # Separador
-echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+    echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
 
-echo ""
-echo "ejecutar con -a para ver"
-echo "systemd-resolve --status"
+
+echo -e "\033[34mnmcli device show | grep 'IP4.DNS'\033[0m"
+
+nmcli device show | grep 'IP4.DNS'
+
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+
+
