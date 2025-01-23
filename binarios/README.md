@@ -97,6 +97,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+resolvdinst         instala resolvd para linux debian, no servidor, solo dns
 batinst             Instala batcat en debian .deb -i dpkg
 lsdinst             Instala lsd en debian .deb -i dpkg
 transf              Enviar recibir archivos instrucciones

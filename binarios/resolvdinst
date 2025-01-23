@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+
+# Colors for output
+green='\033[0;32m'
+red='\033[0;31m'
+reset='\033[0m'
+
+# Function to install systemd-resolved
+install_systemd_resolved() {
+    echo -e "${green}Installing systemd-resolved...${reset}"
+    sudo apt update
+    sudo apt install -y systemd-resolved
+    if systemctl is-active --quiet systemd-resolved; then
+        echo -e "${green}systemd-resolved is installed and running.${reset}"
+    else
+        echo -e "${red}Failed to install or start systemd-resolved.${reset}"
+        exit 1
+    fi
+}
+
+# Function to configure systemd-resolved with Cloudflare DNS
+configure_cloudflare_dns() {
+    echo -e "${green}Configuring systemd-resolved with Cloudflare DNS...${reset}"
+
+    # Check if the configuration file exists
+    if [[ ! -f /etc/systemd/resolved.conf ]]; then
+        echo -e "${red}/etc/systemd/resolved.conf not found!${reset}"
+        exit 1
+    fi
+
+    # Comment existing DNS lines and add Cloudflare DNS
+    sudo sed -i '/^DNS=/s/^/#/' /etc/systemd/resolved.conf
+    echo "DNS=1.1.1.1 1.0.0.1" | sudo tee -a /etc/systemd/resolved.conf > /dev/null
+
+    # Restart systemd-resolved
+    sudo systemctl restart systemd-resolved
+
+    # Verify the changes
+    echo -e "${green}Verifying DNS settings:${reset}"
+    resolvectl status | grep 'DNS Servers'
+}
+
+# Main script
+echo -e "${green}Starting script to install and configure systemd-resolved...${reset}"
+
+# Install systemd-resolved
+install_systemd_resolved
+
+# Configure Cloudflare DNS
+configure_cloudflare_dns
+
+echo -e "${green}Done.${reset}"
