@@ -28,94 +28,39 @@ read -p "Selecciona una opción (1-6): " opcion
 
 # Pregunta específica según la opción elegida
 case $opcion in
-    1)
-        echo -e "\n\e[1;34mIngresa la palabra o texto que deseas buscar dentro de los archivos (deja en blanco para buscar todo):\e[0m\n"
-        ;;
-    2)
-        echo -e "\n\e[1;34mIngresa el nombre (o parte del nombre) del archivo o directorio:\e[0m\n"
-        ;;
-    3)
-        echo -e "\n\e[1;34mIngresa la extensión del archivo sin el punto (ejemplo: jpg, txt):\e[0m\n"
-        ;;
-    4)
-        echo -e "\n\e[1;34mIngresa el nombre exacto del archivo (incluyendo extensión si aplica):\e[0m\n"
-        ;;
-    5)
-        echo -e "\n\e[1;34mIngresa el tamaño del archivo (ejemplo: +50M para archivos mayores de 50 MB, -100k para archivos menores de 100 KB):\e[0m\n"
-        ;;
-    6)
-        echo -e "\n\e[1;34mIngresa el nombre (o parte del nombre) del directorio:\e[0m\n"
-        ;;
-    *)
-        echo -e "\n\e[1;31mOpción no válida\e[0m\n"
-        exit 1
-        ;;
+    1) prompt="Ingresa la palabra o texto que deseas buscar dentro de los archivos: ";;
+    2) prompt="Ingresa el nombre (o parte del nombre) del archivo o directorio: ";;
+    3) prompt="Ingresa la extensión del archivo sin el punto (ejemplo: jpg, txt): ";;
+    4) prompt="Ingresa el nombre exacto del archivo (incluyendo extensión si aplica): ";;
+    5) prompt="Ingresa el tamaño del archivo (+50M para mayores de 50MB, -100k para menores de 100KB): ";;
+    6) prompt="Ingresa el nombre (o parte del nombre) del directorio: ";;
+    *) echo -e "\n\e[1;31mOpción no válida\e[0m\n"; exit 1;;
 esac
-read busqueda
+read -p "$prompt" busqueda
 
-# Preguntar por maxdepth y explicar su propósito
-echo -e "\n\e[1;36mMax depth (profundidad máxima):\e[0m\n"
-echo -e "\e[1;32m- Define hasta qué nivel de subdirectorios buscar. Por ejemplo:\e[0m"
-echo -e "\e[1;32m  • 1: Solo busca en el directorio actual.\e[0m"
-echo -e "\e[1;32m  • 2: Incluye subdirectorios a un nivel más profundo.\e[0m"
-echo -e "\e[1;32m  • Enter: Busca en todos los niveles.\e[0m\n"
-read -p "Ingresa un número o presiona Enter para buscar en todos los niveles: " maxdepth
+# Preguntar por maxdepth
+read -p "Ingresa el nivel de profundidad máxima (Enter para buscar en todos los niveles): " maxdepth
 
 # Construir el comando find base
-comando="find $directorio"
-
-# Agregar maxdepth si es necesario
-if [[ ! -z "$maxdepth" ]]; then
-    comando="$comando -maxdepth $maxdepth"
-fi
+comando="find \"$directorio\""
+[ -n "$maxdepth" ] && comando+=" -maxdepth $maxdepth"
 
 # Agregar opciones basadas en la elección del usuario
 case $opcion in
-    1)
-        # Buscar por palabra dentro de archivos
-        comando="find $directorio -type f -exec grep -l \"$busqueda\" {} + | xargs grep -H \"$busqueda\""
-        ;;
-    2)
-        # Buscar por nombre, insensible a mayúsculas y minúsculas
-        comando="$comando -iname \"*${busqueda}*\" 2&>/dev/null"
-
-        ;;
-    3)
-        # Buscar por extensión
-        comando="$comando -type f -name \"*.${busqueda}\""
-        ;;
-    4)
-        # Buscar archivo específico
-        comando="$comando -name \"${busqueda}\""
-        ;;
-    5)
-        # Buscar por tamaño
-        comando="$comando -size ${busqueda}"
-        ;;
-    6)
-        # Buscar directorio
-        comando="$comando -type d -iname \"*${busqueda}*\""
-        ;;
-    *)
-        echo -e "\n\e[1;31mOpción no válida\e[0m\n"
-        exit 1
-        ;;
+    1) comando+=" -type f -exec grep -l \"$busqueda\" {} +" ;;
+    2) comando+=" -iname \"*${busqueda}*\"" ;;
+    3) comando+=" -type f -name \"*.${busqueda}\"" ;;
+    4) comando+=" -name \"${busqueda}\"" ;;
+    5) comando+=" -size ${busqueda}" ;;
+    6) comando+=" -type d -iname \"*${busqueda}*\"" ;;
 esac
 
-# Mostrar y ejecutar el comando
-echo_msg "Ejecutando comando:"
+# Ejecutar el comando con manejo de errores y silenciamiento de mensajes de "Permission denied"
+echo_msg "Resultados de la búsqueda:"
+if ! eval "sudo $comando 2>/dev/null"; then
+    echo -e "\n\e[1;31mError al ejecutar el comando. Verifica tu entrada.\e[0m"
+fi
+
+# Mostrar el comando ejecutado al final
+echo_msg "Comando ejecutado:"
 echo -e "\n\e[1;35m$comando\e[0m\n"
-echo -e "\e[1;36mResultado:\e[0m"
-#echo -e "\e[1;34m_________________________________________________________\e[0m\n"
-
-echo -e "\n\033[1;33m_________________________________________________________\033[0m"
-echo -e "\033[1;33m_________________________________________________________\033[0m\n"
-eval $comando
-echo -e "\n\033[1;33m_________________________________________________________\033[0m"
-echo -e "\033[1;33m_________________________________________________________\033[0m\n"
-
-#echo -e "\n\e[1;34m_________________________________________________________\e[0m\n"
-
-# Copiar el comando al portapapeles
-echo -e "\e[1;32mComando copiado al portapapeles\e[0m\n"
-echo "$comando" | xclip -selection clipboard
