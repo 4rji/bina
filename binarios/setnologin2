@@ -32,9 +32,8 @@ echo ""
 
 echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
 
-
-# Preguntar si desea continuar para asignar `nologin`
-echo -e "\033[1;33mDo you want to set 'nologin' shell for the listed users?\033[0m"
+# Preguntar si desea continuar para asignar `nologin` y bloquear la cuenta
+echo -e "\033[1;33mDo you want to set 'nologin' shell and lock the accounts for the listed users?\033[0m"
 echo ""
 read -rp "[Press 'y' to proceed or Enter to cancel]: " response
 response="${response,,}" # Convertir a minúsculas
@@ -46,11 +45,28 @@ if [[ "$response" == "y" ]]; then
     echo "========================================================="
     echo ""
 
-    # Procesar usuarios para asignarles 'nologin'
+    # Procesar usuarios para asignarles 'nologin' y bloquear la cuenta
     while read -r user; do
         if id "$user" &>/dev/null; then
-            #echo -e "\033[1;32mSetting nologin for user: $user\033[0m"
+            echo -e "\033[1;32mProcessing user: $user\033[0m"
+            
+            # Asignar el shell 'nologin'
             sudo usermod -s /usr/sbin/nologin "$user"
+            if [[ $? -eq 0 ]]; then
+                echo -e "\033[1;32mSuccessfully set shell to /usr/sbin/nologin for user: $user\033[0m"
+            else
+                echo -e "\033[1;31mFailed to set shell for user: $user\033[0m"
+            fi
+
+            # Bloquear la cuenta del usuario
+            sudo usermod -L "$user"
+            if [[ $? -eq 0 ]]; then
+                echo -e "\033[1;32mSuccessfully locked the account for user: $user\033[0m"
+            else
+                echo -e "\033[1;31mFailed to lock the account for user: $user\033[0m"
+            fi
+
+            echo "" # Línea en blanco para separación
         else
             echo -e "\033[1;31mUser $user does not exist. Skipping.\033[0m"
         fi
@@ -67,5 +83,5 @@ else
 fi
 
 echo ""
-echo -e "\033[1;36mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\033[0m"
+echo -e "\033[1;36mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it on your own computers and/or with the computer owner's permission.\033[0m"
 echo ""
