@@ -1,81 +1,174 @@
 #!/usr/bin/env bash
 
-# Colores
-amarillo='\e[0;33m'
-azul='\e[0;34m'
-reset='\e[0m'
+
+
+
+# Definir colores para la salida
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+NC='\033[0m' # Sin color
+
+# --- Inicio de tu script existente ---
+# (Coloca aquí el código de tu script actual)
+# ----------------------------------------
+
+# Función para bloquear un usuario
+bloquear_usuario() {
+    echo -e "${GREEN}Lista de usuarios actuales:${NC}"
+    # Listar usuarios con un shell de inicio válido
+    awk -F: '/\/bin\/bash$|\/bin\/sh$|\/bin\/zsh$|\/usr\/sbin\/nologin$|\/bin\/false$/ {print $1}' /etc/passwd
+
+    echo # Línea en blanco para mejor legibilidad
+
+    # Solicitar el nombre de usuario a bloquear
+    read -p "Introduce el nombre del usuario que deseas bloquear: " usuario
+
+    # Verificar si el usuario existe
+    if id "$usuario" &>/dev/null; then
+        # Bloquear la cuenta del usuario (evita el inicio de sesión)
+        sudo usermod -L "$usuario"
+        
+        # Cambiar el shell del usuario a nologin para quitarle la capacidad de acceder al shell
+        sudo usermod -s /usr/sbin/nologin "$usuario"
+        
+        # Verificar si los comandos se ejecutaron correctamente
+        if [[ $? -eq 0 ]]; then
+            echo -e "${RED}El usuario '$usuario' ha sido bloqueado exitosamente.${NC}"
+            # Mostrar el estado actual del usuario
+            echo -e "${GREEN}Estado actual del usuario '$usuario':${NC}"
+            sudo passwd -S "$usuario"
+        else
+            echo -e "${RED}Hubo un error al bloquear el usuario '$usuario'.${NC}"
+        fi
+    else
+        echo -e "${RED}El usuario '$usuario' no existe.${NC}"
+    fi
+}
+
+# --- Integración de la opción para bloquear usuarios ---
+read -p "Presiona [s] para bloquear un usuario o presiona Enter para continuar: " opcion
+
+if [[ "$opcion" =~ ^[sS]$ ]]; then
+    bloquear_usuario
+else
+    echo "Continuando con el script..."
+    # Continúa con el resto de tu script
+fi
+
+# --- Resto de tu script existente ---
+# (Coloca aquí el resto de tu código)
+# ----------------------------------------
+
+
+# Función para mostrar mensajes destacados
+echo_msg() {
+    echo -e "\e[1;36m==============================================\e[0m"
+    echo -e "\e[1;36m$1\e[0m"
+    echo -e "\e[1;36m==============================================\e[0m"
+}
 
 # Preguntar por el nombre del grupo
-read -p "Introduce el nombre del grupo: " nombre_grupo
+echo ""
+echo -e "\e[0;33mNombre del GRUPO (Ejemplo: developers):\e[0m"
+read -p "" nombre_grupo
+
+# Validar que el nombre del grupo no esté vacío
+if [[ -z "$nombre_grupo" ]]; then
+    echo -e "\e[0;31mError: El nombre del grupo no puede estar vacío.\e[0m"
+    exit 1
+fi
 
 # Preguntar por el ID del grupo
-read -p "Introduce el ID del grupo: " id_grupo
+echo ""
+echo -e "\e[0;32mIntroduce el ID del Grupo (Ejemplo: 1234, solo números):\e[0m"
+read -p "" id_grupo
+
+# Validar que el ID del grupo sea numérico
+if ! [[ "$id_grupo" =~ ^[0-9]+$ ]]; then
+    echo -e "\e[0;31mError: El ID del grupo debe ser un número válido.\e[0m"
+    exit 1
+fi
 
 # Preguntar por el nombre de usuario
-read -p "Introduce el nombre de usuario: " nombre_usuario
+echo ""
+echo -e "\e[0;35mIntroduce el nombre del USUARIO (Ejemplo: john_doe):\e[0m"
+read -p "" nombre_usuario
+
+# Validar que el nombre de usuario no esté vacío
+if [[ -z "$nombre_usuario" ]]; then
+    echo -e "\e[0;31mError: El nombre de usuario no puede estar vacío.\e[0m"
+    exit 1
+fi
 
 # Preguntar por el ID del usuario
-read -p "Introduce el ID del usuario: " id_usuario
+echo ""
+echo -e "\e[0;34mIntroduce el ID del USUARIO (Ejemplo: 1001, solo números):\e[0m"
+read -p "" id_usuario
+
+# Validar que el ID del usuario sea numérico
+if ! [[ "$id_usuario" =~ ^[0-9]+$ ]]; then
+    echo -e "\e[0;31mError: El ID del usuario debe ser un número válido.\e[0m"
+    exit 1
+fi
 
 # Confirmación del usuario
 echo ""
-echo -e "${amarillo}¿Estás seguro de crear el siguiente usuario con los datos anteriores? [S/n] ${reset}"
+echo -e "\e[0;33m¿Estás seguro de crear el siguiente usuario con los datos ingresados? [s/N]:\e[0m"
+echo ""
+echo -e "\e[0;36mGrupo:\e[0m $nombre_grupo"
+echo -e "\e[0;36mID del Grupo:\e[0m $id_grupo"
+echo -e "\e[0;36mUsuario:\e[0m $nombre_usuario"
+echo -e "\e[0;36mID del Usuario:\e[0m $id_usuario"
 read -n1 confirmacion
 echo ""
 
 if [[ "$confirmacion" =~ ^[Ss]$ ]]; then
-    # Espacios para una mejor visualización
     echo ""
-    echo "_________________________________________________________"
+    echo -e "\e[0;37m_________________________________________________________\e[0m"
     echo ""
 
     # Crear el grupo
-    echo -e "${azul}Creando el grupo $nombre_grupo con el ID $id_grupo...${reset}"
-    groupadd -g $id_grupo $nombre_grupo
+    echo_msg "Creando el grupo $nombre_grupo con el ID $id_grupo..."
+    sudo groupadd -g "$id_grupo" "$nombre_grupo"
 
+    echo ""
     # Crear el usuario
-    echo -e "${azul}Creando el usuario $nombre_usuario con el ID $id_usuario...${reset}"
-    useradd -u $id_usuario -g $id_grupo -s /bin/bash -m $nombre_usuario
+    echo_msg "Creando el usuario $nombre_usuario con el ID $id_usuario..."
+    sudo useradd -u "$id_usuario" -g "$id_grupo" -s /bin/bash -m "$nombre_usuario"
 
+    echo ""
     # Establecer contraseña para el usuario
-    echo -e "${azul}Estableciendo contraseña para el usuario $nombre_usuario...${reset}"
-    passwd $nombre_usuario
+    echo_msg "Estableciendo contraseña para el usuario $nombre_usuario..."
+    sudo passwd "$nombre_usuario"
 
+    echo ""
     # Editar el archivo sudoers para el usuario
-    echo -e "${azul}Editando el archivo /etc/sudoers.d/$nombre_usuario...${reset}"
-    echo "$nombre_usuario ALL=(ALL:ALL) ALL" | sudo tee /etc/sudoers.d/$nombre_usuario > /dev/null
-    echo ""
+    echo_msg "Editando el archivo /etc/sudoers.d/$nombre_usuario..."
+    echo "$nombre_usuario ALL=(ALL:ALL) ALL" | sudo tee /etc/sudoers.d/"$nombre_usuario" > /dev/null
 
-    # Espacios para una mejor visualización
     echo ""
-    echo "_________________________________________________________"
+    echo -e "\e[0;37m_________________________________________________________\e[0m"
     echo ""
 
     # Mostrar el archivo sudoers editado
-    echo "Editando el archivo /etc/sudoers.d/$nombre_usuario..."
-    echo "Mostrando el archivo"
+    echo_msg "Mostrando el archivo /etc/sudoers.d/$nombre_usuario"
     echo ""
-    cat /etc/sudoers.d/$nombre_usuario
+    sudo cat /etc/sudoers.d/"$nombre_usuario"
     echo ""
-    echo "fin."
+    echo -e "\e[0;32mFin.\e[0m"
+
     # Pregunta para cambiar al usuario creado
     echo ""
-    read -n1 -p "¿Quieres ir al usuario creado? [S/n] " respuesta
+    read -n1 -p "¿Quieres ir al usuario creado? [s/N] " respuesta
     echo ""
 
     # Cambiar al usuario creado si la respuesta es afirmativa
     if [[ "$respuesta" =~ ^[Ss]$ ]]; then
-        su $nombre_usuario
+        echo -e "\e[0;33mCambiando al usuario $nombre_usuario...\e[0m"
+        sudo su - "$nombre_usuario"
     fi
 
 else
-    echo "Operación cancelada."
+    echo ""
+    echo -e "\e[0;31mOperación cancelada.\e[0m"
 fi
-
-
-
-
-
-
-
-
