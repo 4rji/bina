@@ -233,7 +233,7 @@ nessusinst          instalar nessus
 
 ###------fail2ban
 f2binst             instala debian fail2ban f2b                                                               
-f2bcomm             fail2ban f2b comandos 
+f2c                 fail2ban comandos 
 
 ###------para bspwx
 target1             cambia el estatus de la bateria por cualquier otra cosa que se quiera poner ahi    

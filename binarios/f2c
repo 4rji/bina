@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+
+# Alias para referencia
+echo "alias rs2='sudo nano /etc/rsyslog.conf'"
+echo "alias f2mod='sudo nano /etc/fail2ban/jail.local'"
+echo "alias f2r='sudo systemctl restart fail2ban'"
+echo "alias f2s='sudo systemctl status fail2ban'"
+echo "alias f2b='read -p \"Ingresa IP a banear: \" ip && sudo fail2ban-client set sshd banip \$ip'"
+echo "alias f2u='read -p \"Ingresa IP a unban: \" ip && sudo fail2ban-client set sshd unbanip \$ip'"
+echo "alias f2j='sudo fail2ban-client status sshd'"
+
+# Función para mostrar mensajes importantes
+echo_msg() {
+    echo -e "\033[36m==============================================\033[0m"
+    echo -e "\033[32m$1\033[0m"
+    echo -e "\033[36m==============================================\033[0m"
+}
+
+while true; do
+    echo ""
+    echo -e "\033[34m_________________________________________________________\033[0m"
+    echo ""
+    echo_msg "Seleccione una opción para ejecutar un comando:"
+    echo ""
+    echo -e "\033[33m1)\033[0m Ver estado de Fail2Ban en SSHD (sudo fail2ban-client status sshd)"
+    echo -e "\033[33m2)\033[0m Desbanear una IP en Fail2Ban"
+    echo -e "\033[33m3)\033[0m Ver estado de Fail2Ban (sudo systemctl status fail2ban)"
+    echo -e "\033[33m4)\033[0m Editar rsyslog.conf (sudo nano /etc/rsyslog.conf)"
+    echo -e "\033[33m5)\033[0m Editar configuración de Fail2Ban (sudo nano /etc/fail2ban/jail.local)"
+    echo -e "\033[33m6)\033[0m Reiniciar Fail2Ban (sudo systemctl restart fail2ban)"
+    echo -e "\033[33m7)\033[0m Banear una IP en Fail2Ban"
+    echo -e "\033[33m8)\033[0m Salir"
+    echo ""
+    echo -e "\033[34m_________________________________________________________\033[0m"
+    echo ""
+
+    # Leer la opción del usuario (sin esperar Enter)
+    read -n1 -p $'\033[35mIngrese su elección: \033[0m' choice
+    echo ""
+
+    case $choice in
+        1)
+            echo -e "\033[32mEjecutando: sudo fail2ban-client status sshd\033[0m"
+            sudo fail2ban-client status sshd
+            ;;
+        2)
+            read -p $'\033[35mIngresa la IP a desbanear: \033[0m' ip
+            echo -e "\033[32mEjecutando: sudo fail2ban-client set sshd unbanip $ip\033[0m"
+            sudo fail2ban-client set sshd unbanip "$ip"
+            ;;
+        3)
+            echo -e "\033[32mEjecutando: sudo systemctl status fail2ban\033[0m"
+            sudo systemctl status fail2ban
+            ;;
+        4)
+            echo -e "\033[32mEjecutando: sudo nano /etc/rsyslog.conf\033[0m"
+            sudo nano /etc/rsyslog.conf
+            ;;
+        5)
+            echo -e "\033[32mEjecutando: sudo nano /etc/fail2ban/jail.local\033[0m"
+            sudo nano /etc/fail2ban/jail.local
+            ;;
+        6)
+            echo -e "\033[32mEjecutando: sudo systemctl restart fail2ban\033[0m"
+            sudo systemctl restart fail2ban
+            ;;
+        7)
+            read -p $'\033[35mIngresa la IP a banear: \033[0m' ip
+            echo -e "\033[32mEjecutando: sudo fail2ban-client set sshd banip $ip\033[0m"
+            sudo fail2ban-client set sshd banip "$ip"
+            ;;
+        8)
+            echo -e "\033[31mSaliendo...\033[0m"
+            break
+            ;;
+        *)
+            echo -e "\033[31mOpción inválida. Inténtalo de nuevo.\033[0m"
+            ;;
+    esac
+done

@@ -62,22 +62,22 @@ fi
 sleep .5
 
 # Aliases para .bashrc
-echo "alias rs2='sudo nano /etc/rsyslog.conf'" >> ~/.bashrc
-echo "alias f2mod='sudo nano /etc/fail2ban/jail.local'" >> ~/.bashrc
-echo "alias f2r='sudo systemctl restart fail2ban'" >> ~/.bashrc
-echo "alias f2s='sudo systemctl status fail2ban'" >> ~/.bashrc
-echo "alias f2b='read -p \"Ingresa IP a banear: \" ip && sudo fail2ban-client set sshd banip \$ip'" >> ~/.bashrc
-echo "alias f2u='read -p \"Ingresa IP a unban: \" ip && sudo fail2ban-client set sshd unbanip \$ip'" >> ~/.bashrc
-echo "alias f2j='sudo fail2ban-client status sshd'" >> ~/.bashrc
+#echo "alias rs2='sudo nano /etc/rsyslog.conf'" >> ~/.bashrc
+#echo "alias f2mod='sudo nano /etc/fail2ban/jail.local'" >> ~/.bashrc
+#echo "alias f2r='sudo systemctl restart fail2ban'" >> ~/.bashrc
+#echo "alias f2s='sudo systemctl status fail2ban'" >> ~/.bashrc
+#echo "alias f2b='read -p \"Ingresa IP a banear: \" ip && sudo fail2ban-client set sshd banip \$ip'" >> ~/.bashrc
+#echo "alias f2u='read -p \"Ingresa IP a unban: \" ip && sudo fail2ban-client set sshd unbanip \$ip'" >> ~/.bashrc
+#echo "alias f2j='sudo fail2ban-client status sshd'" >> ~/.bashrc
 
 # Aliases para .zshrc
-echo "alias rs2='sudo nano /etc/rsyslog.conf'" >> ~/.zshrc
-echo "alias f2mod='sudo nano /etc/fail2ban/jail.local'" >> ~/.zshrc
-echo "alias f2r='sudo systemctl restart fail2ban'" >> ~/.zshrc
-echo "alias f2s='sudo systemctl status fail2ban'" >> ~/.zshrc
-echo "alias f2b='read -p \"Ingresa IP a banear: \" ip && sudo fail2ban-client set sshd banip \$ip'" >> ~/.zshrc
-echo "alias f2u='read -p \"Ingresa IP a unban: \" ip && sudo fail2ban-client set sshd unbanip \$ip'" >> ~/.zshrc
-echo "alias f2j='sudo fail2ban-client status sshd'" >> ~/.zshrc
+#echo "alias rs2='sudo nano /etc/rsyslog.conf'" >> ~/.zshrc
+#echo "alias f2mod='sudo nano /etc/fail2ban/jail.local'" >> ~/.zshrc
+#echo "alias f2r='sudo systemctl restart fail2ban'" >> ~/.zshrc
+#echo "alias f2s='sudo systemctl status fail2ban'" >> ~/.zshrc
+#echo "alias f2b='read -p \"Ingresa IP a banear: \" ip && sudo fail2ban-client set sshd banip \$ip'" >> ~/.zshrc
+#echo "alias f2u='read -p \"Ingresa IP a unban: \" ip && sudo fail2ban-client set sshd unbanip \$ip'" >> ~/.zshrc
+#echo "alias f2j='sudo fail2ban-client status sshd'" >> ~/.zshrc
 
 sudo systemctl enable --now fail2ban
 
