@@ -73,4 +73,5 @@ echo -e "\033[34mgetent passwd | awk -F: '\$3 >= 1000 {print \$1}' | xargs -n1 s
 getent passwd | awk -F: '$3 >= 1000 {print $1}' | xargs -n1 sudo passwd -S
 
 echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
-echo -e "\033[33mTo block an user execute " USUARIO\033[0m"
+echo -e "\033[33mTo block an user execute usuario script"
+echo ""
