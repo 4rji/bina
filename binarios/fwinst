@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Función para ejecutar comandos con sudo
 run_sudo() {
@@ -65,16 +65,53 @@ echo "---------------------------------"
 run_sudo firewall-cmd --zone="$selected_zone" --list-all
 echo "---------------------------------"
 
+# Obtener la lista de servicios disponibles
+available_services=$(run_sudo firewall-cmd --get-services)
+
+# Convertir la lista de servicios en un array
+IFS=' ' read -r -a services_array <<< "$available_services"
+
+# Definir una lista de 14 servicios comunes basados en la lista proporcionada
+common_services=(
+    http
+    https
+    ssh
+    ftp
+    dns
+    smtp
+    pop3
+    imap
+    samba
+    nfs
+    kerberos
+    mariadb
+    redis
+    docker-registry
+)
+
+echo ""
+echo "Servicios comunes disponibles para agregar:"
+echo "---------------------------------"
+# Mostrar los servicios en columnas
+printf "%-20s %-20s %-20s %-20s\n" "${common_services[@]}"
+echo "---------------------------------"
+
+echo ""
+echo "Opcionalmente, puedes ver todos los servicios disponibles ejecutando:"
+echo "---------------------------------"
+echo "sudo firewall-cmd --get-services | column"
+echo "---------------------------------"
+
 # Solicitar servicios a agregar
 echo ""
 echo "Ingrese los servicios que desea agregar a la lista de 'allow'."
 echo "Puede separar múltiples servicios con espacios (por ejemplo: http https ssh)."
 read -p "Servicios: " services_input
 
-# Agregar servicios si se proporcionaron
+# Validar y agregar servicios si se proporcionaron
 if [[ -n "$services_input" ]]; then
     for service in $services_input; do
-        if run_sudo firewall-cmd --zone="$selected_zone" --query-service="$service" &> /dev/null; then
+        if [[ " ${services_array[@]} " =~ " ${service} " ]]; then
             run_sudo firewall-cmd --zone="$selected_zone" --add-service="$service" --permanent
             echo "Servicio '$service' agregado a la zona '$selected_zone'."
         else
@@ -84,6 +121,15 @@ if [[ -n "$services_input" ]]; then
 else
     echo "No se agregaron servicios."
 fi
+
+# Obtener la lista actualizada de servicios en la zona
+current_services=$(run_sudo firewall-cmd --zone="$selected_zone" --list-services)
+
+echo ""
+echo "Servicios actualmente permitidos en la zona '$selected_zone':"
+echo "---------------------------------"
+echo "$current_services"
+echo "---------------------------------"
 
 # Solicitar puertos a agregar
 echo ""
