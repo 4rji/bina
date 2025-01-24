@@ -27,7 +27,7 @@ echo_msg() {
 bloquear_usuario() {
     echo -e "${GREEN}Lista de usuarios actuales:${NC}"
     # Listar usuarios con un shell de inicio válido
-    awk -F: '/\/bin\/bash$|\/bin\/sh$|\/bin\/zsh$|\/usr\/sbin\/nologin$|\/bin\/false$/ {print $1}' /etc/passwd
+    awk -F: '/\/bin\/bash$|\/bin\/sh$|\/bin\/zsh$|\/usr\/sbin\/nologin$|\/bin\/false$/ {print $1, $7}' /etc/passwd | column -t
 
     echo # Línea en blanco para mejor legibilidad
 
@@ -36,7 +36,12 @@ bloquear_usuario() {
 
     # Verificar si el usuario existe
     if id "$usuario" &>/dev/null; then
+        #ver primero
+        echo -e "${GREEN}Estado actual:${NC}"
+        echo ""
+        sudo cat /etc/passwd | grep "$usuario"
         # Bloquear la cuenta del usuario (evita el inicio de sesión)
+        
         sudo usermod -L "$usuario"
         
         # Cambiar el shell del usuario a nologin para quitarle la capacidad de acceder al shell
