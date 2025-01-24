@@ -432,6 +432,7 @@ instgithub          Instala github desktop en kali
 pythonscritps       instala requerimientos y baje scritps del curso de python
 obsidianinst        Instala obsidian en deb, baja paquete e instala notas 
 zeroinst            Script para zero raspberry
+zshinstc            Instala y compila zsh 5.9, para centos 7
 zshinst             Instala la zsh h-my-zsh powerlevel10k
 zshinst2            Instala la configuracion de barra terminal .p10k.zsh, 
 tmuxinst            Archivos para la configuracion de tmux, lo instala. con B

@@ -125,37 +125,6 @@ echo ""
 
 
 
-# Pregunta al usuario si desea descargar los archivos COMPRIMIDOS. 
-read -p "¿Deseas descargar los comprimidos? [s/N] " respuesta
-
-# Convertir la respuesta en minúsculas
-respuesta=${respuesta,,}  # Esto es para convertir la respuesta a minúsculas
-
-# Comprobar si la respuesta es 's'
-if [[ "$respuesta" == "s" ]]; then
-    # Comando para crear el directorio si no existe
-    sudo mkdir -p /opt/4rji/bin/
-    
-    # Comando para descargar el archivo
-    git clone --depth 1 https://github.com/4rji/archivos-b
-    #sudo wget -O /opt/4rji/bin/comprimidos.tar.xz "https://github.com/4rji/archivos-b/blob/d5d6d8b3418c7b452f21e1de105a4747c6c480e1/comprimidos.tar.xz?raw=true"
-    cd archivos-b
-    # Comando para descomprimir el archivo
-    sudo tar -xvf comprimidos.tar.xz 
-    sudo mv comprimidos/* /opt/4rji/bin/
-    echo "Archivo descargado y descomprimido con éxito."
-else
-    echo "No se realizará ninguna descarga."
-fi
-
-
-
-echo -e "${azul}"
-echo "_________________________________________________________"
-echo ""
-
-
-
 
 
 
@@ -187,42 +156,6 @@ fi
 
 
 
-
-
-echo -e "${amarillo}"
-echo "_________________________________________________________"
-echo ""
-
-echo -e "${amarillo} ########### ALERTA.  #################${reset}"
-echo ""
-echo -e "${amarillo}Tarda mucho en instalarse${reset}"
-
-echo ""
-echo -e "${amarillo}_________________________________________________________${reset}"
-echo ""
-
-
-# Pregunta al usuario
-read -n1 -p "$(echo -e ${verde}'¿Quieres instalar  2-arji?  (s/N): '${reset})" respuesta
-echo ""
-
-# Define un valor predeterminado si el usuario presiona Enter
-respuesta=${respuesta:-n}
-
-# Convierte la respuesta a minúsculas para facilitar la comparación
-respuesta=$(echo $respuesta | tr '[:upper:]' '[:lower:]')
-
-# Verifica la respuesta
-if [ "$respuesta" == "s" ]; then
-    wget -O - https://raw.githubusercontent.com/4rji/4rji/main/2-4rji.sh | bash   
-   # source alias.sh  # Ejecuta el script descargado
-
-    #borrar archivos
-    #rm 2-4rji.sh
-else
-    echo ""
-fi
-
-todou
+/opt/4rji/bin/todou
 
 
