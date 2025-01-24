@@ -1,0 +1,121 @@
+#!/bin/bash
+
+# Función para ejecutar comandos con sudo
+run_sudo() {
+    sudo "$@"
+}
+
+# Verificar si firewall-cmd está instalado
+if ! command -v firewall-cmd &> /dev/null
+then
+    echo "firewall-cmd no está instalado. Instalándolo ahora..."
+    # Para distribuciones basadas en RedHat/CentOS
+    if command -v yum &> /dev/null; then
+        run_sudo yum install -y firewalld
+    # Para distribuciones basadas en Debian/Ubuntu
+    elif command -v apt &> /dev/null; then
+        run_sudo apt update
+        run_sudo apt install -y firewalld
+    else
+        echo "No se pudo determinar el gestor de paquetes. Por favor, instala firewalld manualmente."
+        exit 1
+    fi
+    # Iniciar y habilitar firewalld
+    run_sudo systemctl start firewalld
+    run_sudo systemctl enable firewalld
+fi
+
+# Asegurarse de que firewalld está activo
+if ! run_sudo systemctl is-active --quiet firewalld; then
+    echo "Iniciando firewalld..."
+    run_sudo systemctl start firewalld
+fi
+
+echo "Zonas activas disponibles:"
+echo "---------------------------------"
+
+# Obtener zonas activas de manera más robusta
+active_zones=$(run_sudo firewall-cmd --get-active-zones | awk '/^[^ ]/{print $1}')
+
+# Verificar si hay zonas activas
+if [[ -z "$active_zones" ]]; then
+    echo "No hay zonas activas en este momento."
+    exit 0
+fi
+
+# Listar solo las zonas activas
+for zone in $active_zones; do
+    echo "Zona: $zone - ACTIVA"
+done
+
+echo "---------------------------------"
+
+# Solicitar al usuario que ingrese una zona activa
+read -p "Ingrese el nombre de la zona que desea configurar: " selected_zone
+
+# Verificar si la zona ingresada está activa
+if ! echo "$active_zones" | grep -qw "$selected_zone"; then
+    echo "La zona '$selected_zone' no está activa o no existe. Saliendo..."
+    exit 1
+fi
+
+echo ""
+echo "Configuración actual de la zona '$selected_zone':"
+echo "---------------------------------"
+run_sudo firewall-cmd --zone="$selected_zone" --list-all
+echo "---------------------------------"
+
+# Solicitar servicios a agregar
+echo ""
+echo "Ingrese los servicios que desea agregar a la lista de 'allow'."
+echo "Puede separar múltiples servicios con espacios (por ejemplo: http https ssh)."
+read -p "Servicios: " services_input
+
+# Agregar servicios si se proporcionaron
+if [[ -n "$services_input" ]]; then
+    for service in $services_input; do
+        if run_sudo firewall-cmd --zone="$selected_zone" --query-service="$service" &> /dev/null; then
+            run_sudo firewall-cmd --zone="$selected_zone" --add-service="$service" --permanent
+            echo "Servicio '$service' agregado a la zona '$selected_zone'."
+        else
+            echo "El servicio '$service' no es válido o no está disponible."
+        fi
+    done
+else
+    echo "No se agregaron servicios."
+fi
+
+# Solicitar puertos a agregar
+echo ""
+echo "Ingrese los puertos que desea agregar a la lista de 'allow'."
+echo "Puede separar múltiples puertos con espacios y especificar el protocolo (por ejemplo: 8080/tcp 53/udp)."
+read -p "Puertos: " ports_input
+
+# Agregar puertos si se proporcionaron
+if [[ -n "$ports_input" ]]; then
+    for port in $ports_input; do
+        # Validar formato del puerto
+        if [[ "$port" =~ ^[0-9]+/(tcp|udp)$ ]]; then
+            run_sudo firewall-cmd --zone="$selected_zone" --add-port="$port" --permanent
+            echo "Puerto '$port' agregado a la zona '$selected_zone'."
+        else
+            echo "El puerto '$port' tiene un formato inválido. Debe ser NUMERO/tcp o NUMERO/udp."
+        fi
+    done
+else
+    echo "No se agregaron puertos."
+fi
+
+# Recargar la configuración del firewall
+echo ""
+echo "Recargando la configuración del firewall..."
+run_sudo firewall-cmd --reload
+
+# Mostrar la configuración actualizada de la zona
+echo ""
+echo "Configuración actualizada de la zona '$selected_zone':"
+echo "---------------------------------"
+run_sudo firewall-cmd --zone="$selected_zone" --list-all
+echo "---------------------------------"
+
+echo "Proceso completado exitosamente."
