@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+#clear
+echo -e "\033[34m################# Explicacion #################\033[0m"
+echo -e "\033[32m/sbin/nologin significa que la cuenta no esta permitida para un inicio de sesion interactivo.\033[0m"
+echo -e "\033[32mLos UIDs por debajo de 1000 generalmente son para cuentas de sistema/servicio, mientras que UIDs de 1000 y superiores se usan para cuentas de usuarios regulares.\033[0m"
+
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+
+echo -e "\033[33mComando:\033[0m"
+echo -e "\033[34msudo egrep -v '^\+' /etc/passwd | awk -F: '\$3 >= 1000 {print}'\033[0m"
+echo ""
+
+# Ejecutar el comando original para listar usuarios con UID >= 1000
+sudo egrep -v '^\+' /etc/passwd | awk -F: '$3 >= 1000 {print}'
+
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+
+echo -e "\033[33mVerificacion del Estado de Bloqueo de los Usuarios:\033[0m"
+echo ""
+
+echo -e "\033[34mUsuario\t\tUID\tEstado\033[0m"
+echo -e "\033[34m--------------------------------------------\033[0m"
+
+users=$(sudo awk -F: '$3 >= 1000 && $1 != "nobody" {print $1}' /etc/passwd)
+
+for user in $users; do
+    uid=$(id -u "$user" 2>/dev/null)
+    
+    if [[ $? -ne 0 ]]; then
+        echo -e "\033[31m${user}\t\t${uid}\tNo existe\033[0m"
+        continue
+    fi
+    
+    passwd_status=$(sudo passwd -S "$user" 2>/dev/null)
+    
+    if [[ $? -ne 0 ]]; then
+        estado="\033[31mError al obtener estado\033[0m"
+    else
+        status=$(echo "$passwd_status" | awk '{print $2}')
+        
+        case "$status" in
+            PS)
+                estado="\033[32mDesbloqueado\033[0m"
+                ;;
+            LK)
+                estado="\033[31mBloqueado\033[0m"
+                ;;
+            NP)
+                estado="\033[33mSin Contrasena\033[0m"
+                ;;
+            PS*)
+                estado="\033[33mPassword Status (${status})\033[0m"
+                ;;
+            *)
+                estado="\033[33mOtro (${status})\033[0m"
+                ;;
+        esac
+    fi
+    
+    echo -e "${user}\t\t${uid}\t${estado}"
+done
+
+echo -e "\033[1;33m_________________________________________________________\033[0m\n"
+
+echo -e "\033[33mComando:\033[0m"
+echo -e "\033[34msudo awk -F: '\$3 >= 1000 && \$1 != \"nobody\" {print \$1}' /etc/passwd\033[0m"
+echo -e "\033[33mto verify use sudo passwd -S USER\033[0m"
+
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+
+echo -e "\033[34mgetent passwd | awk -F: '\$3 >= 1000 {print \$1}' | xargs -n1 sudo passwd -S\033[0m\n"
+
+getent passwd | awk -F: '$3 >= 1000 {print $1}' | xargs -n1 sudo passwd -S
+
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
