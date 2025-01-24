@@ -1,27 +1,20 @@
 #!/usr/bin/env bash
 
-
-#sudo cp /usr/bin/batcat /usr/bin/bat
 # Colores
 verde='\e[0;32m'
 azul='\e[0;34m'
 reset='\e[0m'
-
 amarillo='\e[0;33m'
 reset='\e[0m'
 
-
-
-
-
-omitir=false
+omitirDownloadBina=false
 omitirPreguntas=false
 
 # Verificar las opciones -o y -p
 while getopts "op" opt; do
     case $opt in
         o)
-            omitir=true
+            omitirDownloadBina=true
             ;;
         p)
             omitirPreguntas=true
@@ -33,20 +26,11 @@ while getopts "op" opt; do
     esac
 done
 
-
-if [[ $omitir != true ]]; then
-    # Lista de paquetes a instalar
-    paquetes=("sudo" "fzf" "curl" "git" "kitty" "nano" "ifupdown" "zsh" "xclip" "python3" "bat" "lsd" "tldr" "iproute2" "net-tools" "iputils-ping" "moreutils")
-
-    # Verificar e instalar paquetes necesarios
+# Descargar bina si no se omite
+if [[ $omitirDownloadBina != true ]]; then
     echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
-    echo "Instalando paquetes necesarios..."
-    for paquete in "${paquetes[@]}"; do
-        if ! dpkg -l | grep -q "^ii.*$paquete "; then
-            sudo apt install -y "$paquete" 
-        fi
-    done
-
+    echo "Descargando bina..."
+    
     # Función para crear directorios temporales
     function mktem() {
         if [ -n "$1" ]; then
@@ -55,22 +39,18 @@ if [[ $omitir != true ]]; then
             new_dir=$(mktemp -d /dev/shm/tmp.XXXXXX)
         fi
 
-        #echo "Directorio creado en: $new_dir"
         cd "$new_dir" || return
-        #echo "Cambiado al directorio: $PWD"
     }
 
     # Crear directorio temporal y realizar operaciones
-
     mktem
-    echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
     git clone --depth 1 https://github.com/4rji/bina.git
     cd bina || exit 1
     sudo mkdir -p /opt/4rji/bin
     sudo cp -rf binarios/* /opt/4rji/bin
     echo ""
     echo -e "\033[1;34mbinarios actualizados\033[0m"
-    todou
+    # todou  # Asegúrate de definir o eliminar esta función si no está en uso
     cd || exit 1
     echo ""
 fi
@@ -80,66 +60,45 @@ if [[ $omitirPreguntas == true ]]; then
     echo ""
     exit 0
 fi
+
 # Sección de preguntas empieza aquí
-
-
-
-
-
-
 
 echo ""
 echo -e "${verde}_________________________________________________________${reset}"
-
-
-
 echo ""
 
 # Preguntar al usuario si desea agregar la ruta al PATH
-read -p "Do you want to add /opt/4rji/bin to your PATH? (y/n): " -n 1 -r
+read -p "¿Deseas agregar /opt/4rji/bin a tu PATH? (y/n): " -n 1 -r
 echo    # (opcional) mueve a una nueva línea
 
 # Por defecto, si el usuario presiona Enter, considera 'n'
 if [[ $REPLY =~ ^[Yy]$ ]]; then
     # Agregar el directorio /opt/4rji/bin al PATH en ~/.zshrc
     echo 'export PATH=$PATH:/opt/4rji/bin' >> ~/.zshrc
-    echo "The directory /opt/4rji/bin has been added to your PATH in ~/.zshrc."
-
-    # Opcional: recargar ~/.zshrc para aplicar los cambios sin necesidad de reiniciar la terminal
-    #source ~/.zshrc
+    echo "El directorio /opt/4rji/bin ha sido agregado a tu PATH en ~/.zshrc."
 else
-    echo "No changes made to PATH."
+    echo "No se realizaron cambios en PATH."
 fi
-
-
-
-
-
 
 echo -e "${azul}"
 echo "_________________________________________________________"
 echo ""
 
-
-
-
-
 # Pregunta al usuario si desea descargar los archivos COMPRIMIDOS. 
 read -p "¿Deseas descargar los comprimidos? [s/N] " respuesta
 
 # Convertir la respuesta en minúsculas
-respuesta=${respuesta,,}  # Esto es para convertir la respuesta a minúsculas
+respuesta=${respuesta,,}  # Convierte a minúsculas
 
 # Comprobar si la respuesta es 's'
 if [[ "$respuesta" == "s" ]]; then
-    # Comando para crear el directorio si no existe
+    # Crear el directorio si no existe
     sudo mkdir -p /opt/4rji/bin/
     
-    # Comando para descargar el archivo
+    # Descargar el repositorio
     git clone --depth 1 https://github.com/4rji/archivos-b
-    #sudo wget -O /opt/4rji/bin/comprimidos.tar.xz "https://github.com/4rji/archivos-b/blob/d5d6d8b3418c7b452f21e1de105a4747c6c480e1/comprimidos.tar.xz?raw=true"
     cd archivos-b
-    # Comando para descomprimir el archivo
+    # Descomprimir el archivo
     sudo tar -xvf comprimidos.tar.xz 
     sudo mv comprimidos/* /opt/4rji/bin/
     echo "Archivo descargado y descomprimido con éxito."
@@ -147,81 +106,55 @@ else
     echo "No se realizará ninguna descarga."
 fi
 
-
-
 echo -e "${azul}"
 echo "_________________________________________________________"
 echo ""
 
-
-
-
-
-
 # Pregunta al usuario
-read -n1 -p "$(echo -e ${verde}'¿Instalar todos alias? (s/N): '${reset})" respuesta
+read -n1 -p "$(echo -e ${verde}'¿Instalar todos los alias? (s/N): '${reset})" respuesta
 echo ""
 
 # Define un valor predeterminado si el usuario presiona Enter
 respuesta=${respuesta:-n}
 
 # Convierte la respuesta a minúsculas para facilitar la comparación
-respuesta=$(echo $respuesta | tr '[:upper:]' '[:lower:]')
+respuesta=$(echo "$respuesta" | tr '[:upper:]' '[:lower:]')
 
 # Verifica la respuesta
 if [ "$respuesta" == "s" ]; then
     echo -e "${verde}Instalando todos los alias... ${reset}"
     wget -O - https://raw.githubusercontent.com/4rji/4rji/main/alias.sh | bash 
-    #source alias.sh  # Ejecuta el script descargado
-
-    # Borrar archivos
-    #rm alias.sh
-
-    # Aquí colocas el código para ejecutar bashfun
+    # source alias.sh  # Ejecuta el script descargado si es necesario
 else
     echo ""
 fi
 
-
-
-
-
-
-
 echo -e "${amarillo}"
 echo "_________________________________________________________"
 echo ""
-
 echo -e "${amarillo} ########### ALERTA.  #################${reset}"
 echo ""
 echo -e "${amarillo}Tarda mucho en instalarse${reset}"
-
 echo ""
 echo -e "${amarillo}_________________________________________________________${reset}"
 echo ""
 
-
 # Pregunta al usuario
-read -n1 -p "$(echo -e ${verde}'¿Quieres instalar  2-arji?  (s/N): '${reset})" respuesta
+read -n1 -p "$(echo -e ${verde}'¿Quieres instalar 2-arji? (s/N): '${reset})" respuesta
 echo ""
 
 # Define un valor predeterminado si el usuario presiona Enter
 respuesta=${respuesta:-n}
 
 # Convierte la respuesta a minúsculas para facilitar la comparación
-respuesta=$(echo $respuesta | tr '[:upper:]' '[:lower:]')
+respuesta=$(echo "$respuesta" | tr '[:upper:]' '[:lower:]')
 
 # Verifica la respuesta
 if [ "$respuesta" == "s" ]; then
     wget -O - https://raw.githubusercontent.com/4rji/4rji/main/2-4rji.sh | bash   
-   # source alias.sh  # Ejecuta el script descargado
-
-    #borrar archivos
-    #rm 2-4rji.sh
+    # source 2-4rji.sh  # Ejecuta el script descargado si es necesario
 else
     echo ""
 fi
-
-todou
-
-
+/opt/4rji/bin/todou
+# todou  # Asegúrate de definir o eliminar esta función si no está en uso
