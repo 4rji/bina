@@ -1,77 +1,93 @@
 #!/usr/bin/env bash
 
-# Función para ejecutar comandos con sudo
+# Function to display important messages with formatting and color
+echo_msg() {
+    echo -e "\e[35m==============================================\e[0m"
+    echo -e "\e[35m$1\e[0m"
+    echo -e "\e[35m==============================================\e[0m"
+}
+
+# Function to execute commands with sudo
 run_sudo() {
     sudo "$@"
 }
 
-# Verificar si firewall-cmd está instalado
-if ! command -v firewall-cmd &> /dev/null
-then
-    echo "firewall-cmd no está instalado. Instalándolo ahora..."
-    # Para distribuciones basadas en RedHat/CentOS
+# Check if firewall-cmd is installed
+if ! command -v firewall-cmd &> /dev/null; then
+    echo ""
+    echo -e "\e[31mfirewall-cmd is not installed. Installing now...\e[0m"
+    echo ""
+    # For RedHat/CentOS-based distributions
     if command -v yum &> /dev/null; then
         run_sudo yum install -y firewalld
-    # Para distribuciones basadas en Debian/Ubuntu
+    # For Debian/Ubuntu-based distributions
     elif command -v apt &> /dev/null; then
         run_sudo apt update
         run_sudo apt install -y firewalld
     else
-        echo "No se pudo determinar el gestor de paquetes. Por favor, instala firewalld manualmente."
+        echo ""
+        echo -e "\e[31mPackage manager not detected. Please install firewalld manually.\e[0m"
+        echo ""
         exit 1
     fi
-    # Iniciar y habilitar firewalld
+    # Start and enable firewalld
     run_sudo systemctl start firewalld
     run_sudo systemctl enable firewalld
 fi
 
-# Asegurarse de que firewalld está activo
+# Ensure firewalld is active
 if ! run_sudo systemctl is-active --quiet firewalld; then
-    echo "Iniciando firewalld..."
+    echo ""
+    echo -e "\e[33mStarting firewalld...\e[0m"
+    echo ""
     run_sudo systemctl start firewalld
 fi
 
-echo "Zonas activas disponibles:"
-echo "---------------------------------"
+echo_msg "Active Zones Available"
 
-# Obtener zonas activas de manera más robusta
+# Retrieve active zones
 active_zones=$(run_sudo firewall-cmd --get-active-zones | awk '/^[^ ]/{print $1}')
 
-# Verificar si hay zonas activas
+# Check if there are active zones
 if [[ -z "$active_zones" ]]; then
-    echo "No hay zonas activas en este momento."
+    echo ""
+    echo -e "\e[31mNo active zones found. Exiting...\e[0m"
+    echo ""
     exit 0
 fi
 
-# Listar solo las zonas activas
+# Display active zones
 for zone in $active_zones; do
-    echo "Zona: $zone - ACTIVA"
+    echo -e "\e[32mZone: $zone - ACTIVE\e[0m"
 done
 
-echo "---------------------------------"
+echo ""
+echo -e "\e[36m_________________________________________________________\e[0m"
+echo ""
 
-# Solicitar al usuario que ingrese una zona activa
-read -p "Ingrese el nombre de la zona que desea configurar: " selected_zone
+# Prompt user to select a zone
+echo -e "\e[34mEnter the name of the zone you want to configure:\e[0m"
+read -p "> " selected_zone
 
-# Verificar si la zona ingresada está activa
+# Verify if the selected zone is active
 if ! echo "$active_zones" | grep -qw "$selected_zone"; then
-    echo "La zona '$selected_zone' no está activa o no existe. Saliendo..."
+    echo ""
+    echo -e "\e[31mThe zone '$selected_zone' is not active or does not exist. Exiting...\e[0m"
+    echo ""
     exit 1
 fi
 
 echo ""
-echo "Configuración actual de la zona '$selected_zone':"
-echo "---------------------------------"
+echo_msg "Current Configuration of '$selected_zone'"
+
+# Display current zone configuration
 run_sudo firewall-cmd --zone="$selected_zone" --list-all
-echo "---------------------------------"
 
-# Obtener la lista de servicios disponibles
-available_services=$(run_sudo firewall-cmd --get-services)
+echo ""
+echo -e "\e[36m_________________________________________________________\e[0m"
+echo ""
 
-# Convertir la lista de servicios en un array
-IFS=' ' read -r -a services_array <<< "$available_services"
-
-# Definir una lista de 14 servicios comunes basados en la lista proporcionada
+# Define a list of 14 common services based on your provided list
 common_services=(
     http
     https
@@ -89,79 +105,89 @@ common_services=(
     docker-registry
 )
 
-echo ""
-echo "Servicios comunes disponibles para agregar:"
-echo "---------------------------------"
-# Mostrar los servicios en columnas
+echo_msg "Common Services Available to Add"
+
+# Display the common services in columns
 printf "%-20s %-20s %-20s %-20s\n" "${common_services[@]}"
-echo "---------------------------------"
 
 echo ""
-echo "Opcionalmente, puedes ver todos los servicios disponibles ejecutando:"
-echo "---------------------------------"
-echo "sudo firewall-cmd --get-services | column"
-echo "---------------------------------"
-
-# Solicitar servicios a agregar
+echo -e "\e[36m_________________________________________________________\e[0m"
 echo ""
-echo "Ingrese los servicios que desea agregar a la lista de 'allow'."
-echo "Puede separar múltiples servicios con espacios (por ejemplo: http https ssh)."
-read -p "Servicios: " services_input
 
-# Validar y agregar servicios si se proporcionaron
+echo_msg "All Available Services"
+
+echo ""
+echo -e "\e[34mYou can view all available services by running the following command:\e[0m"
+echo -e "\e[33msudo firewall-cmd --get-services | column\e[0m"
+echo ""
+
+# Prompt user to add services
+echo -e "\e[34mEnter the services you want to allow (separated by spaces):\e[0m"
+read -p "> " services_input
+
+echo ""
+
+# Retrieve all available services
+available_services=$(run_sudo firewall-cmd --get-services)
+
+# Convert available services to an array
+IFS=' ' read -r -a services_array <<< "$available_services"
+
+# Validate and add each service
 if [[ -n "$services_input" ]]; then
     for service in $services_input; do
         if [[ " ${services_array[@]} " =~ " ${service} " ]]; then
             run_sudo firewall-cmd --zone="$selected_zone" --add-service="$service" --permanent
-            echo "Servicio '$service' agregado a la zona '$selected_zone'."
+            echo -e "\e[32mService '$service' added to zone '$selected_zone'.\e[0m"
         else
-            echo "El servicio '$service' no es válido o no está disponible."
+            echo -e "\e[31mService '$service' is not valid or not available.\e[0m"
         fi
     done
 else
-    echo "No se agregaron servicios."
+    echo -e "\e[33mNo services were added.\e[0m"
 fi
 
-# Obtener la lista actualizada de servicios en la zona
-current_services=$(run_sudo firewall-cmd --zone="$selected_zone" --list-services)
+echo ""
+echo_msg "Current Allowed Services in '$selected_zone'"
+
+# Display updated services
+run_sudo firewall-cmd --zone="$selected_zone" --list-services
 
 echo ""
-echo "Servicios actualmente permitidos en la zona '$selected_zone':"
-echo "---------------------------------"
-echo "$current_services"
-echo "---------------------------------"
-
-# Solicitar puertos a agregar
+echo -e "\e[36m_________________________________________________________\e[0m"
 echo ""
-echo "Ingrese los puertos que desea agregar a la lista de 'allow'."
-echo "Puede separar múltiples puertos con espacios y especificar el protocolo (por ejemplo: 8080/tcp 53/udp)."
-read -p "Puertos: " ports_input
 
-# Agregar puertos si se proporcionaron
+# Prompt user to add ports
+echo -e "\e[34mEnter the ports you want to allow (e.g., 8080/tcp 53/udp):\e[0m"
+read -p "> " ports_input
+
+echo ""
+
+# Validate and add each port
 if [[ -n "$ports_input" ]]; then
     for port in $ports_input; do
-        # Validar formato del puerto
         if [[ "$port" =~ ^[0-9]+/(tcp|udp)$ ]]; then
             run_sudo firewall-cmd --zone="$selected_zone" --add-port="$port" --permanent
-            echo "Puerto '$port' agregado a la zona '$selected_zone'."
+            echo -e "\e[32mPort '$port' added to zone '$selected_zone'.\e[0m"
         else
-            echo "El puerto '$port' tiene un formato inválido. Debe ser NUMERO/tcp o NUMERO/udp."
+            echo -e "\e[31mPort '$port' has an invalid format. It should be NUMBER/tcp or NUMBER/udp.\e[0m"
         fi
     done
 else
-    echo "No se agregaron puertos."
+    echo -e "\e[33mNo ports were added.\e[0m"
 fi
 
-# Recargar la configuración del firewall
 echo ""
-echo "Recargando la configuración del firewall..."
+echo -e "\e[34mReloading firewall to apply changes...\e[0m"
+echo ""
 run_sudo firewall-cmd --reload
 
-# Mostrar la configuración actualizada de la zona
 echo ""
-echo "Configuración actualizada de la zona '$selected_zone':"
-echo "---------------------------------"
-run_sudo firewall-cmd --zone="$selected_zone" --list-all
-echo "---------------------------------"
+echo_msg "Updated Configuration of '$selected_zone'"
 
-echo "Proceso completado exitosamente."
+# Display updated zone configuration
+run_sudo firewall-cmd --zone="$selected_zone" --list-all
+
+echo ""
+echo -e "\e[32mFirewall configuration updated successfully.\e[0m"
+echo ""
