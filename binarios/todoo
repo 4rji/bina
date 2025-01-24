@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+if [ -z "$1" ]; then
+  echo "Uso: $0 'palabra'"
+  exit 1
+fi
+
+PALABRA="$1"
+
+grep -r "$PALABRA" /opt/4rji/bin 2>/dev/null | while IFS= read -r line; do
+  file="$(echo "$line" | cut -d':' -f1)"
+  content="$(echo "$line" | cut -d':' -f2-)"
+  name="$(basename "$file")"
+  content="$(echo "$content" | sed 's/^ *//')"
+  # Con color para el nombre del archivo (verde)
+  echo -e "\033[1;32m${name}\033[0m\t${content}"
+done

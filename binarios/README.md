@@ -254,6 +254,7 @@ fakei               alias para iniciar el portspoof, despues de instalarlo
  
 
 ###------buscar cosas en linux
+todoo               Busca en el directorio /opt/4rji/bin alguna palabra que contenga ese directorio
 buspal              Buscador de palabras en un directorio, con grep -q buspal {directorio}
 comentada {file}    Busca en un archivo una linea, la comenta y agrega abajo de esa linea la nueva linea
 comentadas 			Copia al portapapales las lineas no comentadas, -c para solo verlas sin copiar
