@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+
+# Función para mostrar mensajes con colores
+echo_msg() {
+    echo -e "\e[34m==============================================\e[0m"
+    echo -e "\e[32m$1\e[0m"
+    echo -e "\e[34m==============================================\e[0m"
+}
+
+
+#echo ""
+# Verificar que MySQL está escuchando en el puerto correcto
+echo_msg "Verificando en que puerto  MySQL esta escuchando"
+echo -e "\e[35msudo netstat -tulnp | grep mysql\e[0m"
+sudo netstat -tulnp | grep mysql
+
+echo ""
+echo -e "\e[35m_________________________________________________________\e[0m"
+echo ""
+
+# Copia de seguridad del archivo de configuración
+echo_msg "Copia de seguridad de /etc/mysql/my.cnf"
+echo -e "\e[33msudo cp /etc/mysql/my.cnf /etc/mysql/my.cnf.backup\e[0m"
+sudo cp /etc/mysql/my.cnf /etc/mysql/my.cnf.backup
+
+echo ""
+echo -e "\e[35m_________________________________________________________\e[0m"
+echo ""
+
+# Configuración de bind-address en /etc/mysql/my.cnf
+echo_msg "Configurando bind-address en /etc/mysql/my.cnf"
+if grep -q '^\[mysqld\]' /etc/mysql/my.cnf; then
+    if grep -q '^\s*bind-address\s*=' /etc/mysql/my.cnf; then
+        # Reemplazar la línea existente de bind-address
+        echo -e "\e[31msudo sed -i 's/^\s*bind-address\s*=.*/bind-address = 127.0.0.1/' /etc/mysql/my.cnf\e[0m"
+        sudo sed -i 's/^\s*bind-address\s*=.*/bind-address = 127.0.0.1/' /etc/mysql/my.cnf
+    else
+        # Agregar bind-address bajo [mysqld]
+        echo -e "\e[32msudo sed -i '/^\[mysqld\]/a bind-address = 127.0.0.1' /etc/mysql/my.cnf\e[0m"
+        sudo sed -i '/^\[mysqld\]/a bind-address = 127.0.0.1' /etc/mysql/my.cnf
+    fi
+else
+    # Agregar [mysqld] y bind-address al final del archivo
+    echo -e "\e[33msudo bash -c 'echo -e \"\\n[mysqld]\\nbind-address = 127.0.0.1\" >> /etc/mysql/my.cnf'\e[0m"
+    sudo bash -c 'echo -e "\n[mysqld]\nbind-address = 127.0.0.1" >> /etc/mysql/my.cnf'
+fi
+
+echo ""
+echo -e "\e[35m_________________________________________________________\e[0m"
+echo ""
+
+# Reiniciar el servicio de MySQL
+echo_msg "Reiniciando el servicio de MySQL"
+echo -e "\e[34msudo systemctl restart mysql\e[0m"
+sudo systemctl restart mysql
+
+echo ""
+#echo -e "\e[35m_________________________________________________________\e[0m"
+echo ""
+
+# Mostrar el estado del servicio de MySQL
+echo_msg "Estado del servicio de MySQL"
+echo -e "\e[32msudo systemctl status mysql\e[0m"
+sudo systemctl status mysql
+
+echo ""
+echo -e "\e[35m_________________________________________________________\e[0m"
+echo ""
+
+# Verificar que MySQL está escuchando en el puerto correcto
+echo_msg "Verificando que MySQL está escuchando en el puerto 3306"
+echo -e "\e[35msudo netstat -tulnp | grep mysql\e[0m"
+sudo netstat -tulnp | grep mysql

@@ -56,6 +56,7 @@ zshupdate           actualiza descargando compidor a 5.9
 passl               version SIN batcat
 pasw                version de passwd con batcat
 curlfix             Se supone arregla curl, no probado.
+sqlport             hace que mysql solo escuche en puerto 127.0.0.1:3306
 
 setnologin         Crea una lista con los usuarios en la home, y hace backup de passwd, modificar archivo
 setnologin2        Hace un nologin a el archivo ~/users-pw, modificarlo primero porque le hace a todos de lista
