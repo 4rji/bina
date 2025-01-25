@@ -4,9 +4,20 @@
 sudo systemctl --now mask ftpd
 sudo systemctl --now mask tftpd
 
-# Eliminar telnet y FTP en sistemas Debian/Ubuntu
+# Eliminar telnet y FTP según el sistema operativo
 if [[ -x $(command -v apt) ]]; then
+    # Debian/Ubuntu
+    echo "Sistema detectado: Debian/Ubuntu"
     sudo apt-get remove -y telnet ftp ftpd tftp talk talkd tftp tftpd
+    sudo apt-get autoremove -y
+elif [[ -x $(command -v dnf) ]]; then
+    # Fedora
+    echo "Sistema detectado: Fedora"
+    sudo dnf remove -y telnet ftp ftpd tftp talk talkd tftp-server
+elif [[ -x $(command -v yum) ]]; then
+    # CentOS
+    echo "Sistema detectado: CentOS"
+    sudo yum remove -y telnet ftp ftpd tftp talk talkd tftp-server
 fi
 
-sudo apt autoremove
+echo "Operación completada."
