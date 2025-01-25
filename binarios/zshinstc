@@ -14,11 +14,11 @@ print_msg() {
 }
 
 # 1. Eliminar Instalaciones Anteriores de Zsh
-print_msg "Eliminando instalaciones anteriores de Zsh en /usr/local..."
+#print_msg "Eliminando instalaciones anteriores de Zsh en /usr/local..."
 
-sudo rm -f /usr/local/bin/zsh
-sudo rm -rf /usr/local/lib/zsh
-sudo rm -rf /usr/local/share/zsh
+#sudo rm -f /usr/local/bin/zsh
+#sudo rm -rf /usr/local/lib/zsh
+#sudo rm -rf /usr/local/share/zsh
 
 # 2. Instalar Dependencias Necesarias
 print_msg "Instalando dependencias necesarias..."
@@ -39,6 +39,7 @@ cd /usr/local/src
 
 # Descargar el tarball de Zsh 5.9
 # Nota: Asegúrate de que la URL sea correcta. Puedes verificar en https://www.zsh.org/pub/
+#sudo wget https://sourceforge.net/projects/zsh/files/latest/download -O zsh.tar.xz
 sudo wget "https://sourceforge.net/projects/zsh/files/zsh/$ZSH_VERSION/$ZSH_TARBALL/download" -O "$ZSH_TARBALL"
 
 # Extraer el tarball
@@ -74,6 +75,7 @@ else
     exit 1
 fi
 
+
 # 7. Configurar el Shell Predeterminado a Zsh 5.9
 print_msg "Configurando Zsh 5.9 como tu shell predeterminado..."
 
@@ -96,14 +98,16 @@ else
     exit 1
 fi
 
+
+
 # Cambiar el shell predeterminado a Zsh 5.9
-CURRENT_SHELL=$(basename "$SHELL")
-if [ "$CURRENT_SHELL" != "zsh" ]; then
-    print_msg "Cambiando el shell predeterminado a Zsh 5.9..."
-    chsh -s /usr/local/bin/zsh
-    echo "El shell predeterminado se ha cambiado a Zsh 5.9. Por favor, cierra y vuelve a abrir tu terminal."
-else
-    echo "El shell predeterminado ya es Zsh."
-fi
+#CURRENT_SHELL=$(basename "$SHELL")
+#if [ "$CURRENT_SHELL" != "zsh" ]; then
+ #   print_msg "Cambiando el shell predeterminado a Zsh 5.9..."
+  #  chsh -s /usr/local/bin/zsh
+  #  echo "El shell predeterminado se ha cambiado a Zsh 5.9. Por favor, cierra y vuelve a abrir tu terminal."
+#else
+ #   echo "El shell predeterminado ya es Zsh."
+#fi
 
 print_msg "Instalación y configuración de Zsh 5.9 completadas exitosamente."

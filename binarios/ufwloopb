@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+# Configuración de loopback con UFW
+
+echo "Configurando reglas para la interfaz loopback con UFW..."
+
+# Permitir tráfico entrante y saliente en la interfaz loopback
+sudo /usr/sbin/ufw allow in on lo
+sudo /usr/sbin/ufw allow out on lo
+
+# Bloquear tráfico entrante desde la red 127.0.0.0/8 (IPv4)
+sudo /usr/sbin/ufw deny in from 127.0.0.0/8
+
+# Bloquear tráfico entrante desde la dirección ::1 (IPv6)
+sudo /usr/sbin/ufw deny in from ::1
+
+# Mostrar las reglas activas para verificar
+echo "Reglas configuradas. Verificando estado de UFW:"
+sudo /usr/sbin/ufw status verbose
+
+echo "Configuración de la interfaz loopback completada."
+
+sudo ufw reload

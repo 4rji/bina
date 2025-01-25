@@ -1,12 +1,71 @@
 #!/usr/bin/env bash
-#clear
+clear
+echo ""
 echo -e "\033[34m################# Explicacion #################\033[0m"
 echo -e "\033[32m/sbin/nologin significa que la cuenta no esta permitida para un inicio de sesion interactivo.\033[0m"
 echo -e "\033[32mLos UIDs por debajo de 1000 generalmente son para cuentas de sistema/servicio, mientras que UIDs de 1000 y superiores se usan para cuentas de usuarios regulares.\033[0m"
 
-echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
 
-echo -e "\033[33mComando:\033[0m"
+
+echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
+
+
+echo -e "\033[34mUID < 1000 suelen ser cuentas de servicio.\033[0m"
+
+Cuentas=$(awk -F: '($3 < 999) && $1!="root" && $7!~/nologin|false|halt|shutdown|sync/ {print}' /etc/passwd)
+
+if [ -z "$Cuentas" ]; then
+    echo "No hay cuentas con UID < 999 que cumplan criterios."
+else
+    echo "Cuentas encontradas:"
+    echo "$Cuentas"
+    echo ""
+
+    while IFS= read -r cuenta; do
+        user=$(echo "$cuenta" | cut -d: -f1)
+        uid=$(echo "$cuenta" | cut -d: -f3)
+        # Forzamos la lectura desde el teclado
+        while true; do
+            read -p "¿Bloquear la cuenta '$user' (UID: $uid)? [s/n]: " -r resp </dev/tty
+            case "$resp" in
+                [sS])
+                    sudo usermod -L "$user"
+                    sudo usermod -s /usr/sbin/nologin "$user"
+                    echo "Cuenta '$user' bloqueada."
+                    break
+                ;;
+                [nN])
+                    echo "Cuenta '$user' no bloqueada."
+                    break
+                ;;
+                *)
+                    echo "Responde 's' o 'n'."
+                ;;
+            esac
+        done
+    done <<< "$Cuentas"
+fi
+
+
+
+
+
+
+
+
+
+
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+echo -e "\033[33mComando para ver cuentas con menores a 999:\033[0m"
+echo -e "\033[34msudo egrep -v 'root|nologin|false|halt|shutdown|sync' /etc/passwd | awk -F: '(\$3 <= 999) {print}'\033[0m"
+sudo egrep -v "root|nologin|false|halt|shutdown|sync" /etc/passwd | awk -F: '($3 <= 999) {print}'
+
+echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+
+
+#echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+
+echo -e "\033[33mComando para ver cuentas con mas de 1000:\033[0m"
 echo -e "\033[34msudo egrep -v '^\+' /etc/passwd | awk -F: '\$3 >= 1000 {print}'\033[0m"
 echo ""
 

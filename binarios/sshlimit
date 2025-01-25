@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+# Function to check if a subnet is valid
+validate_subnet() {
+    if [[ $1 =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}/[0-9]+$ ]]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Array of default subnets
+subnets=("172.20.240.0/22" "172.20.241.0/22" "172.20.242.0/22")
+
+# Ask user to confirm or edit subnets
+echo "Current subnets:"
+for subnet in "${subnets[@]}"; do
+    echo " - $subnet"
+done
+echo ""
+
+read -p "Are these subnets correct? (y/n): " response
+if [[ "$response" =~ ^[nN]$ ]]; then
+    echo "Enter the subnets (use CIDR format, e.g., 192.168.1.0/24). Enter 'done' when finished."
+    subnets=()
+    while true; do
+        read -p "Enter a subnet: " new_subnet
+        if [[ "$new_subnet" == "done" ]]; then
+            break
+        elif validate_subnet "$new_subnet"; then
+            subnets+=("$new_subnet")
+        else
+            echo "Invalid subnet format. Please try again."
+        fi
+    done
+fi
+
+# Apply the firewall rules
+echo -e "\nConfiguring the firewall for SSH access only for the following subnets:"
+for subnet in "${subnets[@]}"; do
+    echo " - $subnet"
+done
+
+sudo firewall-cmd --permanent --zone=public --remove-service=ssh
+
+for subnet in "${subnets[@]}"; do
+    sudo firewall-cmd --permanent --zone=public \
+        --add-rich-rule="rule family=ipv4 source address=$subnet service name=ssh log prefix='SSH Logs' level='notice' accept"
+done
+
+sudo firewall-cmd --reload
+echo -e "\nFirewall configuration completed. Current settings for 'public' zone:"
+sudo firewall-cmd --list-all --zone=public
