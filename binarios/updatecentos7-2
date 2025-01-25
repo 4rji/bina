@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# Definición de colores
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+RESET='\033[0m'
+
+echo -e "${GREEN}Iniciando el proceso de actualización en CentOS 6...${RESET}"
+
+# Directorio de repositorios
+REPO_DIR="/etc/yum.repos.d"
+BASE_REPO="$REPO_DIR/CentOS-Base.repo"
+
+# Verificar si el archivo existe
+if [[ ! -f $BASE_REPO ]]; then
+    echo -e "${RED}El archivo $BASE_REPO no existe. Verifica que el sistema es CentOS 6.${RESET}"
+    exit 1
+fi
+
+# Hacer un backup del archivo original
+echo -e "${GREEN}Creando un respaldo del archivo original...${RESET}"
+sudo cp "$BASE_REPO" "${BASE_REPO}.backup"
+
+# Aplicar las modificaciones
+echo -e "${GREEN}Modificando el archivo de repositorios...${RESET}"
+sudo sed --in-place=.prev 's/^mirrorlist/\#mirrorlist/g' "$BASE_REPO"
+sudo sed --in-place 's/^\#baseurl/baseurl/g' "$BASE_REPO"
+sudo sed --in-place 's/mirror.centos.org/linuxsoft.cern.ch/g' "$BASE_REPO"
+sudo sed --in-place 's/\/centos\//\/centos-vault\//g' "$BASE_REPO"
+sudo sed --in-place 's/\$releasever\//\/6.4\//g' "$BASE_REPO"
+
+# Limpiar el caché de yum
+echo -e "${GREEN}Limpiando el caché de yum...${RESET}"
+sudo yum clean all
+
+# Mostrar la lista de repositorios
+echo -e "${GREEN}Verificando la lista de repositorios...${RESET}"
+sudo yum repolist
+
+# Intentar actualizar el sistema
+echo -e "${GREEN}Actualizando el sistema...${RESET}"
+sudo yum update -y
+
+echo -e "${GREEN}Proceso completado.${RESET}"

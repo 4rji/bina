@@ -35,6 +35,7 @@ dnsred              Cambia un dominio a un ip redireccionando trafico en bind9
 ntpcon              Conecta el servicio ntp time
 chroncon            Conecta el servicio chrony time
 updatecentos7       Para actualizar centos7
+updatecentos7-2     otra version
 sudoup              Hace un update de sudo de la version 9.12 adelante.
 ftpinst             Instala ftp
 sftpinst            Para sftp instalador de ssh, servidor
