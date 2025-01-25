@@ -3,23 +3,32 @@
 backup_file="/etc/sysctl.conf.bak"
 sysctl_file="/etc/sysctl.conf"
 
+# Función para mostrar mensajes destacados
+echo_msg() {
+    echo -e "\n\e[1;36m==============================================\e[0m"
+    echo -e "\e[1;32m$1\e[0m"
+    echo -e "\e[1;36m==============================================\e[0m\n"
+}
+
 # Verificar si se usa la opción -b para restaurar el backup
 if [[ "$1" == "-b" ]]; then
+    echo_msg "Restoring backup"
+    echo -e "\n\e[1;33mRestoring $sysctl_file from backup...\e[0m"
     if [[ -f "$backup_file" ]]; then
-        echo "Restaurando backup de $sysctl_file..."
         sudo cp "$backup_file" "$sysctl_file"
         sudo sysctl --system
-        echo "Backup restaurado y configuraciones recargadas."
+        echo -e "\n\e[1;32mBackup restored and sysctl variables reloaded.\e[0m"
     else
-        echo "No se encontró un archivo de backup en $backup_file."
+        echo -e "\n\e[1;31mBackup file not found at $backup_file.\e[0m"
     fi
     exit 0
 fi
 
 # Crear un backup del archivo sysctl.conf
-echo "Creando backup de $sysctl_file..."
+echo_msg "Creating Backup"
+echo -e "\n\e[1;34mCreating backup of $sysctl_file...\e[0m"
 sudo cp "$sysctl_file" "$backup_file"
-echo "Backup creado en $backup_file."
+echo -e "\n\e[1;32mBackup created at $backup_file.\e[0m"
 
 # Líneas a agregar (con todas las que solicitaste, incluyendo duplicados)
 lines_to_add="
@@ -45,17 +54,31 @@ net.ipv4.conf.all.rp_filter=2
 net.ipv4.icmp_echo_ignore_all = 0
 "
 
-# Añadir líneas al final de /etc/sysctl.conf
+echo_msg "Updating sysctl configuration"
+echo -e "\n\e[1;34mAdding new configurations to $sysctl_file...\e[0m"
 echo "$lines_to_add" | sudo tee -a "$sysctl_file"
 
 # Preguntar si se desean reiniciar las variables de sysctl
 echo ""
-read -p "¿Deseas reiniciar las variables de sysctl ahora? (y/n): " answer
+echo "_________________________________________________________"
+echo ""
+echo -e "\e[1;33mDo you want to reload sysctl variables now? (y/n): \e[0m"
+read -p " " answer
 
 if [[ "$answer" == "y" ]]; then
-    # Reiniciar las variables de sysctl
+    echo_msg "Reloading sysctl variables"
     sudo sysctl --system
-    echo "Variables de sysctl reiniciadas."
+    echo -e "\n\e[1;32mSysctl variables reloaded successfully.\e[0m"
 else
-    echo "No se reiniciaron las variables de sysctl. Puedes reiniciarlas manualmente ejecutando 'sudo sysctl --system'."
+    echo -e "\n\e[1;33mSysctl variables not reloaded. You can reload them manually using 'sudo sysctl --system'.\e[0m"
 fi
+
+# Leyenda al final
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo -e "\e[1;35mBackup file is located at: $backup_file\e[0m"
+echo -e "\e[1;35mOriginal sysctl file is located at: $sysctl_file\e[0m"
+echo -e "\e[1;36mTo restore the backup, execute the script with 'hardnet -b'.\e[0m"
+echo ""
+echo "_________________________________________________________"
