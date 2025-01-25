@@ -1,0 +1,64 @@
+#!/usr/bin/env bash
+
+# Function to display important messages
+echo_msg() {
+    echo -e "\n\033[1;36m==============================================\033[0m"
+    echo -e "\033[1;32m$1\033[0m"
+    echo -e "\033[1;36m==============================================\033[0m\n"
+}
+
+# Paths
+FILE="/etc/security/pwquality.conf"
+BACKUP="/etc/security/pwquality.conf.bak"
+
+# Options
+display_help() {
+    echo -e "\033[1;33mUsage:\033[0m"
+    echo -e "\033[1;34m  ./script        \033[0m - Add or update password quality settings."
+    echo -e "\033[1;34m  ./script -b     \033[0m - Restore the backup of $FILE."
+    echo -e "\033[1;34m  ./script -h     \033[0m - Show this help message."
+}
+
+# Validate input
+if [[ $1 == "-h" ]]; then
+    display_help
+    exit 0
+elif [[ $1 == "-b" ]]; then
+    echo_msg "Restoring backup"
+    if [[ -f $BACKUP ]]; then
+        sudo cp $BACKUP $FILE
+        echo -e "\033[1;32mBackup restored successfully.\033[0m"
+    else
+        echo -e "\033[1;31mBackup file not found.\033[0m"
+    fi
+    exit 0
+fi
+
+# Create a backup if not exists
+echo_msg "Creating Backup"
+if [[ ! -f $BACKUP ]]; then
+    sudo cp $FILE $BACKUP
+    echo -e "\033[1;32mBackup created at $BACKUP.\033[0m"
+else
+    echo -e "\033[1;33mBackup already exists at $BACKUP.\033[0m"
+fi
+
+# Password quality settings
+SETTINGS="\nminlen=15\ndcredit=-1\nucredit=-1\nlcredit=-1\nocredit=-1\nminclass=3\ndifok=8\n"
+
+# Update or append settings
+echo_msg "Updating Password Quality Settings"
+if grep -q "^minlen=" "$FILE"; then
+    echo -e "\033[1;33mSettings exist, updating...\033[0m"
+    sudo sed -i '/^minlen=/,/^difok=/c\\'"$SETTINGS""" $FILE
+else
+    echo -e "\033[1;32mSettings not found, appending...\033[0m"
+    echo -e "$SETTINGS" | sudo tee -a $FILE > /dev/null
+fi
+
+# Confirmation
+echo_msg "Operation Complete"
+echo -e "\033[1;32mThe following settings are now applied in $FILE:\033[0m"
+echo -e "$SETTINGS"
+echo -e "\n\033[1;34mTo restore the backup, use: ./script -b\033[0m\n"
+

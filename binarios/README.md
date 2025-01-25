@@ -57,6 +57,8 @@ passl               version SIN batcat
 pasw                version de passwd con batcat
 curlfix             Se supone arregla curl, no probado.
 sqlport             hace que mysql solo escuche en puerto 127.0.0.1:3306
+passpl              Para aplicar politicas en linux de contrasenas
+nsscheck           Verifica los ajuste de nsswitch 
 
 
 sysacc             Para ver si estan bloqueados y sus privilegios, solo usuarios con UID > 1000
@@ -64,10 +66,13 @@ setnologin         Crea una lista con los usuarios en la home, y hace backup de 
 setnologin2        Hace un nologin a el archivo ~/users-pw, modificarlo primero porque le hace a todos de lista
 
 
-bannerm = Hace un banner para ssh, necesita hacerlo dos veces. 
-sshbanerlogin = mensaje bienvenida de ssh ANTES de conectarse
-sshbanerwelcome = mensaje bienvenida de ssh DESPUES de conectarse
-hardnet = modifica ipv4 y tambien ipv6
+bannerm           Hace un banner para ssh, necesita hacerlo dos veces. 
+sshbanerlogin     Mensaje bienvenida de ssh ANTES de conectarse
+sshbanerwelcome   mensaje bienvenida de ssh DESPUES de conectarse
+hardnet           modifica ipv4 y tambien ipv6
+sshhard           para ssh configuracion 
+sshlimit          Usa firewalld para limitar subredes en el sistema de ssh
+ufwloopb          Configura el loopback del firewall 
 
 netevils = apt = remove -y telnet ftp ftpd tftp talk talkd tftp tftpd
 rootcheck = checa varios archivos .bash ...

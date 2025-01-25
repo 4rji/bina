@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
 
-# Check if running with superuser privileges (sudo)
-if [ "$EUID" -ne 0 ]; then
-    echo "This script must be run with superuser privileges (sudo)."
-    exit 1
-fi
-
-
 # Fix specific permissions for /etc/shadow and /etc/gshadow
 if getent group shadow > /dev/null; then
     sudo chown root:shadow /etc/gshadow
@@ -17,9 +10,6 @@ fi
 
 sudo chown root:root /etc/shadow
 sudo chmod 600 /etc/shadow
-
-
-
 
 # Define colors
 GREEN='\033[0;32m'
@@ -74,9 +64,14 @@ check_permissions() {
 
 # Function to fix permissions
 fix_permissions() {
-    for file in "${files_to_fix[@]}"; do
-        chmod $(echo "$file_info" | cut -d ":" -f 2) "$file"
-        echo "Permissions for [$file] have been corrected."
+    for file_info in "${files[@]}"; do
+        file=$(echo "$file_info" | cut -d ":" -f 1)
+        perm=$(echo "$file_info" | cut -d ":" -f 2)
+
+        if [[ " ${files_to_fix[*]} " == *" $file "* ]]; then
+            sudo chmod "$perm" "$file"
+            echo "Permissions for [$file] have been corrected."
+        fi
     done
 
     # Fix specific permissions for /etc/shadow and /etc/gshadow

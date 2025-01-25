@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+echo ""
+echo "_________________________________________________________"
+echo "Revisando /etc/nsswitch.conf en busca de configuraciones incorrectas..."
+echo "_________________________________________________________"
+echo ""
+
+# Verificar si el archivo existe
+if [ ! -f /etc/nsswitch.conf ]; then
+    echo "El archivo /etc/nsswitch.conf no existe. Revisa si está configurado correctamente."
+    exit 1
+fi
+
+# Función para verificar una línea
+check_line() {
+    local line="$1"
+    local key="$2"
+    local valid_options="$3"
+
+    if echo "$line" | grep -q "$key"; then
+        for option in $valid_options; do
+            if ! echo "$line" | grep -qw "$option"; then
+                echo "Configuración sospechosa en '$key': $line"
+                echo "    - Revisar que solo contenga: $valid_options"
+                break
+            fi
+        done
+    fi
+}
+
+# Leer el archivo línea por línea y buscar posibles errores
+while IFS= read -r line; do
+    # Ignorar líneas vacías o comentarios
+    [[ "$line" =~ ^#.*$ || -z "$line" ]] && continue
+
+    # Revisar configuraciones comunes
+    check_line "$line" "passwd" "files ldap nis"
+    check_line "$line" "group" "files ldap nis"
+    check_line "$line" "shadow" "files ldap nis"
+    check_line "$line" "hosts" "files dns nis myhostname"
+    check_line "$line" "networks" "files dns nis"
+    check_line "$line" "protocols" "files nis"
+    check_line "$line" "services" "files nis"
+    check_line "$line" "ethers" "files nis"
+    check_line "$line" "rpc" "files nis"
+done < /etc/nsswitch.conf
+
+echo ""
+echo "_________________________________________________________"
+echo "Revisión completada. Ajusta las configuraciones sospechosas según sea necesario."
+echo "_________________________________________________________"
+echo ""
