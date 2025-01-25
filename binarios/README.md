@@ -39,6 +39,7 @@ updatecentos7-2     otra version
 sudoup              Hace un update de sudo de la version 9.12 adelante.
 ftpinst             Instala ftp
 sftpinst            Para sftp instalador de ssh, servidor
+blockicmp           bloquea en firewall cmd
 
 fshells             busca procesos, muestra puerto, para shells, usa ps y ss
 kshells             Mata shells en el sistema
