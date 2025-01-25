@@ -1,20 +1,40 @@
 #!/usr/bin/env bash
 
-# Backup /etc/sysctl.conf
-    sudo cp /etc/sysctl.conf /etc/sysctl.conf.backup
-echo ""
+backup_file="/etc/sysctl.conf.bak"
+sysctl_file="/etc/sysctl.conf"
 
+# Verificar si se usa la opción -b para restaurar el backup
+if [[ "$1" == "-b" ]]; then
+    if [[ -f "$backup_file" ]]; then
+        echo "Restaurando backup de $sysctl_file..."
+        sudo cp "$backup_file" "$sysctl_file"
+        sudo sysctl --system
+        echo "Backup restaurado y configuraciones recargadas."
+    else
+        echo "No se encontró un archivo de backup en $backup_file."
+    fi
+    exit 0
+fi
 
-# Ask if the user wants to modify /etc/sysctl.conf for Network Hardening
-read -p "Do you want to perform Network Hardening in /etc/sysctl.conf? (y/n): " response
+# Crear un backup del archivo sysctl.conf
+echo "Creando backup de $sysctl_file..."
+sudo cp "$sysctl_file" "$backup_file"
+echo "Backup creado en $backup_file."
 
-# Verify the response
-if [[ $response == "y" ]]; then
-    
-    # Adjustments in /etc/sysctl.conf
-    echo "
+# Líneas a agregar (con todas las que solicitaste, incluyendo duplicados)
+lines_to_add="
+net.ipv4.ip_forward = 0
+net.ipv4.conf.all.send_redirects = 0
+net.ipv4.conf.default.send_redirects = 0
+net.ipv4.conf.all.accept_redirects = 0
+net.ipv4.conf.default.accept_redirects = 0
+net.ipv4.icmp_ignore_bogus_error_responses = 1
+net.ipv6.conf.all.disable_ipv6 = 1
+net.ipv6.conf.default.disable_ipv6 = 1
+net.ipv6.conf.lo.disable_ipv6 = 1
+
 net.ipv4.conf.all.accept_source_route=0
-net.ipv4.ip_forward=0
+ipv4.conf.all.forwarding=0
 net.ipv6.conf.all.disable_ipv6 = 1
 net.ipv6.conf.default.disable_ipv6 = 1
 net.ipv6.conf.lo.disable_ipv6 = 1
@@ -23,29 +43,19 @@ net.ipv4.conf.all.secure_redirects=0
 net.ipv4.conf.all.send_redirects=0
 net.ipv4.conf.all.rp_filter=2
 net.ipv4.icmp_echo_ignore_all = 0
-" | sudo tee -a /etc/sysctl.conf
+"
 
-    # Ask if the user wants to restart the service
-    read -p "Do you want to restart the service now? (y/n): " restart_response
+# Añadir líneas al final de /etc/sysctl.conf
+echo "$lines_to_add" | sudo tee -a "$sysctl_file"
 
-    # Verify the response about restarting
-    if [[ $restart_response == "y" ]]; then
-        sudo sysctl --system
-    else
-        echo "Operation cancelled. Changes will require a reboot to take effect."
-    fi
+# Preguntar si se desean reiniciar las variables de sysctl
+echo ""
+read -p "¿Deseas reiniciar las variables de sysctl ahora? (y/n): " answer
 
+if [[ "$answer" == "y" ]]; then
+    # Reiniciar las variables de sysctl
+    sudo sysctl --system
+    echo "Variables de sysctl reiniciadas."
 else
-    echo "Operation cancelled. No changes were made to /etc/sysctl.conf."
+    echo "No se reiniciaron las variables de sysctl. Puedes reiniciarlas manualmente ejecutando 'sudo sysctl --system'."
 fi
-echo ""
-echo ""
-echo "check changes on:"
-echo "cat /etc/sysctl.conf"
-echo ""
-echo "backup on:"
-echo "/etc/sysctl.conf.backup"
-echo ""
-echo ""
-echo ""
-echo "**************** END ****************"
