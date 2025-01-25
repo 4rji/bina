@@ -1,0 +1,173 @@
+#!/usr/bin/env bash
+
+# Fix specific permissions for /etc/shadow and /etc/gshadow
+if getent group shadow > /dev/null; then
+    sudo chown root:shadow /etc/gshadow
+    sudo chmod 600 /etc/gshadow
+else
+    echo "Group 'shadow' does not exist. Skipping chown for /etc/gshadow."
+fi
+
+sudo chown root:root /etc/shadow
+sudo chmod 600 /etc/shadow
+
+# Define colors
+GREEN='\033[0;32m'
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
+# Define the list of files and their expected permissions
+files=(
+    "/etc/passwd:644"
+    "/etc/shadow:600"
+    "/etc/group:644"
+    "/etc/gshadow:600"
+    "/etc/sudoers:440"
+    "/etc/ssh/sshd_config:644"
+    "/etc/hosts.allow:644"
+    "/etc/hosts.deny:644"
+    "/etc/cron.allow:644"
+    "/etc/cron.deny:644"
+    "/etc/securetty:600"
+    "/etc/security/limits.conf:644"
+    "/etc/audit/auditd.conf:644"
+    "/etc/sysctl.conf:644"
+    "/var/log/secure:640"
+    "/var/log/auth.log:640"
+    "/var/log/audit/audit.log:640"
+)
+
+# Initialize the list of files to fix
+files_to_fix=()
+
+# Function to check permissions
+check_permissions() {
+    for file_info in "${files[@]}"; do
+        file=$(echo "$file_info" | cut -d ":" -f 1)
+        expected_perm=$(echo "$file_info" | cut -d ":" -f 2)
+
+        # Check if the file exists
+        if [ -e "$file" ]; then
+            actual_perm=$(stat -c "%a" "$file")
+
+            if [ "$actual_perm" -eq "$expected_perm" ]; then
+                echo -e "[$file] - ${GREEN}Permissions are correctly set ($expected_perm).${NC}"
+            else
+                echo -e "[$file] - ${RED}Permissions are NOT correctly set. Current permissions: $actual_perm${NC}"
+                files_to_fix+=("$file")
+            fi
+        else
+            echo -e "[$file] - File does not exist on the system."
+        fi
+    done
+}
+
+# Function to fix permissions
+fix_permissions() {
+    for file_info in "${files[@]}"; do
+        file=$(echo "$file_info" | cut -d ":" -f 1)
+        perm=$(echo "$file_info" | cut -d ":" -f 2)
+
+        if [[ " ${files_to_fix[*]} " == *" $file "* ]]; then
+            sudo chmod "$perm" "$file"
+            echo "Permissions for [$file] have been corrected."
+        fi
+    done
+
+    # Fix specific permissions for /etc/shadow and /etc/gshadow
+    sudo chown root:root /etc/shadow
+    sudo chmod 600 /etc/shadow
+    sudo chown root:shadow /etc/gshadow
+    sudo chmod 600 /etc/gshadow
+
+    echo "Incorrect permissions have been fixed."
+}
+
+# Check permissions
+check_permissions
+
+if [ ${#files_to_fix[@]} -eq 0 ]; then
+    echo "All permissions are correctly set."
+else
+    read -p "Do you want to fix incorrect permissions? (Y/N): " answer
+    if [ "$answer" == "Y" ] || [ "$answer" == "y" ]; then
+        fix_permissions
+    else
+        echo "No changes have been made to permissions."
+    fi
+fi
+
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+echo "for splunk"
+echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
+
+
+# Colores
+GREEN="\033[0;32m"
+RED="\033[0;31m"
+RESET="\033[0m"
+
+# Ruta del directorio a verificar
+DIRECTORY="/opt/splunk"
+EXPECTED_OWNER="splunk"
+EXPECTED_GROUP="splunk"
+
+# Verificar propietario y grupo del directorio
+CURRENT_OWNER=$(stat -c "%U" "$DIRECTORY")
+CURRENT_GROUP=$(stat -c "%G" "$DIRECTORY")
+
+# Comparar propietario y grupo esperados
+if [[ "$CURRENT_OWNER" == "$EXPECTED_OWNER" && "$CURRENT_GROUP" == "$EXPECTED_GROUP" ]]; then
+    echo -e "${GREEN}El directorio $DIRECTORY tiene el propietario y grupo correctos (${EXPECTED_OWNER}:${EXPECTED_GROUP}).${RESET}"
+else
+    echo -e "${RED}El directorio $DIRECTORY no tiene el propietario y grupo correctos. Corrigiendo...${RESET}"
+    sudo chown -R "$EXPECTED_OWNER":"$EXPECTED_GROUP" "$DIRECTORY"
+    # Verificar nuevamente después de corregir
+    if [[ $(stat -c "%U" "$DIRECTORY") == "$EXPECTED_OWNER" && $(stat -c "%G" "$DIRECTORY") == "$EXPECTED_GROUP" ]]; then
+        echo -e "${GREEN}El directorio $DIRECTORY fue corregido exitosamente (${EXPECTED_OWNER}:${EXPECTED_GROUP}).${RESET}"
+    else
+        echo -e "${RED}No se pudo corregir el propietario y grupo del directorio $DIRECTORY.${RESET}"
+    fi
+fi
+
+#!/usr/bin/env bash
+
+# Colores
+GREEN="\033[0;32m"
+RED="\033[0;31m"
+RESET="\033[0m"
+
+# Ruta del directorio a verificar
+DIRECTORY="/opt/splunk"
+EXPECTED_OWNER="splunk"
+EXPECTED_GROUP="splunk"
+
+# Verificar si el usuario y el grupo existen
+if ! id -u "$EXPECTED_OWNER" &>/dev/null; then
+    echo -e "${RED}El usuario '$EXPECTED_OWNER' no existe.${RESET}"
+    exit 1
+fi
+
+if ! getent group "$EXPECTED_GROUP" &>/dev/null; then
+    echo -e "${RED}El grupo '$EXPECTED_GROUP' no existe.${RESET}"
+    exit 1
+fi
+
+# Verificar propietario y grupo del directorio
+CURRENT_OWNER=$(stat -c "%U" "$DIRECTORY")
+CURRENT_GROUP=$(stat -c "%G" "$DIRECTORY")
+
+# Comparar propietario y grupo esperados
+if [[ "$CURRENT_OWNER" == "$EXPECTED_OWNER" && "$CURRENT_GROUP" == "$EXPECTED_GROUP" ]]; then
+    echo -e "${GREEN}El directorio $DIRECTORY tiene el propietario y grupo correctos (${EXPECTED_OWNER}:${EXPECTED_GROUP}).${RESET}"
+else
+    echo -e "${RED}El directorio $DIRECTORY no tiene el propietario y grupo correctos. Corrigiendo...${RESET}"
+    sudo chown -R "$EXPECTED_OWNER":"$EXPECTED_GROUP" "$DIRECTORY"
+    
+    # Verificar nuevamente después de corregir
+    if [[ $(stat -c "%U" "$DIRECTORY") == "$EXPECTED_OWNER" && $(stat -c "%G" "$DIRECTORY") == "$EXPECTED_GROUP" ]]; then
+        echo -e "${GREEN}El directorio $DIRECTORY fue corregido exitosamente (${EXPECTED_OWNER}:${EXPECTED_GROUP}).${RESET}"
+    else
+        echo -e "${RED}No se pudo corregir el propietario y grupo del directorio $DIRECTORY.${RESET}"
+    fi
+fi

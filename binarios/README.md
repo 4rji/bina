@@ -149,8 +149,8 @@ s4vit               Muestra varios comandos aprendidos s4vi
 usuario             Crea un usuario en bash, automatico.
 wifiinterfaces      Arregla wifi en kali, terminal grafica texto, debian wifi GUI gui
 wifikali            Crea wifi redes para kali nuevos system-connections
-verip               Verifica los permisos de los archivos /etc/passwd u linux claves
-verip2              Otro para ver permisos de linux
+verpw               Verifica los permisos de los archivos /etc/passwd u linux claves
+
 4rji                el programa y busqueda de scripts
 mesloinst           Instala las fuentes meslo - font
 mesloinst2          Para instalar manualmente las fuentes (nixos) pero funciona otras - font
