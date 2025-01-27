@@ -14,6 +14,12 @@ text = r"""function extractPorts(){
 }
 
 
+
+
+
+______________________________________________________________________________________________
+#######************* INICIO  de BASHFUN   ********************########
+
 #SSH ping
 function __fzf_ssh_host_search() {
   local selected host
