@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+
+# Crear archivos temporales para almacenar los hosts online y offline
+onlineFile=$(mktemp)
+offlineFile=$(mktemp)
+
+# Definir códigos de colores
+BLUE="\e[34m"    # Azul para los nombres de los hosts
+WHITE="\e[37m"   # Blanco para las IPs
+GREEN="\e[32m"   # Verde para 'online'
+RED="\e[31m"     # Rojo para 'offline'
+RESET="\e[0m"    # Reiniciar colores
+
+# Declarar un array asociativo para almacenar los hosts y sus hostnames
+declare -A hosts
+
+# Leer el archivo de configuración de SSH
+while read -r line; do
+    # Eliminar comentarios y espacios al inicio y al final
+    line=$(echo "$line" | sed 's/#.*//;s/^\s*//;s/\s*$//')
+    [[ -z "$line" ]] && continue
+
+    # Obtener la clave y el valor en minúsculas
+    key=$(echo "$line" | awk '{print tolower($1)}')
+    value=$(echo "$line" | awk '{print $2}')
+
+    if [[ "$key" == "host" ]]; then
+        # Separar múltiples hosts en una línea
+        IFS=' ' read -r -a host_array <<< "$value"
+        for host in "${host_array[@]}"; do
+            hosts["$host"]=""  # Inicializar con vacío
+        done
+    elif [[ "$key" == "hostname" ]]; then
+        # Asignar hostname a todos los hosts actuales que no tienen uno definido
+        for host in "${!hosts[@]}"; do
+            if [[ -z "${hosts[$host]}" ]]; then
+                hosts["$host"]="$value"
+            fi
+        done
+    fi
+done < ~/.ssh/config
+
+# Procesar cada host
+for host in "${!hosts[@]}"; do
+    ip="${hosts[$host]}"
+    # Si no se especificó un hostname, usar el alias como IP
+    [[ -z "$ip" ]] && ip="$host"
+
+    {
+        if ping -c1 -W1 "$ip" &>/dev/null; then
+            # Formatear la salida con colores: Nombre en azul, IP en blanco, estado en verde
+            echo -e "${BLUE}${host}${RESET} - ${WHITE}${ip}${RESET} (${GREEN}online${RESET})" >> "$onlineFile"
+        else
+            # Formatear la salida con colores: Nombre en azul, IP en blanco, estado en rojo
+            echo -e "${BLUE}${host}${RESET} - ${WHITE}${ip}${RESET} (${RED}offline${RESET})" >> "$offlineFile"
+        fi
+    } &
+done
+
+# Esperar a que todos los procesos en segundo plano terminen
+wait
+
+# Mostrar los resultados
+echo -e "Online:"
+sort "$onlineFile"
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+echo -e "\nOffline:"
+sort "$offlineFile"
+
+# Eliminar los archivos temporales
+rm "$onlineFile" "$offlineFile"
+
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"

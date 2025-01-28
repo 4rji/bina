@@ -170,7 +170,9 @@ pas                 Copia el contenido del portapapeles en la variable $htcon
 jfirefox            firejail a firefox             
 lid                 cambia el comportamiento de lid laptop                                             
 
+
 #Util
+
 msmb                monta un smb o samba
 smbcomm             Explota samba, arregla s tty, consola interactiva, control c     
 servidor            Inicia y detiene un servidor apache en 8080                                                         
@@ -281,6 +283,7 @@ findme              Usa el comando find para buscar archivos
 
 
 ###------ssh
+pings               Hace un ping a todos los hosts dentro de archivo ssh/config
 pssh                Hace un ping a un servidor y luego se conecta
 sships              Agrega Ips o subnets a allow or deny hosts
 sshsync             Sincroniza el archivo ssh con los nuevos de github. no borra nada
