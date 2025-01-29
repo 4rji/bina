@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+
+# Crear archivos temporales para almacenar los hosts online y offline
+onlineFile=$(mktemp)
+offlineFile=$(mktemp)
+
+# Definir códigos de colores
+BLUE="\e[34m"    # Azul para los nombres de los hosts
+WHITE="\e[37m"   # Blanco para las IPs y puertos
+GREEN="\e[32m"   # Verde para 'online'
+RED="\e[31m"     # Rojo para 'offline'
+RESET="\e[0m"    # Reiniciar colores
+
+# Declarar arrays asociativos para almacenar los hosts, hostnames y puertos
+declare -A hosts
+declare -A ports
+
+# Variable para almacenar los hosts actuales al procesar el archivo de configuración
+current_hosts=()
+
+# Leer el archivo de configuración de SSH
+while read -r line; do
+    # Eliminar comentarios y espacios al inicio y al final
+    line=$(echo "$line" | sed 's/#.*//;s/^\s*//;s/\s*$//')
+    [[ -z "$line" ]] && continue
+
+    # Obtener la clave y el valor en minúsculas
+    key=$(echo "$line" | awk '{print tolower($1)}')
+    value=$(echo "$line" | awk '{print $2}')
+
+    if [[ "$key" == "host" ]]; then
+        # Separar múltiples hosts en una línea
+        IFS=' ' read -r -a host_array <<< "$value"
+        current_hosts=("${host_array[@]}")
+        for host in "${host_array[@]}"; do
+            # Inicializar hosts y puertos con valores por defecto
+            hosts["$host"]=""
+            ports["$host"]=22
+        done
+    elif [[ "$key" == "hostname" ]]; then
+        for host in "${current_hosts[@]}"; do
+            hosts["$host"]="$value"
+        done
+    elif [[ "$key" == "port" ]]; then
+        for host in "${current_hosts[@]}"; do
+            ports["$host"]="$value"
+        done
+    fi
+done < ~/.ssh/config
+
+# Procesar cada host
+for host in "${!hosts[@]}"; do
+    hostname="${hosts[$host]}"
+    port="${ports[$host]}"
+    # Si no se especificó un hostname, usar el alias como hostname
+    [[ -z "$hostname" ]] && hostname="$host"
+
+    {
+        # Intentar una conexión TCP al puerto SSH usando nc
+        if nc -zv -w1 "$hostname" "$port" &>/dev/null; then
+            # Formatear la salida con colores: Nombre en azul, IP:puerto en blanco, estado en verde
+            echo -e "${BLUE}${host}${RESET} - ${WHITE}${hostname}:${port}${RESET} (${GREEN}online${RESET})" >> "$onlineFile"
+        else
+            # Formatear la salida con colores: Nombre en azul, IP:puerto en blanco, estado en rojo
+            echo -e "${BLUE}${host}${RESET} - ${WHITE}${hostname}:${port}${RESET} (${RED}offline${RESET})" >> "$offlineFile"
+        fi
+    } &
+done
+
+# Esperar a que todos los procesos en segundo plano terminen
+wait
+
+# Mostrar los resultados
+echo -e "Online:"
+sort "$onlineFile"
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+echo -e "\nOffline:"
+sort "$offlineFile"
+
+# Eliminar los archivos temporales
+rm "$onlineFile" "$offlineFile"
+
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
