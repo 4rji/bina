@@ -284,6 +284,7 @@ findme              Usa el comando find para buscar archivos
 
 ###------ssh
 pings               Hace un ping a todos los hosts dentro de archivo ssh/config
+pingsm              Version para mac
 pingz               misma que pings pero usa nc para ver status del puerto ssh en el .config
 pssh                Hace un ping a un servidor y luego se conecta
 sships              Agrega Ips o subnets a allow or deny hosts
