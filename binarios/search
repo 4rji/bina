@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
 
-#para crear la base de datos del archivo data.json para la pagina web, pregunta titutlo, contenido y link
-#el link esta ligado a la pagina, donde el script solo cambia el nombre de la pagina pero el dominio es el mismo
-
 import json
 import os
 
@@ -11,6 +8,20 @@ file_path = '/home/nat/Documents/GitHub/documentation/data.json'
 
 # Función para agregar contenido nuevo al archivo JSON
 def add_content_to_json(file_path):
+    # Verificar si el archivo existe, si no, crearlo con una lista vacía
+    if not os.path.exists(file_path):
+        with open(file_path, 'w') as file:
+            json.dump([], file)
+
+    # Leer el contenido existente del archivo JSON
+    with open(file_path, 'r') as file:
+        try:
+            data = json.load(file)
+            if not isinstance(data, list):
+                data = []
+        except json.JSONDecodeError:
+            data = []
+
     # Pedir valores al usuario
     title = input("Enter the title: ")
     content = input("Enter the content: ")
@@ -22,13 +33,6 @@ def add_content_to_json(file_path):
         "content": content,
         "link": f"https://docs.4rji.com/{newsite}"
     }
-
-    # Leer el contenido existente del archivo JSON
-    if os.path.exists(file_path):
-        with open(file_path, 'r') as file:
-            data = json.load(file)
-    else:
-        data = []
 
     # Agregar el nuevo contenido
     data.append(new_entry)
