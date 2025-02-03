@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -e
+
+# 1. Actualiza repositorios y paquetes del sistema
+sudo apt update
+sudo apt upgrade -y
+
+# 2. Instala dependencias esenciales (curl, etc.)
+sudo apt install -y curl
+
+# 3. Instala Node.js (usando el repo oficial de NodeSource para Node 18, por ejemplo)
+curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+sudo apt install -y nodejs
+
+# 4. Crea un directorio para el proyecto
+mkdir -p ~/mi-proyecto
+cd ~/mi-proyecto
+
+# 5. Crea un nuevo proyecto Vue con Vite (usando la plantilla oficial)
+npm create vue@latest detector
+cd detector
+
+# 6. Instala Electron, electron-builder y todas las dependencias/plug-ins que necesitas
+npm install --save-dev \
+  electron \
+  electron-builder \
+  vite@latest \
+  @vitejs/plugin-vue \
+  vite-plugin-vue-devtools
+
+# (Opcional) Ajusta el package.json o vite.config.js si hace falta
+# (añade el plugin devtools en plugins, scripts de electron, etc.)
+
+# EJEMPLO de Scripts típicos en package.json:
+# "scripts": {
+#   "dev": "vite --port 3000",
+#   "build": "vite build",
+#   "electron:serve": "ELECTRON_START_URL=http://localhost:3000 electron electron-main.js",
+#   "dist": "electron-builder"
+# }
+
+# Para arrancar el modo desarrollo (frontend):
+#   npm run dev
+# En otra terminal, para iniciar Electron apuntando a ese servidor:
+#   npm run electron:serve
+
+# Para generar el AppImage, etc.:
+#   npm run build && npm run dist
