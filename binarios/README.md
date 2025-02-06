@@ -107,6 +107,8 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+servidores          Inicia el programa servidores que es la webapp de flash para proxmox
+servidoresprogram   El codigo de servidores para proxmox servidores
 fwinst              Agrega servicios y puertos a firewall-cmd
 crontadd            Agrega tareas al cront para ejecutarse en tiempo
 resolvdinst         instala resolvd para linux debian, no servidor, solo dns
