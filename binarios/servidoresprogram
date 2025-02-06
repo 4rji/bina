@@ -189,22 +189,6 @@ def index():
             {% endfor %}
         </div>
 
-        <div class="navbar"><h1>CCDC Server</h1></div>
-        <div class="content">
-            {% for machine in info_server3 %}
-            <div class="machine {% if machine.power_state == 'running' %}machine-on{% endif %}">
-                <div class="machine-name">{{ machine.display_name }}</div>
-                {% if machine.ip == "" %}
-                    <div class="ip-address ip-inactive">{{ machine.ip }}</div>
-                {% else %}
-                    <div class="ip-address ip-active">{{ machine.ip }}</div>
-                {% endif %}
-                <button class="start-button" onclick="location.href='{{ url_for('start_machine_server3', vmid=machine.vmid) }}'">Turn on</button>
-                <button class="shutdown-button" onclick="location.href='{{ url_for('shutdown_machine_server3', vmid=machine.vmid) }}'">Turn off</button>
-                <button class="stop-button" onclick="location.href='{{ url_for('stop_machine_server3', vmid=machine.vmid) }}'">Stop</button>
-            </div>
-            {% endfor %}
-        </div>
 
         <div class="navbar"><h1>MSP</h1></div>
         <div class="content">
@@ -222,6 +206,26 @@ def index():
             </div>
             {% endfor %}
         </div>
+
+
+        <div class="navbar"><h1>CCDC Server</h1></div>
+        <div class="content">
+            {% for machine in info_server3 %}
+            <div class="machine {% if machine.power_state == 'running' %}machine-on{% endif %}">
+                <div class="machine-name">{{ machine.display_name }}</div>
+                {% if machine.ip == "" %}
+                    <div class="ip-address ip-inactive">{{ machine.ip }}</div>
+                {% else %}
+                    <div class="ip-address ip-active">{{ machine.ip }}</div>
+                {% endif %}
+                <button class="start-button" onclick="location.href='{{ url_for('start_machine_server3', vmid=machine.vmid) }}'">Turn on</button>
+                <button class="shutdown-button" onclick="location.href='{{ url_for('shutdown_machine_server3', vmid=machine.vmid) }}'">Turn off</button>
+                <button class="stop-button" onclick="location.href='{{ url_for('stop_machine_server3', vmid=machine.vmid) }}'">Stop</button>
+            </div>
+            {% endfor %}
+        </div>
+
+        
     </body>
     </html>
     """
