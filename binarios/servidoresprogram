@@ -1,0 +1,383 @@
+import os
+import subprocess
+import logging
+import re
+from concurrent.futures import ThreadPoolExecutor
+from flask import Flask, render_template_string, jsonify, redirect
+
+app = Flask(__name__)
+
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.ERROR)
+handler = logging.FileHandler('app.log')
+formatter = logging.Formatter('%(asctime)s %(levelname)s:%(message)s')
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+
+# --- Configuración de Servidores y Máquinas ---
+
+# Servidor 1
+machines_server1 = [
+    {'display_name': 'kali',       'proxmox_id': '100'},
+    {'display_name': 'popOS',      'proxmox_id': '101'},
+    {'display_name': 'debian',     'proxmox_id': '102'},
+    {'display_name': 'tor-relay',  'proxmox_id': '103'},
+    {'display_name': 'TrueNAS',    'proxmox_id': '104'},
+    {'display_name': 'kali-clean', 'proxmox_id': '105'},
+    {'display_name': 'win10',      'proxmox_id': '106'},
+    {'display_name': 'win-server', 'proxmox_id': '107'},
+    {'display_name': 'splunky',    'proxmox_id': '108'},
+]
+PROXMOX_HOST1 = "192.168.44.141"
+PROXMOX_USER1 = "root"
+
+# Servidor 4
+machines_server4 = [
+    {'display_name': 'DEbian', 'proxmox_id': '901'},
+    {'display_name': 'Debian', 'proxmox_id': '903'},
+    {'display_name': 'Kasm',   'proxmox_id': '910'},
+    {'display_name': 'kali',   'proxmox_id': '999'},
+]
+PROXMOX_HOST4 = "192.168.99.99"
+PROXMOX_USER4 = "root"
+
+# Servidor 2
+machines_server2 = [
+    {'display_name': 'sandfly', 'proxmox_id': '748'},
+    {'display_name': 'Kali',    'proxmox_id': '777'},
+    {'display_name': 'Kasm',    'proxmox_id': '780'},
+    {'display_name': 'debian',  'proxmox_id': '790'},
+]
+PROXMOX_HOST2 = "192.168.88.171"
+PROXMOX_USER2 = "root"
+
+# Servidor 3
+machines_server3 = [
+    {'display_name': 'PA-VM-11.1.4',        'proxmox_id': '100'},
+    {'display_name': 'Palo-Tinto-debian',   'proxmox_id': '101'},
+    {'display_name': 'debian-Template',     'proxmox_id': '102'},
+    {'display_name': 'Rocky-internal',      'proxmox_id': '103'},
+    {'display_name': 'rocky-users',         'proxmox_id': '104'},
+    {'display_name': '242-USERS-Debian',    'proxmox_id': '105'},
+    {'display_name': 'rocky-public',        'proxmox_id': '106'},
+    {'display_name': '241-PUBLIC-debian',   'proxmox_id': '107'},
+    {'display_name': '240-INTERNAL-debian', 'proxmox_id': '108'},
+    {'display_name': '241-PUBLIC-website-d','proxmox_id': '109'},
+    {'display_name': 'E-Comm-Centos7',      'proxmox_id': '110'},
+    {'display_name': '2019-Docker',         'proxmox_id': '111'},
+    {'display_name': 'Debian-10-DNS',       'proxmox_id': '112'},
+    {'display_name': 'Ubuntu-18-web',       'proxmox_id': '113'},
+    {'display_name': 'Ubuntu-Wkst',         'proxmox_id': '114'},
+]
+PROXMOX_HOST3 = "10.0.4.46"
+PROXMOX_USER3 = "root"
+
+PRIVATE_KEY_PATH = "~/.ssh/id_ed25519_prox"
+
+# --- Funciones de Consulta ---
+
+def is_server_online(host):
+    try:
+        result = subprocess.run(["ping", "-c", "1", "-W", "1", host],
+                                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return result.returncode == 0
+    except Exception as e:
+        logger.error(f"Error verificando {host}: {e}")
+        return False
+
+def get_vm_status_and_ip(vmid, host, user, key_path):
+    try:
+        cmd = ["ssh", "-i", key_path, f"{user}@{host}", "qm", "list"]
+        result = subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        if result.returncode != 0:
+            logger.error(f"Error qm list ({host}): {result.stderr.strip()}")
+            return ("", "unknown")
+        for line in result.stdout.strip().split("\n")[1:]:
+            parts = line.split()
+            if len(parts) < 3:
+                continue
+            if parts[0] == vmid:
+                return ("", parts[2])
+        return ("", "unknown")
+    except Exception as e:
+        logger.error(f"Excepción VM {vmid} en {host}: {e}")
+        return ("", "error")
+
+def get_machine_info(machine, host, user, key_path, server_online):
+    vmid = machine["proxmox_id"]
+    ip, state = get_vm_status_and_ip(vmid, host, user, key_path)
+    return {
+        "display_name": machine["display_name"],
+        "vmid": vmid,
+        "ip": ip if ip else "N/A",
+        "power_state": state,
+        "server_online": server_online
+    }
+
+def process_server(server):
+    host = server["host"]
+    user = server["user"]
+    machines = server["machines"]
+    server_online = is_server_online(host)
+    server["is_online"] = server_online
+
+    with ThreadPoolExecutor(max_workers=5) as executor:
+        futures = [executor.submit(get_machine_info, m, host, user, PRIVATE_KEY_PATH, server_online)
+                   for m in machines]
+        machine_list = [future.result() for future in futures]
+    server["machine_list"] = machine_list
+    return server
+
+# --- Endpoint para devolver datos en JSON ---
+
+@app.route('/servers_data')
+def servers_data():
+    # Definir los servidores con etiquetas personalizadas
+    servers = [
+        {"host": PROXMOX_HOST1, "user": PROXMOX_USER1, "machines": machines_server1, "label": "Nam1"},
+        {"host": PROXMOX_HOST4, "user": PROXMOX_USER4, "machines": machines_server4, "label": "Name2"},
+        {"host": PROXMOX_HOST2, "user": PROXMOX_USER2, "machines": machines_server2, "label": "Nam3"},
+        {"host": PROXMOX_HOST3, "user": PROXMOX_USER3, "machines": machines_server3, "label": "CCDC Server"}
+    ]
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        futures = [executor.submit(process_server, server) for server in servers]
+        processed_servers = [future.result() for future in futures]
+    return jsonify(processed_servers)
+
+
+#to put a name next to server name
+# let prefix = getServerPrefix(server.host);
+#                        html += `<div class="navbar"><h1>ServerName-Before-machine ${server.label ? server.label : 
+
+
+# --- Página principal con carga asíncrona, actualización cada 10 seg y botones ---
+
+@app.route('/')
+def index():
+    html = """
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+      <meta charset="UTF-8">
+      <title>Servidores</title>
+      <style>
+          body { background-color: #1f1f1f; font-family: Arial, sans-serif; color: #FFF; }
+          .navbar { background-color: #333; padding: 1rem; text-align: center; margin-bottom: 20px; }
+          .content { text-align: center; }
+          .machine {
+              display: inline-block; margin: 20px; padding: 20px;
+              border-radius: 10px; box-shadow: 2px 2px 10px rgba(0,0,0,0.1);
+              width: 220px;
+          }
+          .machine-on { background-color: #005f00; }
+          .machine-off { background-color: #FFF; color: #000; }
+          .machine-offline { background-color: #808080; }
+          .machine-name { font-weight: bold; margin-bottom: 10px; }
+          .ip-address { font-size: 0.9em; margin-bottom: 10px; }
+          button {
+              padding: 10px 20px; margin: 5px; font-size: 0.9em; border: none;
+              border-radius: 5px; cursor: pointer; color: white;
+          }
+          .start-button { background-color: #28a745; }
+          .shutdown-button { background-color: #dc3545; }
+          .stop-button { background-color: #ffc107; }
+          button:hover { opacity: 0.8; }
+          #loading { text-align: center; padding: 50px; font-size: 1.5em; }
+      </style>
+    </head>
+    <body>
+      <div id="loading">Loading...</div>
+      <div id="servers"></div>
+      <script>
+          // Devuelve el prefijo de URL según el host del servidor
+          function getServerPrefix(host) {
+              if (host === "192.168.44.141") return "/server1";
+              else if (host === "192.168.99.99") return "/server4";
+              else if (host === "192.168.88.171") return "/server2";
+              else if (host === "10.0.4.46") return "/server3";
+              return "";
+          }
+
+          // Realiza la acción de un botón sin recargar la página
+          function performAction(url) {
+              fetch(url)
+                .then(response => {
+                    // Después de la acción, se refrescan los datos
+                    refreshServersData();
+                })
+                .catch(error => {
+                    console.error("Error en la acción:", error);
+                });
+          }
+
+          // Función para obtener y actualizar los datos de servidores
+          function refreshServersData() {
+              fetch('/servers_data')
+                .then(response => response.json())
+                .then(data => {
+                    // Oculta el mensaje de carga solo en el primer fetch
+                    document.getElementById('loading').style.display = 'none';
+                    let container = document.getElementById('servers');
+                    let html = "";
+                    data.forEach(server => {
+                        let prefix = getServerPrefix(server.host);
+                        html += `<div class="navbar"><h1>Server ${server.label ? server.label : server.host}</h1></div>`;
+                        html += `<div class="content">`;
+                        server.machine_list.forEach(machine => {
+                            let clase = (!machine.server_online) ? "machine-offline" :
+                                        (machine.power_state === "running" ? "machine-on" : "machine-off");
+                            html += `<div class="machine ${clase}">
+                                        <div class="machine-name">${machine.display_name}</div>
+                                        <div class="ip-address">${machine.ip}</div>
+                                        <button class="start-button" onclick="performAction('${prefix}/start/${machine.vmid}')">Turn on</button>
+                                        <button class="shutdown-button" onclick="performAction('${prefix}/shutdown/${machine.vmid}')">Turn off</button>
+                                        <button class="stop-button" onclick="performAction('${prefix}/stop/${machine.vmid}')">Stop</button>
+                                     </div>`;
+                        });
+                        html += `</div>`;
+                    });
+                    container.innerHTML = html;
+                })
+                .catch(error => {
+                    document.getElementById('loading').innerText = 'Error cargando servidores.';
+                    console.error(error);
+                });
+          }
+
+          // Refresca datos al cargar y cada 10 segundos
+          refreshServersData();
+          setInterval(refreshServersData, 10000);
+      </script>
+    </body>
+    </html>
+    """
+    return render_template_string(html)
+
+# --- Rutas para Acciones (sin cambios en lógica) ---
+
+# Servidor 1
+@app.route('/server1/start/<vmid>')
+def start_machine_server1(vmid):
+    if vmid in [m['proxmox_id'] for m in machines_server1]:
+        cmd = ["ssh", "-i", PRIVATE_KEY_PATH, f"{PROXMOX_USER1}@{PROXMOX_HOST1}", "qm", "start", vmid]
+        try:
+            subprocess.Popen(cmd)
+        except Exception as e:
+            logger.error(f"Error start VM {vmid} S1: {e}")
+    return jsonify(success=True)
+
+@app.route('/server1/shutdown/<vmid>')
+def shutdown_machine_server1(vmid):
+    if vmid in [m['proxmox_id'] for m in machines_server1]:
+        cmd = ["ssh", "-i", PRIVATE_KEY_PATH, f"{PROXMOX_USER1}@{PROXMOX_HOST1}", "qm", "shutdown", vmid]
+        try:
+            subprocess.Popen(cmd)
+        except Exception as e:
+            logger.error(f"Error shutdown VM {vmid} S1: {e}")
+    return jsonify(success=True)
+
+@app.route('/server1/stop/<vmid>')
+def stop_machine_server1(vmid):
+    if vmid in [m['proxmox_id'] for m in machines_server1]:
+        cmd = ["ssh", "-i", PRIVATE_KEY_PATH, f"{PROXMOX_USER1}@{PROXMOX_HOST1}", "qm", "stop", vmid]
+        try:
+            subprocess.Popen(cmd)
+        except Exception as e:
+            logger.error(f"Error stop VM {vmid} S1: {e}")
+    return jsonify(success=True)
+
+# Servidor 2
+@app.route('/server2/start/<vmid>')
+def start_machine_server2(vmid):
+    if vmid in [m['proxmox_id'] for m in machines_server2]:
+        cmd = ["ssh", "-i", PRIVATE_KEY_PATH, f"{PROXMOX_USER2}@{PROXMOX_HOST2}", "qm", "start", vmid]
+        try:
+            subprocess.Popen(cmd)
+        except Exception as e:
+            logger.error(f"Error start VM {vmid} S2: {e}")
+    return jsonify(success=True)
+
+@app.route('/server2/shutdown/<vmid>')
+def shutdown_machine_server2(vmid):
+    if vmid in [m['proxmox_id'] for m in machines_server2]:
+        cmd = ["ssh", "-i", PRIVATE_KEY_PATH, f"{PROXMOX_USER2}@{PROXMOX_HOST2}", "qm", "shutdown", vmid]
+        try:
+            subprocess.Popen(cmd)
+        except Exception as e:
+            logger.error(f"Error shutdown VM {vmid} S2: {e}")
+    return jsonify(success=True)
+
+@app.route('/server2/stop/<vmid>')
+def stop_machine_server2(vmid):
+    if vmid in [m['proxmox_id'] for m in machines_server2]:
+        cmd = ["ssh", "-i", PRIVATE_KEY_PATH, f"{PROXMOX_USER2}@{PROXMOX_HOST2}", "qm", "stop", vmid]
+        try:
+            subprocess.Popen(cmd)
+        except Exception as e:
+            logger.error(f"Error stop VM {vmid} S2: {e}")
+    return jsonify(success=True)
+
+# Servidor 3
+@app.route('/server3/start/<vmid>')
+def start_machine_server3(vmid):
+    if vmid in [m['proxmox_id'] for m in machines_server3]:
+        cmd = ["ssh", "-i", PRIVATE_KEY_PATH, f"{PROXMOX_USER3}@{PROXMOX_HOST3}", "qm", "start", vmid]
+        try:
+            subprocess.Popen(cmd)
+        except Exception as e:
+            logger.error(f"Error start VM {vmid} S3: {e}")
+    return jsonify(success=True)
+
+@app.route('/server3/shutdown/<vmid>')
+def shutdown_machine_server3(vmid):
+    if vmid in [m['proxmox_id'] for m in machines_server3]:
+        cmd = ["ssh", "-i", PRIVATE_KEY_PATH, f"{PROXMOX_USER3}@{PROXMOX_HOST3}", "qm", "shutdown", vmid]
+        try:
+            subprocess.Popen(cmd)
+        except Exception as e:
+            logger.error(f"Error shutdown VM {vmid} S3: {e}")
+    return jsonify(success=True)
+
+@app.route('/server3/stop/<vmid>')
+def stop_machine_server3(vmid):
+    if vmid in [m['proxmox_id'] for m in machines_server3]:
+        cmd = ["ssh", "-i", PRIVATE_KEY_PATH, f"{PROXMOX_USER3}@{PROXMOX_HOST3}", "qm", "stop", vmid]
+        try:
+            subprocess.Popen(cmd)
+        except Exception as e:
+            logger.error(f"Error stop VM {vmid} S3: {e}")
+    return jsonify(success=True)
+
+# Servidor 4
+@app.route('/server4/start/<vmid>')
+def start_machine_server4(vmid):
+    if vmid in [m['proxmox_id'] for m in machines_server4]:
+        cmd = ["ssh", "-i", PRIVATE_KEY_PATH, f"{PROXMOX_USER4}@{PROXMOX_HOST4}", "qm", "start", vmid]
+        try:
+            subprocess.Popen(cmd)
+        except Exception as e:
+            logger.error(f"Error start VM {vmid} S4: {e}")
+    return jsonify(success=True)
+
+@app.route('/server4/shutdown/<vmid>')
+def shutdown_machine_server4(vmid):
+    if vmid in [m['proxmox_id'] for m in machines_server4]:
+        cmd = ["ssh", "-i", PRIVATE_KEY_PATH, f"{PROXMOX_USER4}@{PROXMOX_HOST4}", "qm", "shutdown", vmid]
+        try:
+            subprocess.Popen(cmd)
+        except Exception as e:
+            logger.error(f"Error shutdown VM {vmid} S4: {e}")
+    return jsonify(success=True)
+
+@app.route('/server4/stop/<vmid>')
+def stop_machine_server4(vmid):
+    if vmid in [m['proxmox_id'] for m in machines_server4]:
+        cmd = ["ssh", "-i", PRIVATE_KEY_PATH, f"{PROXMOX_USER4}@{PROXMOX_HOST4}", "qm", "stop", vmid]
+        try:
+            subprocess.Popen(cmd)
+        except Exception as e:
+            logger.error(f"Error stop VM {vmid} S4: {e}")
+    return jsonify(success=True)
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=600, debug=True)
