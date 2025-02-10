@@ -17,8 +17,24 @@ text = r"""function extractPorts(){
 
 
 
-______________________________________________________________________________________________
 #######************* INICIO  de BASHFUN   ********************########
+
+
+
+#para evitar que se cierre con controld D
+setopt ignoreeof
+
+
+#para abrir una .app en nixos
+function abrirapp {
+  nix-shell -p appimage-run --run "appimage-run $*"
+}
+
+
+
+
+
+
 
 #SSH ping
 function __fzf_ssh_host_search() {
