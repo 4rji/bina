@@ -299,7 +299,7 @@ fixhost             Arregla know_hosts para ssh duplicados
 x11uso              Instrucciones para x11
 sshbaner            crea un mensaje de bienvenida de ssh Despues logearse.
 sshbanner           cambia el banner de ssh ANTES de logearse hola cacheton y se edita con bannere                                      
-bannerssssh80               Conecta con ssh -L para redirijir trafico desde una maquina a otra, a browser 
+bannerssssh80       Conecta con ssh -L para redirijir trafico desde una maquina a otra, a browser 
 fixssh              Seguido de la ip, para borrar la ip del localhost cuando se duplica	
 cssh                copia mui clave a una maquina remota
 ccssh               Version para M1 mac de cssh
@@ -309,7 +309,7 @@ sshhost             Lista los hosts del archivo sshconf, para conectarse
 sshjump             Configura los jumps infinitamente.
 sshlist             Modifica la lista de /etc/hosts allow deny para asegurar la red ssh
 sshhuesped          Huespedes de mi configuracion
-sshpassconf         Sshpass el sshi para pasar iniciar ssh sin mensajes ni autorizacion ippsec
+sship               ippsec sshpass el para pasar iniciar ssh sin mensajes ni autorizacion Ippsec
 sshmont             Monta una carpeta usando sshh           Edita el banner de inicio de session de ssh, cuando se loguea
 
 

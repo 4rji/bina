@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+
+# Uso:
+#   ./script user@ip         -> usa el puerto 22 por defecto
+#   ./script user@ip PORT    -> usa el puerto especificado
+
+if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+  echo -e "\e[31mUso: $0 user@ip [puerto]\e[0m"
+  exit 1
+fi
+
+remote_host="$1"
+if [ "$#" -eq 2 ]; then
+  port="$2"
+else
+  port=22
+fi
+
+# Lista de paquetes a instalar
+paquetes=("sshpass")
+
+# Funciones para verificar si un paquete está instalado
+paquete_instalado_apt() {
+    dpkg -l "$1" 2>/dev/null | grep -q '^ii'
+}
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Instalar paquetes según el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo -e "\e[32mInstalando el paquete $paquete...\e[0m"
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo -e "\e[32mInstalando el paquete $paquete...\e[0m"
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo -e "\e[32mInstalando el paquete $paquete...\e[0m"
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo -e "\e[32mInstalando el paquete $paquete...\e[0m"
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            echo -e "\e[31mSistema operativo no soportado para instalación automática.\e[0m"
+            ;;
+    esac
+done
+
+echo ""
+echo ""
+
+# Función para mostrar mensajes
+echo_msg() {
+    echo -e "\e[33m==============================================\e[0m"
+    echo -e "\e[34m$1\e[0m"
+    echo -e "\e[33m==============================================\e[0m"
+}
+
+# Solicitar la contraseña de forma oculta
+read -s -p $'\e[35m    Password: \e[0m' password
+echo -e "\n\n\e[36mConectando a $remote_host en el puerto $port ...\e[0m\n\n"
+
+# Construir el comando a ejecutar
+cmd="sshpass -p '$password' ssh -p '$port' -o GlobalKnownHostsFile=/dev/null -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no '$remote_host'"
+
+echo ""
+echo -e "\e[31m==============================================\e[0m"
+echo -e "\e[32m$cmd\e[0m"
+echo -e "\e[35m==============================================\e[0m"
+echo ""
+
+# Ejecutar el comando SSH con sshpass
+sshpass -p "$password" ssh -p "$port" \
+  -o GlobalKnownHostsFile=/dev/null \
+  -o UserKnownHostsFile=/dev/null \
+  -o StrictHostKeyChecking=no \
+  "$remote_host"
