@@ -170,6 +170,4 @@ if [[ $mostrarPreguntas == true || $mostrarBina == true ]]; then
 
     # todou  # Asegúrate de definir o eliminar esta función si no está en uso
 fi
-
-
 todou
