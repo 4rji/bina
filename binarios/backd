@@ -1,35 +1,67 @@
 #!/usr/bin/env python3
 import os
 import sys
+import socket
 
 # Verificar si psutil está instalado
 try:
     import psutil
 except ImportError:
-    print("El módulo 'psutil' no está instalado. Ejecutando el script 'pythonreq' para instalar dependencias...")
+    print("\033[31mEl módulo 'psutil' no está instalado. Ejecutando el script 'pythonreq' para instalar dependencias...\033[0m")
     os.system("pythonreq")
     sys.exit(1)
 
+# Colores ANSI
+RED = "\033[31m"
+GREEN = "\033[32m"
+YELLOW = "\033[33m"
+BLUE = "\033[34m"
+MAGENTA = "\033[35m"
+CYAN = "\033[36m"
+RESET = "\033[0m"
+
+# Lista de procesos a excluir
+EXCLUDED_PROCESSES = ["firefox", "chrome", "google-chrome"]
+
 def network_monitor():
     processes = psutil.net_connections(kind="inet")
-
     for process in processes:
         if process.status == "ESTABLISHED" and process.raddr.ip != "127.0.0.1":
-            print("================================================")
-            print("Connection found")
-            get_process_details(process.pid)
-            print(f"Remote IP: {process.raddr.ip}")
+            process_name = get_process_name(process.pid)
+            if process_name and process_name.lower() not in EXCLUDED_PROCESSES:
+                print(f"{MAGENTA}{'=' * 50}{RESET}")
+                print(f"{GREEN}[+] Connection found{RESET}")
+                get_process_details(process.pid, process)
+                print(f"{MAGENTA}{'=' * 50}{RESET}")
 
-def get_process_details(pid):
+def get_process_name(pid):
     try:
-        process = psutil.Process(pid)
-        print(f"[+] Process Name: {process.name()}")
-        print(f"[+] Process PID: {process.pid}")
-        print(f"[+] Process Status: {process.status()}")
+        return psutil.Process(pid).name()
+    except (psutil.NoSuchProcess, psutil.AccessDenied):
+        return None
+
+def get_process_details(pid, process):
+    try:
+        proc = psutil.Process(pid)
+        print(f"{YELLOW}[+] Process Name: {BLUE}{proc.name()}{RESET}")
+        print(f"{YELLOW}[+] Process PID: {BLUE}{proc.pid}{RESET}")
+        print(f"{YELLOW}[+] Process Status: {BLUE}{proc.status()}{RESET}")
+        print(f"{YELLOW}[+] User: {BLUE}{proc.username()}{RESET}")
+        print(f"{YELLOW}[+] Executable Path: {BLUE}{proc.exe()}{RESET}")
+        print(f"{YELLOW}[+] Command Line: {BLUE}{' '.join(proc.cmdline())}{RESET}")
+        print(f"{YELLOW}[+] Local Address: {BLUE}{process.laddr.ip}:{process.laddr.port}{RESET}")
+        print(f"{YELLOW}[+] Remote Address: {BLUE}{process.raddr.ip}:{process.raddr.port}{RESET}")
+
+        try:
+            hostname = socket.gethostbyaddr(process.raddr.ip)[0]
+            print(f"{YELLOW}[+] Remote Hostname: {BLUE}{hostname}{RESET}")
+        except socket.herror:
+            print(f"{YELLOW}[+] Remote Hostname: {RED}No disponible{RESET}")
+
     except psutil.NoSuchProcess:
-        print(f"No process found with PID {pid}")
+        print(f"{RED}No process found with PID {pid}{RESET}")
     except psutil.AccessDenied:
-        print(f"Access denied to process with PID {pid}")
+        print(f"{RED}Access denied to process with PID {pid}{RESET}")
 
 if __name__ == '__main__':
     network_monitor()
