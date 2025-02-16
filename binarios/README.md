@@ -8,11 +8,6 @@ dnfrepos            Actualiza unos repos EPEL, y otros, tambien qemu se habilita
 lolcatinst          Instala gem, ruby y lolcat
 
 
-###------shortcuts
-ippu                Ip publica con curl ifconfig.me
-
-
-
 
 ###------Arch linux
 instpkg             Instala un paquete en arch makepkg -si PKGBUILD
@@ -41,7 +36,7 @@ ftpinst             Instala ftp
 sftpinst            Para sftp instalador de ssh, servidor
 blockicmp           bloquea en firewall cmd
 
-fshells             busca procesos, muestra puerto, para shells, usa ps y ss
+fishells             busca procesos, muestra puerto, para shells, usa ps y ss
 kshells             Mata shells en el sistema
 newprocess          Nuevos procesos en linux
 snoop               Hace un awk a los logs de snoopy

@@ -15,6 +15,12 @@ text = r"""function extractPorts(){
 
 
 
+#crea una carpeta y va a ella
+mkdirr() {
+    mkdir -p "$1"
+    cd "$1" || return
+}
+
 
 
 #######************* INICIO  de BASHFUN   ********************########
