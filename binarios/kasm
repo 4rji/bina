@@ -1,0 +1,22 @@
+#!/run/current-system/sw/bin/bash
+
+# Si se proporciona un argumento, úsalo como website;
+# de lo contrario, intenta obtener el contenido del portapapeles.
+if [ $# -ge 1 ]; then
+    website="$1"
+else
+    website=$(/run/current-system/sw/bin/xclip -o -sel clip 2>/dev/null | tr -d '\n')
+    if [ -z "$website" ]; then
+        website=$(/run/current-system/sw/bin/xclip -o -sel primary 2>/dev/null | tr -d '\n')
+    fi
+fi
+
+if [ -z "$website" ]; then
+    echo "No se pudo obtener un website desde argumento o portapapeles."
+    exit 1
+fi
+
+# Construir la URL de Kasm sin verificación
+kasmServer="https://10.0.4.175"
+kasmURL="${kasmServer}/#/go?kasm_url=${website}"
+/run/current-system/sw/bin/firefox "$kasmURL" &
