@@ -50,34 +50,38 @@ function abrirapp {
 
 
 
-
-
-#SSH ping
+# SSH ping con detalles extendidos
 function __fzf_ssh_host_search() {
   local selected host
   selected=$(
     awk '
       BEGIN { OFS=" - " }
       tolower($1)=="host" {
-        if(host != "" && ip != "") { print host, ip }
-        host = $2; ip = ""
+        if (host != "") { print host, hostname, port, user }
+        host=$2; hostname=""; port=""; user=""
       }
-      tolower($1)=="hostname" && NF > 1 { ip = $2 }
-      END { if (host != "" && ip != "") print host, ip }
+      tolower($1)=="hostname" && NF > 1 { hostname=$2 }
+      tolower($1)=="port" && NF > 1 { port=$2 }
+      tolower($1)=="user" && NF > 1 { user=$2 }
+      END { if (host != "") print host, hostname, port, user }
     ' ~/.ssh/config | sort | \
     fzf --tac +s --tiebreak=index --toggle-sort=ctrl-r \
-      --preview 'ping -c 1 -W 1 $(echo {} | awk -F " - " "{print \$2}") > /dev/null 2>&1 && echo -e "\e[32monline\e[0m" || echo -e "\e[31moffline\e[0m"'
+      --preview 'echo "Detalles del host:"; echo {}; echo; echo "Ping:"; ping -c 1 -W 1 $(echo {} | awk -F " - " "{print \$2}") > /dev/null 2>&1 && echo -e "\e[32monline\e[0m" || echo -e "\e[31moffline\e[0m"'
   )
-  
+
   if [[ -n $selected ]]; then
     host=$(echo "$selected" | awk -F ' - ' '{print $1}')
     ssh "$host" < /dev/tty
-  fi
+  fi  
 }
 
 # En Zsh, registra el widget y asigna la combinación de teclas
 zle -N __fzf_ssh_host_search
 bindkey '^S' __fzf_ssh_host_search
+
+
+
+
 
 
 function mktem() {
