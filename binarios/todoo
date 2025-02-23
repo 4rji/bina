@@ -7,11 +7,31 @@ fi
 
 PALABRA="$1"
 
-grep -r "$PALABRA" /opt/4rji/bin 2>/dev/null | while IFS= read -r line; do
-  file="$(echo "$line" | cut -d':' -f1)"
-  content="$(echo "$line" | cut -d':' -f2-)"
-  name="$(basename "$file")"
-  content="$(echo "$content" | sed 's/^ *//')"
-  # Con color para el nombre del archivo (verde)
-  echo -e "\033[1;32m${name}\033[0m\t${content}"
+grep -r "$PALABRA" /opt/4rji/bin 2>/dev/null \
+  --exclude-dir='comprimidos' \
+  --exclude='linenum.sh.enc' \
+  --exclude='linpeas.sh' \
+  --exclude='impacto.zip' \
+  --exclude='winPEASx64.exe' \
+  --exclude='winPEASx86.exe' \
+  --exclude='tk.enc' \
+  --exclude='README.md' \
+  --exclude='pspy64' \
+  --exclude='chisel4' \
+  --exclude='SharpHound.ps1' \
+  --exclude='yazi' \
+  --exclude='agent.zip' \
+  --exclude='meg' \
+  --exclude='LinEnum.sh' \
+  --exclude='chisel' \
+  --exclude='assetfinder' \
+  --exclude='kerbrute_linux_amd64' \
+  --exclude='proxyserver' \
+  --exclude='chise2' \
+| while IFS= read -r line; do
+    file="$(echo "$line" | cut -d':' -f1)"
+    content="$(echo "$line" | cut -d':' -f2-)"
+    name="$(basename "$file")"
+    content="$(echo "$content" | sed 's/^ *//')"
+    echo -e "\033[1;32m${name}\033[0m\t${content}"
 done
