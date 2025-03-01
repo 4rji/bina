@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Function to display important messages
+# Function to display important messages with white divider lines and blue text
 echo_msg() {
-    echo -e "\e[1;33m=============================================="
-    echo -e "$1"
-    echo -e "==============================================\e[0m"
+    echo -e "\e[1;37m=============================================="
+    echo -e "\e[1;34m$1"
+    echo -e "\e[1;37m==============================================\e[0m"
 }
 
 # Clean up test files
@@ -16,10 +16,8 @@ cleanup
 ##############################################
 # DD Tests (Write and Read) - without cache, bs=1M
 ##############################################
-echo -e "\e[31m"
-echo ""
-echo "_________________________________________________________"
-echo ""
+echo -e "\e[1;37m_________________________________________________________\e[0m"
+
 # Run dd write test
 dd_write_output=$(dd if=/dev/zero of=testfile2 bs=1M count=1024 oflag=direct 2>&1)
 dd_write_last_line=$(echo "$dd_write_output" | tail -n 1)
@@ -59,15 +57,12 @@ dd Write Speed: ${dd_write_speed} MB/s\n\
 dd Read Speed: ${dd_read_speed} MB/s"
 
 echo_msg "$dd_message"
-echo -e "\e[0m"
 
 ##############################################
 # Fio Tests (Write and Read)
 ##############################################
-echo -e "\e[32m"
-echo ""
-echo "_________________________________________________________"
-echo ""
+echo -e "\e[1;37m_________________________________________________________\e[0m"
+
 # Run fio write test
 fio_write_output=$(fio --name=write_test --filename=testfile --size=1G --bs=1M --rw=write --ioengine=sync --fdatasync=1 2>&1)
 fio_write_bw=$(echo "$fio_write_output" | grep -oP 'BW=\K[0-9]+(?=MiB/s)')
@@ -81,6 +76,5 @@ fio Write Speed: ${fio_write_bw} MB/s\n\
 fio Read Speed: ${fio_read_bw} MB/s"
 
 echo_msg "$fio_message"
-echo -e "\e[0m"
 
 cleanup
