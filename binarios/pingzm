@@ -62,11 +62,13 @@ done
 
 wait
 
-echo "Online:"
-sort "$onlineFile"
-echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
 echo "Offline:"
 sort "$offlineFile"
+
+
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+echo "Online:"
+sort "$onlineFile"
 
 rm "$onlineFile" "$offlineFile"
 
