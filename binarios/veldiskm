@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+# Function to display important messages with white divider lines and blue text
+echo_msg() {
+    printf "%b\n" "\e[1;37m=============================================="
+    printf "%b\n" "\e[1;34m$1"
+    printf "%b\n" "\e[1;37m==============================================\e[0m"
+}
+
+# Function to extract BW from fio output and convert to MB/s if necessary
+fio_extract_bw() {
+    local fio_output="$1"
+    local bw_str
+    bw_str=$(echo "$fio_output" | grep -oE 'BW=[0-9.]+(GiB|MiB)/s' | head -n1)
+    if [ -z "$bw_str" ]; then
+        echo "N/A"
+    else
+        local num_unit=${bw_str#BW=}
+        local number
+        local unit
+        number=$(echo "$num_unit" | grep -oE '^[0-9.]+')
+        unit=$(echo "$num_unit" | grep -oE '(GiB|MiB)')
+        if [ "$unit" = "GiB" ]; then
+            # Convert GiB/s to MB/s (1 GiB = 1024 MB)
+            echo "$(awk "BEGIN {printf \"%.2f\", $number * 1024}")"
+        else
+            # Unit is MiB/s
+            echo "$number"
+        fi
+    fi
+}
+
+# Clean up test files
+cleanup() {
+    rm -f testfile2 testfile testfile.fio
+}
+
+cleanup
+
+##############################################
+# DD Tests (Write and Read) for macOS M1 using /usr/bin/time
+##############################################
+printf "%b\n" "\e[1;37m_________________________________________________________\e[0m"
+
+# Write test
+dd_write_output=$(/usr/bin/time -p dd if=/dev/zero of=testfile2 bs=1m count=1024 conv=sync 2>&1)
+dd_write_elapsed=$(echo "$dd_write_output" | grep '^real' | awk '{print $2}')
+if [ -n "$dd_write_elapsed" ]; then
+    dd_write_speed=$(awk "BEGIN {printf \"%.2f\", 1024 / $dd_write_elapsed}")
+else
+    dd_write_speed="N/A"
+fi
+
+# Read test
+dd_read_output=$(/usr/bin/time -p dd if=testfile2 of=/dev/null bs=1m 2>&1)
+dd_read_elapsed=$(echo "$dd_read_output" | grep '^real' | awk '{print $2}')
+if [ -n "$dd_read_elapsed" ]; then
+    dd_read_speed=$(awk "BEGIN {printf \"%.2f\", 1024 / $dd_read_elapsed}")
+else
+    dd_read_speed="N/A"
+fi
+
+dd_message="Running dd test (write & read, bs=1m, conv=sync)...\n\
+dd Write Speed: ${dd_write_speed} MB/s\n\
+dd Read Speed: ${dd_read_speed} MB/s"
+echo_msg "$dd_message"
+
+##############################################
+# Fio Tests (Write and Read)
+##############################################
+printf "%b\n" "\e[1;37m_________________________________________________________\e[0m"
+printf "%b\n" "\e[1;34mRunning fio test...\e[0m"
+
+fio_write_output=$(fio --name=write_test --filename=testfile --size=1G --bs=1m --rw=write --ioengine=sync --fdatasync=1 2>&1)
+fio_write_bw=$(fio_extract_bw "$fio_write_output")
+
+fio_read_output=$(fio --name=read_test --filename=testfile --size=1G --bs=1m --rw=read --ioengine=sync 2>&1)
+fio_read_bw=$(fio_extract_bw "$fio_read_output")
+
+fio_message="Running fio test...\n\
+fio Write Speed: ${fio_write_bw} MB/s\n\
+fio Read Speed: ${fio_read_bw} MB/s"
+echo_msg "$fio_message"
+
+cleanup
