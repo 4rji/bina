@@ -134,6 +134,7 @@ remoto2             Remueve xrpd e instala lxde que usa Lightweight X11 para equ
 vnckali             (USAR xrdp) x11vnc, si no funciona install Xvfb and posiblemente install full kde. 
 rutainter           Definir la via ruta de internet cuando hay 2 interfaces internet
 veloint             iperf3 para medir la velocidad de ethernet o conexion, instrucciones e instala
+velodisk            mide la velocidad de lectura y escritura disco con dd y fio.
 grepfind            incorpora grep y find en un script para buscar palabras en archivos
 x11inst             Instala x11 u otros desktops kali y sddm por default
 batfzf              Instala el theme night tokio para batcat, tambien fzf 
