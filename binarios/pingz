@@ -74,10 +74,12 @@ wait
 
 # Mostrar los resultados
 echo -e "Offline:"
-sort "$onlineFile"
+sort "$offlineFile"
+
+
 echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
 echo -e "\nOnline:"
-sort "$offlineFile"
+sort "$onlineFile"
 
 # Eliminar los archivos temporales
 rm "$onlineFile" "$offlineFile"
