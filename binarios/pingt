@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# Function to display usage
+usage() {
+    echo "Usage: $0 <IP or hostname>"
+    echo "This script performs a traceroute using ICMP ping by increasing the TTL value."
+    exit 1
+}
+
+# Check if an argument is provided
+if [ -z "$1" ]; then
+    usage
+fi
+
+TARGET=$1
+MAX_TTL=30
+
+echo "Performing traceroute to $TARGET using ICMP ping..."
+echo "-----------------------------------------------"
+
+# Loop through TTL values from 1 to MAX_TTL
+for ((ttl=1; ttl<=MAX_TTL; ttl++)); do
+    RESPONSE=$(ping -c 1 -t $ttl $TARGET 2>/dev/null | grep -E "From|icmp_seq")
+    
+    if [[ -n "$RESPONSE" ]]; then
+        echo "TTL=$ttl → $RESPONSE"
+    else
+        echo "TTL=$ttl → No response"
+    fi
+
+    # Stop if we reach the destination
+    if ping -c 1 -t $ttl $TARGET | grep -q "bytes from"; then
+        echo "Reached destination: $TARGET"
+        break
+    fi
+done

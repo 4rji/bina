@@ -283,6 +283,7 @@ findme              Usa el comando find para buscar archivos
 
 
 ###------ssh
+pingt               Hace traceroute con ping
 pings               Hace un ping a todos los hosts dentro de archivo ssh/config
 pingsm              Version para mac
 pingz               misma que pings pero usa nc para ver status del puerto ssh en el .config
