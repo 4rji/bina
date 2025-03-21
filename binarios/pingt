@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 
-# Function to display usage
+
+echo ""
 usage() {
-    echo "Usage: $0 <IP or hostname>"
-    echo "This script performs a traceroute using ICMP ping by increasing the TTL value."
+    echo -e "\033[1;33mUsage: $0 <IP or hostname>\033[0m"
+    echo -e "\033[1;33mThis script performs a traceroute using ICMP ping by increasing the TTL value.\033[0m"
     exit 1
 }
 
-# Check if an argument is provided
 if [ -z "$1" ]; then
     usage
 fi
@@ -15,22 +15,34 @@ fi
 TARGET=$1
 MAX_TTL=30
 
-echo "Performing traceroute to $TARGET using ICMP ping..."
-echo "-----------------------------------------------"
+echo -e "\033[0;36mPerforming traceroute to $TARGET using ICMP ping...\033[0m"
+echo -e "\033[0;36m-----------------------------------------------\033[0m"
 
-# Loop through TTL values from 1 to MAX_TTL
+CMD="ping -c 1 -t <ttl> $TARGET"
+echo -e "\033[1;33mCommand example: $CMD\033[0m"
+echo ""
+
+echo -e "\033[1;33mRouter = Time to live exceeded\033[0m"
+
+
+echo -e "\033[0;36m-----------------------------------------------\033[0m"
+echo ""
+
 for ((ttl=1; ttl<=MAX_TTL; ttl++)); do
     RESPONSE=$(ping -c 1 -t $ttl $TARGET 2>/dev/null | grep -E "From|icmp_seq")
-    
+
     if [[ -n "$RESPONSE" ]]; then
-        echo "TTL=$ttl → $RESPONSE"
+        echo -e "\033[0;32mTTL=$ttl → $RESPONSE\033[0m"
     else
-        echo "TTL=$ttl → No response"
+        echo -e "\033[0;31mTTL=$ttl → No response\033[0m"
+        echo ""
     fi
 
-    # Stop if we reach the destination
     if ping -c 1 -t $ttl $TARGET | grep -q "bytes from"; then
-        echo "Reached destination: $TARGET"
+        echo -e "\033[0;32mReached destination: $TARGET\033[0m"
+        echo ""
         break
     fi
 done
+
+echo ""
