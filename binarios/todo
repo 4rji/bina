@@ -2,20 +2,26 @@
 
 file="$HOME/.todo.txt"
 
-# Verificar si se ha proporcionado un argumento
-if [ -z "$1" ]; then
-#    echo "Por favor, especifica una palabra de búsqueda."
-    echo ""
-    echo "Uso: todo [palabra de búsqueda] / ejemplo: todo ssh "
-    exit 1
-fi
+[ -z "$1" ] && {
+  echo ""
+  echo "Uso: todo [palabra de búsqueda] / ejemplo: todo ssh"
+  exit 1
+}
 
 if [ -f "$file" ]; then
-    cat "$file" | grep "$1" | batcat -l rb 
+  grep "$1" "$file" | column -t | awk '{
+    # Primera columna en rojo
+    printf "\033[31m%s\033[0m", $1
+    # Resto de columnas en verde
+    for(i=2; i<=NF; i++){
+      printf " \033[32m%s\033[0m", $i
+    }
+    printf "\n"
+  }'
 else
-    echo "El archivo $file no existe."
+  echo "El archivo $file no existe."
 fi
-echo ""
 
+echo ""
 echo "Para actualizar base de datos ejecuta todou"
 echo ""
