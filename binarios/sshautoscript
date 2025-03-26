@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Función para mostrar mensajes (en este script principal)
+# Function to show messages
 echo_msg() {
   echo ""
   echo "=========================================================="
@@ -13,28 +13,28 @@ echo ""
 echo "_________________________________________________________"
 echo ""
 
-read -p $'\033[36m  Ingresa la IP del servidor remoto: \033[0m' IP
+read -p $'\033[36m  Enter the remote server IP: \033[0m' IP
 
 echo ""
 echo "_________________________________________________________"
 echo ""
 
-read -p $'\033[35m  Ingresa el usuario remoto: \033[0m' USUARIO
+read -p $'\033[35m  Enter the remote username: \033[0m' USER
 
 echo ""
 echo "_________________________________________________________"
 echo ""
 
-read -p $'\033[32m  Ingresa el puerto SSH remoto [22 por defecto]: \033[0m' PUERTO
+read -p $'\033[32m  Enter the remote SSH port [default 22]: \033[0m' PORT
 
-if [ -z "$PUERTO" ]; then
-  PUERTO=22
+if [ -z "$PORT" ]; then
+  PORT=22
 fi
 
-cat << EOF > conexion.sh
+cat << EOF > connection.sh
 #!/usr/bin/env bash
 
-# Función para mostrar mensajes
+# Function to show messages
 echo_msg() {
   echo ""
   echo "=============================================="
@@ -44,34 +44,50 @@ echo_msg() {
 }
 
 IP="$IP"
-USUARIO="$USUARIO"
-PUERTO=$PUERTO
+USER="$USER"
+PORT=$PORT
 
-if pgrep -f "ssh.*-R 2222:localhost:22.*\$USUARIO@\$IP" > /dev/null 2>&1; then
-  echo_msg "\033[34m  La conexión SSH ya está activa.\033[0m"
+if pgrep -f "ssh.*-R 2222:localhost:22.*\$USER@\$IP" > /dev/null 2>&1; then
+  echo_msg "\033[34m  SSH connection is already active.\033[0m"
 else
-  echo_msg "\033[31m  No se encontró la conexión. Iniciando...\033[0m"
+  echo_msg "\033[31m  Connection not found. Starting...\033[0m"
 
-  SSH_CMD="ssh -N -f -R 2222:localhost:22 -p \$PUERTO \$USUARIO@\$IP"
+  SSH_CMD="ssh -N -f -R 2222:localhost:22 -p \$PORT \$USER@\$IP"
 
   echo ""
   echo "_________________________________________________________"
   echo ""
-  echo -e "\033[33m  Ejecutando: \$SSH_CMD\033[0m"
+  echo -e "\033[33m  Executing: \$SSH_CMD\033[0m"
   echo ""
 
   \$SSH_CMD
 
-  echo_msg "\033[36m  Conexión SSH establecida.\033[0m"
+  echo_msg "\033[36m  SSH connection established.\033[0m"
 fi
 EOF
 
-chmod +x conexion.sh
+chmod +x connection.sh
 
 echo ""
 echo "_________________________________________________________"
 echo ""
 
-echo -e "\033[33m  El script 'conexion.sh' se ha creado con la configuración proporcionada.\033[0m"
-echo -e "\033[35m  Puedes agregarlo al crontab para que se ejecute cada 5 minutos si lo deseas.\033[0m"
+echo -e "\033[33m  The script 'connection.sh' has been created with the provided configuration.\033[0m"
+echo -e "\033[35m  You can add it to crontab to run every 5 minutes if desired.\033[0m"
+echo ""
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo -e "\033[36m  To add the script to crontab, run:\033[0m"
+echo ""
+echo -e "\033[33m  crontab -e\033[0m"
+echo ""
+echo -e "\033[36m  Then add the following line at the end:\033[0m"
+echo ""
+echo -e "\033[32m  */5 * * * * /full/path/to/connection.sh > /dev/null 2>&1\033[0m"
+echo ""
+echo -e "\033[35m  This will check and maintain the SSH connection every 5 minutes.\033[0m"
+echo ""
+echo "_________________________________________________________"
 echo ""
