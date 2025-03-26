@@ -20,6 +20,7 @@ rx6800              Instala el archivo de configuracion en Arch para que funcion
 
 ###------CCDC
 sshlist             Para allow en hosts
+sshautoscript       Crea una conexion para autossh, pregunta datos y crea script
 hashf               crea script para monitorear carpetas, manda alertas wall y logs a /root/
 mapa                Busca un proceso despues del script y lo mata ps aux
 backd               Usa python para buscar backdoors, conexiones activas
