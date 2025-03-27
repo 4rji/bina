@@ -347,13 +347,12 @@ def message_chat(code, server_host=DEFAULT_SERVER_HOST, server_port=DEFAULT_SERV
 
 def print_usage():
     print("\033[92mUsage:\033[0m")
-    print("  \033[94mServer:\033[0m           sudo airsend -s [host] [port]")
-    print("  \033[94mSend file (store):\033[0m  airsend -f <file-path> [host] [port]")
-    print("      -> El servidor guarda el archivo en /tmp/airsend_files/ con <code>_<filename>")
-    print("  \033[94mReceive file:\033[0m     airsend -r <code> [host] [port]")
-    print("      -> Recupera el archivo almacenado en el servidor usando el code")
-    print("  \033[94mMessage (sender):\033[0m  airsend -m [host] [port]")
-    print("  \033[94mMessage (receiver):\033[0m airsend -mr <code> [host] [port]")
+
+    print("  \033[94mServer:\033[0m                sudo airsend -s [host] [port]")
+    print("  \033[94mSend file:\033[0m             airsend -f <file-path> [host] [port]")
+    print("  \033[94mReceive file:\033[0m          airsend -r <code> [host] [port]")
+    print("  \033[94mMessage (sender):\033[0m      airsend -m [host] [port]")
+    print("  \033[94mMessage (receiver):\033[0m    airsend -mr <code> [host] [port]")
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
