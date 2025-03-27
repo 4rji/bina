@@ -140,7 +140,7 @@ check_ip() {
     for url in "${url_list[@]}"; do
 #        echo -e "\e[0mInformacion IP de \e[0m\e[38;5;94m$url...\e[0m"
         echo -e "\e[38;5;94mInformacion IP de $url...\e[0m"
-
+        echo -e "\e[38;5;94mInformacion de otra ip curl ipinfo.io/IP[0m"
  #       echo -e "\e[33mInformacion IP de $url...\e[0m"
         echo ""
         local request="$(curl -s "$url")"
