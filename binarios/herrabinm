@@ -172,4 +172,4 @@ if [[ $mostrarPreguntas == true || $mostrarBina == true ]]; then
     # todou  
 fi
 # Se eliminó la llamada a 'todou' para evitar errores
-todou
+todoum
