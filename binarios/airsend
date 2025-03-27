@@ -12,8 +12,8 @@ DEFAULT_SERVER_HOST = "mic2.4rji.com"
 DEFAULT_SERVER_PORT = 443
 
 # Directorios:
-LOG_DIR = "/opt/4rji/airsend_mess.log"       # Para chat/relay
-FILES_DIR = "/opt/4rji/airsend_mess.log"              # Para guardar archivos enviados
+LOG_DIR = "/opt/4rji/airsend_log"       # Para chat/relay
+FILES_DIR = "/opt/4rji/airsend_log"              # Para guardar archivos enviados
 
 # Diccionarios globales:
 pending = {}       # Para chat/relay (clave: code, valor: (socket, log_filename))
