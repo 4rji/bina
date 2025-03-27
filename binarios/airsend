@@ -172,7 +172,7 @@ def message_chat(code, server_host=DEFAULT_SERVER_HOST, server_port=DEFAULT_SERV
 
 def print_usage():
     print("\033[92mUsage:\033[0m")
-    print("  \033[94mServer:\033[0m         airsend -s")
+    print("  \033[94mServer:\033[0m         sudo /opt/4rji/bin/airsend -s 0.0.0.0")
     print("  \033[94mSend file:\033[0m      airsend -f <file-path>")
     print("  \033[94mReceive file:\033[0m   airsend -r <code>")
     print("  \033[94mMessage:\033[0m        airsend -m [<code>]")
