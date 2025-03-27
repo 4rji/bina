@@ -1,0 +1,220 @@
+#!/usr/bin/env python3
+import socket
+import threading
+import sys
+import os
+import random
+import string
+
+# Adjust these values as needed
+DEFAULT_SERVER_HOST = "mic2.4rji.com"
+DEFAULT_SERVER_PORT = 443
+
+# Dictionary for pending connections (key: code, value: socket)
+pending = {}
+lock = threading.Lock()
+
+def generate_code(length=6):
+    return ''.join(random.choice(string.ascii_lowercase) for _ in range(length))
+
+def relay(src, dst):
+    """Relays data between two sockets bidirectionally."""
+    try:
+        while True:
+            data = src.recv(4096)
+            if not data:
+                break
+            dst.sendall(data)
+    except:
+        pass
+    finally:
+        src.close()
+        dst.close()
+
+def handle_client(conn, addr):
+    """Handles incoming connections on the server, pairing them using the provided code."""
+    try:
+        code_raw = conn.recv(1024)
+        if not code_raw:
+            conn.close()
+            return
+        code = code_raw.decode().strip()
+        if not code:
+            conn.close()
+            return
+        with lock:
+            if code in pending:
+                other = pending.pop(code)
+                threading.Thread(target=relay, args=(conn, other), daemon=True).start()
+                threading.Thread(target=relay, args=(other, conn), daemon=True).start()
+            else:
+                pending[code] = conn
+    except Exception as e:
+        print("Error handling client:", e)
+        conn.close()
+
+def run_server(host=DEFAULT_SERVER_HOST, port=DEFAULT_SERVER_PORT):
+    """Starts the relay server."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind((host, port))
+    s.listen(5)
+    print(f"Server listening on {host}:{port}")
+    try:
+        while True:
+            conn, addr = s.accept()
+            threading.Thread(target=handle_client, args=(conn, addr), daemon=True).start()
+    except KeyboardInterrupt:
+        s.close()
+        print("\nServer stopped.")
+
+def send_file(file_path, server_host=DEFAULT_SERVER_HOST, server_port=DEFAULT_SERVER_PORT):
+    """Connects to the server, generates a code, prints it, and sends:
+    [code\n][filename\n][filesize\n][binary content]"""
+    if not os.path.isfile(file_path):
+        print("File not found:", file_path)
+        return
+    code = generate_code()
+    print("Code:", code)
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((server_host, server_port))
+    s.sendall(code.encode() + b"\n")
+    filename = os.path.basename(file_path)
+    s.sendall(filename.encode() + b"\n")
+    filesize = os.path.getsize(file_path)
+    s.sendall(str(filesize).encode() + b"\n")
+    with open(file_path, "rb") as f:
+        while True:
+            chunk = f.read(4096)
+            if not chunk:
+                break
+            s.sendall(chunk)
+    ack = s.recv(1024)
+    if ack.strip() == b"OK":
+        print("Transfer complete.")
+    else:
+        print("No confirmation received from receiver.")
+    s.close()
+
+def receive_file(code, server_host=DEFAULT_SERVER_HOST, server_port=DEFAULT_SERVER_PORT):
+    """Connects to the server, sends the code, receives [filename\n][filesize\n] and binary content,
+    saving the file with the received filename."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((server_host, server_port))
+    s.sendall(code.encode() + b"\n")
+    # Receive filename
+    filename_bytes = b""
+    while True:
+        chunk = s.recv(1)
+        if not chunk or chunk == b"\n":
+            break
+        filename_bytes += chunk
+    filename = filename_bytes.decode()
+    if not filename:
+        print("Filename not received.")
+        s.close()
+        return
+    # Receive filesize
+    size_bytes = b""
+    while True:
+        chunk = s.recv(1)
+        if not chunk or chunk == b"\n":
+            break
+        size_bytes += chunk
+    try:
+        filesize = int(size_bytes.decode().strip())
+    except Exception as e:
+        print("Error reading file size:", e)
+        s.close()
+        return
+    print(f"Receiving file: {filename} ({filesize} bytes)")
+    with open(filename, "wb") as f:
+        remaining = filesize
+        while remaining > 0:
+            data = s.recv(min(4096, remaining))
+            if not data:
+                break
+            f.write(data)
+            remaining -= len(data)
+    s.sendall(b"OK\n")
+    s.close()
+    print("File saved.")
+
+def message_chat(code, server_host=DEFAULT_SERVER_HOST, server_port=DEFAULT_SERVER_PORT):
+    """Connects to the server using the code and starts an interactive chat.
+    If no code is provided, a new one is generated (sender mode).
+    If a code is provided, join as receiver."""
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((server_host, server_port))
+    s.sendall(code.encode() + b"\n")
+    
+    def recv_thread():
+        while True:
+            data = s.recv(4096)
+            if not data:
+                break
+            sys.stdout.write(data.decode())
+            sys.stdout.flush()
+    
+    threading.Thread(target=recv_thread, daemon=True).start()
+    prompt = "\033[93mWrite your message now:\033[0m "  # Yellow prompt
+    sys.stdout.write(prompt)
+    sys.stdout.flush()
+    try:
+        while True:
+            line = sys.stdin.readline()
+            if not line:
+                break
+            s.sendall(line.encode())
+    except KeyboardInterrupt:
+        pass
+    s.close()
+
+def print_usage():
+    print("\033[92mUsage:\033[0m")
+    print("  \033[94mServer:\033[0m         airsend -s")
+    print("  \033[94mSend file:\033[0m      airsend -f <file-path>")
+    print("  \033[94mReceive file:\033[0m   airsend -r <code>")
+    print("  \033[94mMessage:\033[0m        airsend -m [<code>]")
+
+if __name__ == "__main__":
+    if len(sys.argv) < 2:
+        print_usage()
+        sys.exit(1)
+    mode = sys.argv[1]
+    if mode == "-s":
+        host = sys.argv[2] if len(sys.argv) >= 3 else DEFAULT_SERVER_HOST
+        port = int(sys.argv[3]) if len(sys.argv) >= 4 else DEFAULT_SERVER_PORT
+        run_server(host, port)
+    elif mode == "-f":
+        if len(sys.argv) < 3:
+            print("Please specify the file to send.")
+            print_usage()
+            sys.exit(1)
+        file_path = sys.argv[2]
+        host = sys.argv[3] if len(sys.argv) >= 4 else DEFAULT_SERVER_HOST
+        port = int(sys.argv[4]) if len(sys.argv) >= 5 else DEFAULT_SERVER_PORT
+        send_file(file_path, host, port)
+    elif mode == "-r":
+        if len(sys.argv) < 3:
+            print("Please specify the pairing code.")
+            print_usage()
+            sys.exit(1)
+        code = sys.argv[2]
+        host = sys.argv[3] if len(sys.argv) >= 4 else DEFAULT_SERVER_HOST
+        port = int(sys.argv[4]) if len(sys.argv) >= 5 else DEFAULT_SERVER_PORT
+        receive_file(code, host, port)
+    elif mode == "-m":
+        if len(sys.argv) < 3:
+            # No code provided: generate one (sender mode)
+            code = generate_code()
+            print("Code:", code)
+        else:
+            code = sys.argv[2]
+        host = sys.argv[3] if len(sys.argv) >= 4 else DEFAULT_SERVER_HOST
+        port = int(sys.argv[4]) if len(sys.argv) >= 5 else DEFAULT_SERVER_PORT
+        message_chat(code, host, port)
+    else:
+        print("Unknown mode:", mode)
+        print_usage()
+        sys.exit(1)

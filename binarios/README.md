@@ -221,6 +221,7 @@ repos               vuelve a instalar por defaul los repos de kali cuando no fun
 fixkalirepos	    Borra todo los archivos en /etc/apt/ y luego reinstala y descarga pgp
 contenedor          Instala paquetes basicos, util en contenedores docker
 
+
 ###------nmap scaners
 nombre_{IP}         Da el nombre de la maquina si es linux o windows                                   
 scanporty           python3 program que hace un escaneo y pregunta el numero de puertos.usa socket               
@@ -241,24 +242,31 @@ ncmap               Ocupa nc para escanear puertos, como nmap, escaneo
 obierto             Busca un puerto abierto en especifico en la subnet, por ejemplo 80 en las ips creada por ncmap
 enum                ejecuta whichsys ping -c 1 y nmap y los guarda en archivos para htb
 
+
 ###------Nessus
 nessus              activa nesus y muestra el puerto donde abrirlo en firefox                          
 nessus_-s           para nessus                                                                        
 nessusinst          instalar nessus   
 
+
+
 ###------fail2ban
-f2binst             instala debian fail2ban f2b                                                               
+f2binst             instala debian fail2ban f2b
 f2c                 fail2ban comandos 
+
+
 
 ###------para bspwx
 target1             cambia el estatus de la bateria por cualquier otra cosa que se quiera poner ahi    
 asd                 copia el contenido de target1 a el portapapeles                                    
 fixethernet         Arregla la red del script ethernet_status para bspwx escritorio
 
+
 ###------artilleria
 artilleria          Instala el honeypot artilleria
 unbanar {IP}        Comenta la ip de banlist de artilleria, si no especifico IP me pregunta
 artires             Reinicia el servicio artilleria
+
 
 ###------portspoof
 fakeinst            aplica las reglas para portspoof, IPTABLES, proteje puertos y redirecciona trafico
@@ -498,6 +506,7 @@ sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 search              Crea datos para la pagina web, para llenar la base de busqueda search
 
 #Redstuff
+airsend             Enviar archivos, mensajes por c2, puerto 443
 ncarchivos          Muestra comandos para nc para enviar archivos o enviar comandos
 socat1              Bajado de https://github.com/aledbf/socat-static-binary/releases/download/v0.0.1/socat-linux-amd64
 linpi               Baja comprimidos, que contiene linpi, enum, chisel, pspy64, etc.
