@@ -17,8 +17,8 @@ import (
 const (
     DEFAULT_SERVER_HOST = "mic2.4rji.com"
     DEFAULT_SERVER_PORT = 443
-    LOG_DIR             = "/tmp"
-    FILES_DIR           = "/tmp"
+    LOG_DIR             = "/opt/4rji/airsend"  
+    FILES_DIR           = "/opt/4rji/airsend"  
 )
 
 type PendingChat struct {
@@ -164,7 +164,7 @@ func handleFileSend(commandLine string, reader *bufio.Reader, conn net.Conn) {
         fmt.Printf("Invalid file size '%s': %v\n", sizeStr, err)
         return
     }
-    fmt.Printf("File size: %d bytes\n", filesize)
+    fmt.Printf("File size: %s\n", humanizeBytes(filesize))
 
     // Crea el archivo de salida
     serverFilename := fmt.Sprintf("%s_%s", code, filename)
@@ -184,10 +184,10 @@ func handleFileSend(commandLine string, reader *bufio.Reader, conn net.Conn) {
         return
     }
     if n != filesize {
-        fmt.Printf("\nIncomplete file received: got %d bytes, expected %d\n", n, filesize)
+        fmt.Printf("\nIncomplete file received: got %s, expected %s\n", humanizeBytes(n), humanizeBytes(filesize))
         return
     }
-    fmt.Printf("\nFile received successfully (%d bytes)\n", n)
+    fmt.Printf("\nFile received successfully (%s)\n", humanizeBytes(n))
 
     // Guarda la info del archivo para posteriores recepciones
     pendingFilesLock.Lock()
@@ -363,7 +363,7 @@ func sendFile(filePath, serverHost string, serverPort int) {
     }
     
     code := generateCode(6)
-    fmt.Println("Code:", code)
+    fmt.Println("\033[94mCode:\033[0m", code)
     
     // Connect to server
     addr := fmt.Sprintf("%s:%d", serverHost, serverPort)
@@ -441,7 +441,7 @@ func sendFile(filePath, serverHost string, serverPort int) {
         return
     }
     
-    fmt.Printf("\nSent %d bytes, waiting for confirmation...\n", totalWritten)
+    fmt.Printf("\nSent %s, waiting for confirmation...\n", humanizeBytes(totalWritten))
     
     // Wait for confirmation
     conn.SetReadDeadline(time.Now().Add(30 * time.Second))
@@ -487,7 +487,7 @@ func receiveFile(code, serverHost string, serverPort int) {
         fmt.Println("Error reading file size:", err)
         return
     }
-    fmt.Printf("Receiving file: %s (%d bytes)\n", filename, filesize)
+    fmt.Printf("Receiving file: %s (%s)\n", filename, humanizeBytes(filesize))
     outFile, err := os.Create(filename)
     if err != nil {
         fmt.Println("Error creating file:", err)
@@ -515,7 +515,7 @@ func receiveFile(code, serverHost string, serverPort int) {
             break
         }
     }
-    fmt.Println("\nFile saved as:", filename)
+    fmt.Printf("\nFile saved as: %s (%s)\n", filename, humanizeBytes(totalRead))
 }
 
 func messageChat(code, serverHost string, serverPort int) {
@@ -580,7 +580,7 @@ func messageChat(code, serverHost string, serverPort int) {
 }
 
 func updateProgress(addr string, totalBytes, currentBytes int64, startTime time.Time) {
-    if os.Args[1] == "-d" {
+    if os.Args[1] == "-d" || os.Args[1] == "-f" {
         return
     }
     percent := float64(currentBytes) / float64(totalBytes) * 100
@@ -721,7 +721,7 @@ func printUsage() {
     fmt.Println("  \033[94mReceive file:\033[0m       airsend -r <host> <port> <code>")
     fmt.Println("  \033[94mMessage (send):\033[0m     airsend -m <host> <port>")
     fmt.Println("  \033[94mMessage (recv):\033[0m     airsend -mr <code> <host> <port>")
-    fmt.Println("  \033[94mDirect send:\033[0m        airsend -d <target-host> <port> <file>")
+    fmt.Println("  \033[94mDirect send:\033[0m        airsend -d <target-host> [port] <file>")
     fmt.Println("  \033[94mDirect receive:\033[0m     airsend -ds <listen-host> <port>")
 }
 
@@ -815,22 +815,33 @@ func main() {
         receiveFile(code, host, port)
 
     case "-d":
-        if len(os.Args) < 5 {
-            fmt.Println("Usage: airsend -d target-host port file")
+        if len(os.Args) < 4 {
+            fmt.Println("Usage: airsend -d target-host [port] file1 [file2...]")
             return
         }
         
         targetHost := os.Args[2]
         targetPort := DEFAULT_SERVER_PORT
+        files := []string{}
+        
+        // Check if the third argument is a port number
         if p, err := strconv.Atoi(os.Args[3]); err == nil {
             targetPort = p
+            // The remaining arguments are files
+            if len(os.Args) < 5 {
+                fmt.Println("Please specify at least one file to send.")
+                return
+            }
+            files = os.Args[4:]
         } else {
-            fmt.Println("Invalid port number")
-            return
+            // If not a port, then it's a file and all remaining arguments are files
+            files = os.Args[3:]
         }
-        filePath := os.Args[4]
         
-        directSend(filePath, targetHost, targetPort)
+        // Send each file
+        for _, filePath := range files {
+            directSend(filePath, targetHost, targetPort)
+        }
 
     case "-ds":
         listenHost := "0.0.0.0"
@@ -867,8 +878,8 @@ func main() {
             }
         } else {
             if len(os.Args) >= 3 && isValidIP(os.Args[2]) {
-                code = generateCode(6)
-                fmt.Println("Code:", code)
+                code := generateCode(6)
+                fmt.Println("\033[94mCode:\033[0m", code)
                 host = os.Args[2]
                 if len(os.Args) >= 4 {
                     if p, err := strconv.Atoi(os.Args[3]); err == nil {
@@ -876,8 +887,8 @@ func main() {
                     }
                 }
             } else {
-                code = generateCode(6)
-                fmt.Println("Code:", code)
+                code := generateCode(6)
+                fmt.Println("\033[94mCode:\033[0m", code)
                 host = DEFAULT_SERVER_HOST
             }
         }
