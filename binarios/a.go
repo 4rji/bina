@@ -17,8 +17,8 @@ import (
 const (
     DEFAULT_SERVER_HOST = "mic2.4rji.com"
     DEFAULT_SERVER_PORT = 443
-    LOG_DIR             = "/opt/4rji/airsend"
-    FILES_DIR           = "/opt/4rji/airsend"
+    LOG_DIR             = "/opt/4rji/airsend"  
+    FILES_DIR           = "/opt/4rji/airsend"  
 )
 
 type PendingChat struct {
@@ -41,19 +41,12 @@ var (
 )
 
 func generateCode(length int) string {
-    words := []string{
-        "house", "dog", "cat", "sun", "moon",
-        "water", "fire", "air", "earth", "light",
-        "tree", "flower", "table", "chair", "book",
-        "paper", "pencil", "color", "sky", "sea",
-        "bread", "milk", "coffee", "wine", "juice",
-        "pink", "blue", "red", "green", "black",
-        "car", "door", "phone", "shoe", "hat",
-        "apple", "orange", "banana", "grape", "fish",
-        "clock", "window", "shirt", "pants", "hand",
+    letters := "abcdefghijklmnopqrstuvwxyz"
+    code := make([]byte, length)
+    for i := range code {
+        code[i] = letters[rand.Intn(len(letters))]
     }
-
-    return words[rand.Intn(len(words))]
+    return string(code)
 }
 
 func isValidIP(address string) bool {
@@ -123,47 +116,55 @@ func readLine(reader *bufio.Reader) (string, error) {
     return strings.TrimSpace(line), nil
 }
 
-func handleFileSend(commandLine string, reader *bufio.Reader, conn net.Conn) {
+func handleFileSend(conn net.Conn) {
     defer conn.Close()
-    if commandLine != "FILE SEND" {
-        fmt.Printf("Invalid command received: '%s'\n", commandLine)
-        return
-    }
+    reader := bufio.NewReader(conn)
     
-
-    // Lee el código
+    // Read file info with additional debugging
     code, err := readLine(reader)
     if err != nil || code == "" {
         fmt.Printf("Error reading code: %v\n", err)
         return
     }
+    fmt.Printf("Received code: %s\n", code)
     
-
-    // Lee el nombre del archivo
     filename, err := readLine(reader)
     if err != nil || filename == "" {
         fmt.Printf("Error reading filename: %v\n", err)
         return
     }
+    fmt.Printf("Received filename: %s\n", filename)
     
-
-    // Lee el tamaño del archivo
     sizeStr, err := readLine(reader)
     if err != nil {
-        fmt.Printf("Error reading size: %v\n", err)
+        fmt.Printf("Error reading size string: %v\n", err)
+        return
+    }
+    fmt.Printf("Received size string: '%s'\n", sizeStr)
+    
+    // Validate size string format
+    sizeStr = strings.TrimSpace(sizeStr)
+    if !strings.ContainsAny(sizeStr, "0123456789") {
+        fmt.Printf("Invalid size format: '%s'\n", sizeStr)
         return
     }
     
-    filesize, err := strconv.ParseInt(strings.TrimSpace(sizeStr), 10, 64)
+    filesize, err := strconv.ParseInt(sizeStr, 10, 64)
     if err != nil {
         fmt.Printf("Invalid file size '%s': %v\n", sizeStr, err)
         return
     }
-    fmt.Printf("File size: %d bytes\n", filesize)
 
-    // Crea el archivo de salida
+    // Ensure directory exists
+    if err := os.MkdirAll(FILES_DIR, 0755); err != nil {
+        fmt.Printf("Error creating directory: %v\n", err)
+        return
+    }
+
+    // Create and write file
     serverFilename := fmt.Sprintf("%s_%s", code, filename)
     fullPath := filepath.Join(FILES_DIR, serverFilename)
+    
     file, err := os.Create(fullPath)
     if err != nil {
         fmt.Printf("Error creating file: %v\n", err)
@@ -171,44 +172,40 @@ func handleFileSend(commandLine string, reader *bufio.Reader, conn net.Conn) {
     }
     defer file.Close()
 
-    // Recibe los datos del archivo
-    
-    n, err := io.CopyN(file, reader, filesize)
-    if err != nil {
-        fmt.Printf("\nError receiving file data: %v\n", err)
-        return
+    // Read file data
+    remaining := filesize
+    buf := make([]byte, 4096)
+    for remaining > 0 {
+        n, err := reader.Read(buf)
+        if n > 0 {
+            if _, err := file.Write(buf[:n]); err != nil {
+                fmt.Printf("Error writing file: %v\n", err)
+                return
+            }
+            remaining -= int64(n)
+        }
+        if err != nil {
+            if err != io.EOF {
+                fmt.Printf("Error reading file data: %v\n", err)
+            }
+            break
+        }
     }
-    if n != filesize {
-        fmt.Printf("\nIncomplete file received: got %d bytes, expected %d\n", n, filesize)
-        return
-    }
-    fmt.Printf("\nFile received successfully (%d bytes)\n", n)
 
-    // Guarda la info del archivo para posteriores recepciones
+    // Store file info and send confirmation
     pendingFilesLock.Lock()
     pendingFiles[code] = FileInfo{filename: filename, filesize: filesize, fullPath: fullPath}
     pendingFilesLock.Unlock()
 
-    // Envía confirmación
-    
-    _, err = conn.Write([]byte("OK\n"))
-    if err != nil {
+    fmt.Printf("File received successfully, code: %s, sending OK\n", code)
+    if _, err := conn.Write([]byte("OK\n")); err != nil {
         fmt.Printf("Error sending confirmation: %v\n", err)
-    } else {
-        
     }
 }
 
-// Helper function to find minimum of two int64s
-func min(a, b int64) int64 {
-    if a < b {
-        return a
-    }
-    return b
-}
-
-func handleFileRecv(reader *bufio.Reader, conn net.Conn) {
+func handleFileRecv(conn net.Conn) {
     defer conn.Close()
+    reader := bufio.NewReader(conn)
     code, err := readLine(reader)
     if err != nil || code == "" {
         return
@@ -286,14 +283,17 @@ func handleClient(conn net.Conn) {
         if len(parts) >= 2 {
             mode := parts[1]
             if mode == "SEND" {
-                handleFileSend("FILE SEND", reader, conn)
+                handleFileSend(conn)
                 return
             } else if mode == "RECV" {
-                handleFileRecv(reader, conn)
+                handleFileRecv(conn)
+                return
+            } else {
                 return
             }
+        } else {
+            return
         }
-        return
     } else {
         handleChatOrRelay(conn, firstLine)
     }
@@ -320,9 +320,9 @@ func runServer(host string, port int) {
     }
     defer listener.Close()
 
-    // Suppress go runtime warnings (noop, placeholder)
     // Mostrar información de inicio
     fmt.Printf("Servidor escuchando en %s\n", addr)
+    fmt.Printf("Directorio de logs: %s\n", LOG_DIR)
     fmt.Printf("Directorio de archivos: %s\n", FILES_DIR)
 
     // Bucle principal del servidor
@@ -338,7 +338,6 @@ func runServer(host string, port int) {
 }
 
 func sendFile(filePath, serverHost string, serverPort int) {
-    // Validate file exists and get size
     info, err := os.Stat(filePath)
     if err != nil {
         fmt.Println("File not found:", filePath)
@@ -348,7 +347,6 @@ func sendFile(filePath, serverHost string, serverPort int) {
     code := generateCode(6)
     fmt.Println("Code:", code)
     
-    // Connect to server
     addr := fmt.Sprintf("%s:%d", serverHost, serverPort)
     conn, err := net.Dial("tcp", addr)
     if err != nil {
@@ -357,28 +355,34 @@ func sendFile(filePath, serverHost string, serverPort int) {
     }
     defer conn.Close()
     
-    // Set timeouts
-    conn.SetWriteDeadline(time.Now().Add(30 * time.Second))
-    
-    // Send headers with buffered writer
+    // Use buffered writer for better performance
     writer := bufio.NewWriter(conn)
-    headers := []string{
-        "FILE SEND",
-        code,
-        filepath.Base(filePath),
-        fmt.Sprintf("%d", info.Size()),
-    }
     
-    for _, header := range headers {
-        if _, err := writer.WriteString(header + "\n"); err != nil {
-            fmt.Printf("Error sending header '%s': %v\n", header, err)
-            return
-        }
-    }
-    if err := writer.Flush(); err != nil {
-        fmt.Printf("Error flushing headers: %v\n", err)
+    // Send headers with explicit flushing after each write
+    if _, err := writer.WriteString("FILE SEND\n"); err != nil {
+        fmt.Println("Error sending FILE SEND:", err)
         return
     }
+    writer.Flush()
+    
+    if _, err := writer.WriteString(code + "\n"); err != nil {
+        fmt.Println("Error sending code:", err)
+        return
+    }
+    writer.Flush()
+    
+    if _, err := writer.WriteString(filepath.Base(filePath) + "\n"); err != nil {
+        fmt.Println("Error sending filename:", err)
+        return
+    }
+    writer.Flush()
+    
+    sizeStr := fmt.Sprintf("%d\n", info.Size())
+    if _, err := writer.WriteString(sizeStr); err != nil {
+        fmt.Println("Error sending size:", err)
+        return
+    }
+    writer.Flush()
     
     // Send file content
     file, err := os.Open(filePath)
@@ -388,32 +392,40 @@ func sendFile(filePath, serverHost string, serverPort int) {
     }
     defer file.Close()
     
-    
-    bytesWritten, err := io.Copy(writer, file)
-    if err != nil {
-        fmt.Printf("Error sending file data: %v\n", err)
-        return
+    // Use larger buffer for file transfer
+    buf := make([]byte, 32*1024)
+    for {
+        n, err := file.Read(buf)
+        if n > 0 {
+            if _, err := conn.Write(buf[:n]); err != nil {
+                fmt.Printf("Error sending file data: %v\n", err)
+                return
+            }
+        }
+        if err == io.EOF {
+            break
+        }
+        if err != nil {
+            fmt.Printf("Error reading file: %v\n", err)
+            return
+        }
     }
     
-    if err := writer.Flush(); err != nil {
-        fmt.Printf("Error flushing file data: %v\n", err)
-        return
-    }
-    
-    fmt.Printf("Sent %d bytes, waiting for confirmation...\n", bytesWritten)
-    
-    // Wait for confirmation
+    // Wait for confirmation with timeout
+    fmt.Println("File sent, waiting for confirmation...")
     conn.SetReadDeadline(time.Now().Add(30 * time.Second))
-    response, err := bufio.NewReader(conn).ReadString('\n')
+    
+    response := make([]byte, 1024)
+    n, err := conn.Read(response)
     if err != nil {
         fmt.Printf("Error waiting for confirmation: %v\n", err)
         return
     }
     
-    if strings.TrimSpace(response) == "OK" {
+    if strings.TrimSpace(string(response[:n])) == "OK" {
         fmt.Println("Transfer complete.")
     } else {
-        fmt.Printf("Invalid confirmation from server: '%s'\n", strings.TrimSpace(response))
+        fmt.Println("Invalid confirmation from server.")
     }
 }
 
@@ -623,13 +635,13 @@ func directReceive(listenHost string, listenPort int) {
 
 func printUsage() {
     fmt.Println("\033[92mUsage:\033[0m")
-    fmt.Println("  \033[94mServer:\033[0m             sudo airsend -s <host> <port>")
-    fmt.Println("  \033[94mSend file:\033[0m          airsend -f <host> <port> <file1> <file2>")
-    fmt.Println("  \033[94mReceive file:\033[0m       airsend -r <host> <port> <code>")
-    fmt.Println("  \033[94mMessage (send):\033[0m     airsend -m <host> <port>")
-    fmt.Println("  \033[94mMessage (recv):\033[0m     airsend -mr <code> <host> <port>")
-    fmt.Println("  \033[94mDirect send:\033[0m        airsend -d <file> <target-host> <port>")
-    fmt.Println("  \033[94mDirect receive:\033[0m     airsend -ds <listen-host> <port>")
+    fmt.Println("  \033[94mServer:\033[0m                sudo airsend -s [host] [port]")
+    fmt.Println("  \033[94mSend file:\033[0m             airsend -f <file-path> [host] [port]")
+    fmt.Println("  \033[94mReceive file:\033[0m          airsend -r <code> [host] [port]")
+    fmt.Println("  \033[94mMessage (sender):\033[0m      airsend -m [host] [port]")
+    fmt.Println("  \033[94mMessage (receiver):\033[0m    airsend -mr <code> [host] [port]")
+    fmt.Println("  \033[94mDirect send:\033[0m           airsend -d FILE <target-host> [port]")
+    fmt.Println("  \033[94mDirect receive:\033[0m        airsend -ds [listen-host] [port]")
 }
 
 func main() {
@@ -653,66 +665,40 @@ func main() {
         }
         runServer(host, port)
     case "-f":
-        args := os.Args[2:]
+        if len(os.Args) < 3 {
+            fmt.Println("Please specify the file to send.")
+            printUsage()
+            os.Exit(1)
+        }
+        filePath := os.Args[2]
         host := DEFAULT_SERVER_HOST
         port := DEFAULT_SERVER_PORT
-        files := []string{}
-        if len(args) == 0 {
-            fmt.Println("Please specify at least one file to send.")
-            printUsage()
-            os.Exit(1)
+        if len(os.Args) >= 4 {
+            host = os.Args[3]
         }
-        if len(args) >= 1 && isValidIP(args[0]) {
-            host = args[0]
-            if len(args) >= 2 {
-                if p, err := strconv.Atoi(args[1]); err == nil {
-                    port = p
-                    files = args[2:]
-                } else {
-                    files = args[1:]
-                }
-            } else {
-                fmt.Println("Please specify at least one file to send after IP.")
-                printUsage()
-                os.Exit(1)
+        if len(os.Args) >= 5 {
+            if p, err := strconv.Atoi(os.Args[4]); err == nil {
+                port = p
             }
-        } else {
-            files = args
         }
-        if len(files) == 0 {
-            fmt.Println("Please specify at least one file to send.")
-            printUsage()
-            os.Exit(1)
-        }
-        for _, filePath := range files {
-            sendFile(filePath, host, port)
-        }
+        sendFile(filePath, host, port)
     case "-r":
         if len(os.Args) < 3 {
-            fmt.Println("Please specify the host, port, and code.")
+            fmt.Println("Please specify the pairing code.")
             printUsage()
             os.Exit(1)
         }
-        
-        host := os.Args[2]
+        code := os.Args[2]
+        host := DEFAULT_SERVER_HOST
         port := DEFAULT_SERVER_PORT
-        code := ""
-
-        // If we have at least 4 args, the last one is always the code
         if len(os.Args) >= 4 {
-            code = os.Args[len(os.Args)-1]
-            // If we have a port specified (4 args total)
-            if len(os.Args) >= 5 {
-                if p, err := strconv.Atoi(os.Args[3]); err == nil {
-                    port = p
-                }
-            }
-        } else {
-            fmt.Println("Please specify the code.")
-            printUsage()
-            os.Exit(1)
+            host = os.Args[3]
         }
-        
+        if len(os.Args) >= 5 {
+            if p, err := strconv.Atoi(os.Args[4]); err == nil {
+                port = p
+            }
+        }
         receiveFile(code, host, port)
     case "-d":
         if os.Args[2] == "-" {
@@ -743,7 +729,6 @@ func main() {
             }
             directSend(filePath, targetHost, targetPort)
         }
-
     case "-ds":
         listenHost := "0.0.0.0"
         listenPort := DEFAULT_SERVER_PORT
@@ -756,11 +741,9 @@ func main() {
             }
         }
         directReceive(listenHost, listenPort)
-
     case "-m", "-mr":
         var code, host string
         port := DEFAULT_SERVER_PORT
-        
         if mode == "-mr" {
             if len(os.Args) < 3 {
                 fmt.Println("Please specify the pairing code.")
@@ -787,6 +770,17 @@ func main() {
                         port = p
                     }
                 }
+            } else if len(os.Args) >= 3 {
+                code = os.Args[2]
+                host = DEFAULT_SERVER_HOST
+                if len(os.Args) >= 4 {
+                    host = os.Args[3]
+                }
+                if len(os.Args) >= 5 {
+                    if p, err := strconv.Atoi(os.Args[4]); err == nil {
+                        port = p
+                    }
+                }
             } else {
                 code = generateCode(6)
                 fmt.Println("Code:", code)
@@ -794,7 +788,6 @@ func main() {
             }
         }
         messageChat(code, host, port)
-    
     default:
         fmt.Println("Unknown mode:", mode)
         printUsage()
