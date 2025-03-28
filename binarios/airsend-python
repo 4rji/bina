@@ -7,12 +7,13 @@ import random
 import string
 import time
 
-DEFAULT_SERVER_HOST = "0.0.0.0"
+#DEFAULT_SERVER_HOST = "0.0.0.0"
+DEFAULT_SERVER_HOST = "mic2.4rji.com"
 DEFAULT_SERVER_PORT = 443
 
 # Directorios:
 LOG_DIR = "/opt/4rji/airsend_mess.log"       # Para chat/relay
-FILES_DIR = "/opt/4rji/airsend_mess.log"              # Para guardar archivos enviados
+FILES_DIR = "/opt/4rji/airsend_mess.log"      # Para guardar archivos enviados
 
 # Diccionarios globales:
 pending = {}       # Para chat/relay (clave: code, valor: (socket, log_filename))
@@ -70,16 +71,6 @@ def read_line(sock):
 ### Funciones para manejo de archivos en modo FILE
 
 def handle_file_send(conn):
-    """
-    Protocolo FILE SEND (desde cliente emisor):
-      1) Lee: code\n
-      2) Lee: filename\n
-      3) Lee: filesize\n
-      4) Recibe el contenido (N bytes)
-      5) Guarda en FILES_DIR con nombre: <code>_<filename>
-      6) Almacena la info en pending_files para que otro cliente pueda recuperarlo
-      7) Envía "OK\n" y cierra la conexión.
-    """
     try:
         code = read_line(conn)
         if not code:
@@ -119,15 +110,6 @@ def handle_file_send(conn):
         conn.close()
 
 def handle_file_recv(conn):
-    """
-    Protocolo FILE RECV (cliente receptor):
-      1) Lee: code\n
-      2) Si existe pending_files[code]:
-           a) Envía: filename\n
-           b) Envía: filesize\n
-           c) Envía el contenido del archivo
-         Si no, envía "ERR\n" y cierra.
-    """
     try:
         code = read_line(conn)
         if not code:
@@ -187,7 +169,6 @@ def handle_client(conn, addr):
             return
 
         if first_line.startswith("FILE"):
-            # Se espera formato: "FILE SEND" o "FILE RECV"
             parts = first_line.split()
             if len(parts) >= 2:
                 mode = parts[1]
@@ -204,7 +185,6 @@ def handle_client(conn, addr):
                 conn.close()
                 return
         else:
-            # Modo chat/relay
             handle_chat_or_relay(conn, first_line)
     except:
         conn.close()
@@ -228,16 +208,6 @@ def run_server(host=DEFAULT_SERVER_HOST, port=DEFAULT_SERVER_PORT):
 ### Funciones cliente
 
 def send_file(file_path, server_host=DEFAULT_SERVER_HOST, server_port=DEFAULT_SERVER_PORT):
-    """
-    Envía el archivo al servidor en modo FILE SEND.
-    Protocolo:
-      1) Envía: "FILE SEND\n"
-      2) Envía: code\n
-      3) Envía: filename\n
-      4) Envía: filesize\n
-      5) Envía el contenido del archivo
-      6) Espera "OK\n"
-    """
     if not os.path.isfile(file_path):
         print("File not found:", file_path)
         return
@@ -270,15 +240,6 @@ def send_file(file_path, server_host=DEFAULT_SERVER_HOST, server_port=DEFAULT_SE
         s.close()
 
 def receive_file(code, server_host=DEFAULT_SERVER_HOST, server_port=DEFAULT_SERVER_PORT):
-    """
-    Solicita el archivo al servidor en modo FILE RECV.
-    Protocolo:
-      1) Envía: "FILE RECV\n"
-      2) Envía: code\n
-      3) Recibe: filename\n
-      4) Recibe: filesize\n
-      5) Recibe el contenido y lo guarda localmente.
-    """
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((server_host, server_port))
     s.sendall(b"FILE RECV\n")
@@ -346,9 +307,6 @@ def message_chat(code, server_host=DEFAULT_SERVER_HOST, server_port=DEFAULT_SERV
     s.close()
 
 def direct_send(file_path, target_host, target_port=DEFAULT_SERVER_PORT):
-    """
-    Envía un archivo directamente a otra máquina sin servidor.
-    """
     if not os.path.isfile(file_path):
         print("File not found:", file_path)
         return
@@ -359,11 +317,9 @@ def direct_send(file_path, target_host, target_port=DEFAULT_SERVER_PORT):
         filename = os.path.basename(file_path)
         filesize = os.path.getsize(file_path)
 
-        # Enviar metadatos del archivo
         s.sendall(f"{filename}\n".encode())
         s.sendall(f"{filesize}\n".encode())
 
-        # Enviar contenido del archivo
         with open(file_path, "rb") as f:
             while chunk := f.read(4096):
                 s.sendall(chunk)
@@ -375,23 +331,18 @@ def direct_send(file_path, target_host, target_port=DEFAULT_SERVER_PORT):
         s.close()
 
 def direct_receive(listen_host="0.0.0.0", listen_port=DEFAULT_SERVER_PORT):
-    """
-    Recibe archivos directamente de otra máquina sin servidor.
-    El servidor se mantiene abierto para aceptar múltiples conexiones.
-    """
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.bind((listen_host, listen_port))
     s.listen(1)
-    print(f"Listening on {listen_host}:{listen_port}...")  # Usar listen_host directamente
+    print(f"Listening on {listen_host}:{listen_port}...")
 
-    while True:  # Mantener el servidor abierto
+    while True:
         conn, addr = s.accept()
         print(f"Connection established with {addr}")
 
         try:
-            # Recibir metadatos del archivo
             filename = read_line(conn)
-            if not filename:  # Si no se especifica un archivo
+            if not filename:
                 print("No file specified. Waiting for the next connection...")
                 conn.close()
                 continue
@@ -399,7 +350,6 @@ def direct_receive(listen_host="0.0.0.0", listen_port=DEFAULT_SERVER_PORT):
             filesize = int(read_line(conn))
             print(f"Receiving file: {filename} ({filesize} bytes)")
 
-            # Recibir contenido del archivo
             with open(filename, "wb") as f:
                 remaining = filesize
                 while remaining > 0:
@@ -453,7 +403,6 @@ if __name__ == "__main__":
         port = int(sys.argv[4]) if len(sys.argv) >= 5 else DEFAULT_SERVER_PORT
         receive_file(code, host, port)
     elif mode == "-d":
-        # Si se indica "-" en lugar de un archivo, se activa el modo de mensaje en vez de enviar archivo
         if sys.argv[2] == "-":
             target_host = sys.argv[3] if len(sys.argv) >= 4 else DEFAULT_SERVER_HOST
             target_port = int(sys.argv[4]) if len(sys.argv) >= 5 else DEFAULT_SERVER_PORT
