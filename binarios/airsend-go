@@ -16,22 +16,24 @@ import (
 )
 
 var (
+    // Host y puerto por defecto
     DEFAULT_SERVER_HOST = "mic2.4rji.com"
     DEFAULT_SERVER_PORT = 443
 
-    // Directorios
-    LOG_DIR   = "/opt/4rji/airsend_mess.log" // Para chat/relay y archivos
+    // Directorios (en tu caso, ambos apuntan a /opt/4rji/airsend_mess.log, que es un directorio)
+    LOG_DIR   = "/opt/4rji/airsend_mess.log"
+    FILES_DIR = "/opt/4rji/airsend_mess.log"
 
     // Diccionarios globales
-    pending      = make(map[string]pendingEntry)
-    pendingFiles = make(map[string]fileInfo)
+    pending      = make(map[string]pendingEntry) // Para chat/relay
+    pendingFiles = make(map[string]fileInfo)     // Para archivos
     pendingLock  sync.Mutex
 )
 
 type pendingEntry struct {
-    conn      net.Conn
-    logFile   *os.File
-    logMutex  sync.Mutex
+    conn    net.Conn
+    logFile *os.File
+    logLock sync.Mutex
 }
 
 type fileInfo struct {
@@ -40,7 +42,7 @@ type fileInfo struct {
     fullPath string
 }
 
-// generateCode crea un código aleatorio de 6 caracteres.
+// generateCode crea un código aleatorio de 6 caracteres hex.
 func generateCode() string {
     b := make([]byte, 3)
     _, err := rand.Read(b)
@@ -50,6 +52,7 @@ func generateCode() string {
     return hex.EncodeToString(b)
 }
 
+// isValidIP comprueba si es una IPv4 válida.
 func isValidIP(address string) bool {
     parts := strings.Split(address, ".")
     if len(parts) != 4 {
@@ -64,28 +67,35 @@ func isValidIP(address string) bool {
     return true
 }
 
+// readLine lee hasta el salto de línea.
 func readLine(conn net.Conn) (string, error) {
     reader := bufio.NewReader(conn)
     line, err := reader.ReadString('\n')
-    return strings.TrimSpace(line), err
+    if err != nil {
+        return "", err
+    }
+    return strings.TrimSpace(line), nil
 }
 
+// logData escribe en el archivo de log con etiqueta de tiempo y dirección.
 func logData(pe *pendingEntry, direction string, data []byte) {
     now := time.Now().Format("2006-01-02 15:04:05")
-    pe.logMutex.Lock()
-    defer pe.logMutex.Unlock()
-    pe.logFile.Write([]byte(fmt.Sprintf("\n[%s %s]:\n", now, direction)))
+    pe.logLock.Lock()
+    defer pe.logLock.Unlock()
+    pe.logFile.WriteString(fmt.Sprintf("\n[%s %s]:\n", now, direction))
     pe.logFile.Write(data)
 }
 
+// relay reenvía datos entre dos conexiones, registrando logs si se proporciona un pendingEntry.
 func relay(src, dst net.Conn, pe *pendingEntry, direction string) {
     defer src.Close()
     defer dst.Close()
+
     buf := make([]byte, 4096)
     for {
         n, err := src.Read(buf)
         if n > 0 {
-            dst.Write(buf[:n])
+            _, _ = dst.Write(buf[:n])
             if pe != nil {
                 logData(pe, direction, buf[:n])
             }
@@ -116,12 +126,17 @@ func handleFileSend(conn net.Conn) {
         return
     }
 
-    os.MkdirAll(LOG_DIR, 0755)
+    if err := os.MkdirAll(FILES_DIR, 0755); err != nil {
+        fmt.Println("Error creando directorio de archivos:", err)
+        return
+    }
+
     serverFilename := code + "_" + filename
-    fullPath := filepath.Join(LOG_DIR, serverFilename)
+    fullPath := filepath.Join(FILES_DIR, serverFilename)
 
     f, err := os.Create(fullPath)
     if err != nil {
+        fmt.Println("Error creando archivo:", err)
         return
     }
     defer f.Close()
@@ -131,14 +146,17 @@ func handleFileSend(conn net.Conn) {
     for remaining > 0 {
         n, err := conn.Read(buf)
         if n > 0 {
-            f.Write(buf[:n])
+            _, _ = f.Write(buf[:n])
             remaining -= n
+        }
+        if n == 0 {
+            break
         }
         if err != nil {
             break
         }
     }
-    // Almacena la info en pendingFiles
+
     pendingLock.Lock()
     pendingFiles[code] = fileInfo{
         filename: filename,
@@ -152,13 +170,13 @@ func handleFileSend(conn net.Conn) {
 
 func handleFileRecv(conn net.Conn) {
     defer conn.Close()
+
     code, err := readLine(conn)
     if err != nil || code == "" {
         return
     }
-
     pendingLock.Lock()
-    fInfo, ok := pendingFiles[code]
+    info, ok := pendingFiles[code]
     if ok {
         delete(pendingFiles, code)
     }
@@ -169,13 +187,16 @@ func handleFileRecv(conn net.Conn) {
         return
     }
 
-    conn.Write([]byte(fInfo.filename + "\n"))
-    conn.Write([]byte(strconv.Itoa(fInfo.filesize) + "\n"))
-    f, err := os.Open(fInfo.fullPath)
+    conn.Write([]byte(info.filename + "\n"))
+    conn.Write([]byte(strconv.Itoa(info.filesize) + "\n"))
+
+    f, err := os.Open(info.fullPath)
     if err != nil {
+        fmt.Println("Error abriendo archivo para enviar:", err)
         return
     }
     defer f.Close()
+
     io.Copy(conn, f)
 }
 
@@ -185,23 +206,29 @@ func handleChatOrRelay(conn net.Conn, code string) {
     if exists {
         delete(pending, code)
         pendingLock.Unlock()
-        // Inicia el relay en ambas direcciones
         go relay(conn, entry.conn, &entry, "Client2 -> Client1")
         go relay(entry.conn, conn, &entry, "Client1 -> Client2")
     } else {
-        // Crea un archivo log
-        os.MkdirAll(LOG_DIR, 0755)
-        timestamp := time.Now().Format("20060102_150405")
-        logPath := filepath.Join(LOG_DIR, fmt.Sprintf("session_%s_%s.log", code, timestamp))
-        f, err := os.Create(logPath)
-        if err != nil {
-            pendingLock.Unlock()
+        if err := os.MkdirAll(LOG_DIR, 0755); err != nil {
+            fmt.Println("Error creando directorio de logs:", err)
             conn.Close()
+            pendingLock.Unlock()
             return
         }
+        timestamp := time.Now().Format("20060102_150405")
+        logPath := filepath.Join(LOG_DIR, fmt.Sprintf("session_%s_%s.log", code, timestamp))
+
+        logFile, err := os.Create(logPath)
+        if err != nil {
+            fmt.Println("Error creando archivo de log:", err)
+            conn.Close()
+            pendingLock.Unlock()
+            return
+        }
+
         pending[code] = pendingEntry{
             conn:    conn,
-            logFile: f,
+            logFile: logFile,
         }
         pendingLock.Unlock()
     }
@@ -209,26 +236,21 @@ func handleChatOrRelay(conn net.Conn, code string) {
 
 func handleClient(conn net.Conn) {
     defer conn.Close()
+
     firstLine, err := readLine(conn)
     if err != nil || firstLine == "" {
         return
     }
-
     if strings.HasPrefix(firstLine, "FILE") {
         parts := strings.Fields(firstLine)
-        if len(parts) >= 2 {
-            mode := parts[1]
-            if mode == "SEND" {
-                handleFileSend(conn)
-                return
-            } else if mode == "RECV" {
-                handleFileRecv(conn)
-                return
-            } else {
-                return
-            }
-        } else {
+        if len(parts) < 2 {
             return
+        }
+        switch parts[1] {
+        case "SEND":
+            handleFileSend(conn)
+        case "RECV":
+            handleFileRecv(conn)
         }
     } else {
         handleChatOrRelay(conn, firstLine)
@@ -236,14 +258,18 @@ func handleClient(conn net.Conn) {
 }
 
 func runServer(host string, port int) {
-    os.MkdirAll(LOG_DIR, 0755)
+    if err := os.MkdirAll(LOG_DIR, 0755); err != nil {
+        fmt.Println("Error creando directorio de logs:", err)
+        return
+    }
     addr := fmt.Sprintf("%s:%d", host, port)
     ln, err := net.Listen("tcp", addr)
     if err != nil {
-        fmt.Println("Error al iniciar servidor:", err)
+        fmt.Println("Error escuchando en", addr, ":", err)
         return
     }
     fmt.Printf("Server listening on %s\n", addr)
+
     for {
         conn, err := ln.Accept()
         if err != nil {
@@ -253,8 +279,6 @@ func runServer(host string, port int) {
     }
 }
 
-// Funciones de cliente
-
 func sendFile(filePath, serverHost string, serverPort int) {
     info, err := os.Stat(filePath)
     if err != nil || info.IsDir() {
@@ -263,29 +287,33 @@ func sendFile(filePath, serverHost string, serverPort int) {
     }
     code := generateCode()
     fmt.Println("Code:", code)
+
     addr := fmt.Sprintf("%s:%d", serverHost, serverPort)
     conn, err := net.Dial("tcp", addr)
     if err != nil {
         fmt.Println("Error conectando al servidor:", err)
         return
     }
+    // No se cierra aquí, se cerrará luego de la confirmación
     defer conn.Close()
 
-    conn.Write([]byte("FILE SEND\n"))
-    conn.Write([]byte(code + "\n"))
-    filename := filepath.Base(filePath)
-    conn.Write([]byte(filename + "\n"))
-    conn.Write([]byte(strconv.Itoa(int(info.Size())) + "\n"))
+    fmt.Fprintf(conn, "FILE SEND\n%s\n%s\n%d\n", code, filepath.Base(filePath), info.Size())
 
     f, err := os.Open(filePath)
     if err != nil {
+        fmt.Println("Error abriendo archivo:", err)
         return
     }
     defer f.Close()
-    io.Copy(conn, f)
 
-    // Espera confirmación
-    conn.SetReadDeadline(time.Now().Add(10 * time.Second))
+    io.Copy(conn, f)
+    // Cierra la parte de escritura para señalar EOF y permitir que el servidor termine de leer.
+    if tcpConn, ok := conn.(*net.TCPConn); ok {
+        tcpConn.CloseWrite()
+    }
+
+    // Aumenta el timeout a 60 segundos
+    _ = conn.SetReadDeadline(time.Now().Add(60 * time.Second))
     reply, err := bufio.NewReader(conn).ReadString('\n')
     if err != nil {
         fmt.Println("Timeout waiting for confirmation from server.")
@@ -306,28 +334,41 @@ func receiveFile(code, serverHost string, serverPort int) {
         return
     }
     defer conn.Close()
-    conn.Write([]byte("FILE RECV\n"))
-    conn.Write([]byte(code + "\n"))
 
+    fmt.Fprintf(conn, "FILE RECV\n%s\n", code)
     reader := bufio.NewReader(conn)
-    filename, _ := reader.ReadString('\n')
+
+    filename, err := reader.ReadString('\n')
+    if err != nil {
+        fmt.Println("File not available on server.")
+        return
+    }
     filename = strings.TrimSpace(filename)
     if filename == "ERR" || filename == "" {
         fmt.Println("File not available on server.")
         return
     }
-    sizeStr, _ := reader.ReadString('\n')
+
+    sizeStr, err := reader.ReadString('\n')
+    if err != nil {
+        fmt.Println("Error reading file size.")
+        return
+    }
     filesize, err := strconv.Atoi(strings.TrimSpace(sizeStr))
     if err != nil {
         fmt.Println("Error reading file size:", err)
         return
     }
+
     fmt.Printf("Receiving file: %s (%d bytes)\n", filename, filesize)
+
     f, err := os.Create(filename)
     if err != nil {
+        fmt.Println("Error creando archivo local:", err)
         return
     }
     defer f.Close()
+
     remaining := filesize
     buf := make([]byte, 4096)
     for remaining > 0 {
@@ -351,26 +392,27 @@ func messageChat(code, serverHost string, serverPort int) {
         return
     }
     defer conn.Close()
-    conn.Write([]byte(code + "\n"))
 
-    // Lee mensajes en goroutine
+    fmt.Fprintln(conn, code)
+
+    // Goroutine para recibir mensajes
     go func() {
-        scanner := bufio.NewScanner(conn)
-        for scanner.Scan() {
-            fmt.Println(scanner.Text())
+        sc := bufio.NewScanner(conn)
+        for sc.Scan() {
+            fmt.Println(sc.Text())
         }
     }()
 
-    // Lee de stdin
-    scanner := bufio.NewScanner(os.Stdin)
-    fmt.Print("Type your message ('/exit' to quit): ")
-    for scanner.Scan() {
-        line := scanner.Text()
+    // Leer desde stdin y enviar
+    console := bufio.NewScanner(os.Stdin)
+    fmt.Print("\033[93mType your message ('/exit' to quit):\033[0m ")
+    for console.Scan() {
+        line := console.Text()
         if line == "/exit" {
             break
         }
-        conn.Write([]byte(line + "\n"))
-        fmt.Print("Type your message ('/exit' to quit): ")
+        fmt.Fprintln(conn, line)
+        fmt.Print("\033[93mType your message ('/exit' to quit):\033[0m ")
     }
 }
 
@@ -387,14 +429,17 @@ func directSend(filePath, targetHost string, targetPort int) {
         return
     }
     defer conn.Close()
+
     filename := filepath.Base(filePath)
-    conn.Write([]byte(filename + "\n"))
-    conn.Write([]byte(strconv.Itoa(int(info.Size())) + "\n"))
+    fmt.Fprintf(conn, "%s\n%d\n", filename, info.Size())
+
     f, err := os.Open(filePath)
     if err != nil {
+        fmt.Println("Error abriendo archivo:", err)
         return
     }
     defer f.Close()
+
     io.Copy(conn, f)
     fmt.Println("File sent successfully.")
 }
@@ -407,6 +452,7 @@ func directReceive(listenHost string, listenPort int) {
         return
     }
     fmt.Printf("Listening on %s...\n", addr)
+
     for {
         conn, err := ln.Accept()
         if err != nil {
@@ -414,19 +460,23 @@ func directReceive(listenHost string, listenPort int) {
         }
         go func(c net.Conn) {
             defer c.Close()
+
             filename, err := readLine(c)
             if err != nil || filename == "" {
-                fmt.Println("No file specified. Waiting for next connection...")
+                fmt.Println("No file specified. Waiting for the next connection...")
                 return
             }
             sizeStr, _ := readLine(c)
             filesize, _ := strconv.Atoi(sizeStr)
             fmt.Printf("Receiving file: %s (%d bytes)\n", filename, filesize)
+
             f, err := os.Create(filename)
             if err != nil {
+                fmt.Println("Error creando archivo local:", err)
                 return
             }
             defer f.Close()
+
             remaining := filesize
             buf := make([]byte, 4096)
             for remaining > 0 {
@@ -454,14 +504,16 @@ func printUsage() {
     fmt.Println("  \033[94mDirect send:\033[0m           airsend -d FILE <target-host> [port]")
     fmt.Println("  \033[94mDirect receive:\033[0m        airsend -ds [listen-host] [port]")
 }
+
 func main() {
     if len(os.Args) < 2 {
         printUsage()
         os.Exit(1)
     }
     mode := os.Args[1]
+
     switch mode {
-    case "-s":
+    case "-s": // Server
         host := DEFAULT_SERVER_HOST
         port := DEFAULT_SERVER_PORT
         if len(os.Args) >= 3 {
@@ -473,7 +525,8 @@ func main() {
             }
         }
         runServer(host, port)
-    case "-f":
+
+    case "-f": // Send file
         if len(os.Args) < 3 {
             fmt.Println("Please specify the file to send.")
             printUsage()
@@ -491,7 +544,8 @@ func main() {
             }
         }
         sendFile(filePath, host, port)
-    case "-r":
+
+    case "-r": // Receive file
         if len(os.Args) < 3 {
             fmt.Println("Please specify the pairing code.")
             printUsage()
@@ -509,8 +563,12 @@ func main() {
             }
         }
         receiveFile(code, host, port)
-    case "-d":
-        // Si el segundo argumento es "-", se activa message mode
+
+    case "-d": // Direct send / message
+        if len(os.Args) < 3 {
+            printUsage()
+            os.Exit(1)
+        }
         if os.Args[2] == "-" {
             targetHost := DEFAULT_SERVER_HOST
             targetPort := DEFAULT_SERVER_PORT
@@ -528,31 +586,34 @@ func main() {
             messageChat(code, targetHost, targetPort)
         } else {
             filePath := os.Args[2]
-            targetHost := ""
-            targetPort := DEFAULT_SERVER_PORT
-            if len(os.Args) >= 3 {
-                targetHost = os.Args[3]
+            if len(os.Args) < 4 {
+                printUsage()
+                os.Exit(1)
             }
-            if len(os.Args) >= 4 {
+            targetHost := os.Args[3]
+            targetPort := DEFAULT_SERVER_PORT
+            if len(os.Args) >= 5 {
                 if p, err := strconv.Atoi(os.Args[4]); err == nil {
                     targetPort = p
                 }
             }
             directSend(filePath, targetHost, targetPort)
         }
-    case "-ds":
+
+    case "-ds": // Direct receive
         listenHost := "0.0.0.0"
-        port := DEFAULT_SERVER_PORT
+        listenPort := DEFAULT_SERVER_PORT
         if len(os.Args) >= 3 {
             listenHost = os.Args[2]
         }
         if len(os.Args) >= 4 {
             if p, err := strconv.Atoi(os.Args[3]); err == nil {
-                port = p
+                listenPort = p
             }
         }
-        directReceive(listenHost, port)
-    case "-m", "-mr":
+        directReceive(listenHost, listenPort)
+
+    case "-m", "-mr": // Chat/relay
         var code, host string
         port := DEFAULT_SERVER_PORT
         if mode == "-mr" {
@@ -571,7 +632,7 @@ func main() {
                     port = p
                 }
             }
-        } else { // -m
+        } else {
             if len(os.Args) >= 3 && isValidIP(os.Args[2]) {
                 code = generateCode()
                 fmt.Println("Code:", code)
@@ -599,6 +660,7 @@ func main() {
             }
         }
         messageChat(code, host, port)
+
     default:
         fmt.Println("Unknown mode:", mode)
         printUsage()
