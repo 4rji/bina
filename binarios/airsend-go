@@ -42,18 +42,23 @@ var (
 
 func generateCode(length int) string {
     words := []string{
-        "house", "dog", "cat", "sun", "moon",
-        "water", "fire", "air", "earth", "light",
-        "tree", "flower", "table", "chair", "book",
-        "paper", "pencil", "color", "sky", "sea",
-        "bread", "milk", "coffee", "wine", "juice",
-        "pink", "blue", "red", "green", "black",
-        "car", "door", "phone", "shoe", "hat",
-        "apple", "orange", "banana", "grape", "fish",
-        "clock", "window", "shirt", "pants", "hand",
+        "casa", "perro", "gato", "sol", "luna",
+        "agua", "fuego", "aire", "tierra", "luz",
+        "arbol", "flor", "mesa", "silla", "libro",
+        "papel", "lapiz", "color", "cielo", "mar",
+        "pan", "leche", "cafe", "vino", "jugo",
+        "rosa", "azul", "rojo", "verde", "negro",
+    } // <-- Faltaba la coma aquí
+    
+    // Generar 4 números aleatorios entre 0 y 9
+    numbers := make([]int, 4)
+    for i := 0; i < 4; i++ {
+        numbers[i] = rand.Intn(10)
     }
-
-    return words[rand.Intn(len(words))]
+    
+    // Combinar palabra y números
+    word := words[rand.Intn(len(words))]
+    return fmt.Sprintf("%s%d%d%d%d", word, numbers[0], numbers[1], numbers[2], numbers[3])
 }
 
 func isValidIP(address string) bool {
@@ -206,6 +211,18 @@ func min(a, b int64) int64 {
     }
     return b
 }
+func humanizeBytes(bytes int64) string {
+    const unit = 1024
+    if bytes < unit {
+        return fmt.Sprintf("%dB", bytes)
+    }
+    div, exp := int64(unit), 0
+    for n := bytes / unit; n >= unit; n /= unit {
+        div *= unit
+        exp++
+    }
+    return fmt.Sprintf("%.2f%cB", float64(bytes)/float64(div), "KMGTPE"[exp])
+}
 
 func handleFileRecv(reader *bufio.Reader, conn net.Conn) {
     defer conn.Close()
@@ -340,7 +357,7 @@ func runServer(host string, port int) {
 func sendFile(filePath, serverHost string, serverPort int) {
     // Validate file exists and get size
     info, err := os.Stat(filePath)
-    if err != nil {
+    if (err != nil) {
         fmt.Println("File not found:", filePath)
         return
     }
@@ -380,7 +397,7 @@ func sendFile(filePath, serverHost string, serverPort int) {
         return
     }
     
-    // Send file content
+    // Send file content with progress bar
     file, err := os.Open(filePath)
     if err != nil {
         fmt.Println("Error opening file:", err)
@@ -388,19 +405,43 @@ func sendFile(filePath, serverHost string, serverPort int) {
     }
     defer file.Close()
     
+    totalWritten := int64(0)
+    startTime := time.Now()
     
-    bytesWritten, err := io.Copy(writer, file)
-    if err != nil {
-        fmt.Printf("Error sending file data: %v\n", err)
-        return
+    // Create a buffered reader for the file
+    reader := bufio.NewReader(file)
+    buf := make([]byte, 4096)
+    
+    fmt.Printf("Sending file: %s (%s)\n", filepath.Base(filePath), humanizeBytes(info.Size()))
+    
+    for totalWritten < info.Size() {
+        n, err := reader.Read(buf)
+        if n > 0 {
+            written, writeErr := writer.Write(buf[:n])
+            if writeErr != nil {
+                fmt.Printf("\nError sending file data: %v\n", writeErr)
+                return
+            }
+            totalWritten += int64(written)
+            
+            // Use the common updateProgress function
+            updateProgress(addr, info.Size(), totalWritten, startTime)
+        }
+        if err != nil {
+            if err != io.EOF {
+                fmt.Printf("\nError reading file: %v\n", err)
+                return
+            }
+            break
+        }
     }
     
     if err := writer.Flush(); err != nil {
-        fmt.Printf("Error flushing file data: %v\n", err)
+        fmt.Printf("\nError flushing file data: %v\n", err)
         return
     }
     
-    fmt.Printf("Sent %d bytes, waiting for confirmation...\n", bytesWritten)
+    fmt.Printf("\nSent %d bytes, waiting for confirmation...\n", totalWritten)
     
     // Wait for confirmation
     conn.SetReadDeadline(time.Now().Add(30 * time.Second))
@@ -455,17 +496,26 @@ func receiveFile(code, serverHost string, serverPort int) {
     defer outFile.Close()
     remaining := filesize
     buf := make([]byte, 4096)
+    totalRead := int64(0)
+    startTime := time.Now()
     for remaining > 0 {
         n, err := reader.Read(buf)
         if n > 0 {
             outFile.Write(buf[:n])
+            totalRead += int64(n)
             remaining -= int64(n)
+            
+            // Use the common updateProgress function
+            updateProgress(conn.RemoteAddr().String(), filesize, totalRead, startTime)
         }
         if err != nil {
+            if err != io.EOF {
+                fmt.Printf("\nError receiving file data: %v\n", err)
+            }
             break
         }
     }
-    fmt.Println("File saved as:", filename)
+    fmt.Println("\nFile saved as:", filename)
 }
 
 func messageChat(code, serverHost string, serverPort int) {
@@ -529,6 +579,30 @@ func messageChat(code, serverHost string, serverPort int) {
     <-done
 }
 
+func updateProgress(addr string, totalBytes, currentBytes int64, startTime time.Time) {
+    percent := float64(currentBytes) / float64(totalBytes) * 100
+    elapsed := time.Since(startTime).Seconds()
+    speed := float64(currentBytes) / 1024 / elapsed
+    barWidth := 30
+    filled := int(percent / (100.0 / float64(barWidth)))
+
+    bar := strings.Repeat("█", filled) + strings.Repeat(" ", barWidth-filled)
+
+    // Move cursor to the beginning of the line and clear the entire line
+    fmt.Print("\r\033[2K")
+    
+    // Print the progress bar (without newline)
+    fmt.Printf("%s %3.0f%%|%s| %s/%s [%.0fs, %.0fkB/s]",
+        addr,
+        percent,
+        bar,
+        humanizeBytes(currentBytes),
+        humanizeBytes(totalBytes),
+        elapsed,
+        speed,
+    )
+}
+
 func directSend(filePath, targetHost string, targetPort int) {
     info, err := os.Stat(filePath)
     if err != nil {
@@ -542,6 +616,7 @@ func directSend(filePath, targetHost string, targetPort int) {
         return
     }
     defer conn.Close()
+    
     writer := bufio.NewWriter(conn)
     writer.WriteString(filepath.Base(filePath) + "\n")
     writer.WriteString(fmt.Sprintf("%d\n", info.Size()))
@@ -553,17 +628,29 @@ func directSend(filePath, targetHost string, targetPort int) {
         return
     }
     defer file.Close()
+
+    totalWritten := int64(0)
+    startTime := time.Now()
     buf := make([]byte, 4096)
-    for {
+
+    fmt.Printf("Sending file: %s (%s)\n", filepath.Base(filePath), humanizeBytes(info.Size()))
+
+    for totalWritten < info.Size() {
         n, err := file.Read(buf)
         if n > 0 {
-            conn.Write(buf[:n])
+            written, writeErr := conn.Write(buf[:n])
+            if writeErr != nil {
+                fmt.Printf("\nError sending file data: %v\n", writeErr)
+                return
+            }
+            totalWritten += int64(written)
+            updateProgress(addr, info.Size(), totalWritten, startTime)
         }
         if err != nil {
             break
         }
     }
-    fmt.Println("File sent successfully.")
+    fmt.Printf("\nFile sent successfully (%s)\n", humanizeBytes(totalWritten))
 }
 
 func directReceive(listenHost string, listenPort int) {
@@ -597,26 +684,31 @@ func directReceive(listenHost string, listenPort int) {
                 fmt.Println("Error reading file size:", err)
                 return
             }
-            fmt.Printf("Receiving file: %s (%d bytes)\n", filename, filesize)
+
+            fmt.Printf("Receiving file: %s (%s)\n", filename, humanizeBytes(filesize))
             outFile, err := os.Create(filename)
             if err != nil {
                 fmt.Println("Error creating file:", err)
                 return
             }
             defer outFile.Close()
-            remaining := filesize
+
+            totalRead := int64(0)
+            startTime := time.Now()
             buf := make([]byte, 4096)
-            for remaining > 0 {
+
+            for totalRead < filesize {
                 n, err := reader.Read(buf)
                 if n > 0 {
                     outFile.Write(buf[:n])
-                    remaining -= int64(n)
+                    totalRead += int64(n)
+                    updateProgress(c.RemoteAddr().String(), filesize, totalRead, startTime)
                 }
                 if err != nil {
                     break
                 }
             }
-            fmt.Println("File received successfully.")
+            fmt.Printf("\nFile received successfully (%s)\n", humanizeBytes(totalRead))
         }(conn)
     }
 }
