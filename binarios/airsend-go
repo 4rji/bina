@@ -17,8 +17,8 @@ import (
 const (
     DEFAULT_SERVER_HOST = "mic2.4rji.com"
     DEFAULT_SERVER_PORT = 443
-    LOG_DIR             = "/opt/4rji/airsend"
-    FILES_DIR           = "/opt/4rji/airsend"
+    LOG_DIR             = "/tmp"
+    FILES_DIR           = "/tmp"
 )
 
 type PendingChat struct {
@@ -580,27 +580,28 @@ func messageChat(code, serverHost string, serverPort int) {
 }
 
 func updateProgress(addr string, totalBytes, currentBytes int64, startTime time.Time) {
+    if os.Args[1] == "-d" {
+        return
+    }
     percent := float64(currentBytes) / float64(totalBytes) * 100
     elapsed := time.Since(startTime).Seconds()
     speed := float64(currentBytes) / 1024 / elapsed
-    barWidth := 30
+    barWidth := 50
     filled := int(percent / (100.0 / float64(barWidth)))
 
     bar := strings.Repeat("█", filled) + strings.Repeat(" ", barWidth-filled)
 
-    // Move cursor to the beginning of the line and clear the entire line
+    // Move cursor to beginning of line and clear it
     fmt.Print("\r\033[2K")
     
-    // Print the progress bar (without newline)
-    fmt.Printf("%s %3.0f%%|%s| %s/%s [%.0fs, %.0fkB/s]",
+    // Print progress without newline
+    fmt.Printf("%s %3.0f%% %s %s/%s %.0fkB/s", 
         addr,
         percent,
         bar,
         humanizeBytes(currentBytes),
         humanizeBytes(totalBytes),
-        elapsed,
-        speed,
-    )
+        speed)
 }
 
 func directSend(filePath, targetHost string, targetPort int) {
@@ -720,7 +721,7 @@ func printUsage() {
     fmt.Println("  \033[94mReceive file:\033[0m       airsend -r <host> <port> <code>")
     fmt.Println("  \033[94mMessage (send):\033[0m     airsend -m <host> <port>")
     fmt.Println("  \033[94mMessage (recv):\033[0m     airsend -mr <code> <host> <port>")
-    fmt.Println("  \033[94mDirect send:\033[0m        airsend -d <file> <target-host> <port>")
+    fmt.Println("  \033[94mDirect send:\033[0m        airsend -d <target-host> <port> <file>")
     fmt.Println("  \033[94mDirect receive:\033[0m     airsend -ds <listen-host> <port>")
 }
 
@@ -749,18 +750,22 @@ func main() {
         host := DEFAULT_SERVER_HOST
         port := DEFAULT_SERVER_PORT
         files := []string{}
+        
         if len(args) == 0 {
             fmt.Println("Please specify at least one file to send.")
             printUsage()
             os.Exit(1)
         }
-        if len(args) >= 1 && isValidIP(args[0]) {
+        
+        // First check if the first argument is a file or IP
+        if isValidIP(args[0]) {
             host = args[0]
             if len(args) >= 2 {
                 if p, err := strconv.Atoi(args[1]); err == nil {
                     port = p
                     files = args[2:]
                 } else {
+                    // If port isn't valid, assume it's a file
                     files = args[1:]
                 }
             } else {
@@ -771,11 +776,13 @@ func main() {
         } else {
             files = args
         }
+        
         if len(files) == 0 {
             fmt.Println("Please specify at least one file to send.")
             printUsage()
             os.Exit(1)
         }
+        
         for _, filePath := range files {
             sendFile(filePath, host, port)
         }
@@ -806,35 +813,24 @@ func main() {
         }
         
         receiveFile(code, host, port)
+
     case "-d":
-        if os.Args[2] == "-" {
-            targetHost := DEFAULT_SERVER_HOST
-            targetPort := DEFAULT_SERVER_PORT
-            if len(os.Args) >= 4 {
-                targetHost = os.Args[3]
-            }
-            if len(os.Args) >= 5 {
-                if p, err := strconv.Atoi(os.Args[4]); err == nil {
-                    targetPort = p
-                }
-            }
-            fmt.Println("No file specified. Entering message mode.")
-            messageChat(generateCode(6), targetHost, targetPort)
-        } else {
-            filePath := os.Args[2]
-            if len(os.Args) < 4 {
-                fmt.Println("Target host required for direct send.")
-                return
-            }
-            targetHost := os.Args[3]
-            targetPort := DEFAULT_SERVER_PORT
-            if len(os.Args) >= 5 {
-                if p, err := strconv.Atoi(os.Args[4]); err == nil {
-                    targetPort = p
-                }
-            }
-            directSend(filePath, targetHost, targetPort)
+        if len(os.Args) < 5 {
+            fmt.Println("Usage: airsend -d target-host port file")
+            return
         }
+        
+        targetHost := os.Args[2]
+        targetPort := DEFAULT_SERVER_PORT
+        if p, err := strconv.Atoi(os.Args[3]); err == nil {
+            targetPort = p
+        } else {
+            fmt.Println("Invalid port number")
+            return
+        }
+        filePath := os.Args[4]
+        
+        directSend(filePath, targetHost, targetPort)
 
     case "-ds":
         listenHost := "0.0.0.0"
