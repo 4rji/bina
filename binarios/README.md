@@ -104,6 +104,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+webmonitor          abre una pagina web y monitore hping3 y inundaciones
 kasm                Abre una pagina en kasm  kasm google.com ejemplo
 servidores          Inicia el programa servidores que es la webapp de flash para proxmox
 servidoresprogram   El codigo de servidores para proxmox servidores
