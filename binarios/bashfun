@@ -11,6 +11,13 @@ text = r"""
 setopt ignoreeof
 
 
+#alias para neovim chat, para nixos, primero instalar nix-shell -p   neovim y luego clonar   ❯ git clone https://github.com/NvChad/starter ~/.config/nvim
+nv() {
+  nix-shell -p neovim --run "nvim $1"
+}
+
+
+
 
 #Extraer puertos para expo
 function extractPorts(){
