@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -e
+
+# Instalar Go si no está instalado
+if ! command -v go &> /dev/null; then
+    echo "Go no está instalado. Instalándolo..."
+    if command -v apt-get &> /dev/null; then
+        sudo apt-get update && sudo apt-get install -y golang-go
+    elif command -v yum &> /dev/null; then
+        sudo yum install -y golang
+    else
+        echo "Gestor de paquetes no soportado. Instala Go manualmente."
+        exit 1
+    fi
+fi
+
+# Clonar el repositorio de lazydocker
+git clone https://github.com/jesseduffield/lazydocker.git
+cd lazydocker
+
+# Instalar lazydocker con go
+go install
+
+echo "lazydocker instalado."
+
+# Advertencia: el binario se instala en \$GOPATH/bin
+GOPATH_BIN="$(go env GOPATH)/bin"
+echo "Asegúrate de que \$GOPATH/bin ($GOPATH_BIN) esté en tu PATH."
+echo "Por ejemplo, añade la siguiente línea en tu ~/.bashrc o ~/.zshrc:"
+echo "export PATH=\$PATH:$GOPATH_BIN"

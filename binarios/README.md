@@ -104,6 +104,8 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+searchinst          Instala searxng que es como google pero privado.
+lazydinst           Instala lazydocker con go. instala go tambien
 miniserver          Abre un mini server http para subir o descargar, con authenticacion
 webmonitor          abre una pagina web y monitore hping3 y inundaciones
 kasm                Abre una pagina en kasm  kasm google.com ejemplo

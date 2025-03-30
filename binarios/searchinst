@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+PORT=9999
+
+# Crea el directorio de configuración si no existe
+mkdir -p "${PWD}/searxng"
+
+# Descarga la imagen de Docker
+docker pull searxng/searxng
+
+# Ejecuta el contenedor con el mapeo de puertos y configuración
+docker run --rm -d -p ${PORT}:8080 \
+  -v "${PWD}/searxng:/etc/searxng" \
+  -e "BASE_URL=http://localhost:${PORT}/" \
+  -e "INSTANCE_NAME=my-instance" \
+  searxng/searxng
