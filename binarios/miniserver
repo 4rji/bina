@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+miniserver1() {
+    echo "cmd: miniserver1 $*"
+    command miniserver1 "$@"
+}
+
+echo ""
+echo "Examples of usage:"
+echo ""
+echo "  miniserve ./ --port 9000"
+echo "  miniserve ./ --upload-files"
+echo "  miniserve ./ --upload-files --auth user:pass --port 80"
+echo "  miniserve file1.txt file2.jpg"
+echo ""
+echo "  miniserve ./folder"
+echo ""
+echo "  miniserve ./ --tls-cert cert.pem --tls-key key.pem"
+echo ""
+echo "More versions:"
+echo "  https://github.com/svenstaro/miniserve/releases"
+echo ""
+echo "For Debian M4:"
+echo "  wget https://github.com/svenstaro/miniserve/releases/download/v0.29.0/miniserve-0.29.0-aarch64-unknown-linux-gnu"
+echo ""
+
+#read -p "Press Enter to run miniserve (or type 'u' for upload, or a port number): " option
+read -p $'Press Enter to run miniserve\nType "u" for upload\nOr enter a port number: ' option
+
+
+if [[ -z "$option" ]]; then
+    # No input: run default
+    miniserver1 ./
+elif [[ "$option" == "u" ]]; then
+    # 'u' for upload option
+    miniserver1 ./ --upload-files
+elif [[ "$option" =~ ^[0-9]+$ ]]; then
+    # Numeric input: set port
+    miniserver1 ./ --port "$option"
+else
+    echo "Invalid option. Running default command."
+    miniserver1 ./
+fi
