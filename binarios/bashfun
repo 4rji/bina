@@ -17,6 +17,26 @@ nv() {
 }
 
 
+function mktemm() {
+    ramdisk_path="/Volumes/RAMDisk"
+
+    # Crear RAM disk si no existe
+    if [ ! -d "$ramdisk_path" ]; then
+        echo "Montando RAMDisk..."
+        diskutil erasevolume HFS+ RAMDisk $(hdiutil attach -nomount ram://$((512 * 1024 * 1024 / 512))) >/dev/null
+    fi
+
+    if [ -n "$1" ]; then
+        new_dir=$(mktemp -d "$ramdisk_path/tmp.$1.XXXXXX")
+    else
+        new_dir=$(mktemp -d "$ramdisk_path/tmp.XXXXXX")
+    fi
+
+    echo "Directorio creado en: $new_dir"
+    cd "$new_dir" || return
+    echo "Cambiado al directorio: $PWD"
+}
+
 
 
 #Extraer puertos para expo
@@ -138,7 +158,7 @@ function mktem() {
     echo "Cambiado al directorio: $PWD"
 }
 
-function mktemm() {
+function mktem2() {
     if [ -n "$1" ]; then
         new_dir=$(mktemp -d /tmp/tmp."$1".XXXXXX)
     else
