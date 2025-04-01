@@ -1,0 +1,12 @@
+#!/bin/bash
+
+#habilita todos los agentes a las VM de el proxmox
+
+# Obtiene todos los IDs de las VMs
+VM_IDS=$(qm list | awk 'NR>1 {print $1}')
+
+# Habilita el QEMU Guest Agent en cada VM
+for VM_ID in $VM_IDS; do
+  qm set "$VM_ID" --agent 1
+  echo "Agente habilitado en VM $VM_ID"
+done
