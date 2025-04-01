@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 
-from flask import Flask, request, jsonify, render_template_string
-import time, socket
+from flask import Flask, request, jsonify, render_template_string, redirect
+import time, socket, webbrowser
+from threading import Timer
 
 app = Flask(__name__)
 requests_log = []
@@ -9,7 +10,6 @@ requests_log = []
 def get_server_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        # This doesn't have to be reachable
         s.connect(('10.255.255.255', 1))
         ip = s.getsockname()[0]
     except Exception:
@@ -22,7 +22,17 @@ def get_server_ip():
 def index():
     ip = request.remote_addr
     requests_log.append((ip, time.time()))
-    return "OK"
+    # Página de redirección con meta-refresh y enlace manual
+    return """
+    <html>
+      <head>
+        <meta http-equiv="refresh" content="0; url=/monitor">
+      </head>
+      <body>
+        Si no es redirigido automáticamente, haga click en <a href="/monitor">/monitor</a>
+      </body>
+    </html>
+    """
 
 @app.route('/status')
 def status():
@@ -47,44 +57,18 @@ def monitor():
     <head>
         <title>Requests Monitor - Traffic Light</title>
         <style>
-            body {
-                background-color: #000;
-                color: #fff;
-                font-family: Arial, sans-serif;
-                text-align: center;
-                margin: 0;
-                padding: 20px;
-            }
-            .instructions {
-                background-color: #222;
-                padding: 10px;
-                border-radius: 5px;
-                margin: 20px auto;
-                width: fit-content;
-            }
-            .gauge-container {
-                display: inline-block;
-                margin: 20px;
-            }
-            canvas {
-                box-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
-                border-radius: 50%;
-            }
-            button {
-                padding: 10px 20px;
-                font-size: 16px;
-                margin-top: 20px;
-                cursor: pointer;
-                background-color: #444;
-                color: #fff;
-                border: 2px solid #fff;
-            }
+            body { background-color: #000; color: #fff; font-family: Arial, sans-serif; text-align: center; margin: 0; padding: 20px; }
+            .instructions { background-color: #222; padding: 10px; border-radius: 5px; margin: 20px auto; width: fit-content; }
+            .gauge-container { display: inline-block; margin: 20px; }
+            canvas { box-shadow: 0 0 20px rgba(255, 255, 255, 0.8); border-radius: 50%; }
+            button { padding: 10px 20px; font-size: 16px; margin-top: 20px; cursor: pointer; background-color: #444; color: #fff; border: 2px solid #fff; }
         </style>
     </head>
     <body>
         <h1>Requests Monitor (Last 60 Seconds)</h1>
+        <p>Acceda directamente en: <a href="http://{{server_ip}}:8080/monitor">http://{{server_ip}}:8080/monitor</a></p>
         <div class="instructions">
-          <p>For testing, run the following commands in a separate terminal:</p>
+          <p>Para pruebas, ejecute en otra terminal:</p>
           <code>siege -c 255 -r 1000 http://{{server_ip}}:8080/</code><br>
           <code>while true; do curl -s http://{{server_ip}}:8080/ > /dev/null; done</code>
         </div>
@@ -105,86 +89,60 @@ def monitor():
         </div>
         <br>
         <button onclick="resetRequests()">Reset Log</button>
-
-        <!-- Load Chart.js from CDN -->
         <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
         <script>
-            // Define thresholds
             const greenThreshold = 1000;
-            const yellowThreshold = 10000; // cumulative threshold, yellow range = 9000
-            const redThreshold = 100000;     // cumulative threshold, red range = 90000
-
+            const yellowThreshold = 10000;
+            const redThreshold = 100000;
             let greenChart, yellowChart, redChart;
-
-            // Create a gauge chart
             function createGauge(ctx, color, maxVal) {
                 return new Chart(ctx, {
                     type: 'doughnut',
                     data: {
                         labels: ['Filled', 'Remaining'],
-                        datasets: [{
-                            data: [0, maxVal],
-                            backgroundColor: [color, '#333'],
-                            borderWidth: 0
-                        }]
+                        datasets: [{ data: [0, maxVal], backgroundColor: [color, '#333'], borderWidth: 0 }]
                     },
                     options: {
                         responsive: false,
                         cutout: '70%',
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: { enabled: false }
-                        }
+                        plugins: { legend: { display: false }, tooltip: { enabled: false } }
                     }
                 });
             }
-
-            // Update the gauge with current value
             function updateGauge(chart, value, maxVal) {
                 if (value > maxVal) value = maxVal;
                 chart.data.datasets[0].data = [value, maxVal - value];
                 chart.update();
             }
-
-            // Fetch current requests count and update gauges accordingly
             function fetchStatus() {
                 fetch('/status')
                     .then(response => response.json())
                     .then(data => {
                         let count = data.requests_last_60s;
-                        // Calculate gauge values for each stage
                         let greenValue = Math.min(count, greenThreshold);
                         let yellowValue = count > greenThreshold ? Math.min(count - greenThreshold, yellowThreshold - greenThreshold) : 0;
                         let redValue = count > yellowThreshold ? Math.min(count - yellowThreshold, redThreshold - yellowThreshold) : 0;
-
                         updateGauge(greenChart, greenValue, greenThreshold);
                         updateGauge(yellowChart, yellowValue, yellowThreshold - greenThreshold);
                         updateGauge(redChart, redValue, redThreshold - yellowThreshold);
-
                         document.getElementById('greenInfo').innerText = greenValue + " / " + greenThreshold;
                         document.getElementById('yellowInfo').innerText = yellowValue + " / " + (yellowThreshold - greenThreshold);
                         document.getElementById('redInfo').innerText = redValue + " / " + (redThreshold - yellowThreshold);
                     })
                     .catch(err => console.error(err));
             }
-
-            // Reset the requests log
             function resetRequests() {
                 fetch('/reset')
                     .then(() => fetchStatus())
                     .catch(err => console.error(err));
             }
-
             window.onload = () => {
                 let greenCtx = document.getElementById('greenGauge').getContext('2d');
                 let yellowCtx = document.getElementById('yellowGauge').getContext('2d');
                 let redCtx = document.getElementById('redGauge').getContext('2d');
-
-                // Create gauges with traffic light colors
                 greenChart = createGauge(greenCtx, '#00FF00', greenThreshold);
                 yellowChart = createGauge(yellowCtx, '#FFFF00', yellowThreshold - greenThreshold);
                 redChart = createGauge(redCtx, '#FF0000', redThreshold - yellowThreshold);
-
                 setInterval(fetchStatus, 1000);
                 fetchStatus();
             };
@@ -195,4 +153,6 @@ def monitor():
     return render_template_string(html, server_ip=server_ip)
 
 if __name__ == '__main__':
+    server_ip = get_server_ip()
+    Timer(1, lambda: webbrowser.open(f"http://{server_ip}:8080/monitor")).start()
     app.run(host='0.0.0.0', port=8080, debug=False)
