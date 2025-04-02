@@ -24,34 +24,45 @@ var colors = []string{
 
 const reset = "\033[0m"
 
-// getRepresentativeIP returns a target IP for the subnet (assumes /24 and uses .1 as gateway)
-func getRepresentativeIP(subnet string) string {
+// scanSubnet pings all host IPs (.1 to .254) within a /24 subnet and collects the ones that respond.
+func scanSubnet(subnet string, color string, wg *sync.WaitGroup, results chan<- string) {
+	defer wg.Done()
+
 	parts := strings.Split(subnet, "/")
 	ip := parts[0]
 	octets := strings.Split(ip, ".")
 	if len(octets) != 4 {
-		return ip
+		results <- ""
+		return
 	}
-	octets[3] = "1"
-	return strings.Join(octets, ".")
-}
+	base := fmt.Sprintf("%s.%s.%s.", octets[0], octets[1], octets[2])
+	var hostWg sync.WaitGroup
+	var mu sync.Mutex
+	activeHosts := []string{}
 
-func scanNetwork(subnet string, color string, wg *sync.WaitGroup, results chan<- string) {
-	defer wg.Done()
-
-	target := getRepresentativeIP(subnet)
-	cmd := exec.Command("ping", "-c", "1", "-W", "1", target)
-	err := cmd.Run()
+	// Ping hosts .1 to .254
+	for i := 1; i < 255; i++ {
+		hostIP := base + fmt.Sprintf("%d", i)
+		hostWg.Add(1)
+		go func(ip string) {
+			defer hostWg.Done()
+			cmd := exec.Command("ping", "-c", "1", "-W", "1", ip)
+			if err := cmd.Run(); err == nil {
+				mu.Lock()
+				activeHosts = append(activeHosts, ip)
+				mu.Unlock()
+			}
+		}(hostIP)
+	}
+	hostWg.Wait()
 
 	var result string
-	if err == nil {
-		result = fmt.Sprintf("%sSubnet %s: Access active%s\n", color, subnet, reset)
-	} else {
-		result = ""
-	}
-
-	if result != "" {
-		result = "\n" + result + "\n-------------------\n"
+	if len(activeHosts) > 0 {
+		result += fmt.Sprintf("\nSubnet %s:\n", subnet)
+		for _, host := range activeHosts {
+			result += fmt.Sprintf("  %s%s%s\n", color, host, reset)
+		}
+		result += "-------------------\n"
 	}
 	results <- result
 }
@@ -63,7 +74,7 @@ func main() {
 		fmt.Println("\033[31mAllowedIPs environment variable not found.\033[0m")
 		fmt.Println("\033[31mPlease set EXPORT=AllowedIPS as follows:\033[0m")
 		fmt.Println("")
-		fmt.Println("\033[31mexport AllowedIPs=192.168.X.0/10.0.X.0/24 -like wireguard\033[0m")
+		fmt.Println("\033[31mexport AllowedIPs=192.168.X.0/24,10.0.X.0/24 -like wireguard\033[0m")
 		return
 	}
 
@@ -78,7 +89,7 @@ func main() {
 	for i, subnet := range subnets {
 		wg.Add(1)
 		color := colors[i%len(colors)]
-		go scanNetwork(strings.TrimSpace(subnet), color, &wg, results)
+		go scanSubnet(strings.TrimSpace(subnet), color, &wg, results)
 	}
 
 	go func() {
