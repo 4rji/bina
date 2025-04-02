@@ -10,6 +10,10 @@ text = r"""
 #to ignore close with command D
 setopt ignoreeof
 
+#nets para script nets 
+export AllowedIPs=192.168.44.0/24,192.168.222.0/24,192.168.18.0/24,10.0.16.0/24,192.168.99.0/24,192.168.88.0/24,10.0.4.0/24,192.168.8.0/24,192.168.55.0/24,192.168.3.0/24,192.168.5.0/24
+
+
 
 #alias para neovim chat, para nixos, primero instalar nix-shell -p   neovim y luego clonar   ❯ git clone https://github.com/NvChad/starter ~/.config/nvim
 nv() {
