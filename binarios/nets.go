@@ -24,7 +24,36 @@ var colors = []string{
 
 const reset = "\033[0m"
 
-// scanSubnet pings all host IPs (.1 to .254) within a /24 subnet and collects the ones that respond.
+// detectOS ejecuta nmap para detectar el sistema operativo del host y devuelve la salida en minúsculas.
+func detectOS(ip string) string {
+	cmd := exec.Command("nmap", "-O", "-Pn", ip)
+	output, err := cmd.CombinedOutput()
+	outStr := strings.ToLower(string(output))
+	if err != nil {
+		return "unknown"
+	}
+	return outStr
+}
+
+// getIconForOS asigna un icono según el contenido del string obtenido de detectOS.
+func getIconForOS(osString string) string {
+	if strings.Contains(osString, "windows") {
+		return "🪟"
+	} else if strings.Contains(osString, "darwin") || strings.Contains(osString, "macos") {
+		return "🍎"
+	} else if strings.Contains(osString, "redhat") {
+		return "🎩"
+	} else if strings.Contains(osString, "ubuntu") {
+		return "🐧"
+	} else if strings.Contains(osString, "debian") {
+		return "🐧"
+	} else if strings.Contains(osString, "linux") {
+		return "🐧"
+	}
+	return "●"
+}
+
+// scanSubnet recorre las IPs de .1 a .254 de un /24, hace ping a cada una y si responde, detecta el OS y asigna un icono.
 func scanSubnet(subnet string, color string, wg *sync.WaitGroup, results chan<- string) {
 	defer wg.Done()
 
@@ -40,7 +69,7 @@ func scanSubnet(subnet string, color string, wg *sync.WaitGroup, results chan<- 
 	var mu sync.Mutex
 	activeHosts := []string{}
 
-	// Ping hosts .1 to .254
+	// Recorre desde .1 hasta .254
 	for i := 1; i < 255; i++ {
 		hostIP := base + fmt.Sprintf("%d", i)
 		hostWg.Add(1)
@@ -48,8 +77,11 @@ func scanSubnet(subnet string, color string, wg *sync.WaitGroup, results chan<- 
 			defer hostWg.Done()
 			cmd := exec.Command("ping", "-c", "1", "-W", "1", ip)
 			if err := cmd.Run(); err == nil {
+				// Si responde, detecta el OS y asigna el icono
+				osStr := detectOS(ip)
+				icon := getIconForOS(osStr)
 				mu.Lock()
-				activeHosts = append(activeHosts, ip)
+				activeHosts = append(activeHosts, fmt.Sprintf("%s %s", icon, ip))
 				mu.Unlock()
 			}
 		}(hostIP)
