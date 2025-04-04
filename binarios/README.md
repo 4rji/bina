@@ -414,6 +414,7 @@ suricatainst        Instala suricata, largo proceso
 suricatalog         tail -f /var/log/suricata/fast.log
 
 ###------utilidades instalaciones
+todoinst            instala todo, descarga imagenes tambien.
 lazyvpn             Script que instala openvpn en debian, facil y rapido, lazy openvpn vpn
 impactoinst         instala impacket smb server para montar con impacto
 flatpakinst         Instala flatpak en debian, no probado pero los pasos estan ahi.
