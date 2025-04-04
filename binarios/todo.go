@@ -38,7 +38,7 @@ type DetailedDescription struct {
 type Descriptions map[string]DetailedDescription
 
 func loadDescriptions() (Descriptions, error) {
-	file, err := os.Open("descriptions.json")
+	file, err := os.Open("/opt/4rji/bin/descriptions.json")
 	if err != nil {
 		return nil, err
 	}
