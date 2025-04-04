@@ -587,3 +587,4 @@ ngrok               Instala ngrok para dockers, toma token de ngroktk script, co
 archiveinst         Archivebox para guardar paginas, instaladaro. alias archive para iniciar server tmux
 recibepython        Para recibir archivos con curl -T desde la otra maquina, recibepython2 disponible
 archivos            Descarga desde $ip robots y cookies
+

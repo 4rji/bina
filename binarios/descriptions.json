@@ -1,0 +1,7 @@
+{
+    "lab": {
+        "name": "lab",
+        "short_desc": "Creates a second tunnel with ligolo2, configures the interface and adds routes X.X.X.0/24, listener 30000 to 10000",
+        "detailed_desc": "This script shows the necessary commands for:\n\n1. Creating and configuring a second tunnel using ligolo2:\n   - Creates a tun interface named 'ligolo2'\n   - Activates the interface\n   - Adds a route for network X.X.X.0/24\n\n2. Configuring the listener:\n   - Sets up a listener on 0.0.0.0:30000\n   - Redirects traffic to 127.0.0.1:10000\n   - Starts netcat to listen on port 10000\n\n3. Additional configuration:\n   - Adds the entry 'sheldon1' with IP 192.168.122.247"
+    }
+} 
