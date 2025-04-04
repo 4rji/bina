@@ -4,5 +4,10 @@
         "name": "proxyverifica",
         "short_desc": "Verifies the functionality of proxies using a CSV file.",
         "detailed_desc": "This script verifies if proxies are functional. It requires a CSV file containing the list of proxies.\n\nUsage instructions:\n\n1. Prepare the proxy list in the following CSV format:\n   - Example: 66.60.150.190,80,US,United States,anonymous\n\n2. To format the list, use the following command:\n   - `awk '{print $1 \":\" $2}' lista > proxylist.csv`\n   - This command combines the IP and port to generate the required file.\n\n3. Run the script to verify the proxies."
+    },
+    "proxyloco": {
+        "name": "proxyloco",
+        "short_desc": "Downloads, configures, and launches ligolo-ng Agent or Proxy with guided setup.",
+        "detailed_desc": "This script automates the process of downloading ligolo-ng binaries (Agent/Proxy), extracting them, and assisting with configuration and execution based on user input.\n\nUsage instructions:\n\n1. Run without arguments to interactively choose binaries and setup Agent or Proxy.\n2. Use `./proxyloco -2` to access additional proxy tunnel setup commands, crontab examples, and agent launch instructions.\n3. Supports both AMD64 and ARM64 architectures with visual guidance and command tips.\n\nProxy quick commands:\n\n1.- Return to the proxy session: session\n2.- Start the proxy: start\n\nTo delete the subnet:\nsudo ip link delete ligolo\nsudo ip route add 1.1.1.0/24 dev ligolo\n\n# Second tunnel:\nsudo ip tuntap add user $USER mode tun ligolo2\nsudo ip link set ligolo2 up\nsudo ip route add X.X.X.0/24 dev ligolo2\nstart --tun ligolo2"
     }
 }

