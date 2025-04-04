@@ -20,7 +20,7 @@ function mktem1() {
 
 # Crear directorio temporal y clonar repositorio
 mktem1 "img"
-git clone https://github.com/4rji/img-bin
+git clone https://github.com/4rji/todo
 
 # Copiar imágenes de img-bin/binarios al directorio destino
 cd img-bin/binarios || exit
