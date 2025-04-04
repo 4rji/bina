@@ -133,7 +133,8 @@ func main() {
 		fmt.Printf("%sWarning: Could not load descriptions file: %v%s\n", ColorYellow, err, ColorReset)
 	}
 
-	scripts, err := parseReadme("README.md")
+	
+	scripts, err := parseReadme("/opt/4rji/bin/README.md")
 	if err != nil {
 		fmt.Printf("%sError reading README.md: %v%s\n", ColorRed, err, ColorReset)
 		return
