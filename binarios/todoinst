@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+
+# Crear directorio destino
+sudo mkdir -p /opt/4rji/img-bin
+
+# Instalar chafa
+sudo apt install chafa -y
+
+# Función para crear un directorio temporal
+function mktem1() {
+    if [ -n "$1" ]; then
+        new_dir=$(mktemp -d /tmp/tmp."$1".XXXXXX)
+    else
+        new_dir=$(mktemp -d /tmp/tmp.XXXXXX)
+    fi
+    echo "Directorio creado en: $new_dir"
+    cd "$new_dir" || exit
+    echo "Cambiado al directorio: $PWD"
+}
+
+# Crear directorio temporal y clonar repositorio
+mktem1 "img"
+git clone https://github.com/4rji/img-bin
+
+# Copiar imágenes de img-bin/binarios al directorio destino
+cd img-bin/binarios || exit
+sudo cp -r * /opt/4rji/img-bin
+
+echo "Proceso completado."
