@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
 
@@ -30,8 +31,8 @@ type Script struct {
 }
 
 type DetailedDescription struct {
-	Name        string `json:"name"`
-	ShortDesc   string `json:"short_desc"`
+	Name         string `json:"name"`
+	ShortDesc    string `json:"short_desc"`
 	DetailedDesc string `json:"detailed_desc"`
 }
 
@@ -110,6 +111,37 @@ func getScriptName(selectedScript string) string {
 	return strings.TrimSpace(parts[0])
 }
 
+// Función showImage corregida: usa "chafa" para mostrar imágenes.
+func showImage(scriptName string) bool {
+	imgPath := fmt.Sprintf("/opt/4rji/img-bin/%s", scriptName)
+	
+	// Try WebP first
+	if _, err := os.Stat(imgPath + ".webp"); err == nil {
+		cmd := exec.Command("chafa", "--size", "80x40", imgPath+".webp")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			fmt.Printf("%sError displaying image: %v%s\n", ColorRed, err, ColorReset)
+			return false
+		}
+		fmt.Printf("%s%s%s\n", ColorCyan, string(output), ColorReset)
+		return true
+	}
+
+	// Try PNG if WebP doesn't exist
+	if _, err := os.Stat(imgPath + ".png"); err == nil {
+		cmd := exec.Command("chafa", "--size", "80x40", imgPath+".png")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			fmt.Printf("%sError displaying image: %v%s\n", ColorRed, err, ColorReset)
+			return false
+		}
+		fmt.Printf("%s%s%s\n", ColorCyan, string(output), ColorReset)
+		return true
+	}
+
+	return false
+}
+
 func showDetailedDescription(scriptName string, descriptions Descriptions) {
 	if desc, ok := descriptions[scriptName]; ok {
 		printSeparator()
@@ -119,13 +151,12 @@ func showDetailedDescription(scriptName string, descriptions Descriptions) {
 		fmt.Printf("%sShort description:%s %s%s%s\n", ColorYellow, ColorReset, ColorWhite, desc.ShortDesc, ColorReset)
 		fmt.Printf("\n%sDetailed description:%s\n%s%s%s\n", ColorYellow, ColorReset, ColorWhite, desc.DetailedDesc, ColorReset)
 	} else {
-		fmt.Printf("\n%sNo detailed. Basic description only on selector. %s\n", ColorYellow, ColorReset)
-		
+		showImage(scriptName)
 	}
 }
 
 func main() {
-	// Clear screen at start
+	// Limpiar pantalla al iniciar
 	fmt.Print("\033[H\033[2J")
 
 	descriptions, err := loadDescriptions()
@@ -133,7 +164,6 @@ func main() {
 		fmt.Printf("%sWarning: Could not load descriptions file: %v%s\n", ColorYellow, err, ColorReset)
 	}
 
-	
 	scripts, err := parseReadme("/opt/4rji/bin/README.md")
 	if err != nil {
 		fmt.Printf("%sError reading README.md: %v%s\n", ColorRed, err, ColorReset)
@@ -186,17 +216,17 @@ func main() {
 			continue
 		}
 
-		// Show detailed description
+		// Mostrar descripción detallada
 		showDetailedDescription(scriptName, descriptions)
 		
 		printSeparator()
 
-		// Wait for Enter key
+		// Espera por Enter
 		fmt.Printf("%sPress Enter to return...%s", ColorBlue, ColorReset)
-		var input string
-		fmt.Scanln(&input)
+		reader := bufio.NewReader(os.Stdin)
+		_, _ = reader.ReadString('\n')
 
-		// Clear screen and return to menu
+		// Limpiar pantalla y volver al menú
 		fmt.Print("\033[H\033[2J")
 	}
-} 
+}
