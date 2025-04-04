@@ -524,7 +524,7 @@ pixeltrack          Instala servidor apache con un track pixel para email pixel 
 consola             Obtener una consola interactiva tty.
 shutt               como vpn sshuttle para subnets, muestra subnets disponibles en sshhost, no manda trafico
 shutall             Manda todo el trafico por ssh, como vpn sshuttle 
-proxyvery           Verifica si funcionan los proxies de una lista
+proxyverifica       Verifica si funcionan los proxies de una lista CV
 chismes             Ejecuta tcpdump y tshark para ver la red, captura wireshark -add NetworkMonitoring
 proxylocomenu       Menu para descargar, el primero
 proxyloco           Instala el proxy, interface e inicia
