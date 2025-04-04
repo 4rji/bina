@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+# Colors
+GREEN='\033[0;32m'
+BLUE='\033[1;34m'
+NC='\033[0m' # No Color
+
+# Step 1: Initialize the module
+echo -e "${BLUE}\n=== Step 1: Initialize the Go module ===${NC}"
+echo -e "${GREEN}go mod init yourModuleName${NC}"
+
+# Step 2: Download dependencies
+echo -e "${BLUE}\n=== Step 2: Get required package ===${NC}"
+echo -e "${GREEN}go get github.com/AlecAivazis/survey/v2${NC}"
+
+# Step 3: Build the binary with optimizations
+echo -e "${BLUE}\n=== Step 3: Build the binary with minimal size ===${NC}"
+echo -e "${GREEN}go build -ldflags=\"-s -w\" -o todo todo.go${NC}"
+
+# Step 4: Compress the binary using UPX
+echo -e "${BLUE}\n=== Step 4: Compress the binary (only AMD) ===${NC}"
+echo -e "${GREEN}upx --best --lzma todo${NC}"
+
+echo -e "${BLUE}\n=== Done ===${NC}"
