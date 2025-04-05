@@ -23,7 +23,7 @@ mktem1 "img"
 git clone https://github.com/4rji/todo
 
 # Copiar imágenes de img-bin/binarios al directorio destino
-cd img-bin/binarios || exit
+cd todo/binarios || exit
 sudo cp -r * /opt/4rji/img-bin
 
 echo "Proceso completado."

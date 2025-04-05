@@ -1,4 +1,8 @@
 Github              Binarios
+netstat-cargo-jsonm netstat en formato json para mac
+netstat-cargo-json  netstat en formato json
+netstat-cargom      netstat en formato normal cargo para mac
+netstat-cargo       netstat en formato normal cargo
 
 #labs
 lab                 Ejecuta el servidor http 8000 en python para labs, creado ahora htb
