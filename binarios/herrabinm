@@ -19,7 +19,7 @@ descargar_bina() {
     mktem
     git clone --depth 1 https://github.com/4rji/bina.git
     cd bina || exit 1
-    sudo mkdir -p /opt/4rji/bin
+    #sudo mkdir -p /opt/4rji/bin
     sudo cp -a binarios/* /opt/4rji/bin
     echo ""
     echo -e "${azul}binarios actualizados${reset}"
