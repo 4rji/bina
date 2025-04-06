@@ -1,26 +1,20 @@
-#!/usr/bin/env python3
-import subprocess
-import os
+#!/usr/bin/env bash
 
-def instalar_zsh():
-    respuesta = input("¿Deseas instalar la ZSH? [S/n]: ").strip().lower() or 's'
-    if respuesta == "s":
-        subprocess.run("sh -c \"$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)\"", shell=True)
-        print("Por favor, vuelve a abrir este script después de instalar Zsh.")
-        exit()
+read -p "¿Deseas instalar la ZSH? [S/n]: " respuesta
+respuesta=${respuesta:-s}
+respuesta=$(echo "$respuesta" | tr '[:upper:]' '[:lower:]')
 
+if [ "$respuesta" = "s" ]; then
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    echo "Por favor, vuelve a abrir este script después de instalar Zsh."
+    exit 0
+fi
 
+read -p "¿Deseas instalar el tema Powerlevel10k? [s/n]: " respuesta
+respuesta=$(echo "$respuesta" | tr '[:upper:]' '[:lower:]')
 
-def instalar_tema():
-    respuesta = input("¿Deseas instalar el tema Powerlevel10k? [s/n]: ").strip().lower()
-    if respuesta == "s":
-        os.environ["ZSH_CUSTOM"] = os.environ.get("ZSH_CUSTOM", "~/.oh-my-zsh/custom")
-        subprocess.run("git clone https://github.com/romkatv/powerlevel10k.git $ZSH_CUSTOM/themes/powerlevel10k", shell=True)
-        print("Tema instalado.")
-
-
-if __name__ == "__main__":
-    instalar_zsh()
-    instalar_tema()
-
-
+if [ "$respuesta" = "s" ]; then
+    ZSH_CUSTOM="${ZSH_CUSTOM:-$HOME/.oh-my-zsh/custom}"
+    git clone https://github.com/romkatv/powerlevel10k.git "$ZSH_CUSTOM/themes/powerlevel10k"
+    echo "Tema instalado."
+fi
