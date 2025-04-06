@@ -1,175 +1,28 @@
 #!/usr/bin/env bash
 
 # Colores
-verde='\e[0;32m'
 azul='\e[0;34m'
 reset='\e[0m'
-amarillo='\e[0;33m'
 
-# Variables para controlar el flujo
-mostrarPreguntas=false
-mostrarBina=false
-
-# Función para mostrar el uso del script
-mostrar_uso() {
-    echo "Uso: $0 [-p] [-a]"
-    echo "  -p    Mostrar únicamente las preguntas interactivas."
-    echo "  -a    Ejecutar todo el script (descargar bina y mostrar preguntas)."
-    exit 1
-}
-
-# Verificar las opciones -p y -a
-while getopts "pa" opt; do
-    case $opt in
-        p)
-            mostrarPreguntas=true
-            ;;
-        a)
-            mostrarPreguntas=true
-            mostrarBina=true
-            ;;
-        \?)
-            echo "Opción inválida: -$OPTARG" >&2
-            mostrar_uso
-            ;;
-    esac
-done
-
-# Shift para manejar correctamente los argumentos
-shift $((OPTIND -1))
-
-# Función para crear directorios temporales
+# Función para crear directorios temporales usando /tmp
 mktem() {
-    # Si /dev/shm no existe (como en macOS), usar /tmp
-    if [ -d /dev/shm ]; then
-        base_dir="/dev/shm"
-    else
-        base_dir="/tmp"
-    fi
-
-    if [ -n "$1" ]; then
-        new_dir=$(mktemp -d "${base_dir}/tmp.${1}.XXXXXX")
-    else
-        new_dir=$(mktemp -d "${base_dir}/tmp.XXXXXX")
-    fi
-
-    cd "$new_dir" || return
+    base_dir="/tmp"
+    new_dir=$(mktemp -d "${base_dir}/tmp.bina.XXXXXX")
+    cd "$new_dir" || exit 1
 }
 
 # Función para descargar y configurar bina
 descargar_bina() {
-    echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
+    echo -e "\n${azul}_________________________________________________________${reset}\n"
     echo "Descargando bina..."
 
-    # Crear directorio temporal y realizar operaciones
     mktem
     git clone --depth 1 https://github.com/4rji/bina.git
     cd bina || exit 1
     sudo mkdir -p /opt/4rji/bin
-    sudo cp -rf binarios/* /opt/4rji/bin
+    sudo cp -a binarios/* /opt/4rji/bin
     echo ""
-    echo -e "\033[1;34mbinarios actualizados\033[0m"
-    # Si no se utiliza la función 'todou', se puede omitir o definir vacía
-    # todou  
-    cd || exit 1
-    echo ""
+    echo -e "${azul}binarios actualizados${reset}"
 }
 
-# Ejecutar descarga de bina si corresponde
-if [[ $mostrarBina == true || ( $mostrarBina == false && $mostrarPreguntas == false ) ]]; then
-    descargar_bina
-fi
-
-# Ejecutar preguntas si corresponde
-if [[ $mostrarPreguntas == true || $mostrarBina == true ]]; then
-    echo ""
-    echo -e "${verde}_________________________________________________________${reset}"
-    echo ""
-
-    # Preguntar al usuario si desea agregar la ruta al PATH
-    read -p "¿Deseas agregar /opt/4rji/bin a tu PATH? (y/n): " -n 1 -r
-    echo    # Mueve a una nueva línea
-
-    # Por defecto, si el usuario presiona Enter, considera 'n'
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        # Agregar el directorio /opt/4rji/bin al PATH en ~/.zshrc
-        echo 'export PATH=$PATH:/opt/4rji/bin' >> ~/.zshrc
-        echo "El directorio /opt/4rji/bin ha sido agregado a tu PATH en ~/.zshrc."
-    else
-        echo "No se realizaron cambios en PATH."
-    fi
-
-    echo -e "${azul}"
-    echo "_________________________________________________________"
-    echo ""
-
-    # Pregunta al usuario si desea descargar los archivos COMPRIMIDOS.
-    read -p "¿Deseas descargar los comprimidos? [s/N] " respuesta
-
-    # Convertir la respuesta en minúsculas
-    respuesta=${respuesta,,}
-
-    # Comprobar si la respuesta es 's'
-    if [[ "$respuesta" == "s" ]]; then
-        # Crear el directorio si no existe
-        sudo mkdir -p /opt/4rji/bin/
-
-        # Descargar el repositorio
-        git clone --depth 1 https://github.com/4rji/archivos-b
-        cd archivos-b
-        # Descomprimir el archivo
-        sudo tar -xvf comprimidos.tar.xz 
-        sudo mv comprimidos/* /opt/4rji/bin/
-        echo "Archivo descargado y descomprimido con éxito."
-    else
-        echo "No se realizará ninguna descarga."
-    fi
-
-    echo -e "${azul}"
-    echo "_________________________________________________________"
-    echo ""
-
-    # Pregunta al usuario
-    read -n1 -p "$(echo -e ${verde}'¿Instalar todos los alias? (s/N): '${reset})" respuesta
-    echo ""
-
-    # Define un valor predeterminado si el usuario presiona Enter
-    respuesta=${respuesta:-n}
-    respuesta=$(echo "$respuesta" | tr '[:upper:]' '[:lower:]')
-
-    if [ "$respuesta" == "s" ]; then
-        echo -e "${verde}Instalando todos los alias... ${reset}"
-        wget -O - https://raw.githubusercontent.com/4rji/4rji/main/alias.sh | bash 
-        # source alias.sh  # Ejecuta el script descargado si es necesario
-    else
-        echo ""
-    fi
-
-    echo -e "${amarillo}"
-    echo "_________________________________________________________"
-    echo ""
-    echo -e "${amarillo} ########### ALERTA.  #################${reset}"
-    echo ""
-    echo -e "${amarillo}Tarda mucho en instalarse${reset}"
-    echo ""
-    echo -e "${amarillo}_________________________________________________________${reset}"
-    echo ""
-
-    # Pregunta al usuario
-    read -n1 -p "$(echo -e ${verde}'¿Quieres instalar 2-arji? (s/N): '${reset})" respuesta
-    echo ""
-    respuesta=${respuesta:-n}
-    respuesta=$(echo "$respuesta" | tr '[:upper:]' '[:lower:]')
-
-    if [ "$respuesta" == "s" ]; then
-        wget -O - https://raw.githubusercontent.com/4rji/4rji/main/2-4rji.sh | bash   
-        # source 2-4rji.sh  # Ejecuta el script descargado si es necesario
-    else
-        echo ""
-    fi
-
-    # Si no se utiliza la función 'todou', se puede omitir o definir vacía
-    # todou  
-fi
-# Se eliminó la llamada a 'todou' para evitar errores
-todoum
+descargar_bina
