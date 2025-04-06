@@ -1,4 +1,0 @@
-#!/usr/bin/env bash
-for img in *.png; do
-  cwebp -q 80 "$img" -o "${img%.png}.webp"
-done
