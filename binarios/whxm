@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+if [ $# -ne 1 ]; then
+  echo "Uso: $0 <comando>"
+  exit 1
+fi
+
+comando="$1"
+
+ruta_comando=$(which "$comando")
+
+if [ -z "$ruta_comando" ]; then
+  echo "El comando '$comando' no se encontró en el sistema."
+  exit 1
+fi
+
+echo "Ubicación de $comando:"
+echo "$ruta_comando"
+
+# Copiar al portapapeles (compatibilidad macOS y Linux)
+if command -v pbcopy &>/dev/null; then
+  echo "$ruta_comando" | pbcopy
+elif command -v xclip &>/dev/null; then
+  echo "$ruta_comando" | xclip -selection clipboard
+fi
+
+# Mostrar contenido del binario (solo si es texto)
+if command -v bat &>/dev/null; then
+  bat --paging=never "$ruta_comando"
+else
+  cat "$ruta_comando"
+fi
