@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+DATABASE_LOCATION="/opt/4rji/GeoLite2-City.mmdb"
+
+check_and_download_database() {
+    if [ ! -f "$DATABASE_LOCATION" ]; then
+        echo "La base de datos en $DATABASE_LOCATION no existe."
+        read -p "¿Desea descargar la base de datos? (Y/n): " answer
+        if [[ -z "$answer" || "${answer,,}" == "y" ]]; then
+            echo "Descargando la base de datos..."
+            downgeo
+            echo "Descarga completada."
+        else
+            echo "Operación cancelada."
+            exit 1
+        fi
+    fi
+}
+
+check_and_download_database
