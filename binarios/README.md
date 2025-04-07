@@ -532,8 +532,8 @@ shutt               como vpn sshuttle para subnets, muestra subnets disponibles 
 shutall             Manda todo el trafico por ssh, como vpn sshuttle 
 proxyverifica       Verifica si funcionan los proxies de una lista CV
 chismes             Ejecuta tcpdump y tshark para ver la red, captura wireshark -add NetworkMonitoring
-proxyloco           Menu para descargar, agente - proxy y tiene -2 para segundo
-proxyloco-only      Instala el proxy, interface e inicia
+proxyloco           Menu para descargar, agente - proxy y tiene -2 para segundo - ligolo
+proxyloco-only      Instala el proxy, interface e inicia - ligolo
 
 agentloco           Instala amd agente, lo descarga y ejecuta
 agenteproxy         No lo descarga, lo descomprime y conecta al servidor
