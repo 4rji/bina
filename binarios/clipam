@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+if [ $# -eq 0 ]; then
+  echo "Uso: $0 <nombre_del_archivo>"
+  exit 1
+fi
+
+if [ ! -e "$1" ]; then
+  echo "El archivo '$1' no existe."
+  exit 1
+fi
+
+cat "$1" | pbcopy
+
+echo "El contenido del archivo '$1' se ha copiado al portapapeles."
