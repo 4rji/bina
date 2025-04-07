@@ -175,6 +175,28 @@ func main() {
 		return
 	}
 
+	if len(os.Args) > 1 {
+		searchTerm := strings.Join(os.Args[1:], " ")
+		var filteredScripts []Script
+		for _, s := range scripts {
+			if strings.Contains(strings.ToLower(s.Name), strings.ToLower(searchTerm)) || strings.Contains(strings.ToLower(s.Desc), strings.ToLower(searchTerm)) {
+				filteredScripts = append(filteredScripts, s)
+			}
+		}
+		if len(filteredScripts) == 0 {
+			fmt.Printf("%sNo se encontró ningún script que coincida con '%s'%s\n", ColorYellow, searchTerm, ColorReset)
+			return
+		} else if len(filteredScripts) == 1 {
+			showDetailedDescription(filteredScripts[0].Name, descriptions)
+			fmt.Printf("%sPress Enter to exit...%s", ColorBlue, ColorReset)
+			reader := bufio.NewReader(os.Stdin)
+			_, _ = reader.ReadString('\n')
+			return
+		} else {
+			scripts = filteredScripts
+		}
+	}
+
 	scriptChoices := formatScriptList(scripts)
 
 	for {
@@ -187,7 +209,7 @@ func main() {
 		promptScript := &survey.Select{
 			Message:  "",
 			Options:  scriptChoices,
-			PageSize: 14,
+			PageSize: 40,
 		}
 
 		err = survey.AskOne(promptScript, &selectedScript, 
