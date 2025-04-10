@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+# Función para crear directorios temporales
+mktem() {
+    if [ -n "$1" ]; then
+        new_dir=$(mktemp -d /dev/shm/tmp."$1".XXXXXX)
+    else
+        new_dir=$(mktemp -d /dev/shm/tmp.XXXXXX)
+    fi
+    cd "$new_dir" || return
+}
+
+# Pregunta al usuario si desea descargar los archivos COMPRIMIDOS.
+read -p "¿Deseas descargar los comprimidos? [s/N] " respuesta
+
+# Convertir la respuesta a minúsculas
+respuesta=${respuesta,,}
+
+# Comprobar si la respuesta es 's'
+if [[ "$respuesta" == "s" ]]; then
+    # Crear directorio temporal
+    mktem
+
+    # Crear el directorio destino
+    sudo mkdir -p /opt/4rji/bin/
+
+    # Descargar el repositorio
+    git clone --depth 1 https://github.com/4rji/archivos-b
+    cd archivos-b || exit
+
+    # Descomprimir el archivo
+    sudo tar -xvf comprimidos.tar.xz
+
+    # Aplicar el atributo inmutable a cada archivo en comprimidos/
+    for file in comprimidos/*; do
+        sudo chattr +i "$file"
+    done
+
+    # Copiar los archivos a /opt/4rji/bin/
+    sudo cp comprimidos/* /opt/4rji/bin/
+    echo "Archivo descargado, descomprimido y marcado como inmutable con éxito."
+else
+    echo "No se realizará ninguna descarga."
+fi
