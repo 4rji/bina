@@ -106,7 +106,7 @@ func main() {
 		fmt.Println("\033[31mAllowedIPs environment variable not found.\033[0m")
 		fmt.Println("\033[31mPlease set EXPORT=AllowedIPS as follows:\033[0m")
 		fmt.Println("")
-		fmt.Println("\033[31mexport AllowedIPs=192.168.X.0/24,10.0.X.0/24 -like wireguard\033[0m")
+		fmt.Println("\033[31mexport AllowedIPs=192.168.44.0/24,192.168.222.0/24,192.168.18.0/24,10.0.16.0/24,192.168.99.0/24,192.168.88.0/24,10.0.4.0\033[0m")
 		return
 	}
 
