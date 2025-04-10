@@ -1,0 +1,16 @@
+#!/bin/bash
+
+progress_bar() {
+    total=10
+    current=$1
+    filled=$(printf '●%.0s' $(seq 1 $current))
+    empty=$(printf '○%.0s' $(seq 1 $((total - current))))
+    echo -ne "Progreso: $filled$empty\r"
+}
+
+for i in $(seq 1 10); do
+    progress_bar "$i"
+    sleep 1
+done
+
+echo -e "\nCompletado ✅"
