@@ -440,10 +440,10 @@ def append_to_file(file_path, text):
 
 # Rutas de los archivos .zshrc y .bashrc
 zshrc_path = os.path.expanduser('~/.zshrc')
-bashrc_path = os.path.expanduser('~/.bashrc')
+
 
 # Agregar el texto a ambos archivos
-for file_path in [zshrc_path, bashrc_path]:
+for file_path in [zshrc_path]:
     append_to_file(file_path, text)
 
-print("[*] Functions and ZSHconfiguration added it to ~/.zshrc y ~/.bashrc")
+print("[*] Functions and ZSHconfiguration added it to ~/.zshrc ")

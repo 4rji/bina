@@ -1,45 +1,40 @@
 #!/usr/bin/env bash
 
-echo "Selecciona el sistema para instalar QEMU y Virt-Manager:"
-echo "1. Debian"
+echo "Selecciona el sistema para instalar QEMU, Virt-Manager y configurar spice-vdagent:"
+echo "1. Debian/Ubuntu"
 echo "2. Arch"
-echo "Presiona Enter para continuar con otras tareas del script."
+echo "Presiona Enter para saltar instalación y pasar a otras tareas."
 
-# Leer la elección del usuario
-read -p "Introduce tu elección (1/2), o presiona Enter para continuar: " eleccion
+read -p "Introduce tu elección (1/2), o Enter: " eleccion
 
 case $eleccion in
     1)
         echo "Instalando en Debian..."
-        sudo apt install qemu-system virt-manager -y
+        sudo apt update
+        sudo apt install -y qemu-system virt-manager spice-vdagent
+        sudo systemctl enable libvirtd
+        sudo systemctl start libvirtd
+        sudo systemctl enable spice-vdagent
+        sudo systemctl start spice-vdagent
         ;;
     2)
         echo "Instalando en Arch..."
-        sudo pacman -Syu --noconfirm virt-manager
-        sudo pacman -Syu --noconfirm qemu
+        sudo pacman -Syu --noconfirm qemu virt-manager spice-vdagent
         sudo systemctl enable libvirtd
         sudo systemctl start libvirtd
+        sudo systemctl enable spice-vdagent
+        sudo systemctl start spice-vdagent
         ;;
     *)
-        echo "Opción no válida o ninguna opción seleccionada. Continuando con el script..."
+        echo "Opción no válida o ninguna opción seleccionada. Continuando..."
         ;;
 esac
 
-
 echo ""
-echo "Para arreglar los permisos en carpetas ejecutar"
-echo ""
-echo "sudo chown -R nombredeusuario /ruta/a/carpeta"
+echo "Si necesitas arreglar permisos en carpetas:"
+echo "  sudo chown -R <usuario> /ruta/a/carpeta"
 
-
-#arreglar clipboard en bspqw escritorio environment
-echo "fix clipboard"
-sudo apt install spice-vdagent
-sudo systemctl start spice-vdagent 
-sudo systemctl start spice-vdagent 
-
+# Si quieres verificar:
 sleep 3
 spice-vdagent
-
-
 sudo systemctl status spice-vdagent
