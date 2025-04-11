@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"regexp"
+	"sort"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -74,7 +75,7 @@ type Descriptions map[string]DetailedDescription
 
 func loadDescriptions() (Descriptions, error) {
 	fmt.Printf("%sLoading descriptions.json...%s\n", ColorCyan, ColorReset)
-	file, err := os.Open("descriptions.json")
+	file, err := os.Open("/opt/4rji/bin/descriptions.json")
 	if err != nil {
 		return nil, fmt.Errorf("error opening descriptions.json: %v", err)
 	}
@@ -94,8 +95,8 @@ func loadDescriptions() (Descriptions, error) {
 }
 
 func parseReadme(filename string) ([]Script, error) {
-	fmt.Printf("%sLoading README.md...%s\n", ColorCyan, ColorReset)
-	file, err := os.Open(filename)
+	fmt.Printf("%sLoading /opt/4rji/bin/README.md...%s\n", ColorCyan, ColorReset)
+	file, err := os.Open("/opt/4rji/bin/README.md")
 	if err != nil {
 		return nil, fmt.Errorf("error opening README.md: %v", err)
 	}
@@ -136,12 +137,12 @@ func parseReadme(filename string) ([]Script, error) {
 }
 
 func printSeparator() {
-	colors := []string{ThemeBlue, ThemeCyan}
+	colors := []string{ColorRed, ColorBlue}
 	width := 80
 	segmentWidth := width / len(colors)
 	
 	for _, color := range colors {
-		fmt.Print(color + strings.Repeat("═", segmentWidth))
+		fmt.Print(Dim + color + strings.Repeat("═", segmentWidth))
 	}
 	fmt.Println(ColorReset)
 }
@@ -245,7 +246,9 @@ func showDetailedDescription(scriptName string, descriptions Descriptions, scrip
 			padding := (width - len(scriptName)) / 2
 			centeredName := strings.Repeat(" ", padding) + scriptName
 			
+			fmt.Printf("%s", Dim)
 			printSeparator()
+			fmt.Printf("%s", ColorReset)
 			fmt.Printf("%s%s%s\n", ColorCyan, centeredName, ColorReset)
 			fmt.Printf("%s%s%s\n", ColorWhite, script.Desc, ColorReset)
 			break
@@ -254,7 +257,9 @@ func showDetailedDescription(scriptName string, descriptions Descriptions, scrip
 
 	// Show detailed description from descriptions.json
 	if desc, ok := descriptions[scriptName]; ok {
+		fmt.Printf("%s", Dim)
 		printSeparator()
+		fmt.Printf("%s", ColorReset)
 		fmt.Printf("\n%sScript:%s %s%s%s\n", ColorYellow, ColorReset, ColorRed, scriptName, ColorReset)
 		fmt.Printf("%sShort description:%s %s%s%s\n", ColorYellow, ColorReset, ColorWhite, desc.ShortDesc, ColorReset)
 		fmt.Printf("\n%sDetailed description:%s\n%s%s%s\n", ColorYellow, ColorReset, ColorWhite, desc.DetailedDesc, ColorReset)
@@ -262,9 +267,14 @@ func showDetailedDescription(scriptName string, descriptions Descriptions, scrip
 	
 	// Show image only if it exists
 	fmt.Print("\n\n\n")
+	fmt.Printf("%s", Dim)
 	printSeparator()
+	fmt.Printf("%s", ColorReset)
 	if showImage(scriptName) {
 		fmt.Print("")
+		fmt.Printf("%s", ThemeBlue)
+		
+		fmt.Printf("%s", ColorReset)
 	}
 }
 
@@ -302,6 +312,38 @@ func main() {
 	scriptChoices := formatScriptList(scripts)
 	fmt.Printf("%sCreated %d script choices%s\n", ColorGreen, len(scriptChoices), ColorReset)
 
+	// Sort script choices alphabetically
+	sort.Slice(scriptChoices, func(i, j int) bool {
+		// Remove color codes and formatting from both strings
+		cleanA := strings.ReplaceAll(scriptChoices[i], ColorRed, "")
+		cleanA = strings.ReplaceAll(cleanA, ColorReset, "")
+		cleanA = strings.ReplaceAll(cleanA, ThemeCyan, "")
+		cleanA = strings.ReplaceAll(cleanA, ThemeBlue, "")
+		cleanA = strings.ReplaceAll(cleanA, Bold, "")
+		cleanA = strings.ReplaceAll(cleanA, Dim, "")
+		
+		cleanB := strings.ReplaceAll(scriptChoices[j], ColorRed, "")
+		cleanB = strings.ReplaceAll(cleanB, ColorReset, "")
+		cleanB = strings.ReplaceAll(cleanB, ThemeCyan, "")
+		cleanB = strings.ReplaceAll(cleanB, ThemeBlue, "")
+		cleanB = strings.ReplaceAll(cleanB, Bold, "")
+		cleanB = strings.ReplaceAll(cleanB, Dim, "")
+		
+		// Get script names
+		partsA := strings.SplitN(cleanA, "·", 2)
+		partsB := strings.SplitN(cleanB, "·", 2)
+		
+		if len(partsA) < 2 || len(partsB) < 2 {
+			return false
+		}
+		
+		nameA := strings.TrimSpace(partsA[0])
+		nameB := strings.TrimSpace(partsB[0])
+		
+		// Sort alphabetically
+		return strings.ToLower(nameA) < strings.ToLower(nameB)
+	})
+
 	for {
 		// Clear screen at the start of each loop
 		fmt.Print("\033[H\033[2J")
@@ -318,7 +360,7 @@ func main() {
 		)
 		fmt.Print(header)
 		
-		printSeparator()
+		
 		printFancyBox("Available Scripts", "Choose a script from the list below:")
 		
 		var selectedScript string
@@ -330,10 +372,29 @@ func main() {
 		
 		err = survey.AskOne(promptScript, &selectedScript, 
 			survey.WithFilter(func(filter string, value string, index int) bool {
+				// Remove all color codes and formatting
 				cleanValue := strings.ReplaceAll(value, ColorRed, "")
 				cleanValue = strings.ReplaceAll(cleanValue, ColorReset, "")
-				cleanValue = strings.ReplaceAll(cleanValue, " · ", " ")
-				return strings.Contains(strings.ToLower(cleanValue), strings.ToLower(filter))
+				cleanValue = strings.ReplaceAll(cleanValue, ThemeCyan, "")
+				cleanValue = strings.ReplaceAll(cleanValue, ThemeBlue, "")
+				cleanValue = strings.ReplaceAll(cleanValue, Bold, "")
+				cleanValue = strings.ReplaceAll(cleanValue, Dim, "")
+				
+				// Split by the dot separator to get script name and description
+				parts := strings.SplitN(cleanValue, "·", 2)
+				if len(parts) < 2 {
+					return false
+				}
+				
+				// Get the script name and trim spaces
+				scriptName := strings.TrimSpace(parts[0])
+				
+				// Check if the filter matches the script name
+				lowerScriptName := strings.ToLower(scriptName)
+				lowerFilter := strings.ToLower(filter)
+				
+				// Return true if the script name contains the filter
+				return strings.Contains(lowerScriptName, lowerFilter)
 			}),
 			survey.WithIcons(func(icons *survey.IconSet) {
 				icons.SelectFocus.Format = ">"
@@ -359,7 +420,9 @@ func main() {
 		fmt.Print("\033[H\033[2J")
 		showDetailedDescription(scriptName, descriptions, scripts)
 		
-		printSeparator()
+		fmt.Printf("%s", Dim)
+		
+		fmt.Printf("%s", ColorReset)
 		fmt.Printf("%s%s Press Enter to return...%s", ColorCyan, "↩", ColorReset)
 		reader := bufio.NewReader(os.Stdin)
 		_, _ = reader.ReadString('\n')
