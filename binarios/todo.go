@@ -209,7 +209,7 @@ func main() {
 		promptScript := &survey.Select{
 			Message:  "",
 			Options:  scriptChoices,
-			PageSize: 40,
+			PageSize: 20,
 		}
 
 		err = survey.AskOne(promptScript, &selectedScript, 
