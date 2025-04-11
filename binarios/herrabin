@@ -95,32 +95,7 @@ if [[ $mostrarPreguntas == true || $mostrarBina == true ]]; then
     echo "_________________________________________________________"
     echo ""
 
-    # Pregunta al usuario si desea descargar los archivos COMPRIMIDOS.
-    read -p "¿Deseas descargar los comprimidos? [s/N] " respuesta
-
-    # Convertir la respuesta en minúsculas
-    respuesta=${respuesta,,}  # Convierte a minúsculas
-
-    # Comprobar si la respuesta es 's'
-    if [[ "$respuesta" == "s" ]]; then
-        # Crear el directorio si no existe
-        sudo mkdir -p /opt/4rji/bin/
-
-        # Descargar el repositorio
-        git clone --depth 1 https://github.com/4rji/archivos-b
-        cd archivos-b
-        # Descomprimir el archivo
-        sudo tar -xvf comprimidos.tar.xz 
-        sudo mv comprimidos/* /opt/4rji/bin/
-        echo "Archivo descargado y descomprimido con éxito."
-    else
-        echo "No se realizará ninguna descarga."
-    fi
-
-    echo -e "${azul}"
-    echo "_________________________________________________________"
-    echo ""
-
+    
     # Pregunta al usuario
     read -n1 -p "$(echo -e ${verde}'¿Instalar todos los alias? (s/N): '${reset})" respuesta
     echo ""
