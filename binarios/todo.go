@@ -207,11 +207,9 @@ func showImage(scriptName string) bool {
 	
 	// Try WebP first
 	if _, err := os.Stat(imgPath + ".webp"); err == nil {
-		fmt.Printf("%sFound WebP image at: %s%s\n", ColorGreen, imgPath+".webp", ColorReset)
 		cmd := exec.Command("chafa", "--size", "80x40", imgPath+".webp")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			fmt.Printf("%sError displaying WebP image: %v%s\n", ColorRed, err, ColorReset)
 			return false
 		}
 		fmt.Printf("%s%s%s\n", ColorCyan, string(output), ColorReset)
@@ -220,18 +218,15 @@ func showImage(scriptName string) bool {
 
 	// Try PNG if WebP doesn't exist
 	if _, err := os.Stat(imgPath + ".png"); err == nil {
-		fmt.Printf("%sFound PNG image at: %s%s\n", ColorGreen, imgPath+".png", ColorReset)
 		cmd := exec.Command("chafa", "--size", "80x40", imgPath+".png")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			fmt.Printf("%sError displaying PNG image: %v%s\n", ColorRed, err, ColorReset)
 			return false
 		}
 		fmt.Printf("%s%s%s\n", ColorCyan, string(output), ColorReset)
 		return true
 	}
 
-	fmt.Printf("%sNo image found at: %s%s\n", ColorYellow, imgPath, ColorReset)
 	return false
 }
 
@@ -239,11 +234,19 @@ func showDetailedDescription(scriptName string, descriptions Descriptions, scrip
 	// Clear screen and reset cursor position
 	fmt.Print("\033[H\033[2J\033[3J")
 	
+	// Move cursor to top of screen
+	fmt.Print("\033[H")
+	
 	// Show README description if available
 	for _, script := range scripts {
 		if script.Name == scriptName {
+			// Center the script name
+			width := 80
+			padding := (width - len(scriptName)) / 2
+			centeredName := strings.Repeat(" ", padding) + scriptName
+			
 			printSeparator()
-			fmt.Printf("%s%sREADME Description:%s%s\n", Bold, ColorPurple, ColorReset, ColorReset)
+			fmt.Printf("%s%s%s\n", ColorCyan, centeredName, ColorReset)
 			fmt.Printf("%s%s%s\n", ColorWhite, script.Desc, ColorReset)
 			break
 		}
@@ -252,19 +255,17 @@ func showDetailedDescription(scriptName string, descriptions Descriptions, scrip
 	// Show detailed description from descriptions.json
 	if desc, ok := descriptions[scriptName]; ok {
 		printSeparator()
-		fmt.Printf("%s%sDetailed script description:%s%s\n", Bold, ColorPurple, ColorReset, ColorReset)
-		printSeparator()
 		fmt.Printf("\n%sScript:%s %s%s%s\n", ColorYellow, ColorReset, ColorRed, scriptName, ColorReset)
 		fmt.Printf("%sShort description:%s %s%s%s\n", ColorYellow, ColorReset, ColorWhite, desc.ShortDesc, ColorReset)
 		fmt.Printf("\n%sDetailed description:%s\n%s%s%s\n", ColorYellow, ColorReset, ColorWhite, desc.DetailedDesc, ColorReset)
-	} else {
-		fmt.Printf("%sNo description found for script: %s%s\n", ColorYellow, scriptName, ColorReset)
 	}
 	
-	// Show image
+	// Show image only if it exists
+	fmt.Print("\n\n\n")
 	printSeparator()
-	fmt.Printf("%s%sImage:%s\n", Bold, ColorPurple, ColorReset)
-	showImage(scriptName)
+	if showImage(scriptName) {
+		fmt.Print("")
+	}
 }
 
 // New function to print fancy box
