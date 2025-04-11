@@ -108,8 +108,8 @@ cat > "$config_file" <<EOF
       "keyColor": "yellow"
     },
     {
-      "type": "uptime",
-      "key": "└ └󰔛 UPTIME",
+      "type": "localip",
+      "key": "└ LOCAL IP",
       "keyColor": "yellow"
     },
     {
