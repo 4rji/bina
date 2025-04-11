@@ -114,6 +114,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+fastinst            Instala fastfetch, fastconf y fastconfmac para solo el archivo conf.
 comprimidos         Descarga los comprimidos
 linuxappinst        Instala app image en linux para que se vean en el inicio
 chr                 aplica chttr +i  a binarios - script binario
