@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+# Detectar distribución
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    distro=$ID
+else
+    echo "No se pudo detectar la distribución."
+    exit 1
+fi
+
+# Instalar fastfetch
+case "$distro" in
+    arch|manjaro)
+        sudo pacman -Sy --noconfirm fastfetch
+        ;;
+    debian|ubuntu|pop|kali)
+        sudo apt update
+        sudo apt install -y fastfetch
+        ;;
+    *)
+        echo "Distribución no soportada: $distro"
+        exit 1
+        ;;
+esac
+
+# Ruta fija a fastconf
+FASTCONF_PATH="/opt/4rji/bin/fastconf"
+
+if [ -x "$FASTCONF_PATH" ]; then
+    "$FASTCONF_PATH"
+else
+    echo "fastconf no encontrado o no ejecutable en $FASTCONF_PATH"
+    exit 1
+fi

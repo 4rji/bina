@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+
+read -p "Ingresa el mensaje que quieres mostrar: " mensaje
+
+ancho_total=38
+largo_msg=${#mensaje}
+espacios=$(( (ancho_total - largo_msg - 2) / 2 ))
+
+padding_izq=$(printf "%*s" $espacios "")
+padding_der=$(printf "%*s" $(( ancho_total - largo_msg - 2 - espacios )) "")
+
+mkdir -p ~/.config/fastfetch
+config_file="$HOME/.config/fastfetch/config.jsonc"
+logo_path="$HOME/Imágenes/logo.png"
+
+cat > "$config_file" <<EOF
+{
+  "logo": {
+    "source": "$logo_path",
+    "type": "auto",
+    "height": 20,
+    "width": 43,
+    "padding": {
+      "top": 0,
+      "left": 0
+    }
+  },
+  "modules": [
+    {
+      "type": "custom",
+      "format": "\n\n\n\n\n\u001b[1;95m╭────────────────────────────────────╮\n│$padding_izq$mensaje$padding_der│\n╰────────────────────────────────────╯\u001b[0m"
+    },
+    "break",
+    {
+      "type": "custom",
+      "format": "\u001b[90m┌────────────────────── Hardware ──────────────────────┐"
+    },
+    {
+      "type": "host",
+      "key": " PC",
+      "keyColor": "green"
+    },
+    {
+      "type": "cpu",
+      "key": "│ ├ CPU",
+      "showPeCoreCount": true,
+      "keyColor": "green"
+    },
+    {
+      "type": "gpu",
+      "key": "│ ├󰍛 GPU",
+      "keyColor": "green"
+    },
+    {
+      "type": "display",
+      "key": "│ ├󰍛 DISPLAY",
+      "keyColor": "green"
+    },
+    {
+      "type": "memory",
+      "key": "│ ├󰍛 MEMORY",
+      "keyColor": "green"
+    },
+    {
+      "type": "disk",
+      "key": "└ └ DISK",
+      "keyColor": "green"
+    },
+    {
+      "type": "custom",
+      "format": "\u001b[90m└──────────────────────────────────────────────────────┘"
+    },
+    "break",
+    {
+      "type": "custom",
+      "format": "\u001b[90m┌────────────────────── Software ──────────────────────┐"
+    },
+    {
+      "type": "os",
+      "key": " OS",
+      "keyColor": "yellow"
+    },
+    {
+      "type": "kernel",
+      "key": "│ ├ KERNEL",
+      "keyColor": "yellow"
+    },
+    {
+      "type": "shell",
+      "key": "│ ├ SHELL",
+      "keyColor": "yellow"
+    },
+    {
+      "type": "terminal",
+      "key": "│ ├ TERMINAL",
+      "keyColor": "yellow"
+    },
+    {
+      "type": "localip",
+      "key": "└ LOCALIP",
+      "keyColor": "yellow"
+    },
+    {
+      "type": "custom",
+      "format": "\u001b[90m└──────────────────────────────────────────────────────┘"
+    },
+    "break",
+    {
+      "type": "colors",
+      "paddingLeft": 26,
+      "symbol": "circle"
+    }
+  ]
+}
+EOF
+
+echo "✅ Configuración generada en: $config_file"
