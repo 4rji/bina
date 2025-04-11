@@ -15,7 +15,10 @@ echo -e "${GREEN}go get github.com/AlecAivazis/survey/v2${NC}"
 
 # Step 3: Build the binary with optimizations
 echo -e "${BLUE}\n=== Step 3: Build the binary with minimal size ===${NC}"
+
+echo -e "${GREEN}go build -o todo todo.go${NC}"
 echo -e "${GREEN}go build -ldflags=\"-s -w\" -o todo todo.go${NC}"
+
 
 # Step 4: Compress the binary using UPX
 echo -e "${BLUE}\n=== Step 4: Compress the binary===${NC}"
