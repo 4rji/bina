@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+set -e
+
+echo "[+] Detectando distribución..."
+
+if command -v pacman &>/dev/null; then
+    echo "[+] Instalando fastfetch en Arch..."
+    sudo pacman -Sy --noconfirm fastfetch
+elif command -v apt &>/dev/null; then
+    echo "[+] Instalando fastfetch en Debian/Ubuntu..."
+    sudo apt update
+    sudo apt install -y fastfetch
+else
+    echo "[-] Distribución no soportada"
+    exit 1
+fi
+
+echo "[+] Generando archivo de configuración..."
+mkdir -p ~/.config/fastfetch
+fastfetch --gen-config
+
+echo "[+] Modificando logo a 'macos_small'..."
+sed -i 's/^logo = .*/logo = "macos_small"/' ~/.config/fastfetch/config.conf
+
+echo "[+] Listo. Ejecuta con:"
+echo "    fastfetch"
