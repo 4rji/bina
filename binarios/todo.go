@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
-	"time"
 
 	"github.com/AlecAivazis/survey/v2"
 )
@@ -25,23 +24,11 @@ const (
 	ColorCyan   = "\033[36m"
 	ColorWhite  = "\033[37m"
 	
-	// Bright colors
-	BrightRed    = "\033[91m"
-	BrightGreen  = "\033[92m"
-	BrightYellow = "\033[93m"
-	BrightBlue   = "\033[94m"
-	BrightPurple = "\033[95m"
-	BrightCyan   = "\033[96m"
-	BrightWhite  = "\033[97m"
-	
-	// Background colors
-	BgRed     = "\033[41m"
-	BgGreen   = "\033[42m"
-	BgYellow  = "\033[43m"
-	BgBlue    = "\033[44m"
-	BgPurple  = "\033[45m"
-	BgCyan    = "\033[46m"
-	BgWhite   = "\033[47m"
+	// Theme colors (matching the image)
+	ThemeBlue    = "\033[38;5;33m"    // Bright blue for the top bar
+	ThemeCyan    = "\033[38;5;43m"    // Cyan for the path
+	ThemeYellow  = "\033[48;5;226m\033[38;5;0m"  // Yellow background with black text
+	ThemeGreen   = "\033[38;5;46m"    // Bright green for commands
 	
 	// Text effects
 	Bold      = "\033[1m"
@@ -64,12 +51,12 @@ const (
 
 // Icons for different script types
 var scriptIcons = map[string]string{
-	"net":     "🌐",
-	"system":  "🖥️",
-	"file":    "📁",
-	"user":    "👤",
-	"config":  "⚙️",
-	"default": "▶️",
+	"net":     "•",
+	"system":  "•",
+	"file":    "•",
+	"user":    "•",
+	"config":  "•",
+	"default": "•",
 }
 
 type Script struct {
@@ -86,37 +73,51 @@ type DetailedDescription struct {
 type Descriptions map[string]DetailedDescription
 
 func loadDescriptions() (Descriptions, error) {
-	file, err := os.Open("/opt/4rji/bin/descriptions.json")
+	fmt.Printf("%sLoading descriptions.json...%s\n", ColorCyan, ColorReset)
+	file, err := os.Open("descriptions.json")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error opening descriptions.json: %v", err)
 	}
 	defer file.Close()
 
 	var descriptions Descriptions
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&descriptions); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error decoding descriptions.json: %v", err)
 	}
 
+	fmt.Printf("%sLoaded %d descriptions%s\n", ColorGreen, len(descriptions), ColorReset)
+	for name := range descriptions {
+		fmt.Printf("%sFound description for: %s%s\n", ColorGreen, name, ColorReset)
+	}
 	return descriptions, nil
 }
 
 func parseReadme(filename string) ([]Script, error) {
+	fmt.Printf("%sLoading README.md...%s\n", ColorCyan, ColorReset)
 	file, err := os.Open(filename)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error opening README.md: %v", err)
 	}
 	defer file.Close()
 
 	var scripts []Script
 	scanner := bufio.NewScanner(file)
 	reCategory := regexp.MustCompile(`^#+\s*.*`)
+	seenScripts := make(map[string]bool)
+	
 	for scanner.Scan() {
 		line := scanner.Text()
 		if !reCategory.MatchString(line) && strings.TrimSpace(line) != "" {
 			parts := strings.Fields(line)
 			if len(parts) > 0 {
 				script := parts[0]
+				// Skip if we've already seen this script
+				if seenScripts[script] {
+					continue
+				}
+				seenScripts[script] = true
+				
 				desc := ""
 				if len(parts) > 1 {
 					desc = strings.Join(parts[1:], " ")
@@ -125,15 +126,21 @@ func parseReadme(filename string) ([]Script, error) {
 			}
 		}
 	}
-	return scripts, scanner.Err()
+	
+	if err := scanner.Err(); err != nil {
+		return nil, fmt.Errorf("error scanning README.md: %v", err)
+	}
+	
+	fmt.Printf("%sLoaded %d scripts from README%s\n", ColorGreen, len(scripts), ColorReset)
+	return scripts, nil
 }
 
 func printSeparator() {
-	colors := []string{BrightRed, BrightYellow, BrightGreen, BrightCyan, BrightBlue, BrightPurple}
+	colors := []string{ThemeBlue, ThemeCyan}
 	width := 80
 	segmentWidth := width / len(colors)
 	
-	for i, color := range colors {
+	for _, color := range colors {
 		fmt.Print(color + strings.Repeat("═", segmentWidth))
 	}
 	fmt.Println(ColorReset)
@@ -143,59 +150,55 @@ func formatScriptList(scripts []Script) []string {
 	var choices []string
 	maxNameLength := 0
 	
-	// Find the longest script name
 	for _, s := range scripts {
 		if len(s.Name) > maxNameLength {
 			maxNameLength = len(s.Name)
 		}
 	}
 	
-	// Add padding for icons and formatting
-	maxNameLength += 4
+	maxNameLength += 2  // Reduced padding since we're using simpler format
 	
 	for _, s := range scripts {
-		// Determine script type and icon
-		icon := scriptIcons["default"]
-		for scriptType, scriptIcon := range scriptIcons {
-			if strings.Contains(strings.ToLower(s.Name), scriptType) {
-				icon = scriptIcon
-				break
-			}
-		}
-		
-		// Format the script entry with icon and colors
 		padding := strings.Repeat(" ", maxNameLength-len(s.Name))
-		formattedName := fmt.Sprintf("%s %s%s%s%s", 
-			icon,
-			BrightCyan,
+		formattedName := fmt.Sprintf("%s%s%s%s", 
+			ThemeCyan,
 			s.Name,
 			ColorReset,
 			padding,
 		)
 		
-		// Add description with a different color
 		description := fmt.Sprintf("%s%s%s%s", 
 			Dim,
-			BrightWhite,
+			ThemeBlue,
 			s.Desc,
 			ColorReset,
 		)
 		
-		// Combine name and description
-		choices = append(choices, fmt.Sprintf("%s │ %s", formattedName, description))
+		choices = append(choices, fmt.Sprintf("%s · %s", formattedName, description))
 	}
 	
 	return choices
 }
 
 func getScriptName(selectedScript string) string {
+	// Remove all color codes first
 	cleanSelected := strings.ReplaceAll(selectedScript, ColorRed, "")
 	cleanSelected = strings.ReplaceAll(cleanSelected, ColorReset, "")
-	parts := strings.SplitN(cleanSelected, " | ", 2)
+	cleanSelected = strings.ReplaceAll(cleanSelected, ThemeCyan, "")
+	cleanSelected = strings.ReplaceAll(cleanSelected, ThemeBlue, "")
+	cleanSelected = strings.ReplaceAll(cleanSelected, Bold, "")
+	cleanSelected = strings.ReplaceAll(cleanSelected, Dim, "")
+	
+	// Split by the dot separator
+	parts := strings.SplitN(cleanSelected, "·", 2)
 	if len(parts) < 2 {
 		return ""
 	}
-	return strings.TrimSpace(parts[0])
+	
+	// Get the first part and trim spaces
+	scriptName := strings.TrimSpace(parts[0])
+	fmt.Printf("%sExtracted script name: '%s'%s\n", ColorCyan, scriptName, ColorReset)
+	return scriptName
 }
 
 // Función showImage corregida: usa "chafa" para mostrar imágenes.
@@ -204,10 +207,11 @@ func showImage(scriptName string) bool {
 	
 	// Try WebP first
 	if _, err := os.Stat(imgPath + ".webp"); err == nil {
+		fmt.Printf("%sFound WebP image at: %s%s\n", ColorGreen, imgPath+".webp", ColorReset)
 		cmd := exec.Command("chafa", "--size", "80x40", imgPath+".webp")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			fmt.Printf("%sError displaying image: %v%s\n", ColorRed, err, ColorReset)
+			fmt.Printf("%sError displaying WebP image: %v%s\n", ColorRed, err, ColorReset)
 			return false
 		}
 		fmt.Printf("%s%s%s\n", ColorCyan, string(output), ColorReset)
@@ -216,150 +220,59 @@ func showImage(scriptName string) bool {
 
 	// Try PNG if WebP doesn't exist
 	if _, err := os.Stat(imgPath + ".png"); err == nil {
+		fmt.Printf("%sFound PNG image at: %s%s\n", ColorGreen, imgPath+".png", ColorReset)
 		cmd := exec.Command("chafa", "--size", "80x40", imgPath+".png")
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			fmt.Printf("%sError displaying image: %v%s\n", ColorRed, err, ColorReset)
+			fmt.Printf("%sError displaying PNG image: %v%s\n", ColorRed, err, ColorReset)
 			return false
 		}
 		fmt.Printf("%s%s%s\n", ColorCyan, string(output), ColorReset)
 		return true
 	}
 
+	fmt.Printf("%sNo image found at: %s%s\n", ColorYellow, imgPath, ColorReset)
 	return false
 }
 
-func showDetailedDescription(scriptName string, descriptions Descriptions) {
-	if desc, ok := descriptions[scriptName]; ok {
-		// Determine script type and icon
-		icon := scriptIcons["default"]
-		for scriptType, scriptIcon := range scriptIcons {
-			if strings.Contains(strings.ToLower(scriptName), scriptType) {
-				icon = scriptIcon
-				break
-			}
-		}
-		
-		// Print header box
-		width := 80
-		fmt.Printf("\n%s%s%s%s%s\n", BrightPurple, BoxTopLeft, strings.Repeat(BoxHorizontal, width-2), BoxTopRight, ColorReset)
-		
-		// Print script name with icon
-		nameRow := fmt.Sprintf(" %s  %s%s%s", icon, Bold, scriptName, ColorReset)
-		fmt.Printf("%s%s%s%s%s%s\n", 
-			BrightPurple,
-			BoxVertical,
-			nameRow,
-			strings.Repeat(" ", width-3-len(scriptName)-3),
-			BoxVertical,
-			ColorReset,
-		)
-		
-		// Print separator
-		fmt.Printf("%s%s%s%s%s\n",
-			BrightPurple,
-			BoxVertical,
-			strings.Repeat("─", width-2),
-			BoxVertical,
-			ColorReset,
-		)
-		
-		// Print short description
-		shortDescRow := fmt.Sprintf(" %s%s%s", BrightYellow, desc.ShortDesc, ColorReset)
-		fmt.Printf("%s%s%s%s%s%s\n",
-			BrightPurple,
-			BoxVertical,
-			shortDescRow,
-			strings.Repeat(" ", width-3-len(desc.ShortDesc)),
-			BoxVertical,
-			ColorReset,
-		)
-		
-		// Print separator
-		fmt.Printf("%s%s%s%s%s\n",
-			BrightPurple,
-			BoxVertical,
-			strings.Repeat("─", width-2),
-			BoxVertical,
-			ColorReset,
-		)
-		
-		// Print detailed description with word wrap
-		words := strings.Fields(desc.DetailedDesc)
-		line := " "
-		lineWidth := width - 4
-		
-		for _, word := range words {
-			if len(line)+len(word)+1 > lineWidth {
-				// Print current line
-				fmt.Printf("%s%s %s%s%s%s%s\n",
-					BrightPurple,
-					BoxVertical,
-					BrightWhite,
-					line,
-					strings.Repeat(" ", lineWidth-len(line)),
-					BoxVertical,
-					ColorReset,
-				)
-				line = " " + word
-			} else {
-				line += " " + word
-			}
-		}
-		
-		// Print last line if not empty
-		if line != " " {
-			fmt.Printf("%s%s %s%s%s%s%s\n",
-				BrightPurple,
-				BoxVertical,
-				BrightWhite,
-				line,
-				strings.Repeat(" ", lineWidth-len(line)),
-				BoxVertical,
-				ColorReset,
-			)
-		}
-		
-		// Print bottom border
-		fmt.Printf("%s%s%s%s%s\n",
-			BrightPurple,
-			BoxBottomLeft,
-			strings.Repeat(BoxHorizontal, width-2),
-			BoxBottomRight,
-			ColorReset,
-		)
-	} else {
-		// Show image if available
-		if !showImage(scriptName) {
-			fmt.Printf("\n%s%s No detailed description available for this script.%s\n",
-				BrightYellow,
-				"ℹ️",
-				ColorReset,
-			)
-		}
-	}
-}
-
-// New function to show loading animation
-func showLoadingAnimation(duration time.Duration, message string) {
-	spinChars := []string{"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"}
-	startTime := time.Now()
+func showDetailedDescription(scriptName string, descriptions Descriptions, scripts []Script) {
+	// Clear screen and reset cursor position
+	fmt.Print("\033[H\033[2J\033[3J")
 	
-	for time.Since(startTime) < duration {
-		for _, char := range spinChars {
-			fmt.Printf("\r%s%s %s%s %s", BrightCyan, char, Bold, message, ColorReset)
-			time.Sleep(80 * time.Millisecond)
+	// Show README description if available
+	for _, script := range scripts {
+		if script.Name == scriptName {
+			printSeparator()
+			fmt.Printf("%s%sREADME Description:%s%s\n", Bold, ColorPurple, ColorReset, ColorReset)
+			fmt.Printf("%s%s%s\n", ColorWhite, script.Desc, ColorReset)
+			break
 		}
 	}
-	fmt.Println()
+
+	// Show detailed description from descriptions.json
+	if desc, ok := descriptions[scriptName]; ok {
+		printSeparator()
+		fmt.Printf("%s%sDetailed script description:%s%s\n", Bold, ColorPurple, ColorReset, ColorReset)
+		printSeparator()
+		fmt.Printf("\n%sScript:%s %s%s%s\n", ColorYellow, ColorReset, ColorRed, scriptName, ColorReset)
+		fmt.Printf("%sShort description:%s %s%s%s\n", ColorYellow, ColorReset, ColorWhite, desc.ShortDesc, ColorReset)
+		fmt.Printf("\n%sDetailed description:%s\n%s%s%s\n", ColorYellow, ColorReset, ColorWhite, desc.DetailedDesc, ColorReset)
+	} else {
+		fmt.Printf("%sNo description found for script: %s%s\n", ColorYellow, scriptName, ColorReset)
+	}
+	
+	// Show image
+	printSeparator()
+	fmt.Printf("%s%sImage:%s\n", Bold, ColorPurple, ColorReset)
+	showImage(scriptName)
 }
 
 // New function to print fancy box
 func printFancyBox(title string, content string) {
 	width := 60
-	fmt.Printf("%s%s%s%s%s\n", BrightCyan, BoxTopLeft, strings.Repeat(BoxHorizontal, width-2), BoxTopRight, ColorReset)
-	fmt.Printf("%s%s %s%s%s%s%s%s\n", BrightCyan, BoxVertical, BrightPurple, Bold, title, ColorReset, strings.Repeat(" ", width-3-len(title)), BoxVertical)
-	fmt.Printf("%s%s%s%s%s\n", BrightCyan, BoxBottomLeft, strings.Repeat(BoxHorizontal, width-2), BoxBottomRight, ColorReset)
+	fmt.Printf("%s%s%s%s%s\n", ThemeBlue, BoxTopLeft, strings.Repeat(BoxHorizontal, width-2), BoxTopRight, ColorReset)
+	fmt.Printf("%s%s %s%s%s%s%s%s\n", ThemeBlue, BoxVertical, ThemeCyan, Bold, title, ColorReset, strings.Repeat(" ", width-3-len(title)), BoxVertical)
+	fmt.Printf("%s%s%s%s%s\n", ThemeBlue, BoxBottomLeft, strings.Repeat(BoxHorizontal, width-2), BoxBottomRight, ColorReset)
 	fmt.Println(content)
 }
 
@@ -367,65 +280,49 @@ func main() {
 	// Clear screen
 	fmt.Print("\033[H\033[2J")
 	
-	// Show welcome animation
-	showLoadingAnimation(1*time.Second, "Loading scripts...")
-	
-	// ASCII Art Header
-	header := `
-   ____            _       __      ____      __           __            
-  / __/______ ____(_)___  / /_    / __/___  / /__ _____  / /____  _____
- _\ \/ __/ _ '/ __/ / __/ / __/   _\ \/ _ \/ / -_) __/ / __/ _ \/ __/
-/___/\__/\_,_/_/ /_/\__/ /\__/   /___/\___/_/\__/_/    \__/\___/_/    
-`
-	fmt.Printf("%s%s%s\n", BrightCyan, header, ColorReset)
+	fmt.Printf("%sStarting program...%s\n", ColorCyan, ColorReset)
 	
 	descriptions, err := loadDescriptions()
 	if err != nil {
-		fmt.Printf("%sWarning: Could not load descriptions file: %v%s\n", ColorYellow, err, ColorReset)
+		fmt.Printf("%sError reading descriptions.json: %v%s\n", ColorRed, err, ColorReset)
 	}
 
-	scripts, err := parseReadme("/opt/4rji/bin/README.md")
+	scripts, err := parseReadme("README.md")
 	if err != nil {
-		fmt.Printf("%sError reading README.md: %v%s\n", BrightRed, err, ColorReset)
+		fmt.Printf("%sError reading README.md: %v%s\n", ColorRed, err, ColorReset)
 		return
 	}
 
 	if len(scripts) == 0 {
-		fmt.Printf("%sNo scripts found in README%s\n", BrightYellow, ColorReset)
+		fmt.Printf("%sNo scripts found in README%s\n", ColorYellow, ColorReset)
 		return
 	}
 
-	if len(os.Args) > 1 {
-		searchTerm := strings.Join(os.Args[1:], " ")
-		var filteredScripts []Script
-		for _, s := range scripts {
-			if strings.Contains(strings.ToLower(s.Name), strings.ToLower(searchTerm)) || strings.Contains(strings.ToLower(s.Desc), strings.ToLower(searchTerm)) {
-				filteredScripts = append(filteredScripts, s)
-			}
-		}
-		if len(filteredScripts) == 0 {
-			fmt.Printf("%sNo se encontró ningún script que coincida con '%s'%s\n", ColorYellow, searchTerm, ColorReset)
-			return
-		} else if len(filteredScripts) == 1 {
-			showDetailedDescription(filteredScripts[0].Name, descriptions)
-			fmt.Printf("%sPress Enter to exit...%s", ColorBlue, ColorReset)
-			reader := bufio.NewReader(os.Stdin)
-			_, _ = reader.ReadString('\n')
-			return
-		} else {
-			scripts = filteredScripts
-		}
-	}
-
 	scriptChoices := formatScriptList(scripts)
+	fmt.Printf("%sCreated %d script choices%s\n", ColorGreen, len(scriptChoices), ColorReset)
 
 	for {
+		// Clear screen at the start of each loop
+		fmt.Print("\033[H\033[2J")
+		
+		// Show header only in main menu
+		header := fmt.Sprintf(`
+%s╭─────────────────────────────────────────────╮%s
+%s│%s %s4rji Script Selector%s                        %s│%s
+%s╰─────────────────────────────────────────────╯%s
+`, 
+			ThemeBlue, ColorReset,
+			ThemeBlue, ColorReset, Bold, ColorReset, ThemeBlue, ColorReset,
+			ThemeBlue, ColorReset,
+		)
+		fmt.Print(header)
+		
 		printSeparator()
-		printFancyBox("Script Selector", "Choose a script from the list below:")
+		printFancyBox("Available Scripts", "Choose a script from the list below:")
 		
 		var selectedScript string
 		promptScript := &survey.Select{
-			Message: fmt.Sprintf("%s%s%s Search:%s", Bold, BrightCyan, "🔍", ColorReset),
+			Message: fmt.Sprintf("%s%s Search:%s", Bold, ThemeCyan, ColorReset),
 			Options: scriptChoices,
 			PageSize: 15,
 		}
@@ -434,38 +331,36 @@ func main() {
 			survey.WithFilter(func(filter string, value string, index int) bool {
 				cleanValue := strings.ReplaceAll(value, ColorRed, "")
 				cleanValue = strings.ReplaceAll(cleanValue, ColorReset, "")
-				cleanValue = strings.ReplaceAll(cleanValue, " | ", " ")
+				cleanValue = strings.ReplaceAll(cleanValue, " · ", " ")
 				return strings.Contains(strings.ToLower(cleanValue), strings.ToLower(filter))
 			}),
 			survey.WithIcons(func(icons *survey.IconSet) {
-				icons.SelectFocus.Format = "🟢"
-				icons.MarkedOption.Format = "✓"
-				icons.UnmarkedOption.Format = "○"
+				icons.SelectFocus.Format = ">"
+				icons.MarkedOption.Format = "•"
+				icons.UnmarkedOption.Format = " "
 			}),
 			survey.WithStdio(os.Stdin, os.Stdout, os.Stderr),
 		)
 
 		if err != nil {
-			fmt.Printf("%sError selecting script: %v%s\n", BrightRed, err, ColorReset)
+			fmt.Printf("%sError selecting script: %v%s\n", ColorRed, err, ColorReset)
 			return
 		}
 
+		fmt.Printf("%sSelected option: '%s'%s\n", ColorCyan, selectedScript, ColorReset)
 		scriptName := getScriptName(selectedScript)
 		if scriptName == "" {
-			fmt.Printf("%sInvalid selection%s\n", BrightRed, ColorReset)
+			fmt.Printf("%sInvalid selection%s\n", ColorRed, ColorReset)
 			continue
 		}
 
-		// Show script details with animation
-		showLoadingAnimation(500*time.Millisecond, "Loading script details...")
-		showDetailedDescription(scriptName, descriptions)
+		// Clear screen before showing details
+		fmt.Print("\033[H\033[2J")
+		showDetailedDescription(scriptName, descriptions, scripts)
 		
 		printSeparator()
-		fmt.Printf("%s%s Press Enter to return...%s", BrightCyan, "↩", ColorReset)
+		fmt.Printf("%s%s Press Enter to return...%s", ColorCyan, "↩", ColorReset)
 		reader := bufio.NewReader(os.Stdin)
 		_, _ = reader.ReadString('\n')
-
-		// Clear screen and return to menu
-		fmt.Print("\033[H\033[2J")
 	}
 }
