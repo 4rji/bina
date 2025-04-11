@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Detectar distribución
 if [ -f /etc/os-release ]; then
@@ -14,7 +14,7 @@ case "$distro" in
     arch|manjaro)
         sudo pacman -Sy --noconfirm fastfetch
         ;;
-    debian|ubuntu|pop)
+    debian|ubuntu|pop|kali)
         sudo apt update
         sudo apt install -y fastfetch
         ;;
@@ -24,10 +24,12 @@ case "$distro" in
         ;;
 esac
 
-# Llamar al script fastconf
-if [ -x ./fastconf ]; then
-    ./fastconf
+# Ruta fija a fastconf
+FASTCONF_PATH="/opt/4rji/bin/fastconf"
+
+if [ -x "$FASTCONF_PATH" ]; then
+    "$FASTCONF_PATH"
 else
-    echo "fastconf no encontrado o no ejecutable."
+    echo "fastconf no encontrado o no ejecutable en $FASTCONF_PATH"
     exit 1
 fi
