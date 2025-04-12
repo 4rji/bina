@@ -31,6 +31,7 @@ curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/waybar-hyperland-ar
 curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/waybar-hyperland-arch/public-ip.sh -o ~/.config/waybar/public-ip.sh
 curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/waybar-hyperland-arch/style.css -o ~/.config/waybar/style.css
 curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/waybar-hyperland-arch/target.txt -o ~/.config/waybar/target.txt
+curl -L https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/waybar-hyperland-arch/target-ip.sh -o ~/.config/waybar/target-ip.sh
 
 # Descargar archivos para hypr
 mkdir -p ~/.config/hypr
