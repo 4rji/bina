@@ -39,3 +39,10 @@ curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/hypr/hypridle.conf 
 curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/hypr/hyprland.conf -o ~/.config/hypr/hyprland.conf
 curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/hypr/hyprpaper.conf -o ~/.config/hypr/hyprpaper.conf
 curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/hypr/mocha.conf -o ~/.config/hypr/mocha.conf
+
+chmod +x ~/.config/waybar/target-ip.sh
+chmod +x ~/.config/waybar/public-ip.sh
+chmod +x ~/.config/waybar/ip.sh
+
+echo "change the network adapter on "
+echo "nano ~/.config/waybar/ip.sh"
