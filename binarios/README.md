@@ -114,6 +114,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+whereismy           Para cambiar el fondo de whereismy en sddm
 targetip            para poner el target en la waybar ./script Palabra
 zshconf             Configuraciones de la zsh, aun no en script, para copiar y pegar
 fastinst            Instala fastfetch, fastconf y fastconfmac para solo el archivo conf.

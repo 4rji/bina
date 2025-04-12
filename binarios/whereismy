@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+
+#para poner fondo a where is my sddm, tengo que tener wallpaper en .config
+
+echo "Instala desde plasma x11: where_is_my_sddm_theme desde GUI de plasma"
+
+# 1. Modifica /etc/sddm.conf para establecer el tema
+if ! grep -q "^\[Theme\]" /etc/sddm.conf; then
+    echo -e "\n[Theme]\nCurrent=where_is_my_sddm_theme" | sudo tee -a /etc/sddm.conf > /dev/null
+else
+    sudo sed -i '/^\[Theme\]/,/^\[/ s/^Current=.*/Current=where_is_my_sddm_theme/' /etc/sddm.conf || \
+    echo "Current=where_is_my_sddm_theme" | sudo tee -a /etc/sddm.conf > /dev/null
+fi
+
+# 2. Crea carpeta de fondos y copia la imagen
+sudo mkdir -p /usr/share/sddm/themes/where_is_my_sddm_theme/backgrounds
+sudo cp /home/4rji/.config/Wallpaper/guacamaya.jpg /usr/share/sddm/themes/where_is_my_sddm_theme/backgrounds/
+
+# 3. Establece permisos correctos
+sudo chmod 644 /usr/share/sddm/themes/where_is_my_sddm_theme/backgrounds/guacamaya.jpg
+sudo chown root:root /usr/share/sddm/themes/where_is_my_sddm_theme/backgrounds/guacamaya.jpg
+
+# 4. Copia y edita theme.conf
+sudo cp /usr/share/sddm/themes/where_is_my_sddm_theme/theme.conf /usr/share/sddm/themes/where_is_my_sddm_theme/theme.conf.bak
+echo 'background=file:///usr/share/sddm/themes/where_is_my_sddm_theme/backgrounds/guacamaya.jpg' | sudo tee -a /usr/share/sddm/themes/where_is_my_sddm_theme/theme.conf > /dev/null
+
+# 5. Instrucciones claras para editar QML a mano
+echo -e "\n-------------------------"
+echo ">>> AHORA HAZ ESTO MANUALMENTE para imagen completa:"
+echo ""
+echo "Eso es por el fillMode que usa la imagen. Cambia esta línea en Main.qml:"
+echo ""
+echo "fillMode: bgFillMode()"
+echo ""
+echo "por:"
+echo ""
+echo "fillMode: Image.PreserveAspectCrop"
+echo ""
+echo "Quedaría así:"
+echo ""
+cat <<EOF
+Image {
+    id: image
+    anchors.fill: parent
+    source: config.stringValue("background")
+    smooth: true
+    fillMode: Image.PreserveAspectCrop
+    z: 2
+}
+EOF
+echo ""
+echo "Guarda, reinicia SDDM, y ahora debería llenar la pantalla correctamente:"
+echo ""
+echo "sudo systemctl restart sddm"
+echo "-------------------------"
