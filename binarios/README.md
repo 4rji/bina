@@ -178,6 +178,7 @@ s4vit               Muestra varios comandos aprendidos s4vi
 usuario             Crea un usuario en bash, automatico.
 wifiinterfaces      Arregla wifi en kali, terminal grafica texto, debian wifi GUI gui
 wifikali            Crea wifi redes para kali nuevos system-connections
+nmcliwifi           Instrucciones para guardar wifi con nmcli
 verpw               Verifica los permisos de los archivos /etc/passwd u linux claves
 indexapp            in simple index que ve si la pagina web funciona mensaje app working
 

@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+echo ""
+# Colores ANSI
+RED="\e[31m"
+GREEN="\e[32m"
+YELLOW="\e[33m"
+BLUE="\e[34m"
+RESET="\e[0m"
+
+echo -e "${BLUE}Paso 1:${RESET} ${YELLOW}Agrega primero tu conexión con:${RESET}"
+echo -e "${GREEN}sudo nmcli device wifi connect WIFINAME --ask${RESET}"
+echo
+
+echo -e "${BLUE}Paso 2:${RESET} ${YELLOW}Luego modifica el archivo:${RESET}"
+echo -e "${GREEN}sudo nano /etc/NetworkManager/system-connections/WIFINAME.nmconnection${RESET}"
+echo
+
+echo -e "${BLUE}Paso 3:${RESET} ${YELLOW}Agrega la línea debajo de [wifi-security]:${RESET}"
+echo -e "${GREEN}psk=WIFIPASSWORD${RESET}"
+echo
+
+echo -e "${YELLOW}Recuerda reemplazar ${GREEN}WIFINAME${YELLOW} y ${GREEN}WIFIPASSWORD${YELLOW} con el nombre de tu red Wi-Fi y la contraseña correspondiente.${RESET}"
+echo
+
+echo -e "${BLUE}Paso 4:${RESET} ${YELLOW}Guarda los cambios y reinicia NetworkManager para aplicar la configuración:${RESET}"
+echo -e "${GREEN}sudo systemctl restart NetworkManager${RESET}"
+echo
