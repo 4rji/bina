@@ -46,3 +46,12 @@ chmod +x ~/.config/waybar/ip.sh
 
 echo "change the network adapter on "
 echo "nano ~/.config/waybar/ip.sh"
+echo ""
+echo " install yay con"
+
+echo "sudo pacman -S --needed base-devel git
+git clone https://aur.archlinux.org/yay.git
+cd yay
+makepkg -si"
+
+echo "yay -S hyprpaper"
