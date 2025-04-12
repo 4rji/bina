@@ -19,11 +19,12 @@ case $eleccion in
         ;;
     2)
         echo "Instalando en Arch..."
-        sudo pacman -Syu --noconfirm qemu virt-manager spice-vdagent
+        sudo pacman -Syu --noconfirm qemu virt-manager spice-vdagent dnsmasq
         sudo systemctl enable libvirtd
         sudo systemctl start libvirtd
-        sudo systemctl enable spice-vdagent
-        sudo systemctl start spice-vdagent
+
+        #sudo systemctl enable spice-vdagent
+        #sudo systemctl start spice-vdagent
         ;;
     *)
         echo "Opción no válida o ninguna opción seleccionada. Continuando..."
@@ -35,6 +36,6 @@ echo "Si necesitas arreglar permisos en carpetas:"
 echo "  sudo chown -R <usuario> /ruta/a/carpeta"
 
 # Si quieres verificar:
-sleep 3
+sleep 2
 spice-vdagent
 sudo systemctl status spice-vdagent
