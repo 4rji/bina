@@ -1,31 +1,27 @@
 #!/usr/bin/env bash
+
 echo ""
-# Define color variables
-GREEN="\e[32m"
-CYAN="\e[36m"
-YELLOW="\e[33m"
-RESET="\e[0m"
 
 # Create Proxmox.desktop in the current directory
-echo -e "${GREEN}[Desktop Entry]${RESET}" > Proxmox.desktop
-echo -e "${CYAN}Name=Proxmox${RESET}" >> Proxmox.desktop
-echo -e "${CYAN}Comment=Proxmox${RESET}" >> Proxmox.desktop
-echo -e "${CYAN}Exec=/opt/4rji/apps/Proxmox-App-1.0.0.AppImage %U${RESET}" >> Proxmox.desktop
-echo -e "${CYAN}Icon=/home/natasha/GitHub/Proxmox-App/build/icon.png${RESET}" >> Proxmox.desktop
-echo -e "${CYAN}Terminal=false${RESET}" >> Proxmox.desktop
-echo -e "${CYAN}Type=Application${RESET}" >> Proxmox.desktop
-echo -e "${CYAN}Categories=Utility;${RESET}" >> Proxmox.desktop
-echo -e "${CYAN}X-Desktop-File-Install-Version=0.28${RESET}" >> Proxmox.desktop
+echo "[Desktop Entry]" > Proxmox.desktop
+echo "Name=Proxmox" >> Proxmox.desktop
+echo "Comment=Proxmox" >> Proxmox.desktop
+echo "Exec=/opt/4rji/apps/Proxmox-App-1.0.0.AppImage %U" >> Proxmox.desktop
+echo "Icon=/home/natasha/GitHub/Proxmox-App/build/icon.png" >> Proxmox.desktop
+echo "Terminal=false" >> Proxmox.desktop
+echo "Type=Application" >> Proxmox.desktop
+echo "Categories=Utility;" >> Proxmox.desktop
+echo "X-Desktop-File-Install-Version=0.28" >> Proxmox.desktop
 
 # Inform user
-echo -e "${YELLOW}\nProxmox.desktop created in the current directory.\n${RESET}"
+echo "\nProxmox.desktop created in the current directory.\n"
 
 # Next steps
-echo -e "${GREEN}Now run the following commands to finalize:${RESET}\n"
-echo -e "${CYAN}sudo chmod +x Proxmox.desktop${RESET}"
-echo -e "${CYAN}sudo cp Proxmox.desktop /usr/share/applications/${RESET}"
-echo -e "${CYAN}sudo desktop-file-install /usr/share/applications/Proxmox.desktop${RESET}"
-echo -e "${CYAN}sudo update-desktop-database${RESET}"
-echo -e "${CYAN}desktop-file-validate /usr/share/applications/Proxmox.desktop${RESET}"
+echo "Now run the following commands to finalize:"
+echo "sudo chmod +x Proxmox.desktop"
+echo "sudo cp Proxmox.desktop /usr/share/applications/"
+echo "sudo desktop-file-install /usr/share/applications/Proxmox.desktop"
+echo "sudo update-desktop-database"
+echo "desktop-file-validate /usr/share/applications/Proxmox.desktop"
 
 echo ""
