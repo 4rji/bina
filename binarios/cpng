@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+# Si se pasa un argumento, convierte solo esa imagen
+if [ "$#" -eq 1 ]; then
+    if [ ! -f "$1" ]; then
+        echo "El archivo '$1' no existe."
+        exit 1
+    fi
+    base="${1%.*}"
+    magick "$1" "${base}.png"
+else
+    # Si no se pasan argumentos, convierte todas las imágenes .webp en el directorio
+    for img in *.webp; do
+        # Salta si no hay archivos .webp
+        [ -e "$img" ] || continue
+        base="${img%.*}"
+        magick "$img" "${base}.png"
+    done
+fi
