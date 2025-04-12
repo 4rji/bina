@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -e
+
+# Función para verificar si un paquete está instalado
+check_installed() {
+    pacman -Qi "$1" &>/dev/null
+}
+
+# Lista de paquetes a instalar
+packages=( "hyprland" "wofi" "waybar" )
+to_install=()
+
+for pkg in "${packages[@]}"; do
+    if ! check_installed "$pkg"; then
+        to_install+=("$pkg")
+    fi
+done
+
+if [ ${#to_install[@]} -gt 0 ]; then
+    sudo pacman -Syu "${to_install[@]}"
+fi
+
+# Descargar archivo para wofi
+mkdir -p ~/.config/wofi
+curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/wofi/style.css -o ~/.config/wofi/style.css
+
+# Descargar archivos para waybar
+mkdir -p ~/.config/waybar
+curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/waybar-hyperland-arch/config -o ~/.config/waybar/config
+curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/waybar-hyperland-arch/ip.sh -o ~/.config/waybar/ip.sh
+curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/waybar-hyperland-arch/public-ip.sh -o ~/.config/waybar/public-ip.sh
+curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/waybar-hyperland-arch/style.css -o ~/.config/waybar/style.css
+curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/waybar-hyperland-arch/target.txt -o ~/.config/waybar/target.txt
+
+# Descargar archivos para hypr
+mkdir -p ~/.config/hypr
+curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/hypr/hypridle.conf -o ~/.config/hypr/hypridle.conf
+curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/hypr/hyprland.conf -o ~/.config/hypr/hyprland.conf
+curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/hypr/hyprpaper.conf -o ~/.config/hypr/hyprpaper.conf
+curl -L https://raw.githubusercontent.com/4rji/dotfiles/main/hypr/mocha.conf -o ~/.config/hypr/mocha.conf
