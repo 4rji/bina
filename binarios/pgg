@@ -1,3 +1,5 @@
+Aquí está el script con la barra de progreso eliminada (dot_progress_bar):
+
 #!/usr/bin/env bash
 echo ""
 
@@ -62,7 +64,7 @@ for paquete in "${paquetes[@]}"; do
     esac
 done
 
-#!/usr/bin/env bash
+# ---- Parte de información de red ----
 echo ""
 
 # Color codes
@@ -89,27 +91,7 @@ echo ""
 ip -4 addr show | awk '/inet/ && !/127\.0\.0\.1/ {split($2, a, "/"); printf "\033[1;34m%s\033[0m: \033[1;32m%s\033[0m\n", $NF, a[1]}'
 echo ""
 
-# Función para mostrar barra de progreso con puntos
-dot_progress_bar() {
-    local steps=8
-    local delay=0.2
-    for ((i = 1; i <= steps; i++)); do
-        local bar=""
-        for ((j = 1; j <= steps; j++)); do
-            if ((j == i)); then
-                bar+="◉"
-            else
-                bar+="○"
-            fi
-        done
-        echo -ne "\r\t\t\tCargando IP pública: $bar"
-        sleep "$delay"
-    done
-    echo ""
-}
-
-dot_progress_bar  # Muestra la barra antes de ejecutar dig
-
+# Obtener IP pública directamente sin barra
 timeout 1.5 dig +short myip.opendns.com @resolver1.opendns.com | while read -r ip; do
     cols=$(tput cols)
     ip_length=${#ip}
