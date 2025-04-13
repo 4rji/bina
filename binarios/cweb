@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
-for img in *.png; do
+
+if [[ -n "$1" ]]; then
+  imgs=("$1")
+else
+  imgs=(*.png)
+fi
+
+for img in "${imgs[@]}"; do
   cwebp -q 80 "$img" -o "${img%.png}.webp"
 done
