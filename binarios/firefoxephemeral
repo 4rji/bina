@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -e
+
+PROFILE_DIR="/tmp/fx-profile"
+USER_JS="$PROFILE_DIR/user.js"
+DOCKERFILE_URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/Dockerfile-universal-lenguages"
+#https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/dockerfile-lenguages"
+DOCKERFILE_NAME="Dockerfile"
+
+mkdir -p "$PROFILE_DIR"
+
+LANG_CODES=( "en-US" "es-ES" "ja" "zh-CN" "ru" "fr-FR" "de-DE" "pt-BR" "it-IT" "ko" )
+LANG_NAMES=( "English" "Spanish" "Japanese" "Chinese (Simplified)" "Russian" "French" "German" "Portuguese (Brazil)" "Italian" "Korean" )
+
+echo "Select a language:"
+for i in "${!LANG_CODES[@]}"; do
+  num=$((i+1))
+  echo "  $num) ${LANG_CODES[$i]}  - ${LANG_NAMES[$i]}"
+done
+
+read -rp "Language number: " choice
+index=$((choice - 1))
+
+lang_code="${LANG_CODES[$index]}"
+lang_name="${LANG_NAMES[$index]}"
+
+if [ -z "$lang_code" ]; then
+  echo "Invalid selection."
+  exit 1
+fi
+
+cat > "$USER_JS" <<EOF
+user_pref("intl.accept_languages", "$lang_code,en");
+user_pref("general.useragent.locale", "$lang_code");
+user_pref("intl.locale.requested", "$lang_code");
+EOF
+
+echo -e "\n✅ user.js updated to $lang_code  ($lang_name)"
+
+echo -n "Download Dockerfile from GitHub? [y/N]: "
+read -r confirm
+
+if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
+  curl -fsSL "$DOCKERFILE_URL" -o "$DOCKERFILE_NAME" && echo "✅ Dockerfile saved as '$DOCKERFILE_NAME'"
+else
+  echo "ℹ️ Skipped Dockerfile download."
+fi
+
+echo -e "\n➡️ To build the Docker image, run:"
+echo "docker build -t firefox-ephemeral ."
+
+echo -e "\n📄 Contents of /tmp/fx-profile/user.js:"
+cat /tmp/fx-profile/user.js
+
+
+echo "ejecutar ahora abrireph para abrir firefox"
+

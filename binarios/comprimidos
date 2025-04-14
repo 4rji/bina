@@ -3,12 +3,27 @@
 # Función para crear directorios temporales
 mktem() {
     if [ -n "$1" ]; then
-        new_dir=$(mktemp -d /dev/shm/tmp."$1".XXXXXX)
+        new_dir=$(mktemp -d /tmp/tmp."$1".XXXXXX)
     else
-        new_dir=$(mktemp -d /dev/shm/tmp.XXXXXX)
+        new_dir=$(mktemp -d /tmp/tmp.XXXXXX)
     fi
     cd "$new_dir" || return
 }
+
+
+function mktem2() {
+    if [ -n "$1" ]; then
+        new_dir=$(mktemp -d /tmp/tmp."$1".XXXXXX)
+    else
+        new_dir=$(mktemp -d /tmp/tmp.XXXXXX)
+    fi
+    echo "Directorio creado en: $new_dir"
+    cd "$new_dir" || return
+    echo "Cambiado al directorio: $PWD"
+}
+
+
+
 
 # Pregunta al usuario si desea descargar los archivos COMPRIMIDOS.
 read -p "¿Deseas descargar los comprimidos? [s/N] " respuesta
