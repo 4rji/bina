@@ -115,7 +115,8 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
 firefoxephemeral    Cambia idioma, Crea dockerfile, y tambien el contenedor para firefox
-abrireph            Este es para abrir el firefox ephemeral. tambien puede ser una app en automator 
+abrirfire           Script para linux para abrir ephemeral firefox
+abrirfirem          Este es para abrir el firefox ephemeral. tambien puede ser una app en automator 
 whereismy           Para cambiar el fondo de whereismy en sddm
 targetip            para poner el target en la waybar ./script Palabra
 zshconf             Configuraciones de la zsh, aun no en script, para copiar y pegar
