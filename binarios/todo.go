@@ -287,6 +287,29 @@ func printFancyBox(title string, content string) {
 	fmt.Println(content)
 }
 
+// Add this function before main()
+func copyToClipboard(text string) error {
+	cmd := exec.Command("pbcopy")
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		return err
+	}
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	if _, err := stdin.Write([]byte(text)); err != nil {
+		return err
+	}
+
+	if err := stdin.Close(); err != nil {
+		return err
+	}
+
+	return cmd.Wait()
+}
+
 func main() {
 	// Clear screen
 	fmt.Print("\033[H\033[2J")
@@ -344,11 +367,17 @@ func main() {
 		return strings.ToLower(nameA) < strings.ToLower(nameB)
 	})
 
+	// Get initial search term from command line arguments
+	initialSearch := ""
+	if len(os.Args) > 1 {
+		initialSearch = strings.Join(os.Args[1:], " ")
+	}
+
 	for {
 		// Clear screen at the start of each loop
 		fmt.Print("\033[H\033[2J")
 		
-		// Show header only in main menu
+		// Show header only once
 		header := fmt.Sprintf(`
 %s╭─────────────────────────────────────────────╮%s
 %s│%s %s4rji Script Selector%s                        %s│%s
@@ -360,42 +389,47 @@ func main() {
 		)
 		fmt.Print(header)
 		
-		
 		printFancyBox("Available Scripts", "Choose a script from the list below:")
 		
 		var selectedScript string
+		
+		// Create a custom filter function
+		filterFunc := func(filter string, value string, index int) bool {
+			// Remove all color codes and formatting
+			cleanValue := strings.ReplaceAll(value, ColorRed, "")
+			cleanValue = strings.ReplaceAll(cleanValue, ColorReset, "")
+			cleanValue = strings.ReplaceAll(cleanValue, ThemeCyan, "")
+			cleanValue = strings.ReplaceAll(cleanValue, ThemeBlue, "")
+			cleanValue = strings.ReplaceAll(cleanValue, Bold, "")
+			cleanValue = strings.ReplaceAll(cleanValue, Dim, "")
+			
+			// Split by the dot separator to get script name and description
+			parts := strings.SplitN(cleanValue, "·", 2)
+			if len(parts) < 2 {
+				return false
+			}
+			
+			// Get the script name and trim spaces
+			scriptName := strings.TrimSpace(parts[0])
+			
+			// Check if the filter matches the script name
+			return strings.Contains(strings.ToLower(scriptName), strings.ToLower(filter))
+		}
+		
 		promptScript := &survey.Select{
 			Message: fmt.Sprintf("%s%s Search:%s", Bold, ThemeCyan, ColorReset),
 			Options: scriptChoices,
 			PageSize: 15,
+			Filter: filterFunc,
+		}
+		
+		// Set initial search term if provided
+		if initialSearch != "" {
+			promptScript.FilterMessage = initialSearch
+			initialSearch = "" // Reset after first use
 		}
 		
 		err = survey.AskOne(promptScript, &selectedScript, 
-			survey.WithFilter(func(filter string, value string, index int) bool {
-				// Remove all color codes and formatting
-				cleanValue := strings.ReplaceAll(value, ColorRed, "")
-				cleanValue = strings.ReplaceAll(cleanValue, ColorReset, "")
-				cleanValue = strings.ReplaceAll(cleanValue, ThemeCyan, "")
-				cleanValue = strings.ReplaceAll(cleanValue, ThemeBlue, "")
-				cleanValue = strings.ReplaceAll(cleanValue, Bold, "")
-				cleanValue = strings.ReplaceAll(cleanValue, Dim, "")
-				
-				// Split by the dot separator to get script name and description
-				parts := strings.SplitN(cleanValue, "·", 2)
-				if len(parts) < 2 {
-					return false
-				}
-				
-				// Get the script name and trim spaces
-				scriptName := strings.TrimSpace(parts[0])
-				
-				// Check if the filter matches the script name
-				lowerScriptName := strings.ToLower(scriptName)
-				lowerFilter := strings.ToLower(filter)
-				
-				// Return true if the script name contains the filter
-				return strings.Contains(lowerScriptName, lowerFilter)
-			}),
 			survey.WithIcons(func(icons *survey.IconSet) {
 				icons.SelectFocus.Format = ">"
 				icons.MarkedOption.Format = "•"
@@ -414,6 +448,13 @@ func main() {
 		if scriptName == "" {
 			fmt.Printf("%sInvalid selection%s\n", ColorRed, ColorReset)
 			continue
+		}
+
+		// Copy script name to clipboard
+		if err := copyToClipboard(scriptName); err != nil {
+			fmt.Printf("%sError copying to clipboard: %v%s\n", ColorRed, err, ColorReset)
+		} else {
+			fmt.Printf("%sScript name '%s' copied to clipboard!%s\n", ColorGreen, scriptName, ColorReset)
 		}
 
 		// Clear screen before showing details
