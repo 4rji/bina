@@ -53,7 +53,7 @@ echo "    docker build -t firefox-ephemeral ."
 echo -e "\n\033[36m08) 📄 Contents of ${USER_JS}:\033[0m"
 cat "$USER_JS"
 
-echo -e "\n\033[32m09) ✅ Ejecutar ahora 'abrireph' para abrir Firefox\033[0m"
+echo -e "\n\033[32m09) ✅ Ejecutar ahora 'abrirfire' para abrir Firefox\033[0m"
 
 echo -e "\n\033[33m10) ⚠️ Si marca error, ejecutar:\033[0m"
 echo -e "\033[36m    echo \$DISPLAY\033[0m"
