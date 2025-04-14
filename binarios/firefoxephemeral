@@ -4,7 +4,6 @@ set -e
 PROFILE_DIR="/tmp/fx-profile"
 USER_JS="$PROFILE_DIR/user.js"
 DOCKERFILE_URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/Dockerfile-universal-lenguages"
-#https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/dockerfile-lenguages"
 DOCKERFILE_NAME="Dockerfile"
 
 mkdir -p "$PROFILE_DIR"
@@ -12,20 +11,21 @@ mkdir -p "$PROFILE_DIR"
 LANG_CODES=( "en-US" "es-ES" "ja" "zh-CN" "ru" "fr-FR" "de-DE" "pt-BR" "it-IT" "ko" )
 LANG_NAMES=( "English" "Spanish" "Japanese" "Chinese (Simplified)" "Russian" "French" "German" "Portuguese (Brazil)" "Italian" "Korean" )
 
-echo "Select a language:"
+echo -e "\n\033[36m01)\033[0m Select a language:"
 for i in "${!LANG_CODES[@]}"; do
-  num=$((i+1))
-  echo "  $num) ${LANG_CODES[$i]}  - ${LANG_NAMES[$i]}"
+  num=$(printf "%02d" $((i+1)))
+  echo -e "  \033[36m${num})\033[0m ${LANG_CODES[$i]}  - ${LANG_NAMES[$i]}"
 done
 
-read -rp "Language number: " choice
+echo
+read -rp "$(echo -e "\033[36m02)\033[0m Language number: ")" choice
 index=$((choice - 1))
 
 lang_code="${LANG_CODES[$index]}"
 lang_name="${LANG_NAMES[$index]}"
 
 if [ -z "$lang_code" ]; then
-  echo "Invalid selection."
+  echo -e "\033[31m03) Invalid selection.\033[0m"
   exit 1
 fi
 
@@ -35,23 +35,22 @@ user_pref("general.useragent.locale", "$lang_code");
 user_pref("intl.locale.requested", "$lang_code");
 EOF
 
-echo -e "\n✅ user.js updated to $lang_code  ($lang_name)"
+echo -e "\n\033[32m04) ✅ user.js updated to $lang_code  ($lang_name)\033[0m"
 
-echo -n "Download Dockerfile from GitHub? [y/N]: "
+echo -en "\033[36m05)\033[0m Download Dockerfile from GitHub? [y/N]: "
 read -r confirm
 
 if [[ "$confirm" == "y" || "$confirm" == "Y" ]]; then
-  curl -fsSL "$DOCKERFILE_URL" -o "$DOCKERFILE_NAME" && echo "✅ Dockerfile saved as '$DOCKERFILE_NAME'"
+  curl -fsSL "$DOCKERFILE_URL" -o "$DOCKERFILE_NAME" \
+    && echo -e "\033[32m06) ✅ Dockerfile saved as '${DOCKERFILE_NAME}'\033[0m"
 else
-  echo "ℹ️ Skipped Dockerfile download."
+  echo -e "\033[33m06) ℹ️ Skipped Dockerfile download.\033[0m"
 fi
 
-echo -e "\n➡️ To build the Docker image, run:"
-echo "docker build -t firefox-ephemeral ."
+echo -e "\n\033[36m07) ➡️ To build the Docker image, run:\033[0m"
+echo "    docker build -t firefox-ephemeral ."
 
-echo -e "\n📄 Contents of /tmp/fx-profile/user.js:"
-cat /tmp/fx-profile/user.js
+echo -e "\n\033[36m08) 📄 Contents of ${USER_JS}:\033[0m"
+cat "$USER_JS"
 
-
-echo "ejecutar ahora abrireph para abrir firefox"
-
+echo -e "\n\033[32m09) ✅ Ejecutar ahora 'abrireph' para abrir Firefox\033[0m"
