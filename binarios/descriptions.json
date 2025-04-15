@@ -1,4 +1,21 @@
 {
+    "decoyfile": {
+        "name": "decoyfile",
+        "short_desc": "Recopila metadatos de archivos para crear señuelos de tiempos de acceso.",
+        "detailed_desc": "Este script solicita al usuario la ruta de un archivo, obtiene sus marcas de tiempo (creación, modificación y acceso) en formato legible y las agrega a un archivo de registro.\n\nUso: agregararchivo\n\nEl proceso:\n1. Solicita al usuario la ruta del archivo a analizar\n2. Extrae las marcas de tiempo (creación, modificación y acceso) del archivo\n3. Formatea las fechas de manera legible\n4. Guarda esta información en /opt/decoys/decoys.txt\n5. Crea automáticamente el directorio de destino si no existe\n\nÚtil para análisis forense y creación de señuelos con marcas de tiempo específicas."
+    },
+    
+    "adio": {
+        "name": "adio",
+        "short_desc": "Elimina archivos de forma segura usando técnicas de borrado militar (DoD) y sobreescritura.",
+        "detailed_desc": "Este script borra archivos de manera segura utilizando una combinación de las herramientas 'scrub' y 'shred' para garantizar que los datos no puedan ser recuperados.\n\nUso: adio <archivo>\n\nEl proceso:\n1. Primero aplica 'scrub' con el patrón DoD (Department of Defense)\n2. Luego utiliza 'shred' para sobreescribir el archivo 10 veces con datos aleatorios\n3. Finalmente elimina el archivo del sistema\n\nIMPORTANTE: Una vez ejecutado, el archivo no podrá ser recuperado."
+    },
+    
+    "adios": {
+        "name": "adios",
+        "short_desc": "Elimina directorios completos de forma segura aplicando técnicas de borrado militar recursivamente.",
+        "detailed_desc": "Este script borra directorios completos de manera segura, aplicando técnicas de borrado militar a todos los archivos dentro del directorio y sus subdirectorios.\n\nUso: adios <directorio>\n\nEl proceso:\n1. Recorre recursivamente el directorio y todos sus subdirectorios\n2. Aplica 'scrub' con el patrón DoD a cada archivo encontrado\n3. Luego utiliza 'shred' para sobreescribir cada archivo 10 veces con datos aleatorios\n4. Finalmente elimina el directorio completo y su contenido\n\nIMPORTANTE: Una vez ejecutado, los archivos y el directorio no podrán ser recuperados."
+    },
     
     "proxyverifica": {
         "name": "proxyverifica",
@@ -125,11 +142,7 @@
         "short_desc": "Instala lazydocker y sus dependencias.",
         "detailed_desc": "sudo apt-get update && sudo apt-get install -y golang-go\ngit clone https://github.com/jesseduffield/lazydocker.git\ncd lazydocker\ngo install"
     },
-    "adios": {
-        "name": "adios",
-        "short_desc": "Instala herramientas de limpieza de datos.",
-        "detailed_desc": "sudo apt-get install -y coreutils scrub\nsudo yum install -y coreutils scrub\nsudo dnf install -y coreutils scrub\nsudo pacman -S coreutils scrub"
-    },
+ 
     "todo.bash": {
         "name": "todo.bash",
         "short_desc": "Busca tareas en un archivo de texto.",
@@ -224,5 +237,11 @@
         "name": "pings",
         "short_desc": "Monitorea el estado de hosts definidos en el archivo de configuración SSH.",
         "detailed_desc": "ping -c 1 <host>"
+    },
+    {
+        "name": "aaron",
+        "short_desc": "Proporciona instrucciones para ejecutar el exploit DirtyPipe (CVE-2022-0847).",
+        "detailed_desc": "Este script muestra los pasos necesarios para explotar la vulnerabilidad DirtyPipe (CVE-2022-0847) para escalar privilegios en sistemas Linux vulnerables. Incluye instrucciones para compilar y ejecutar el exploit, así como las credenciales para acceder como root."
     }
+
 }

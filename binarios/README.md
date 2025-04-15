@@ -515,8 +515,8 @@ trafico             Genera trafico falso de varios sitios
 monitcp             Muestra captura.cap en colores con python, integrado en chismes
 monitcpl            Muestra una lista de todos los archivos pcap cap 
 autorun-no          Crea un archivo para usb, autorun. NO funcional yet.
-agregararchivo      Agrega un archivo a verificar archivo para ver si ha sido modificido
-verificararchivo    Verifica de la lista creada por agregar archivo si ha sido modificado
+decoyfile           Crea un archivo metadata para verificar archivo para ver si ha sido modificido
+decoyfilecheck      Verifica de la lista creada por agregar archivo si ha sido modificado
 wdefensas           Se supone desactiva el antivirus de windows, no probado
 telnetftppass       Windows: Encuentra contrasenas usadas en telnet y ftp python
 userdiscovery       win: Encuentra contrasenas en python no probado dumppassword
@@ -556,8 +556,8 @@ chismes             Ejecuta tcpdump y tshark para ver la red, captura wireshark 
 proxyloco           Menu para descargar, agente - proxy y tiene -2 para segundo - ligolo
 proxyloco-only      Instala el proxy, interface e inicia - ligolo
 
-agentloco           Instala amd agente, lo descarga y ejecuta
-agenteproxy         No lo descarga, lo descomprime y conecta al servidor
+proxyagente         Instala amd agente, lo descarga y ejecuta
+
 proxyserver         proxyloco ya descargado, como binario, solo ejecutarlo: proxyserver -selfcert
 torperlnipe         Script para mandar trafico por tor, no funciona aun.
 sheldon             reverse shell easy, pide todos los datos preguntas

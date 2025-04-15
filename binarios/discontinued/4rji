@@ -2,7 +2,7 @@
 
 
 # Definir la ruta completa al archivo README.md
-file="/usr/bin/README.md"
+file="/opt/4rji/bin/README.md"
 
 # Verificar la existencia del archivo
 if [ ! -f "$file" ]; then
