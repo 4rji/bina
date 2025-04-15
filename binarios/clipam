@@ -10,6 +10,6 @@ if [ ! -e "$1" ]; then
   exit 1
 fi
 
-cat "$1" | pbcopy
+cat "$1" | sed 's/\x1B\[[0-9;]*[a-zA-Z]//g' | pbcopy
 
-echo "El contenido del archivo '$1' se ha copiado al portapapeles."
+echo "El contenido del archivo '$1' se ha copiado al portapapeles sin secuencias ANSI."

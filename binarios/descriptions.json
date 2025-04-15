@@ -9,5 +9,40 @@
         "name": "proxyloco",
         "short_desc": "Downloads, configures, and launches ligolo-ng Agent or Proxy with guided setup.",
         "detailed_desc": "This script automates the process of downloading ligolo-ng binaries (Agent/Proxy), extracting them, and assisting with configuration and execution based on user input.\n\nUsage instructions:\n\n1. Run without arguments to interactively choose binaries and setup Agent or Proxy.\n2. Use `./proxyloco -2` to access additional proxy tunnel setup commands, crontab examples, and agent launch instructions.\n3. Supports both AMD64 and ARM64 architectures with visual guidance and command tips.\n\nProxy quick commands:\n\n1.- Return to the proxy session: session\n2.- Start the proxy: start\n\nTo delete the subnet:\nsudo ip link delete ligolo\nsudo ip route add 1.1.1.0/24 dev ligolo\n\n# Second tunnel:\nsudo ip tuntap add user $USER mode tun ligolo2\nsudo ip link set ligolo2 up\nsudo ip route add X.X.X.0/24 dev ligolo2\nstart --tun ligolo2"
+    },
+    "grepfind": {
+        "name": "grepfind",
+        "short_desc": "Busca una palabra en todos los archivos de un directorio y subdirectorios usando find y grep.",
+        "detailed_desc": "find <directorio> -type f -exec grep -H --color=always \"<palabra>\" {} \\;"
+    },
+    "redr": {
+        "name": "redr",
+        "short_desc": "Reinicia los servicios de red según la distribución Linux.",
+        "detailed_desc": "sudo dhclient eth1\nsudo systemctl restart network-manager\nsudo service networking restart\nsudo systemctl restart network\nsudo systemctl restart NetworkManager"
+    },
+    "lineas": {
+        "name": "lineas",
+        "short_desc": "Muestra líneas de diferentes colores en la terminal.",
+        "detailed_desc": "echo -e \"\\033[1;31m_________________________________________________________\\033[0m\"\necho -e \"\\033[1;32m_________________________________________________________\\033[0m\"\necho -e \"\\033[1;33m_________________________________________________________\\033[0m\"\necho -e \"\\033[1;34m_________________________________________________________\\033[0m\"\necho -e \"\\033[1;35m_________________________________________________________\\033[0m\"\necho -e \"\\033[1;36m_________________________________________________________\\033[0m\"\necho -e \"\\033[1;37m_________________________________________________________\\033[0m\""
+    },
+    "impactoinst": {
+        "name": "impactoinst",
+        "short_desc": "Instala Impacket y configura SMBServer.",
+        "detailed_desc": "cp /opt/4rji/bin/impacto.zip .\nunzip impacto.zip\ncd impacket\npip3 install .\nimpacket-smbserver Nombre_share $(pwd) -smb2support"
+    },
+    "limpiartest": {
+        "name": "limpiartest",
+        "short_desc": "Genera archivos aleatorios para pruebas.",
+        "detailed_desc": "dd if=/dev/urandom of=file_$i bs=1M count=$size"
+    },
+    "crontt": {
+        "name": "crontt",
+        "short_desc": "Muestra los crontabs del usuario actual y root.",
+        "detailed_desc": "crontab -l\nsudo crontab -l"
+    },
+    "rootcheck": {
+        "name": "rootcheck",
+        "short_desc": "Muestra los archivos de configuración del usuario root.",
+        "detailed_desc": "sudo cat /root/.bashrc\nsudo cat /root/.shrc\nsudo cat /root/.cshrc\nsudo cat /root/.tcshrc"
     }
 }
