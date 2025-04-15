@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+
+# Check if the 'archiveserv' environment variable is set
+if [ -z "$archiveserv" ]; then
+    echo -e "\033[31mError: The 'archiveserv' environment variable is not set.\033[0m"
+    echo "Please add the following line to your ~/.zshrc file:"
+    echo "export archiveserv='username@ip_or_hostname'"
+    exit 1
+fi
+
+# Prompt for the webpage URL
+read -p "Enter the webpage URL (if missing 'https://', it will be added): " webpage
+
+# Prepend 'https://' if not present
+if [[ $webpage != https://* ]]; then
+    webpage="https://$webpage"
+fi
+
+# Prompt for the sudo password (input will be hidden)
+read -sp "Enter your sudo password: " sudo_password
+echo ""
+
+# Build the command to be executed on the remote server
+remote_command="cd ~/archivebox && echo '$sudo_password' | sudo -S docker-compose run archivebox add --depth=0 $webpage"
+
+# Display the command being executed
+echo "Executing the following command on server \$archiveserv ($archiveserv):"
+echo "$remote_command"
+
+# Run the command on the remote server via SSH
+ssh "$archiveserv" "$remote_command"

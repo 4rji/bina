@@ -339,7 +339,7 @@ func getCombinedScripts(readmePath, binDir string) ([]Script, error) {
 		if mode&0111 == 0 { continue } // No es ejecutable
 		extraScripts = append(extraScripts, Script{
 			Name: name,
-			Desc: "Script no documentado",
+			Desc: "Enter to see description",
 		})
 	}
 
