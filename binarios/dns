@@ -1,60 +1,35 @@
 #!/usr/bin/env bash
 
-#echo ""
-
-
-# Verificar si se pasó el argumento -a
 if [[ "$1" == "-a" ]]; then
-    # Ejecutar el comando systemd-resolve --status
     systemd-resolve --status
 fi
 
-    echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
-    echo -e "\033[34m    systemd-resolved.service\033[0m"
-
-
+echo -e "\n\033[1;35m_________________________________________________________\033[0m"
+echo -e "\033[34msystemd-resolved.service\033[0m"
 echo "resolvectl status | grep 'DNS Servers'"
 resolvectl status | grep 'DNS Servers'
-    echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
 
+echo -e "\n\033[1;35m_________________________________________________________\033[0m"
 
-# Verificar si el archivo /etc/resolv.conf existe
-if [ -f /etc/resolv.conf ]; then
-    
-
-    # Mostrar las líneas no comentadas de /etc/systemd/resolved.conf después de esta sección
-    if [ -f /etc/systemd/resolved.conf ]; then
-        echo -e "\033[1;34mNon-commented lines in /etc/systemd/resolved.conf:\033[0m"
-        grep -v '^\s*#' /etc/systemd/resolved.conf | awk '{print "\033[1;34m" $0 "\033[0m"}'
-
-        echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
-
-
-    # Mostrar todas las líneas no comentadas de /etc/resolv.conf
-    
-    echo -e "\033[1;33mConfigured DNS servers /etc/resolv.conf :\033[0m"
-    grep -v '^\s*#' /etc/resolv.conf | awk '{print "\033[1;31m" $0 "\033[0m"}'
-
-
-
-    
-    else
-        echo -e "\033[1;33mThe /etc/systemd/resolved.conf file does not exist.\033[0m"
-    fi
-
+# Mostrar líneas no comentadas de resolved.conf si existe
+if [ -f /etc/systemd/resolved.conf ]; then
+    echo -e "\033[1;34mNon-commented lines in /etc/systemd/resolved.conf:\033[0m"
+    grep -v '^\s*#' /etc/systemd/resolved.conf | awk '{print "\033[1;34m" $0 "\033[0m"}'
 else
-    echo -e "\033[1;33mThe /etc/resolv.conf file does not exist.\033[0m"
+    echo -e "\033[1;33m/etc/systemd/resolved.conf not found.\033[0m"
 fi
 
-# Separador
-    echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
+# Mostrar contenido de /etc/resolv.conf
+echo -e "\n\033[1;35m_________________________________________________________\033[0m"
+if [ -f /etc/resolv.conf ]; then
+    echo -e "\033[1;33mConfigured DNS servers in /etc/resolv.conf:\033[0m"
+    grep -v '^\s*#' /etc/resolv.conf | awk '{print "\033[1;31m" $0 "\033[0m"}'
+else
+    echo -e "\033[1;33m/etc/resolv.conf not found.\033[0m"
+fi
 
-
+# DNS desde nmcli
+echo -e "\n\033[1;35m_________________________________________________________\033[0m"
 echo -e "\033[34mnmcli device show | grep 'IP4.DNS'\033[0m"
-
 nmcli device show | grep 'IP4.DNS'
-
-echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
-
-
-
+echo -e "\n\033[1;37m_________________________________________________________\033[0m"
