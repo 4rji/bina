@@ -310,6 +310,44 @@ func copyToClipboard(text string) error {
 	return cmd.Wait()
 }
 
+// Devuelve la lista combinada de scripts del README y ejecutables de /opt/4rji/bin
+func getCombinedScripts(readmePath, binDir string) ([]Script, error) {
+	// 1. Scripts del README
+	readmeScripts, err := parseReadme(readmePath)
+	if err != nil {
+		return nil, err
+	}
+	readmeMap := make(map[string]bool)
+	for _, s := range readmeScripts {
+		readmeMap[s.Name] = true
+	}
+
+	// 2. Ejecutables en /opt/4rji/bin
+	entries, err := os.ReadDir(binDir)
+	if err != nil {
+		return readmeScripts, nil // Si falla, solo los del README
+	}
+	var extraScripts []Script
+	for _, entry := range entries {
+		if entry.IsDir() { continue }
+		name := entry.Name()
+		if readmeMap[name] { continue }
+		// Opcional: solo archivos ejecutables
+		info, err := entry.Info()
+		if err != nil { continue }
+		mode := info.Mode()
+		if mode&0111 == 0 { continue } // No es ejecutable
+		extraScripts = append(extraScripts, Script{
+			Name: name,
+			Desc: "Script no documentado",
+		})
+	}
+
+	// 3. Mezclar listas
+	allScripts := append(readmeScripts, extraScripts...)
+	return allScripts, nil
+}
+
 func main() {
 	// Clear screen
 	fmt.Print("\033[H\033[2J")
@@ -321,14 +359,14 @@ func main() {
 		fmt.Printf("%sError reading descriptions.json: %v%s\n", ColorRed, err, ColorReset)
 	}
 
-	scripts, err := parseReadme("README.md")
+	scripts, err := getCombinedScripts("/opt/4rji/bin/README.md", "/opt/4rji/bin")
 	if err != nil {
-		fmt.Printf("%sError reading README.md: %v%s\n", ColorRed, err, ColorReset)
+		fmt.Printf("%sError reading scripts: %v%s\n", ColorRed, err, ColorReset)
 		return
 	}
 
 	if len(scripts) == 0 {
-		fmt.Printf("%sNo scripts found in README%s\n", ColorYellow, ColorReset)
+		fmt.Printf("%sNo scripts found in README or bin directory%s\n", ColorYellow, ColorReset)
 		return
 	}
 

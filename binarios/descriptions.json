@@ -44,5 +44,185 @@
         "name": "rootcheck",
         "short_desc": "Muestra los archivos de configuración del usuario root.",
         "detailed_desc": "sudo cat /root/.bashrc\nsudo cat /root/.shrc\nsudo cat /root/.cshrc\nsudo cat /root/.tcshrc"
+    },
+    "inundacion": {
+        "name": "inundacion",
+        "short_desc": "Realiza ataques de inundación SYN.",
+        "detailed_desc": "sudo hping3 <ip_objetivo> --flood -S -p 445\nsudo hping3 --flood -S <ip_objetivo> -a <ip_suplantar> -s 445 -p 445"
+    },
+    "searchinst": {
+        "name": "searchinst",
+        "short_desc": "Instala y configura SearXNG en Docker.",
+        "detailed_desc": "docker pull searxng/searxng\ndocker run --rm -d -p 9999:8080 -v \"${PWD}/searxng:/etc/searxng\" -e \"BASE_URL=http://localhost:9999/\" -e \"INSTANCE_NAME=my-instance\" searxng/searxng"
+    },
+    "updatecentos7": {
+        "name": "updatecentos7",
+        "short_desc": "Actualiza el repositorio base de CentOS 7.",
+        "detailed_desc": "sudo curl -o /etc/yum.repos.d/CentOS-Base.repo https://el7.repo.almalinux.org/centos/CentOS-Base.repo"
+    },
+    "dcc_spanish": {
+        "name": "dcc_spanish",
+        "short_desc": "Configura y ejecuta contenedores Docker con IPs aleatorias.",
+        "detailed_desc": "docker run -it --network <red> --ip <ip_aleatoria> <imagen>"
+    },
+    "honeyport.sh": {
+        "name": "honeyport.sh",
+        "short_desc": "Implementa un honeyport que bloquea IPs que intentan conectarse.",
+        "detailed_desc": "sudo nc -l -p 8080 -v\nsudo iptables -A INPUT -s <ip> -j DROP"
+    },
+    "chtm": {
+        "name": "chtm",
+        "short_desc": "Protege archivos contra modificaciones en macOS.",
+        "detailed_desc": "sudo chflags uchg <archivo>"
+    },
+    "f2binst": {
+        "name": "f2binst",
+        "short_desc": "Instala y configura fail2ban y dependencias.",
+        "detailed_desc": "sudo apt-get install -y iptables\nsudo apt-get install -y rsyslog\nsudo apt-get install -y fail2ban"
+    },
+    "artilleria": {
+        "name": "artilleria",
+        "short_desc": "Instala iptables en diferentes distribuciones Linux.",
+        "detailed_desc": "sudo apt-get install -y iptables\nsudo yum install -y iptables\nsudo dnf install -y iptables\nsudo pacman -S iptables"
+    },
+    "ansiconf": {
+        "name": "ansiconf",
+        "short_desc": "Configura el archivo de hosts de Ansible.",
+        "detailed_desc": "echo \"[hosts]\n<alias> ansible_host=<host> ansible_port=<port> ansible_user=<username> ansible_ssh_private_key_file=<key_path>\" >> ~/.ssh/ansible_hosts"
+    },
+    "amigo2inst": {
+        "name": "amigo2inst",
+        "short_desc": "Instala y ejecuta Ollama con modelos de IA.",
+        "detailed_desc": "curl -fsSL https://ollama.com/install.sh | sh\nollama run deepseek-coder-v2"
+    },
+    "knock-http": {
+        "name": "knock-http",
+        "short_desc": "Configura knockd para abrir/cerrar puerto HTTP.",
+        "detailed_desc": "echo \"[openHTTP]\n    sequence    = 8000,8800,8888\n    seq_timeout = 5\n    command     = /opt/4rji/bin/open_http.sh\n    tcpflags    = syn\n\n[closeHTTP]\n    sequence    = 8888,8800,8000\n    seq_timeout = 5\n    command     = /opt/4rji/bin/close_http.sh\n    tcpflags    = syn\" | sudo tee -a /etc/knockd.conf"
+    },
+    "splunkforw": {
+        "name": "splunkforw",
+        "short_desc": "Instala Splunk Universal Forwarder en diferentes sistemas operativos.",
+        "detailed_desc": "curl -O https://download.splunk.com/products/universalforwarder/releases/9.4.0/linux/splunkforwarder-9.4.0-<arch>.deb\nsudo dpkg -i splunkforwarder-9.4.0-<arch>.deb"
+    },
+    "csftp": {
+        "name": "csftp",
+        "short_desc": "Establece una conexión SFTP para transferir archivos.",
+        "detailed_desc": "sftp <usuario>@<ip>:<archivo> ~"
+    },
+    "protoninicio": {
+        "name": "protoninicio",
+        "short_desc": "Configura y ejecuta OpenVPN como servicio systemd.",
+        "detailed_desc": "sudo systemctl daemon-reload\nsudo systemctl enable openvpn.service\nsudo systemctl start openvpn.service"
+    },
+    "lazyvpn": {
+        "name": "lazyvpn",
+        "short_desc": "Descarga e instala un script de configuración de OpenVPN.",
+        "detailed_desc": "wget https://git.io/vpn -O openvpn-install.sh && bash openvpn-install.sh"
+    },
+    "lazydinst": {
+        "name": "lazydinst",
+        "short_desc": "Instala lazydocker y sus dependencias.",
+        "detailed_desc": "sudo apt-get update && sudo apt-get install -y golang-go\ngit clone https://github.com/jesseduffield/lazydocker.git\ncd lazydocker\ngo install"
+    },
+    "adios": {
+        "name": "adios",
+        "short_desc": "Instala herramientas de limpieza de datos.",
+        "detailed_desc": "sudo apt-get install -y coreutils scrub\nsudo yum install -y coreutils scrub\nsudo dnf install -y coreutils scrub\nsudo pacman -S coreutils scrub"
+    },
+    "todo.bash": {
+        "name": "todo.bash",
+        "short_desc": "Busca tareas en un archivo de texto.",
+        "detailed_desc": "cat ~/.todo.txt | grep <palabra>"
+    },
+    "proceso": {
+        "name": "proceso",
+        "short_desc": "Muestra información detallada de los procesos del sistema.",
+        "detailed_desc": "ps -eo user,comm,pid"
+    },
+    "dnsleak": {
+        "name": "dnsleak",
+        "short_desc": "Prueba de fugas de DNS con soporte para interfaces específicas.",
+        "detailed_desc": "curl --interface <interface> https://bash.ws/dnsleak\nping -I <interface> bash.ws"
+    },
+    "nviminst": {
+        "name": "nviminst",
+        "short_desc": "Instala Neovim y sus dependencias desde el código fuente.",
+        "detailed_desc": "sudo apt install ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen -y\ngit clone https://github.com/neovim/neovim\ncd neovim\nmake CMAKE_BUILD_TYPE=Release\nsudo make install\ngit clone https://github.com/NvChad/starter ~/.config/nvim"
+    },
+    "ccssh": {
+        "name": "ccssh",
+        "short_desc": "Establece conexión SSH con verificación de permisos.",
+        "detailed_desc": "ssh -p <puerto> <usuario>@<ip>"
+    },
+    "batfzf": {
+        "name": "batfzf",
+        "short_desc": "Configura bat, fzf, thefuck y zoxide con temas personalizados.",
+        "detailed_desc": "mkdir -p ~/.config/bat/themes\ncurl -O https://raw.githubusercontent.com/folke/tokyonight.nvim/main/extras/sublime/tokyonight_night.tmTheme\nbat cache --build\nsudo apt install fzf thefuck zoxide\necho 'export BAT_THEME=\"tokyonight_night\"' >> ~/.zshrc\necho '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' >> ~/.zshrc\necho 'eval $(thefuck --alias fk)' >> ~/.zshrc\necho 'eval \"$(zoxide init zsh)\"' >> ~/.zshrc"
+    },
+    "qemuconsola": {
+        "name": "qemuconsola",
+        "short_desc": "Habilita y inicia el servicio de consola serial en QEMU.",
+        "detailed_desc": "sudo systemctl enable serial-getty@ttyS0.service\nsudo systemctl start serial-getty@ttyS0.service"
+    },
+    "sntp": {
+        "name": "sntp",
+        "short_desc": "Instala y configura Chrony para sincronización de tiempo.",
+        "detailed_desc": "sudo apt-get install chrony -f\nsudo systemctl restart chrony\nsudo systemctl status chrony"
+    },
+    "sweepnet": {
+        "name": "sweepnet",
+        "short_desc": "Escanea una red completa usando sweep.",
+        "detailed_desc": "sweep <ip_base>.{1..255}.{1..255}"
+    },
+    "ssa_arch": {
+        "name": "ssa_arch",
+        "short_desc": "Muestra información del sistema y controla el servicio SSH.",
+        "detailed_desc": "ssa1 > tempfile\nbatcat -l rb tempfile\nsudo systemctl stop sshd\nsudo systemctl start sshd\n/usr/sbin/ifconfig wlp0s20f3 | grep \"inet \" | awk '{print $2}'\nwhoami"
+    },
+    "pas": {
+        "name": "pas",
+        "short_desc": "Guarda el contenido del portapapeles en un archivo.",
+        "detailed_desc": "xclip -selection clipboard -o >> $htf"
+    },
+    "lsofmonitor1": {
+        "name": "lsofmonitor1",
+        "short_desc": "Monitorea nuevas conexiones de red usando lsof.",
+        "detailed_desc": "lsof -i -P -n | awk 'NR==1 || !seen[$0]++' > /tmp/conexiones_actuales\ncomm -13 /tmp/conexiones_previas /tmp/conexiones_actuales"
+    },
+    "pingz": {
+        "name": "pingz",
+        "short_desc": "Monitorea el estado de hosts definidos en el archivo de configuración SSH.",
+        "detailed_desc": "ping -c 1 <host>\nssh -p <puerto> <host>"
+    },
+    "hashf": {
+        "name": "hashf",
+        "short_desc": "Monitorea y verifica hashes de archivos en un directorio.",
+        "detailed_desc": "sudo touch /var/log/<directorio>_reports.txt /var/log/<directorio>_history.txt\nsudo chown root:root /var/log/<directorio>_reports.txt /var/log/<directorio>_history.txt\nsudo chmod 644 /var/log/<directorio>_reports.txt /var/log/<directorio>_history.txt"
+    },
+    "todou": {
+        "name": "todou",
+        "short_desc": "Actualiza y formatea la lista de alias del sistema.",
+        "detailed_desc": "sudo apt-get install -y bsdmainutils\ncp ~/.zshrc /tmp/\ngrep '^alias' /tmp/.zshrc > /tmp/list.txt\nsed -i 's/^[^ ]* //' /tmp/list.txt\nsed -i 's/ *= */=/' /tmp/list.txt\ncolumn -t -s \"=\" /tmp/list.txt > /tmp/lists.txt\nmv /tmp/lists.txt ~/.aliaseses.md"
+    },
+    "herrabinm": {
+        "name": "herrabinm",
+        "short_desc": "Descarga y actualiza los binarios de bina.",
+        "detailed_desc": "mktemp -d \"/tmp/tmp.bina.XXXXXX\"\ngit clone --depth 1 https://github.com/4rji/bina.git\ncd bina\nsudo cp -a binarios/* /opt/4rji/bin"
+    },
+    "firefoxephemeral": {
+        "name": "firefoxephemeral",
+        "short_desc": "Configura Firefox con perfiles efímeros y soporte multilingüe.",
+        "detailed_desc": "mkdir -p /tmp/fx-profile\necho \"user_pref('intl.accept_languages', '<lang_code>,en');\nuser_pref('general.useragent.locale', '<lang_code>');\nuser_pref('intl.locale.requested', '<lang_code>');\" > /tmp/fx-profile/user.js"
+    },
+    "s1pinst": {
+        "name": "s1pinst",
+        "short_desc": "Instala Docker y verifica la instalación.",
+        "detailed_desc": "sudo apt-get install -y docker.io\nsudo yum install -y docker\nsudo dnf install -y docker\nsudo pacman -S docker"
+    },
+    "pings": {
+        "name": "pings",
+        "short_desc": "Monitorea el estado de hosts definidos en el archivo de configuración SSH.",
+        "detailed_desc": "ping -c 1 <host>"
     }
 }
