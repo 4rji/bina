@@ -238,8 +238,7 @@
         "short_desc": "Monitorea el estado de hosts definidos en el archivo de configuración SSH.",
         "detailed_desc": "ping -c 1 <host>"
     },
-    {
-        "name": "aaron",
+    "name": "aaron",
         "short_desc": "Proporciona instrucciones para ejecutar el exploit DirtyPipe (CVE-2022-0847).",
         "detailed_desc": "Este script muestra los pasos necesarios para explotar la vulnerabilidad DirtyPipe (CVE-2022-0847) para escalar privilegios en sistemas Linux vulnerables. Incluye instrucciones para compilar y ejecutar el exploit, así como las credenciales para acceder como root."
     }

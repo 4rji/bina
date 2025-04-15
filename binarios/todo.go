@@ -351,9 +351,8 @@ func getCombinedScripts(readmePath, binDir string) ([]Script, error) {
 func main() {
 	// Clear screen
 	fmt.Print("\033[H\033[2J")
-	
 	fmt.Printf("%sStarting program...%s\n", ColorCyan, ColorReset)
-	
+
 	descriptions, err := loadDescriptions()
 	if err != nil {
 		fmt.Printf("%sError reading descriptions.json: %v%s\n", ColorRed, err, ColorReset)
