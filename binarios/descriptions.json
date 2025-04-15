@@ -2,7 +2,7 @@
     "decoyfile": {
         "name": "decoyfile",
         "short_desc": "Recopila metadatos de archivos para crear señuelos de tiempos de acceso.",
-        "detailed_desc": "Este script solicita al usuario la ruta de un archivo, obtiene sus marcas de tiempo (creación, modificación y acceso) en formato legible y las agrega a un archivo de registro.\n\nUso: agregararchivo\n\nEl proceso:\n1. Solicita al usuario la ruta del archivo a analizar\n2. Extrae las marcas de tiempo (creación, modificación y acceso) del archivo\n3. Formatea las fechas de manera legible\n4. Guarda esta información en /opt/decoys/decoys.txt\n5. Crea automáticamente el directorio de destino si no existe\n\nÚtil para análisis forense y creación de señuelos con marcas de tiempo específicas."
+        "detailed_desc": "Este script solicita al usuario la ruta de un archivo, obtiene sus marcas de tiempo (creación, modificación y acceso) en formato legible y las agrega a un archivo de registro.\n\nUso: agregararchivo\n\nEl proceso:\n1. Solicita al usuario la ruta del archivo a analizar\n2. Extrae las marcas de tiempo (creación, modificación y acceso) del archivo\n3. Formatea las fechas de manera legible\n4. Guarda esta información en /opt/decoys/decoys.txt\n5. Crea automáticamente el directorio de destino si no existe\n\nÚtil para análisis forense y creación de señuelos con marcas de tiempo específicas. Usar decoyfilecheck para ver si se modificó el archivo, útil para detectar si alguien cambió archivos importantes como hosts o dns."
     },
     
     "adio": {
