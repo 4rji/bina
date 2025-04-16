@@ -77,6 +77,7 @@ func loadDescriptions() (Descriptions, error) {
 	fmt.Printf("%sLoading descriptions.json...%s\n", ColorCyan, ColorReset)
 	file, err := os.Open("/opt/4rji/bin/descriptions.json")
 	if err != nil {
+		fmt.Printf("%sError opening descriptions.json: %v%s\n", ColorRed, err, ColorReset)
 		return nil, fmt.Errorf("error opening descriptions.json: %v", err)
 	}
 	defer file.Close()
@@ -84,12 +85,14 @@ func loadDescriptions() (Descriptions, error) {
 	var descriptions Descriptions
 	decoder := json.NewDecoder(file)
 	if err := decoder.Decode(&descriptions); err != nil {
+		fmt.Printf("%sError decoding descriptions.json: %v%s\n", ColorRed, err, ColorReset)
 		return nil, fmt.Errorf("error decoding descriptions.json: %v", err)
 	}
 
 	fmt.Printf("%sLoaded %d descriptions%s\n", ColorGreen, len(descriptions), ColorReset)
-	for name := range descriptions {
-		fmt.Printf("%sFound description for: %s%s\n", ColorGreen, name, ColorReset)
+	for name, desc := range descriptions {
+		fmt.Printf("%sFound description for: %s (Short: %s)%s\n", 
+			ColorGreen, name, desc.ShortDesc, ColorReset)
 	}
 	return descriptions, nil
 }
@@ -238,24 +241,7 @@ func showDetailedDescription(scriptName string, descriptions Descriptions, scrip
 	// Move cursor to top of screen
 	fmt.Print("\033[H")
 	
-	// Show README description if available
-	for _, script := range scripts {
-		if script.Name == scriptName {
-			// Center the script name
-			width := 80
-			padding := (width - len(scriptName)) / 2
-			centeredName := strings.Repeat(" ", padding) + scriptName
-			
-			fmt.Printf("%s", Dim)
-			printSeparator()
-			fmt.Printf("%s", ColorReset)
-			fmt.Printf("%s%s%s\n", ColorCyan, centeredName, ColorReset)
-			fmt.Printf("%s%s%s\n", ColorWhite, script.Desc, ColorReset)
-			break
-		}
-	}
-
-	// Show detailed description from descriptions.json
+	// Show detailed description from descriptions.json if available
 	if desc, ok := descriptions[scriptName]; ok {
 		fmt.Printf("%s", Dim)
 		printSeparator()
@@ -263,6 +249,23 @@ func showDetailedDescription(scriptName string, descriptions Descriptions, scrip
 		fmt.Printf("\n%sScript:%s %s%s%s\n", ColorYellow, ColorReset, ColorRed, scriptName, ColorReset)
 		fmt.Printf("%sShort description:%s %s%s%s\n", ColorYellow, ColorReset, ColorWhite, desc.ShortDesc, ColorReset)
 		fmt.Printf("\n%sDetailed description:%s\n%s%s%s\n", ColorYellow, ColorReset, ColorWhite, desc.DetailedDesc, ColorReset)
+	} else {
+		// Show README description if no description.json entry exists
+		for _, script := range scripts {
+			if script.Name == scriptName {
+				// Center the script name
+				width := 80
+				padding := (width - len(scriptName)) / 2
+				centeredName := strings.Repeat(" ", padding) + scriptName
+				
+				fmt.Printf("%s", Dim)
+				printSeparator()
+				fmt.Printf("%s", ColorReset)
+				fmt.Printf("%s%s%s\n", ColorCyan, centeredName, ColorReset)
+				fmt.Printf("%s%s%s\n", ColorWhite, script.Desc, ColorReset)
+				break
+			}
+		}
 	}
 	
 	// Show image only if it exists
@@ -351,11 +354,22 @@ func getCombinedScripts(readmePath, binDir string) ([]Script, error) {
 func main() {
 	// Clear screen
 	fmt.Print("\033[H\033[2J")
+	
 	fmt.Printf("%sStarting program...%s\n", ColorCyan, ColorReset)
-
+	
 	descriptions, err := loadDescriptions()
 	if err != nil {
 		fmt.Printf("%sError reading descriptions.json: %v%s\n", ColorRed, err, ColorReset)
+		descriptions = make(Descriptions) // Initialize empty map to continue
+	}
+	
+	// Verify if firefoxephemeral exists in descriptions
+	if desc, ok := descriptions["firefoxephemeral"]; ok {
+		fmt.Printf("%sFirefoxephemeral found in descriptions: %s%s\n", 
+			ColorGreen, desc.ShortDesc, ColorReset)
+	} else {
+		fmt.Printf("%sFirefoxephemeral not found in descriptions%s\n", 
+			ColorYellow, ColorReset)
 	}
 
 	scripts, err := getCombinedScripts("/opt/4rji/bin/README.md", "/opt/4rji/bin")
