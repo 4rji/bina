@@ -114,6 +114,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+
 firefoxephemeral    Cambia idioma, Crea dockerfile, y tambien el contenedor para firefox
 abrirfire           Script para linux para abrir ephemeral firefox
 abrirfirem          Este es para abrir el firefox ephemeral. tambien puede ser una app en automator 
@@ -583,9 +584,8 @@ autorecon           Ejecuta e instala autorecon con -i, funciona mejor recon, de
 pentestfm           Pentester framework con dockers
 4rjiincl            Listo de vulnerabilities con IPs, file inclusion.
 nc64d               Descarga nc64.exe para windows
-archivo             Archivebox web archive para guardar paginas web, ejecutar con -i para instalar
-archiva_link        Archiva una pagina en tmux, rapido link
-archiv              Manda una pagina al servidor archivebox por ssh
+archivebox          Archivebox web archive para guardar paginas web, ejecutar con -i para instalar
+archissh            Manda una pagina al servidor archivebox por ssh
 spiderfoot          Inicia spiderfoot, para instalar -i, funciona en Docker
 javainject          Python que injecta comandos java ascii por terminal, modifica IP en script web busqueda
 spray               Una funcion de bash que prueba una contrasena en los usuarios, necesita users archivo
@@ -613,8 +613,7 @@ listaa              Agrega un nuevo nombre a la lista apache para el servidor ap
 hosthtb             Agrega el host para paginas, toma la $ip de zsh y solo pide el host.htb por ejemplo
 galletas            Recibe cookies de session, php js xss html injection phpsessid
 ngrok               Instala ngrok para dockers, toma token de ngroktk script, conecta ssh y http. 
-archiveinst         Archivebox para guardar paginas, instaladaro. alias archive para iniciar server tmux
+
 recibepython        Para recibir archivos con curl -T desde la otra maquina, recibepython2 disponible
-archivos            Descarga desde $ip robots y cookies
 bomba               Crea procesos recursivos sin fin, - sistema es inutilizable o se cuelga
 

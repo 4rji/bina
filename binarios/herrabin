@@ -9,17 +9,19 @@ amarillo='\e[0;33m'
 # Variables para controlar el flujo
 mostrarPreguntas=false
 mostrarBina=false
+borrarBinarios=false
 
 # Función para mostrar el uso del script
 mostrar_uso() {
-    echo "Uso: $0 [-p] [-a]"
+    echo "Uso: $0 [-p] [-a] [-c]"
     echo "  -p    Mostrar únicamente las preguntas interactivas."
     echo "  -a    Ejecutar todo el script (descargar bina y mostrar preguntas)."
+    echo "  -c    Preguntar y, de confirmarse, borrar todos los archivos de /opt/4rji/bin/*."
     exit 1
 }
 
-# Verificar las opciones -p y -a
-while getopts "pa" opt; do
+# Verificar las opciones -p, -a y -c
+while getopts "pac" opt; do
     case $opt in
         p)
             mostrarPreguntas=true
@@ -27,6 +29,9 @@ while getopts "pa" opt; do
         a)
             mostrarPreguntas=true
             mostrarBina=true
+            ;;
+        c)
+            borrarBinarios=true
             ;;
         \?)
             echo "Opción inválida: -$OPTARG" >&2
@@ -67,6 +72,25 @@ descargar_bina() {
     echo ""
 }
 
+# Función para borrar todos los archivos en /opt/4rji/bin/*
+borrar_archivos() {
+    read -n1 -p "$(echo -e ${amarillo}'¿Quieres borrar todos los archivos de /opt/4rji/bin/*? (y/N): '${reset})" respuesta_borrar
+    echo ""
+    respuesta_borrar=$(echo "$respuesta_borrar" | tr '[:upper:]' '[:lower:]')
+    if [[ "$respuesta_borrar" == "y" ]]; then
+        sudo rm -rf /opt/4rji/bin/*
+        echo -e "${verde}Archivos borrados con éxito en /opt/4rji/bin/*${reset}"
+    else
+        echo "Operación cancelada."
+    fi
+}
+
+# Si se activa la opción -c, ejecutar la función y salir
+if [[ $borrarBinarios == true ]]; then
+    borrar_archivos
+    exit 0
+fi
+
 # Ejecutar descarga de bina si corresponde
 if [[ $mostrarBina == true || ( $mostrarBina == false && $mostrarPreguntas == false ) ]]; then
     descargar_bina
@@ -95,7 +119,6 @@ if [[ $mostrarPreguntas == true || $mostrarBina == true ]]; then
     echo "_________________________________________________________"
     echo ""
 
-    
     # Pregunta al usuario
     read -n1 -p "$(echo -e ${verde}'¿Instalar todos los alias? (s/N): '${reset})" respuesta
     echo ""
