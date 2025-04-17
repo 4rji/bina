@@ -291,6 +291,12 @@
         "name": "archissh",
         "short_desc": "Archiva páginas web remotamente usando ArchiveBox a través de SSH.",
         "detailed_desc": "Este script permite archivar páginas web de forma remota usando ArchiveBox a través de una conexión SSH. Requiere configurar la variable de entorno 'archiveserv' con el usuario y host del servidor remoto.\n\nUso:\n1. Configura la variable de entorno archiveserv en ~/.zshrc\n2. Ejecuta el script y proporciona:\n   - URL de la página web a archivar\n   - Profundidad de rastreo (0-3+ niveles)\n   - Contraseña sudo del servidor remoto\n\nEl script:\n- Agrega automáticamente 'https://' si es necesario\n- Ejecuta ArchiveBox en el servidor remoto usando Docker\n- Permite controlar la profundidad del rastreo\n- Muestra el comando ejecutado para transparencia"
+    },
+    
+    "abrireph-ext-file": {
+        "name": "abrireph-ext-file",
+        "short_desc": "Extrae un archivo específico de un contenedor Docker en ejecución con instrucciones guiadas",
+        "detailed_desc": "Este script permite extraer archivos específicos de contenedores Docker en ejecución de manera interactiva.\n\nEl proceso:\n1. Muestra los contenedores Docker en ejecución\n2. Solicita al usuario seleccionar un contenedor por ID o nombre\n3. Pide el nombre del archivo a buscar\n4. Busca el archivo en el contenedor seleccionado\n5. Solicita la ruta completa del archivo a copiar\n6. Pide la ruta de destino en el host (por defecto el directorio actual)\n7. Copia el archivo del contenedor al host\n\nComandos utilizados:\n- docker ps\n- docker exec -it $container find / -type f -iname \"*$filename*\" 2>/dev/null\n- docker cp $container:$filepath $hostpath"
     }
 }
 
