@@ -285,5 +285,12 @@
         "name": "aaron",
         "short_desc": "Proporciona instrucciones para ejecutar el exploit DirtyPipe (CVE-2022-0847).",
         "detailed_desc": "Este script muestra los pasos necesarios para explotar la vulnerabilidad DirtyPipe (CVE-2022-0847) para escalar privilegios en sistemas Linux vulnerables. Incluye instrucciones para compilar y ejecutar el exploit, así como las credenciales para acceder como root."
+    },
+    
+    "archissh": {
+        "name": "archissh",
+        "short_desc": "Archiva páginas web remotamente usando ArchiveBox a través de SSH.",
+        "detailed_desc": "Este script permite archivar páginas web de forma remota usando ArchiveBox a través de una conexión SSH. Requiere configurar la variable de entorno 'archiveserv' con el usuario y host del servidor remoto.\n\nUso:\n1. Configura la variable de entorno archiveserv en ~/.zshrc\n2. Ejecuta el script y proporciona:\n   - URL de la página web a archivar\n   - Profundidad de rastreo (0-3+ niveles)\n   - Contraseña sudo del servidor remoto\n\nEl script:\n- Agrega automáticamente 'https://' si es necesario\n- Ejecuta ArchiveBox en el servidor remoto usando Docker\n- Permite controlar la profundidad del rastreo\n- Muestra el comando ejecutado para transparencia"
     }
 }
+

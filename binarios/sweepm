@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+clear
+printf '\033[34mPerforms ARP and ping scan, shows both scans. To avoid ARP scan, run with -a\033[0m\n\n'
+
+# brew package
+if ! brew list arp-scan &>/dev/null; then
+  echo "Installing arp-scan..."
+  brew install arp-scan
+fi
+
+# list interfaces on macOS
+show_interfaces() {
+  networksetup -listallhardwareports | awk '
+    /Hardware Port/ {port=$3}
+    /Device/ {
+      dev=$2
+      cmd="ipconfig getifaddr " dev
+      cmd | getline ip; close(cmd)
+      if (ip) print dev ":" ip
+    }
+  '
+}
+
+# parse -a
+auto_arp=false
+while getopts "a" opt; do
+  [[ $opt == a ]] && auto_arp=true
+done
+
+# load interfaces into array
+interfaces=()
+while IFS= read -r line; do
+  interfaces+=("$line")
+done <<< "$(show_interfaces)"
+
+if [ ${#interfaces[@]} -eq 0 ]; then
+  echo "No active interfaces found."; exit 1
+fi
+
+if [ ${#interfaces[@]} -gt 1 ]; then
+  echo "Available interfaces and IPs:"
+  for i in "${!interfaces[@]}"; do
+    iface=${interfaces[$i]%%:*}
+    ip=${interfaces[$i]#*:}
+    echo "$((i+1)) - $iface, $ip"
+  done
+  read -p $'\033[1;33mSelect interface number: \033[0m' sel
+  idx=$((sel-1))
+else
+  idx=0
+fi
+
+iface=${interfaces[$idx]%%:*}
+selected_ip=${interfaces[$idx]#*:}
+subnet=${selected_ip%.*}
+
+if ! $auto_arp; then
+  printf '\n\033[1;32mRunning ARP scan on %s …\033[0m\n\n' "$iface"
+  sudo arp-scan -I "$iface" --localnet
+fi
+
+printf '\n\033[1;34m_________________________________________________________\033[0m\n\n'
+tempfile=$(mktemp)
+
+# broadcast ping on macOS (no -b)
+sudo ping -c3 "${subnet}.255" &>/dev/null
+
+# collect ARP table entries in subnet
+arp -a | awk -v s="$subnet." '
+  $2 ~ "\\("s"[0-9]+\\)" {
+    gsub(/[()]/,"",$2)
+    print $2
+  }
+' > "$tempfile"
+
+echo "Ping+ARP scan results:"
+count=1
+while read -r ip; do
+  host=""
+  [[ -f ~/.ssh/config ]] && host=$(grep -B1 "$ip" ~/.ssh/config | awk '/Host /{print $2}')
+  [[ $host ]] && echo "$count- $ip - $host" || echo "$count- $ip - Host name not found"
+  ((count++))
+done < "$tempfile"
+
+printf '\n\033[1;34m_________________________________________________________\033[0m\n\n'
+read -n1 -p $'\033[1;33mSave IPs to sweepIPs? [N/s]: \033[0m' resp; echo
+[[ $resp =~ [sS] ]] && cp "$tempfile" sweepIPs && echo "Saved." || echo "Not saved."
+
+printf '\n\033[1;34m_________________________________________________________\033[0m\n\n'
+read -p "Which number to nmap/expo scan? " sel
+ip_to_scan=$(sed "${sel}q;d" "$tempfile")
+read -n1 -p $'\033[1;33mExecute expo to IP? [Y/n]: \033[0m' exec; echo
+if [[ $exec =~ ^[Yy]$ || -z $exec ]]; then
+  expo "$ip_to_scan"
+else
+  echo "Expo not executed."
+fi
+
+rm "$tempfile"
+printf '\n\033[1;33m*** Script assumes /24 ***\033[0m\n\n'
+
+read -n1 -p $'\033[1;33mSearch ARP table for MAC/OUI? [Y/n]: \033[0m' sm; echo
+if [[ $sm =~ ^[Yy]$ || -z $sm ]]; then
+  read -p $'\033[1;33mEnter pattern to search: \033[0m' pattern
+  arp -a | grep -i "$pattern"
+fi
