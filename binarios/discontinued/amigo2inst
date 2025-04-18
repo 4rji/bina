@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+curl -fsSL https://ollama.com/install.sh | sh
+
+ollama run deepseek-coder-v2
+
+#ollama run llama3.1:70b
+#ollama run deepseek-coder-v2:16b
