@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo -e "${CYAN}Listing running Docker containers...${NC}"
+docker ps
+
+echo ""
+read -p "$(echo -e ${YELLOW}"Enter the CONTAINER ID or NAME: "${NC})" container
+read -p "$(echo -e ${YELLOW}"Enter the name of the file to search (e.g., incident.docx): "${NC})" filename
+
+echo -e "${CYAN}Searching for '${filename}' in container ${container}...${NC}"
+docker exec -it "$container" find / -type f -iname "*${filename}*" 2>/dev/null
+
+echo ""
+read -p "$(echo -e ${YELLOW}"Enter the full path of the file to copy: "${NC})" filepath
+read -p "$(echo -e ${YELLOW}"Enter destination path on host (default is current dir): "${NC})" hostpath
+
+if [ -z "$hostpath" ]; then
+  hostpath="."
+fi
+
+echo -e "${CYAN}Copying file from container to host...${NC}"
+docker cp "$container":"$filepath" "$hostpath"
+
+echo ""
+echo -e "${GREEN}File copied successfully!${NC}"
+echo -e "${CYAN}Command used:${NC}"
+echo -e "${YELLOW}docker cp $container:$filepath $hostpath${NC}"

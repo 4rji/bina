@@ -4,7 +4,8 @@
 if [ -z "$archiveserv" ]; then
     echo -e "\033[31mError: The 'archiveserv' environment variable is not set.\033[0m"
     echo "Please add the following line to your ~/.zshrc file:"
-    echo "export archiveserv='username@ip_or_hostname'"
+    echo "export archiveserv=username@ip_or_hostname"
+    echo "export archiveserv=kali-cdmx"
     exit 1
 fi
 
@@ -16,16 +17,31 @@ if [[ $webpage != https://* ]]; then
     webpage="https://$webpage"
 fi
 
+# Prompt for crawl depth with options
+echo ""
+echo "Select crawl depth:"
+echo "0 - Only the page itself (default)"
+echo "1 - Follow links from the page (1 level deep)"
+echo "2 - Go 2 levels deep"
+echo "3+ - Go deeper (may take a long time)"
+read -p "Enter a number (default is 0): " depth
+depth=${depth:-0}
+
 # Prompt for the sudo password (input will be hidden)
 read -sp "Enter your sudo password: " sudo_password
 echo ""
 
 # Build the command to be executed on the remote server
-remote_command="cd ~/archivebox && echo '$sudo_password' | sudo -S docker-compose run archivebox add --depth=0 $webpage"
+remote_command="cd ~/archivebox && echo '$sudo_password' | sudo -S docker-compose run archivebox add --depth=$depth $webpage"
 
 # Display the command being executed
 echo "Executing the following command on server \$archiveserv ($archiveserv):"
 echo "$remote_command"
 
 # Run the command on the remote server via SSH
-ssh "$archiveserv" "$remote_command"
+ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no "$archiveserv" "$remote_command"
+
+# Final echo of the command
+echo ""
+echo "Remote command executed:"
+echo "$remote_command"
