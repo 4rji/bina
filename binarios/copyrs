@@ -1,21 +1,27 @@
 #!/usr/bin/env bash
 
+# Colores ANSI
+BLUE="\033[1;34m"
+GREEN="\033[1;32m"
+YELLOW="\033[1;33m"
+RED="\033[1;31m"
+RESET="\033[0m"
+BOLD="\033[1m"
+
 echo
-echo "============================================================"
+echo -e "${BOLD}${YELLOW}============================================================"
 echo "                       File Transfer                        "
-echo "============================================================"
+echo -e "============================================================${RESET}"
 echo
 
 # Check if a file name is provided as an argument
 if [ "$#" -ne 1 ]; then
-    echo "Usage: $0 filename"
+    echo -e "${RED}Usage: $0 filename${RESET}"
     echo ""
     exit 1
 fi
 
-# The file to be transferred
 FILE=$1
-
 echo ""
 
 CONFIG_FILE="$HOME/.ssh/config"
@@ -23,21 +29,19 @@ declare -A host_user_map
 declare -A host_ip_map
 declare -A host_port_map
 
-# Check if SSH config file exists
 if [[ ! -f "$CONFIG_FILE" ]]; then
-    echo "SSH configuration file does not exist."
+    echo -e "${RED}SSH configuration file does not exist.${RESET}"
     echo ""
     exit 1
 fi
 
-# Read hosts, usernames, hostnames, and ports from SSH config file
 current_host=""
 while IFS= read -r line || [[ -n "$line" ]]; do
-    line="$(echo "$line" | sed 's/^\s*//;s/\s*$//')" # Trim leading and trailing whitespace
+    line="$(echo "$line" | sed 's/^\s*//;s/\s*$//')"
     if [[ $line =~ ^Host\ +([^*]+)$ ]]; then
         current_host=${BASH_REMATCH[1]}
     elif [[ -z "$line" ]]; then
-        current_host="" # Reset current_host on empty line
+        current_host=""
     elif [[ $current_host != "" ]]; then
         if [[ $line =~ ^User\ +(.+)$ ]]; then
             host_user_map["$current_host"]=${BASH_REMATCH[1]}
@@ -50,26 +54,23 @@ while IFS= read -r line || [[ -n "$line" ]]; do
 done < "$CONFIG_FILE"
 
 if [ ${#host_user_map[@]} -eq 0 ]; then
-    echo "No hosts found in the SSH configuration file."
+    echo -e "${RED}No hosts found in the SSH configuration file.${RESET}"
     exit 1
 fi
 
-# Prepare a list of available hosts for fzf
 available_hosts=$(printf "%s\n" "${!host_user_map[@]}")
 
-# Display the list of available hosts in a numbered format
 if [[ -z "$available_hosts" ]]; then
-    echo "Error: No hosts available for selection."
+    echo -e "${RED}Error: No hosts available for selection.${RESET}"
     exit 1
 fi
 
-# Print the available hosts in a two-column format
+echo -e "${BLUE}${BOLD}Available hosts for transfer:${RESET}"
 counter=1
 columns=2
 column_width=30
-echo "Available hosts for transfer:"
 for host in "${!host_user_map[@]}"; do
-    printf "%-${column_width}s" "$counter) $host"
+    printf "${BLUE}%2d)${RESET} ${GREEN}%-${column_width}s${RESET}" "$counter" "$host"
     if (( counter % columns == 0 )); then
         echo ""
     fi
@@ -79,38 +80,35 @@ if (( (counter - 1) % columns != 0 )); then
     echo ""
 fi
 
-# Check if fzf is installed
 if ! command -v fzf >/dev/null 2>&1; then
-    echo "Error: fzf is not installed. Please install fzf to use interactive host selection."
+    echo -e "${RED}Error: fzf is not installed. Please install fzf to use interactive host selection.${RESET}"
     exit 1
 fi
 
-# Use fzf for interactive host selection
 host_choice=$(echo "$available_hosts" | fzf --prompt="Select host: ")
 if [[ -z "$host_choice" ]]; then
-    echo "No host selected. Exiting."
+    echo -e "${YELLOW}No host selected. Exiting.${RESET}"
     exit 1
 fi
 
-echo "You have selected: $host_choice"
+echo -e "${GREEN}You have selected: $host_choice${RESET}"
 
 USER="${host_user_map[$host_choice]}"
 IP="${host_ip_map[$host_choice]}"
-PORT="${host_port_map[$host_choice]:-22}" # Default to port 22 if not specified
+PORT="${host_port_map[$host_choice]:-22}"
 
 DESTINATION="$USER@$IP"
 
-echo "------------------------------------------------------------"
+echo -e "${BOLD}------------------------------------------------------------${RESET}"
 echo ""
-echo "Transferring '$FILE' to $DESTINATION  "
-echo "rsync -avz --progress -e "ssh -p $PORT" $FILE $DESTINATION:~/"
+echo -e "${GREEN}Transferring '${FILE}' to ${DESTINATION}${RESET}"
+echo -e "${YELLOW}rsync -avz --progress -e \"ssh -p $PORT\" $FILE $DESTINATION:~/${RESET}"
 echo ""
-echo "------------------------------------------------------------"
+echo -e "${BOLD}------------------------------------------------------------${RESET}"
 echo ""
 
-# Execute rsync command
-rsync -avz --progress -e "ssh -p $PORT" $FILE $DESTINATION:~/
+rsync -avz --progress -e "ssh -p $PORT" "$FILE" "$DESTINATION:~/"
 
 echo ""
-echo "-----------------------------------------------------"
+echo -e "${BOLD}-----------------------------------------------------${RESET}"
 echo ""
