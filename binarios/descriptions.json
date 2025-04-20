@@ -297,6 +297,11 @@
         "name": "abrireph-ext-file",
         "short_desc": "Extrae un archivo específico de un contenedor Docker en ejecución con instrucciones guiadas",
         "detailed_desc": "Este script permite extraer archivos específicos de contenedores Docker en ejecución de manera interactiva.\n\nEl proceso:\n1. Muestra los contenedores Docker en ejecución\n2. Solicita al usuario seleccionar un contenedor por ID o nombre\n3. Pide el nombre del archivo a buscar\n4. Busca el archivo en el contenedor seleccionado\n5. Solicita la ruta completa del archivo a copiar\n6. Pide la ruta de destino en el host (por defecto el directorio actual)\n7. Copia el archivo del contenedor al host\n\nComandos utilizados:\n- docker ps\n- docker exec -it $container find / -type f -iname \"*$filename*\" 2>/dev/null\n- docker cp $container:$filepath $hostpath"
+    },
+    "ftpbrute": {
+        "name": "ftpbrute",
+        "short_desc": "Brute force FTP login using cURL",
+        "detailed_desc": "Usage:\nSimply run ./FTPNuker.sh target_host user_name path_to_passlist.txt\n\nThe script sends simple cURL requests with the credentials, and scans the response for successful login."
     }
 }
 

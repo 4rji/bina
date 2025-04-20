@@ -55,9 +55,11 @@ if [[ $# -lt 1 ]]; then
   done
 
   echo
-  read -p "Número de perfil [Enter = o1-mini]: " perfil
-  # si presiona Enter, por defecto o1-mini (índice 4)
-  [[ -z $perfil ]] && perfil=4
+  read -p "Número de perfil (obligatorio): " perfil
+  if [[ -z $perfil ]]; then
+    echo "Debes seleccionar un modelo." >&2
+    exit 1
+  fi
   prompt=()
 else
   perfil=$1; shift
