@@ -33,14 +33,17 @@ fi
 # Read hosts, usernames, hostnames, and ports from SSH config file
 current_host=""
 while IFS= read -r line || [[ -n "$line" ]]; do
+    line="$(echo "$line" | sed 's/^\s*//;s/\s*$//')" # Trim leading and trailing whitespace
     if [[ $line =~ ^Host\ +([^*]+)$ ]]; then
         current_host=${BASH_REMATCH[1]}
+    elif [[ -z "$line" ]]; then
+        current_host="" # Reset current_host on empty line
     elif [[ $current_host != "" ]]; then
-        if [[ $line =~ ^\ +User\ +(.+)$ ]]; then
+        if [[ $line =~ ^User\ +(.+)$ ]]; then
             host_user_map["$current_host"]=${BASH_REMATCH[1]}
-        elif [[ $line =~ ^\ +HostName\ +(.+)$ ]]; then
+        elif [[ $line =~ ^[Hh][Oo][Ss][Tt][Nn][Aa][Mm][Ee]\ +(.+)$ ]]; then
             host_ip_map["$current_host"]=${BASH_REMATCH[1]}
-        elif [[ $line =~ ^\ +Port\ +(.+)$ ]]; then
+        elif [[ $line =~ ^Port\ +(.+)$ ]]; then
             host_port_map["$current_host"]=${BASH_REMATCH[1]}
         fi
     fi
@@ -50,6 +53,15 @@ if [ ${#host_user_map[@]} -eq 0 ]; then
     echo "No hosts found in the SSH configuration file."
     exit 1
 fi
+
+# Debugging: Print the parsed host information
+for host in "${!host_user_map[@]}"; do
+    echo "Host: $host"
+    echo "  User: ${host_user_map[$host]}"
+    echo "  IP: ${host_ip_map[$host]}"
+    echo "  Port: ${host_port_map[$host]:-22}"
+    echo "----------------------------------------"
+done
 
 echo "Available hosts for transfer:"
 select host_choice in "${!host_user_map[@]}"; do
