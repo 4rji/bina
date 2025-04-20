@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 
-# Clonar y mover binarios-go a /opt/4rji/bin/
+# 1) Clona el repo y copia el contenido de binarios-go a /opt/4rji/bin/
 mktemp_dir=$(mktemp -d)
-git clone --depth 1 https://github.com/4rji/dotfiles "$mktemp_dir"
-sudo mkdir -p /opt/4rji/bin/
+git clone --depth 1 https://github.com/4rji/binarios-go.git "$mktemp_dir"
 sudo cp -r "$mktemp_dir/binarios-go/"* /opt/4rji/bin/
-rm -rf "$mktemp_dir"
 
-# Función para crear directorios temporales
+# (Opcional) Funciones para crear directorios temporales
 mktem() {
     if [ -n "$1" ]; then
         new_dir=$(mktemp -d /tmp/tmp."$1".XXXXXX)
@@ -17,46 +15,26 @@ mktem() {
     cd "$new_dir" || return
 }
 
-function mktem2() {
-    if [ -n "$1" ]; then
-        new_dir=$(mktemp -d /tmp/tmp."$1".XXXXXX)
-    else
-        new_dir=$(mktemp -d /tmp/tmp.XXXXXX)
-    fi
-    echo "Directorio creado en: $new_dir"
-    cd "$new_dir" || return
-    echo "Cambiado al directorio: $PWD"
+mktem2() {
+    mktem "$1"
+    echo "Directorio creado en: $PWD"
 }
 
-# Pregunta al usuario si desea descargar los archivos COMPRIMIDOS.
-read -p "¿Deseas descargar los comprimidos? [s/N] " respuesta
-
-# Convertir la respuesta a minúsculas
+# 2) Pregunta si quiere instalar los comprimidos
+read -p "¿Deseas descargar y descomprimir los comprimidos? [s/N] " respuesta
 respuesta=${respuesta,,}
 
-# Comprobar si la respuesta es 's'
 if [[ "$respuesta" == "s" ]]; then
-    # Crear directorio temporal
-    mktem
+    # Descomprimir directamente desde el clone en mktemp_dir
+    tar -xvf "$mktemp_dir/comprimidos.tar.xz" -C "$mktemp_dir"
 
-    # Crear el directorio destino
-    sudo mkdir -p /opt/4rji/bin/
-
-    # Descargar el repositorio
-    git clone --depth 1 https://github.com/4rji/archivos-b
-    cd archivos-b || exit
-
-    # Descomprimir el archivo
-    sudo tar -xvf comprimidos.tar.xz
-
-    # Aplicar el atributo inmutable a cada archivo en comprimidos/
-    for file in comprimidos/*; do
+    # Marcar inmutables y copiar cada archivo extraído
+    for file in "$mktemp_dir/comprimidos/"*; do
         sudo chattr +i "$file"
+        sudo cp "$file" /opt/4rji/bin/
     done
 
-    # Copiar los archivos a /opt/4rji/bin/
-    sudo cp comprimidos/* /opt/4rji/bin/
-    echo "Archivo descargado, descomprimido y marcado como inmutable con éxito."
+    echo "Comprimidos instalados y marcados como inmutables."
 else
-    echo "No se realizará ninguna descarga."
+    echo "No se realizará ninguna operación sobre los comprimidos."
 fi
