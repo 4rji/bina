@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
-# Guarda este script como "codexx" y hazlo ejecutable: chmod +x codexx
 
 # Colores ANSI
-C_NAME_CODING="\e[34m"   # Azul para modelos buenos en código
-C_NAME250="\e[36m"       # Cyan
-C_NAME25="\e[35m"        # Magenta
+C_NAME_CODING="\e[34m"
+C_NAME250="\e[36m"
+C_NAME25="\e[35m"
 C_USE="\e[32m"
 C_PRICE="\e[33m"
 C_RST="\e[0m"
@@ -33,18 +32,15 @@ MODELS=("${MODELS_2_5M[@]}" "${MODELS_250K[@]}")
 # Si no recibe args, menú interactivo
 if [[ $# -lt 1 ]]; then
   echo
-  printf "${C_BOLD}para ejecutar el modelo directamente ejecuta:${C_RST}\n"
+  printf "${C_BOLD}para ejecutar el modelo directamente:${C_RST}\n"
   printf "codexx 1  (y si quieres el prompt )\n\n"
+  printf "npm install -g @openai/codex\n\n"
 
   echo "==== Modelos (2.5M tokens/día) ===="
   for i in "${!MODELS_2_5M[@]}"; do
     idx=$((i+1))
     IFS='|' read -r name use price <<< "${MODELS_2_5M[i]}"
-    if [[ "$name" == "o1-mini" ]]; then
-      COLOR="$C_NAME_CODING"
-    else
-      COLOR="$C_NAME25"
-    fi
+    [[ "$name" == "o1-mini" ]] && COLOR="$C_NAME_CODING" || COLOR="$C_NAME25"
     printf " %2d) ${COLOR}%-16s${C_RST} ${C_USE}%-45s${C_RST} ${C_PRICE}[%s]${C_RST}\n" \
            "$idx" "$name" "$use" "$price"
   done
@@ -53,17 +49,15 @@ if [[ $# -lt 1 ]]; then
   for i in "${!MODELS_250K[@]}"; do
     idx=$((i+1+${#MODELS_2_5M[@]}))
     IFS='|' read -r name use price <<< "${MODELS_250K[i]}"
-    if [[ "$name" == "o1" || "$name" == "gpt-4.5-preview" ]]; then
-      COLOR="$C_NAME_CODING"
-    else
-      COLOR="$C_NAME250"
-    fi
+    [[ "$name" == "o1" || "$name" == "gpt-4.5-preview" ]] && COLOR="$C_NAME_CODING" || COLOR="$C_NAME250"
     printf " %2d) ${COLOR}%-16s${C_RST} ${C_USE}%-45s${C_RST} ${C_PRICE}[%s]${C_RST}\n" \
            "$idx" "$name" "$use" "$price"
   done
 
   echo
-  read -p "Número de perfil: " perfil
+  read -p "Número de perfil [Enter = o1-mini]: " perfil
+  # si presiona Enter, por defecto o1-mini (índice 4)
+  [[ -z $perfil ]] && perfil=4
   prompt=()
 else
   perfil=$1; shift
@@ -79,11 +73,34 @@ fi
 # Extrae selección
 IFS='|' read -r MODEL USE PRICE <<< "${MODELS[perfil-1]}"
 
+# Selección de flags (por defecto --full-auto y --quiet)
+DEFAULT_FLAGS=(--full-auto --quiet)
+read -p "Por defecto se usan ${DEFAULT_FLAGS[*]}. ¿Modificar? [Enter=no, s=si]: " ans
+if [[ $ans == "s" ]]; then
+  echo "Elige flags (separa con espacio):"
+  echo " 1) --full-auto"
+  echo " 2) --quiet (o -q)"
+  echo " 3) --auto-edit"
+  echo " 4) --full-stdout"
+  read -p "Número(s): " choices
+  FLAGS=()
+  for c in $choices; do
+    case $c in
+      1) FLAGS+=(--full-auto) ;;
+      2) FLAGS+=(--quiet) ;;
+      3) FLAGS+=(--auto-edit) ;;
+      4) FLAGS+=(--full-stdout) ;;
+    esac
+  done
+else
+  FLAGS=("${DEFAULT_FLAGS[@]}")
+fi
+
 # Info y ejecución
 echo -e "Modelo: ${C_NAME_CODING}$MODEL${C_RST}"
 echo -e "Uso:    ${C_USE}$USE${C_RST}"
 echo -e "Precio: ${C_PRICE}$PRICE${C_RST}"
-CMD=(codex -m "$MODEL")
+CMD=(codex -m "$MODEL" "${FLAGS[@]}")
 if (( ${#prompt[@]} > 0 )); then
   CMD+=("${prompt[@]}")
 fi
