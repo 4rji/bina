@@ -1,16 +1,14 @@
 package main
 
 import (
-	"bufio"
-	"encoding/json"
-	"fmt"
-	"os"
-	"os/exec"
-	"regexp"
-	"sort"
-	"strings"
-
-	"github.com/AlecAivazis/survey/v2"
+   "bufio"
+   "encoding/json"
+   "fmt"
+   "os"
+   "os/exec"
+   "regexp"
+   "sort"
+   "strings"
 )
 
 // ANSI color and style definitions
@@ -352,10 +350,15 @@ func getCombinedScripts(readmePath, binDir string) ([]Script, error) {
 }
 
 func main() {
-	// Clear screen
-	fmt.Print("\033[H\033[2J")
+   // Clear screen
+   fmt.Print("\033[H\033[2J")
 	
-	fmt.Printf("%sStarting program...%s\n", ColorCyan, ColorReset)
+		fmt.Printf("%sStarting program...%s\n", ColorCyan, ColorReset)
+		// Get initial search term from command line arguments (e.g. './todo ssh')
+		initialSearch := ""
+		if len(os.Args) > 1 {
+			initialSearch = strings.Join(os.Args[1:], " ")
+		}
 	
 	descriptions, err := loadDescriptions()
 	if err != nil {
@@ -383,8 +386,8 @@ func main() {
 		return
 	}
 
-	scriptChoices := formatScriptList(scripts)
-	fmt.Printf("%sCreated %d script choices%s\n", ColorGreen, len(scriptChoices), ColorReset)
+   scriptChoices := formatScriptList(scripts)
+   fmt.Printf("%sCreated %d script choices%s\n", ColorGreen, len(scriptChoices), ColorReset)
 
 	// Sort script choices alphabetically
 	sort.Slice(scriptChoices, func(i, j int) bool {
@@ -418,11 +421,6 @@ func main() {
 		return strings.ToLower(nameA) < strings.ToLower(nameB)
 	})
 
-	// Get initial search term from command line arguments
-	initialSearch := ""
-	if len(os.Args) > 1 {
-		initialSearch = strings.Join(os.Args[1:], " ")
-	}
 
 	for {
 		// Clear screen at the start of each loop
@@ -442,57 +440,43 @@ func main() {
 		
 		printFancyBox("Available Scripts", "Choose a script from the list below:")
 		
-		var selectedScript string
-		
-		// Create a custom filter function
-		filterFunc := func(filter string, value string, index int) bool {
-			// Remove all color codes and formatting
-			cleanValue := strings.ReplaceAll(value, ColorRed, "")
-			cleanValue = strings.ReplaceAll(cleanValue, ColorReset, "")
-			cleanValue = strings.ReplaceAll(cleanValue, ThemeCyan, "")
-			cleanValue = strings.ReplaceAll(cleanValue, ThemeBlue, "")
-			cleanValue = strings.ReplaceAll(cleanValue, Bold, "")
-			cleanValue = strings.ReplaceAll(cleanValue, Dim, "")
-			
-			// Split by the dot separator to get script name and description
-			parts := strings.SplitN(cleanValue, "·", 2)
-			if len(parts) < 2 {
-				return false
-			}
-			
-			// Get the script name and trim spaces
-			scriptName := strings.TrimSpace(parts[0])
-			
-			// Check if the filter matches the script name
-			return strings.Contains(strings.ToLower(scriptName), strings.ToLower(filter))
-		}
-		
-		promptScript := &survey.Select{
-			Message: fmt.Sprintf("%s%s Search:%s", Bold, ThemeCyan, ColorReset),
-			Options: scriptChoices,
-			PageSize: 15,
-			Filter: filterFunc,
-		}
-		
-		// Set initial search term if provided
-		if initialSearch != "" {
-			promptScript.FilterMessage = initialSearch
-			initialSearch = "" // Reset after first use
-		}
-		
-		err = survey.AskOne(promptScript, &selectedScript, 
-			survey.WithIcons(func(icons *survey.IconSet) {
-				icons.SelectFocus.Format = ">"
-				icons.MarkedOption.Format = "•"
-				icons.UnmarkedOption.Format = " "
-			}),
-			survey.WithStdio(os.Stdin, os.Stdout, os.Stderr),
-		)
-
-		if err != nil {
-			fmt.Printf("%sError selecting script: %v%s\n", ColorRed, err, ColorReset)
-			return
-		}
+       var selectedScript string
+       // Interactive selection via fzf; simple filter on script names only
+       fzfPath, err := exec.LookPath("fzf")
+       if err == nil {
+           args := []string{
+               "--ansi",
+               // Ctrl-U clears the query to show all scripts
+               "--bind", "ctrl-u:clear-query",
+               "--delimiter", "·",
+               "--nth", "1",
+               "--prompt", "Search> ",
+           }
+           if initialSearch != "" {
+               args = append(args, "--query", initialSearch)
+               initialSearch = ""
+           }
+           cmd := exec.Command(fzfPath, args...)
+           cmd.Stdin = strings.NewReader(strings.Join(scriptChoices, "\n"))
+           cmd.Stderr = os.Stderr
+           out, err := cmd.Output()
+           if err != nil {
+               // If user pressed Ctrl-C in fzf (exit code 130), exit program
+               if exitErr, ok := err.(*exec.ExitError); ok && exitErr.ExitCode() == 130 {
+                   os.Exit(0)
+               }
+               // Any other error or abort, restart loop
+               continue
+           }
+           selectedScript = strings.TrimRight(string(out), "\n")
+       } else {
+           // fzf not found; fallback to first choice
+           if len(scriptChoices) > 0 {
+               selectedScript = scriptChoices[0]
+           } else {
+               return
+           }
+       }
 
 		fmt.Printf("%sSelected option: '%s'%s\n", ColorCyan, selectedScript, ColorReset)
 		scriptName := getScriptName(selectedScript)
