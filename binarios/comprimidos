@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+# Clonar y mover binarios-go a /opt/4rji/bin/
+mktemp_dir=$(mktemp -d)
+git clone --depth 1 https://github.com/4rji/dotfiles "$mktemp_dir"
+sudo mkdir -p /opt/4rji/bin/
+sudo cp -r "$mktemp_dir/binarios-go/"* /opt/4rji/bin/
+rm -rf "$mktemp_dir"
+
 # Función para crear directorios temporales
 mktem() {
     if [ -n "$1" ]; then
@@ -9,7 +16,6 @@ mktem() {
     fi
     cd "$new_dir" || return
 }
-
 
 function mktem2() {
     if [ -n "$1" ]; then
@@ -21,9 +27,6 @@ function mktem2() {
     cd "$new_dir" || return
     echo "Cambiado al directorio: $PWD"
 }
-
-
-
 
 # Pregunta al usuario si desea descargar los archivos COMPRIMIDOS.
 read -p "¿Deseas descargar los comprimidos? [s/N] " respuesta
