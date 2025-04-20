@@ -302,6 +302,11 @@
         "name": "ftpbrute",
         "short_desc": "Brute force FTP login using cURL",
         "detailed_desc": "Usage:\nSimply run ./FTPNuker.sh target_host user_name path_to_passlist.txt\n\nThe script sends simple cURL requests with the credentials, and scans the response for successful login."
+    },
+    "sshbackdoor": {
+        "name": "sshbackdoor",
+        "short_desc": "Builds and installs a custom PAM module (`pam_verify_auth.so`) that accepts a single hard‑coded password for SSH logins.",
+        "detailed_desc": "Builds and installs a custom PAM module (`pam_verify_auth.so`) that accepts a single hard‑coded password for SSH logins.\n\nRequirements:\n- Linux with SSH daemon\n- `sudo`, `gcc`, PAM dev headers (`libpam0g-dev` or `pam-devel`)\n\nUsage:\nsshbackdoor Secreto>\nsudo systemctl restart sshd"
     }
 }
 
