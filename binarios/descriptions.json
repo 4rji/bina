@@ -306,7 +306,7 @@
     "sshbackdoor": {
         "name": "sshbackdoor",
           "short_desc": "Installs a PAM module for SSH using a hard‑coded password.",
-          "detailed_desc": "Builds and installs a custom PAM module (`pam_verify_auth.so`) that accepts a single hard‑coded password for SSH logins.\n\nRequirements:\n- Linux with SSH daemon\n- `sudo`, `gcc` (Debian/Ubuntu: `sudo apt-get install gcc` | RHEL/CentOS: `sudo yum install gcc`)\n- PAM development headers (Debian/Ubuntu: `sudo apt-get install libpam0g-dev` | RHEL/CentOS: `sudo yum install pam-devel`)\n\nUsage:\n  ./sshbackdoor <password>\n  sudo systemctl restart sshd"
+          "detailed_desc": "Builds and installs a custom PAM module (`pam_verify_auth.so`) that accepts a single hard‑coded password for SSH logins.\n\nRequirements:\n- Linux with SSH daemon\n- `sudo`, `gcc` (Debian/Ubuntu: `sudo apt-get install gcc` | RHEL/CentOS: `sudo yum install gcc`)\n- PAM development headers (Debian/Ubuntu: `sudo apt-get install libpam0g-dev` | RHEL/CentOS: `sudo yum install pam-devel`)\n\nUsage:\n  sshbackdoor Secret-Word\n  sudo systemctl restart sshd"
     }
 }
 
