@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# Guarda este script como "codexx" y hazlo ejecutable: chmod +x codexx
+
+# Colores ANSI
+C_NAME_CODING="\e[34m"   # Azul para modelos buenos en código
+C_NAME250="\e[36m"       # Cyan
+C_NAME25="\e[35m"        # Magenta
+C_USE="\e[32m"
+C_PRICE="\e[33m"
+C_RST="\e[0m"
+C_BOLD="\e[1m"
+
+# Catálogo: "nombre|uso|precio"
+MODELS_2_5M=(
+  "gpt-4.1-nano|Latencia baja y coste mínimo|In: \$0.10/1M • Out: \$0.40/1M"
+  "gpt-4o-mini|Razonamiento ligero y económico|In: \$0.15/1M • Out: \$0.60/1M"
+  "gpt-4.1-mini|Balance velocidad–calidad|In: \$0.40/1M • Out: \$1.60/1M"
+  "o1-mini|Versión ligera de o1-pro (mejor para coding en 2.5M)|In: \$1.10/1M • Out: \$4.40/1M"
+  "o3-mini|Versión ligera de o3|In: \$1.10/1M • Out: \$4.40/1M"
+  "o4-mini|Razonamiento rápido y cuantizado|In: \$1.10/1M • Out: \$4.40/1M"
+)
+
+MODELS_250K=(
+  "gpt-4.1|Tareas complejas y alta calidad|In: \$2.00/1M • Out: \$8.00/1M"
+  "gpt-4o|Multimodal: texto + visión|In: \$5/1M • Out: \$20/1M"
+  "o3|Razonamiento, matemáticas y visión|In: \$10/1M • Out: \$40/1M"
+  "gpt-4.5-preview|Preview avanzado GPT-4.5 (muy bueno en código)|In: \$75/1M • Out: \$150/1M"
+  "o1|Máxima potencia de razonamiento (mejor para coding)|In: \$150/1M • Out: \$600/1M"
+)
+
+MODELS=("${MODELS_2_5M[@]}" "${MODELS_250K[@]}")
+
+# Si no recibe args, menú interactivo
+if [[ $# -lt 1 ]]; then
+  echo
+  printf "${C_BOLD}para ejecutar el modelo directamente ejecuta:${C_RST}\n"
+  printf "codexx 1  (y si quieres el prompt )\n\n"
+
+  echo "==== Modelos (2.5M tokens/día) ===="
+  for i in "${!MODELS_2_5M[@]}"; do
+    idx=$((i+1))
+    IFS='|' read -r name use price <<< "${MODELS_2_5M[i]}"
+    if [[ "$name" == "o1-mini" ]]; then
+      COLOR="$C_NAME_CODING"
+    else
+      COLOR="$C_NAME25"
+    fi
+    printf " %2d) ${COLOR}%-16s${C_RST} ${C_USE}%-45s${C_RST} ${C_PRICE}[%s]${C_RST}\n" \
+           "$idx" "$name" "$use" "$price"
+  done
+
+  echo "==== Modelos (250K tokens/día) – Mejores para programación ===="
+  for i in "${!MODELS_250K[@]}"; do
+    idx=$((i+1+${#MODELS_2_5M[@]}))
+    IFS='|' read -r name use price <<< "${MODELS_250K[i]}"
+    if [[ "$name" == "o1" || "$name" == "gpt-4.5-preview" ]]; then
+      COLOR="$C_NAME_CODING"
+    else
+      COLOR="$C_NAME250"
+    fi
+    printf " %2d) ${COLOR}%-16s${C_RST} ${C_USE}%-45s${C_RST} ${C_PRICE}[%s]${C_RST}\n" \
+           "$idx" "$name" "$use" "$price"
+  done
+
+  echo
+  read -p "Número de perfil: " perfil
+  prompt=()
+else
+  perfil=$1; shift
+  prompt=("$@")
+fi
+
+# Validación
+if ! [[ $perfil =~ ^[0-9]+$ ]] || (( perfil<1 || perfil>${#MODELS[@]} )); then
+  echo "Perfil inválido: $perfil" >&2
+  exit 1
+fi
+
+# Extrae selección
+IFS='|' read -r MODEL USE PRICE <<< "${MODELS[perfil-1]}"
+
+# Info y ejecución
+echo -e "Modelo: ${C_NAME_CODING}$MODEL${C_RST}"
+echo -e "Uso:    ${C_USE}$USE${C_RST}"
+echo -e "Precio: ${C_PRICE}$PRICE${C_RST}"
+CMD=(codex -m "$MODEL")
+if (( ${#prompt[@]} > 0 )); then
+  CMD+=("${prompt[@]}")
+fi
+echo "Ejecutando: ${CMD[*]}"
+exec "${CMD[@]}"

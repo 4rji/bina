@@ -16,84 +16,15 @@ dnfrepos            Actualiza unos repos EPEL, y otros, tambien qemu se habilita
 lolcatinst          Instala gem, ruby y lolcat
 
 
-
 ###------Arch linux
 instpkg             Instala un paquete en arch makepkg -si PKGBUILD
 instermius          Instala termius en arch con yay   
-instparu            instala para y scrub para arch (debian no necesita)                                
-ssa_arch            ssa para arch linux                                                                
+instparu            instala para y scrub para arch (debian no necesita)                            
+ssa_arch            ssa para arch linux
 mackarch            Cambia la MAC de arch linux
 aliasarch           Arregla los alias en arch
 rx6800              Instala el archivo de configuracion en Arch para que funcione la GPU
 
-###------CCDC
-sshlist             Para allow en hosts
-portmonitor         Monitorea cuando un puerto se abre, puerto abierto o cerrado. 
-sshautoscript       Crea una conexion para autossh, pregunta datos y crea script
-hashf               crea script para monitorear carpetas, manda alertas wall y logs a /root/
-mapa                Busca un proceso despues del script y lo mata ps aux
-backd               Usa python para buscar backdoors, conexiones activas
-ntpinst             Instala ntp en debian10 
-dnsinst             Instala bind9 dns 
-dnsblock            usa dns bind9 - Bloquea url, dominios o redirige dns trafico a localhost 
-dnsred              Cambia un dominio a un ip redireccionando trafico en bind9
-ntpcon              Conecta el servicio ntp time
-chroncon            Conecta el servicio chrony time
-updatecentos7       Para actualizar centos7
-updatecentos7-2     otra version
-sudoup              Hace un update de sudo de la version 9.12 adelante.
-ftpinst             Instala ftp
-sftpinst            Para sftp instalador de ssh, servidor
-blockicmp           bloquea en firewall cmd
-
-fishells             busca procesos, muestra puerto, para shells, usa ps y ss
-kshells             Mata shells en el sistema
-newprocess          Nuevos procesos en linux
-snoop               Hace un awk a los logs de snoopy
-snoopinst           Instala snoopy
-ppt
-mibebemata
-psss                Escanea por conexiones lsof netstat, mi bebe mibebe
-pssc                Mismo que psss pero este las cierra en 12 segundos automaticamente mibebe
-sshmoni
-fwcom               firewall-cmd commands, comandos para manejar el firewall
-finddb              Busca una database corriendo ya sea sqlite mariadb
-python9inst         instala python 3.9 compila para yum 
-zshupdate           actualiza descargando compidor a 5.9
-passl               version SIN batcat
-pasw                version de passwd con batcat
-curlfix             Se supone arregla curl, no probado.
-sqlport             hace que mysql solo escuche en puerto 127.0.0.1:3306
-passpl              Para aplicar politicas en linux de contrasenas
-nsscheck           Verifica los ajuste de nsswitch 
-
-
-sysacc             Para ver si estan bloqueados y sus privilegios, solo usuarios con UID > 1000
-setnologin         Crea una lista con los usuarios en la home, y hace backup de passwd, modificar archivo
-setnologin2        Hace un nologin a el archivo ~/users-pw, modificarlo primero porque le hace a todos de lista
-
-
-bannerm           Hace un banner para ssh, necesita hacerlo dos veces. 
-sshbanerlogin     Mensaje bienvenida de ssh ANTES de conectarse
-sshbanerwelcome   mensaje bienvenida de ssh DESPUES de conectarse
-hardnet           modifica ipv4 y tambien ipv6
-sshhard           para ssh configuracion 
-sshlimit          Usa firewalld para limitar subredes en el sistema de ssh
-ufwloopb          Configura el loopback del firewall 
-
-netevils = apt = remove -y telnet ftp ftpd tftp talk talkd tftp tftpd
-rootcheck = checa varios archivos .bash ...
-sntp = instala chrony
-sshmod = modifica ssh y hace copia
-Bannerm2 = modifica el banner por dark
-
-
-
-#ccdclab
-vcen                Para manejar las maquinas en el vcenter desde cli linux, vmware, vcenter, server
-vcenterinst         Descarga govc para vcenter vmware, variables adentro del script. 
-mailinst            Instala mail server en fedora 21. baja archivos de conf y todo.
-redhavi             Instala vulnerabilidades en linux.
 
 #starlink
 aprender            Lista de lo que tengo que aprender.
@@ -101,8 +32,8 @@ aprender            Lista de lo que tengo que aprender.
 
 ###------hardware stuff
 bateriamonitor      Muestra los watts y el estado de carga en kali
-bateria             new script con bateria en lugar de alias                                           
-tempe               or tempe -f temperatura de arch linux y -f crea un archivo con los datos de tempe  
+bateria             new script con bateria en lugar de alias
+tempe               or tempe -f temperatura de arch linux y -f crea un archivo con los datos  
 
 #Nixos
 nixbus              Para buscar programas en linea de comando y tambien corregir bash
@@ -112,7 +43,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
-
+codexx              Muestra los modelos disponibles de codex
 firefoxephemeral    Cambia idioma, Crea dockerfile, y tambien el contenedor para firefox
 abrireph-ext-file   Extrae un archivo bajado en el docker container, hace toddo el proceso
 abrirfire           Script para linux para abrir ephemeral firefox
@@ -616,3 +547,73 @@ ngrok               Instala ngrok para dockers, toma token de ngroktk script, co
 recibepython        Para recibir archivos con curl -T desde la otra maquina, recibepython2 disponible
 bomba               Crea procesos recursivos sin fin, - sistema es inutilizable o se cuelga
 
+
+
+###------CCDC
+sshlist             Para allow en hosts
+portmonitor         Monitorea cuando un puerto se abre, puerto abierto o cerrado. 
+sshautoscript       Crea una conexion para autossh, pregunta datos y crea script
+hashf               crea script para monitorear carpetas, manda alertas wall y logs a /root/
+mapa                Busca un proceso despues del script y lo mata ps aux
+backd               Usa python para buscar backdoors, conexiones activas
+ntpinst             Instala ntp en debian10 
+dnsinst             Instala bind9 dns 
+dnsblock            usa dns bind9 - Bloquea url, dominios o redirige dns trafico a localhost 
+dnsred              Cambia un dominio a un ip redireccionando trafico en bind9
+ntpcon              Conecta el servicio ntp time
+chroncon            Conecta el servicio chrony time
+updatecentos7       Para actualizar centos7
+updatecentos7-2     otra version
+sudoup              Hace un update de sudo de la version 9.12 adelante.
+ftpinst             Instala ftp
+sftpinst            Para sftp instalador de ssh, servidor
+blockicmp           bloquea en firewall cmd
+
+fishells             busca procesos, muestra puerto, para shells, usa ps y ss
+kshells             Mata shells en el sistema
+newprocess          Nuevos procesos en linux
+snoop               Hace un awk a los logs de snoopy
+snoopinst           Instala snoopy
+ppt
+mibebemata
+psss                Escanea por conexiones lsof netstat, mi bebe mibebe
+pssc                Mismo que psss pero este las cierra en 12 segundos automaticamente mibebe
+sshmoni
+fwcom               firewall-cmd commands, comandos para manejar el firewall
+finddb              Busca una database corriendo ya sea sqlite mariadb
+python9inst         instala python 3.9 compila para yum 
+zshupdate           actualiza descargando compidor a 5.9
+passl               version SIN batcat
+pasw                version de passwd con batcat
+curlfix             Se supone arregla curl, no probado.
+sqlport             hace que mysql solo escuche en puerto 127.0.0.1:3306
+passpl              Para aplicar politicas en linux de contrasenas
+nsscheck           Verifica los ajuste de nsswitch 
+
+
+sysacc             Para ver si estan bloqueados y sus privilegios, solo usuarios con UID > 1000
+setnologin         Crea una lista con los usuarios en la home, y hace backup de passwd, modificar archivo
+setnologin2        Hace un nologin a el archivo ~/users-pw, modificarlo primero porque le hace a todos de lista
+
+
+bannerm           Hace un banner para ssh, necesita hacerlo dos veces. 
+sshbanerlogin     Mensaje bienvenida de ssh ANTES de conectarse
+sshbanerwelcome   mensaje bienvenida de ssh DESPUES de conectarse
+hardnet           modifica ipv4 y tambien ipv6
+sshhard           para ssh configuracion 
+sshlimit          Usa firewalld para limitar subredes en el sistema de ssh
+ufwloopb          Configura el loopback del firewall 
+
+netevils = apt = remove -y telnet ftp ftpd tftp talk talkd tftp tftpd
+rootcheck = checa varios archivos .bash ...
+sntp = instala chrony
+sshmod = modifica ssh y hace copia
+Bannerm2 = modifica el banner por dark
+
+
+
+#ccdclab
+vcen                Para manejar las maquinas en el vcenter desde cli linux, vmware, vcenter, server
+vcenterinst         Descarga govc para vcenter vmware, variables adentro del script. 
+mailinst            Instala mail server en fedora 21. baja archivos de conf y todo.
+redhavi             Instala vulnerabilidades en linux.
