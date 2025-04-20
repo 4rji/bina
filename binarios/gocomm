@@ -22,6 +22,6 @@ echo -e "${GREEN}go build -ldflags=\"-s -w\" -o todo todo.go${NC}"
 
 # Step 4: Compress the binary using UPX
 echo -e "${BLUE}\n=== Step 4: Compress the binary===${NC}"
-echo -e "${GREEN}upx --best --lzma todo  --force-macos ${NC}"
+echo -e "${GREEN}upx --best --lzma  --force-macos ${NC}"
 
 echo -e "${BLUE}\n=== Done ===${NC}"
