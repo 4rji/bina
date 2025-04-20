@@ -353,12 +353,12 @@ func main() {
    // Clear screen
    fmt.Print("\033[H\033[2J")
 	
-		fmt.Printf("%sStarting program...%s\n", ColorCyan, ColorReset)
-		// Get initial search term from command line arguments (e.g. './todo ssh')
-		initialSearch := ""
-		if len(os.Args) > 1 {
-			initialSearch = strings.Join(os.Args[1:], " ")
-		}
+       fmt.Printf("%sStarting program...%s\n", ColorCyan, ColorReset)
+       // Get initial search term from command line arguments (e.g. './todo ssh')
+       currentQuery := ""
+       if len(os.Args) > 1 {
+           currentQuery = strings.Join(os.Args[1:], " ")
+       }
 	
 	descriptions, err := loadDescriptions()
 	if err != nil {
@@ -448,13 +448,14 @@ func main() {
                "--ansi",
                // Ctrl-U clears the query to show all scripts
                "--bind", "ctrl-u:clear-query",
+               // Print the query to stdout before the selection
+               "--print-query",
                "--delimiter", "·",
                "--nth", "1",
                "--prompt", "Search> ",
            }
-           if initialSearch != "" {
-               args = append(args, "--query", initialSearch)
-               initialSearch = ""
+           if currentQuery != "" {
+               args = append(args, "--query", currentQuery)
            }
            cmd := exec.Command(fzfPath, args...)
            cmd.Stdin = strings.NewReader(strings.Join(scriptChoices, "\n"))
@@ -468,7 +469,15 @@ func main() {
                // Any other error or abort, restart loop
                continue
            }
-           selectedScript = strings.TrimRight(string(out), "\n")
+           // Parse query and selection from fzf output
+           outStr := string(out)
+           parts := strings.SplitN(outStr, "\n", 2)
+           currentQuery = parts[0]
+           if len(parts) > 1 {
+               selectedScript = strings.TrimRight(parts[1], "\n")
+           } else {
+               selectedScript = ""
+           }
        } else {
            // fzf not found; fallback to first choice
            if len(scriptChoices) > 0 {
