@@ -55,28 +55,26 @@ if [[ $# -lt 1 ]]; then
   done
 
   echo
-  read -p "Número de perfil (obligatorio): " perfil
-  if [[ -z $perfil ]]; then
-    echo "Debes seleccionar un modelo." >&2
-    exit 1
-  fi
+  read -p "Número de perfil [Enter = sin modelo]: " perfil
   prompt=()
 else
   perfil=$1; shift
   prompt=("$@")
 fi
 
-# Validación
-if ! [[ $perfil =~ ^[0-9]+$ ]] || (( perfil<1 || perfil>${#MODELS[@]} )); then
-  echo "Perfil inválido: $perfil" >&2
-  exit 1
+# Validación y extracción del modelo si se eligió
+USE_MODEL=false
+if [[ -n $perfil ]]; then
+  if ! [[ $perfil =~ ^[0-9]+$ ]] || (( perfil<1 || perfil>${#MODELS[@]} )); then
+    echo "Perfil inválido: $perfil" >&2
+    exit 1
+  fi
+  IFS='|' read -r MODEL USE PRICE <<< "${MODELS[perfil-1]}"
+  USE_MODEL=true
 fi
 
-# Extrae selección
-IFS='|' read -r MODEL USE PRICE <<< "${MODELS[perfil-1]}"
-
-# Selección de flags (por defecto --full-auto y --quiet)
-DEFAULT_FLAGS=(--full-auto --quiet)
+# Selección de flags
+DEFAULT_FLAGS=(--full-auto )
 read -p "Por defecto se usan ${DEFAULT_FLAGS[*]}. ¿Modificar? [Enter=no, s=si]: " ans
 if [[ $ans == "s" ]]; then
   echo "Elige flags (separa con espacio):"
@@ -99,12 +97,19 @@ else
 fi
 
 # Info y ejecución
-echo -e "Modelo: ${C_NAME_CODING}$MODEL${C_RST}"
-echo -e "Uso:    ${C_USE}$USE${C_RST}"
-echo -e "Precio: ${C_PRICE}$PRICE${C_RST}"
-CMD=(codex -m "$MODEL" "${FLAGS[@]}")
+if $USE_MODEL; then
+  echo -e "Modelo: ${C_NAME_CODING}$MODEL${C_RST}"
+  echo -e "Uso:    ${C_USE}$USE${C_RST}"
+  echo -e "Precio: ${C_PRICE}$PRICE${C_RST}"
+  CMD=(codex -m "$MODEL" "${FLAGS[@]}")
+else
+  echo -e "${C_BOLD}Ejecutando sin modelo (-m)${C_RST}"
+  CMD=(codex "${FLAGS[@]}")
+fi
+
 if (( ${#prompt[@]} > 0 )); then
   CMD+=("${prompt[@]}")
 fi
+
 echo "Ejecutando: ${CMD[*]}"
 exec "${CMD[@]}"
