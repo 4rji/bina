@@ -308,10 +308,15 @@
           "short_desc": "Installs a PAM module for SSH using a hard‑coded password.",
           "detailed_desc": "Builds and installs a custom PAM module (`pam_verify_auth.so`) that accepts a single hard‑coded password for SSH logins.\n\nRequirements:\n- Linux with SSH daemon\n- `sudo`, `gcc` (Debian/Ubuntu: `sudo apt-get install gcc` | RHEL/CentOS: `sudo yum install gcc`)\n- PAM development headers (Debian/Ubuntu: `sudo apt-get install libpam0g-dev` | RHEL/CentOS: `sudo yum install pam-devel`)\n\nUsage:\n  sshbackdoor Secret-Word\n  sudo systemctl restart sshd"
     },
-    "nsscheck": {
-        "name": "nsscheck",
-        "short_desc": "Diagnoses and ensures correct configuration of /etc/nsswitch.conf.",
-        "detailed_desc": "This script is a diagnostic tool to ensure that the /etc/nsswitch.conf file is correctly configured, avoiding potential issues in system service resolution.\n\nUsage instructions:\n1. Run the script without arguments.\n2. It checks the existence of the /etc/nsswitch.conf file.\n3. Reads the file line by line, ignoring comments and empty lines.\n4. Validates common configurations like 'passwd', 'group', 'hosts', etc., ensuring they only contain valid options.\n5. Reports any suspicious configurations for review.\n\nExample:\n./nsscheck\n\nOutput:\n- Highlights any suspicious configurations in the file.\n- Suggests valid options for correction."
+    "dnsblock": {
+        "name": "dnsblock",
+        "short_desc": "Bloquea dominios en un servidor DNS usando BIND9.",
+        "detailed_desc": "Este script automatiza el bloqueo de dominios en un servidor DNS configurado con BIND9.\n\nUso: ./dnsblock <archivo_dominios.txt>\n\nEl proceso:\n1. Verifica y crea los archivos necesarios (archivo de dominios, archivo de zona y configuración de BIND9).\n2. Procesa cada dominio en el archivo proporcionado, añadiéndolo a la configuración si no está bloqueado.\n3. Permite agregar nuevos dominios manualmente.\n4. Recarga la configuración de BIND9 para aplicar los cambios.\n\nÚtil para gestionar listas de bloqueo de dominios de manera eficiente en servidores DNS."
+    },
+    "cpng": {
+        "name": "cpng",
+        "short_desc": "Convierte imágenes .webp a .png de forma individual o masiva.",
+        "detailed_desc": "Este script convierte imágenes en formato .webp a .png utilizando ImageMagick.\n\nUso:\n1. Para convertir una imagen específica: cpng <archivo.webp>\n2. Para convertir todas las imágenes .webp en el directorio actual: cpng\n\nEl proceso:\n- Si se proporciona un archivo como argumento, verifica su existencia y lo convierte a .png.\n- Si no se proporcionan argumentos, busca todas las imágenes .webp en el directorio actual y las convierte a .png.\n\nRequiere tener instalado ImageMagick."
     }
 }
 
