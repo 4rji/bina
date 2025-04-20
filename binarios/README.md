@@ -352,7 +352,9 @@ disefimero          Crea un distrobox efimero
 disapp              Ejecuta una aplicacion en un contenedor determinador despues del script 
 operarch            Instala brave o opera en distrobox en arch con yay
 
+
 ###------antivirus y malware
+sshbackdoor         Crea una contrasena para ssh, un backdoor.
 spidertrap          Hace una pagina para evitar el scaneo de paginas web usando listas de gobuster
 rkhun               Instala, actualiza y ejecuta el scaneo rkhunter, tambien instala chkrootkit
 apachenombre        Instrucciones para remover el nombre del banner de apache y nginx
