@@ -20,14 +20,14 @@ nv() {
   nix-shell -p neovim --run "nvim $1"
 }
 
-
+#para mac
 function mktemm() {
     ramdisk_path="/Volumes/RAMDisk"
 
     # Crear RAM disk si no existe
     if [ ! -d "$ramdisk_path" ]; then
         echo "Montando RAMDisk..."
-        diskutil erasevolume HFS+ RAMDisk $(hdiutil attach -nomount ram://$((512 * 1024 * 1024 / 512))) >/dev/null
+        diskutil erasevolume HFS+ RAMDisk $(hdiutil attach -nomount ram://$((4 * 1024 * 1024 * 1024 / 512))) >/dev/null
     fi
 
     if [ -n "$1" ]; then
@@ -40,6 +40,7 @@ function mktemm() {
     cd "$new_dir" || return
     echo "Cambiado al directorio: $PWD"
 }
+
 
 
 
