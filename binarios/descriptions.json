@@ -307,6 +307,11 @@
         "name": "sshbackdoor",
           "short_desc": "Installs a PAM module for SSH using a hard‑coded password.",
           "detailed_desc": "Builds and installs a custom PAM module (`pam_verify_auth.so`) that accepts a single hard‑coded password for SSH logins.\n\nRequirements:\n- Linux with SSH daemon\n- `sudo`, `gcc` (Debian/Ubuntu: `sudo apt-get install gcc` | RHEL/CentOS: `sudo yum install gcc`)\n- PAM development headers (Debian/Ubuntu: `sudo apt-get install libpam0g-dev` | RHEL/CentOS: `sudo yum install pam-devel`)\n\nUsage:\n  sshbackdoor Secret-Word\n  sudo systemctl restart sshd"
+    },
+    "nsscheck": {
+        "name": "nsscheck",
+        "short_desc": "Diagnoses and ensures correct configuration of /etc/nsswitch.conf.",
+        "detailed_desc": "This script is a diagnostic tool to ensure that the /etc/nsswitch.conf file is correctly configured, avoiding potential issues in system service resolution.\n\nUsage instructions:\n1. Run the script without arguments.\n2. It checks the existence of the /etc/nsswitch.conf file.\n3. Reads the file line by line, ignoring comments and empty lines.\n4. Validates common configurations like 'passwd', 'group', 'hosts', etc., ensuring they only contain valid options.\n5. Reports any suspicious configurations for review.\n\nExample:\n./nsscheck\n\nOutput:\n- Highlights any suspicious configurations in the file.\n- Suggests valid options for correction."
     }
 }
 
