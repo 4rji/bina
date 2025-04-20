@@ -54,24 +54,45 @@ if [ ${#host_user_map[@]} -eq 0 ]; then
     exit 1
 fi
 
-# Debugging: Print the parsed host information
-for host in "${!host_user_map[@]}"; do
-    echo "Host: $host"
-    echo "  User: ${host_user_map[$host]}"
-    echo "  IP: ${host_ip_map[$host]}"
-    echo "  Port: ${host_port_map[$host]:-22}"
-    echo "----------------------------------------"
-done
+# Prepare a list of available hosts for fzf
+available_hosts=$(printf "%s\n" "${!host_user_map[@]}")
 
+# Display the list of available hosts in a numbered format
+if [[ -z "$available_hosts" ]]; then
+    echo "Error: No hosts available for selection."
+    exit 1
+fi
+
+# Print the available hosts in a two-column format
+counter=1
+columns=2
+column_width=30
 echo "Available hosts for transfer:"
-select host_choice in "${!host_user_map[@]}"; do
-    if [[ -n "$host_choice" ]]; then
-        echo "You have selected: $host_choice"
-        break
-    else
-        echo "Invalid selection. Please try again."
+for host in "${!host_user_map[@]}"; do
+    printf "%-${column_width}s" "$counter) $host"
+    if (( counter % columns == 0 )); then
+        echo ""
     fi
+    ((counter++))
 done
+if (( (counter - 1) % columns != 0 )); then
+    echo ""
+fi
+
+# Check if fzf is installed
+if ! command -v fzf >/dev/null 2>&1; then
+    echo "Error: fzf is not installed. Please install fzf to use interactive host selection."
+    exit 1
+fi
+
+# Use fzf for interactive host selection
+host_choice=$(echo "$available_hosts" | fzf --prompt="Select host: ")
+if [[ -z "$host_choice" ]]; then
+    echo "No host selected. Exiting."
+    exit 1
+fi
+
+echo "You have selected: $host_choice"
 
 USER="${host_user_map[$host_choice]}"
 IP="${host_ip_map[$host_choice]}"
