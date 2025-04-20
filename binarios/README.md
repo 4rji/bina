@@ -1,5 +1,3 @@
-# Available Scripts
-
 netstat-cargo Muestra las conexiones de red en formato normal para macOS
 proxyloco Descarga y configura ligolo-ng Agent/Proxy con configuración guiada
 proxyverifica Verifica la funcionalidad de proxies usando un archivo CSV
