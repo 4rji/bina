@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-# Colores ANSI
-C_NAME_CODING="\e[34m"
+# Colores ANSI\C_NAME_CODING="\e[34m"
 C_NAME250="\e[36m"
 C_NAME25="\e[35m"
 C_USE="\e[32m"
@@ -14,7 +13,6 @@ MODELS_2_5M=(
   "gpt-4.1-nano|Latencia baja y coste mínimo|In: \$0.10/1M • Out: \$0.40/1M"
   "gpt-4o-mini|Razonamiento ligero y económico|In: \$0.15/1M • Out: \$0.60/1M"
   "gpt-4.1-mini|Balance velocidad–calidad|In: \$0.40/1M • Out: \$1.60/1M"
-  "o1-mini|Versión ligera de o1-pro (mejor para coding en 2.5M)|In: \$1.10/1M • Out: \$4.40/1M"
   "o3-mini|Versión ligera de o3|In: \$1.10/1M • Out: \$4.40/1M"
   "o4-mini|Razonamiento rápido y cuantizado|In: \$1.10/1M • Out: \$4.40/1M"
 )
@@ -40,7 +38,7 @@ if [[ $# -lt 1 ]]; then
   for i in "${!MODELS_2_5M[@]}"; do
     idx=$((i+1))
     IFS='|' read -r name use price <<< "${MODELS_2_5M[i]}"
-    [[ "$name" == "o1-mini" ]] && COLOR="$C_NAME_CODING" || COLOR="$C_NAME25"
+    COLOR="$C_NAME25"
     printf " %2d) ${COLOR}%-16s${C_RST} ${C_USE}%-45s${C_RST} ${C_PRICE}[%s]${C_RST}\n" \
            "$idx" "$name" "$use" "$price"
   done
@@ -55,7 +53,9 @@ if [[ $# -lt 1 ]]; then
   done
 
   echo
-  read -p "Número de perfil [Enter = sin modelo]: " perfil
+  read -p "Número de perfil [Enter = 3]: " perfil
+  # por defecto usa modelo 3 si no se especifica
+  perfil=${perfil:-3}
   prompt=()
 else
   perfil=$1; shift
