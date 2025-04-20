@@ -317,6 +317,11 @@
         "name": "cpng",
         "short_desc": "Convierte imágenes .webp a .png de forma individual o masiva.",
         "detailed_desc": "Este script convierte imágenes en formato .webp a .png utilizando ImageMagick.\n\nUso:\n1. Para convertir una imagen específica: cpng <archivo.webp>\n2. Para convertir todas las imágenes .webp en el directorio actual: cpng\n\nEl proceso:\n- Si se proporciona un archivo como argumento, verifica su existencia y lo convierte a .png.\n- Si no se proporcionan argumentos, busca todas las imágenes .webp en el directorio actual y las convierte a .png.\n\nRequiere tener instalado ImageMagick."
+    },
+    "copyrs": {
+        "name": "copyrs",
+        "short_desc": "Transfers files to remote hosts using rsync over SSH.",
+        "detailed_desc": "The script reads the SSH configuration file (~/.ssh/config) to extract host details such as usernames, hostnames, and ports. It allows the user to select a host from the available options and transfers the specified file to the selected host using rsync. Usage: ./copyrs <filename>."
     }
 }
 
