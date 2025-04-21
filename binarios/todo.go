@@ -349,7 +349,22 @@ func getCombinedScripts(readmePath, binDir string) ([]Script, error) {
 	return allScripts, nil
 }
 
+func checkFzfInstallation() {
+	_, err := exec.LookPath("fzf")
+	if err != nil {
+		separator := "\n\033[1;31m_________________________________________________________\033[0m\n"
+		fmt.Println(separator)
+		fmt.Println("\033[31m[✘] fzf is not installed.\033[0m")
+		fmt.Println("\033[31m[✘] Please install it by running: \033[0m\033[33mbrew install fzf\033[0m")
+		fmt.Println(separator)
+		os.Exit(1)
+	}
+}
+
 func main() {
+	// Verificar si fzf está instalado antes de continuar
+	checkFzfInstallation()
+
    // Clear screen
    fmt.Print("\033[H\033[2J")
 	
