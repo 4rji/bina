@@ -283,8 +283,8 @@
     
     "aaron": {
         "name": "aaron",
-        "short_desc": "Proporciona instrucciones para ejecutar el exploit DirtyPipe (CVE-2022-0847).",
-        "detailed_desc": "Este script muestra los pasos necesarios para explotar la vulnerabilidad DirtyPipe (CVE-2022-0847) para escalar privilegios en sistemas Linux vulnerables. Incluye instrucciones para compilar y ejecutar el exploit, así como las credenciales para acceder como root."
+        "short_desc": "Script para compilar y ejecutar un exploit de escalada de privilegios basado en Dirty Pipe.",
+        "detailed_desc": "Este script automatiza el proceso de preparación, compilación y ejecución de un exploit de escalada de privilegios conocido como Dirty Pipe (CVE-2022-0847).\n\nUso: Ejecutar el script directamente.\n\nEl proceso:\n1. Copia el archivo 'noraa' desde una ubicación específica.\n2. Renombra 'noraa' a 'privesc.c'.\n3. Compila 'privesc.c' usando GCC para generar el binario 'privesc'.\n4. Ejecuta el binario 'privesc'.\n5. Proporciona acceso como usuario root si el exploit tiene éxito.\n\nIMPORTANTE: Este script debe usarse únicamente con fines educativos y en entornos controlados. El uso indebido puede ser ilegal y está estrictamente prohibido."
     },
     
     "archissh": {
