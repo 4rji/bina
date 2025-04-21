@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+echo -e 'Agrega un resumen en el archivo descriptions.json en el formato existente:\n'
+echo '{
+    "new_script": {
+        "name": "new_script",
+        "short_desc": "Short description of the script.",
+        "detailed_desc": "Detailed description of the script, including usage instructions."
+    }
+}'

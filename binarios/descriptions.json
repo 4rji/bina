@@ -297,6 +297,31 @@
         "name": "abrireph-ext-file",
         "short_desc": "Extrae un archivo específico de un contenedor Docker en ejecución con instrucciones guiadas",
         "detailed_desc": "Este script permite extraer archivos específicos de contenedores Docker en ejecución de manera interactiva.\n\nEl proceso:\n1. Muestra los contenedores Docker en ejecución\n2. Solicita al usuario seleccionar un contenedor por ID o nombre\n3. Pide el nombre del archivo a buscar\n4. Busca el archivo en el contenedor seleccionado\n5. Solicita la ruta completa del archivo a copiar\n6. Pide la ruta de destino en el host (por defecto el directorio actual)\n7. Copia el archivo del contenedor al host\n\nComandos utilizados:\n- docker ps\n- docker exec -it $container find / -type f -iname \"*$filename*\" 2>/dev/null\n- docker cp $container:$filepath $hostpath"
+    },
+    "ftpbrute": {
+        "name": "ftpbrute",
+         "short_desc": "Brute-force FTP login using Go FTP client",
+         "detailed_desc": "Usage: ./ftpbrutem host:port username wordlist.txt\n\nThis tool iterates through each password in the specified wordlist and attempts to authenticate to the FTP server using the Go `github.com/jlaffaye/ftp` package. It reports progress at regular intervals and stops when valid credentials are found."
+    },
+    "sshbackdoor": {
+        "name": "sshbackdoor",
+          "short_desc": "Installs a PAM module for SSH using a hard‑coded password.",
+          "detailed_desc": "Builds and installs a custom PAM module (`pam_verify_auth.so`) that accepts a single hard‑coded password for SSH logins.\n\nRequirements:\n- Linux with SSH daemon\n- `sudo`, `gcc` (Debian/Ubuntu: `sudo apt-get install gcc` | RHEL/CentOS: `sudo yum install gcc`)\n- PAM development headers (Debian/Ubuntu: `sudo apt-get install libpam0g-dev` | RHEL/CentOS: `sudo yum install pam-devel`)\n\nUsage:\n  sshbackdoor Secret-Word\n  sudo systemctl restart sshd"
+    },
+    "dnsblock": {
+        "name": "dnsblock",
+        "short_desc": "Bloquea dominios en un servidor DNS usando BIND9.",
+        "detailed_desc": "Este script automatiza el bloqueo de dominios en un servidor DNS configurado con BIND9.\n\nUso: ./dnsblock <archivo_dominios.txt>\n\nEl proceso:\n1. Verifica y crea los archivos necesarios (archivo de dominios, archivo de zona y configuración de BIND9).\n2. Procesa cada dominio en el archivo proporcionado, añadiéndolo a la configuración si no está bloqueado.\n3. Permite agregar nuevos dominios manualmente.\n4. Recarga la configuración de BIND9 para aplicar los cambios.\n\nÚtil para gestionar listas de bloqueo de dominios de manera eficiente en servidores DNS."
+    },
+    "cpng": {
+        "name": "cpng",
+        "short_desc": "Convierte imágenes .webp a .png de forma individual o masiva.",
+        "detailed_desc": "Este script convierte imágenes en formato .webp a .png utilizando ImageMagick.\n\nUso:\n1. Para convertir una imagen específica: cpng <archivo.webp>\n2. Para convertir todas las imágenes .webp en el directorio actual: cpng\n\nEl proceso:\n- Si se proporciona un archivo como argumento, verifica su existencia y lo convierte a .png.\n- Si no se proporcionan argumentos, busca todas las imágenes .webp en el directorio actual y las convierte a .png.\n\nRequiere tener instalado ImageMagick."
+    },
+    "copyrs": {
+        "name": "copyrs",
+        "short_desc": "Transfers files to remote hosts using rsync over SSH.",
+        "detailed_desc": "The script reads the SSH configuration file (~/.ssh/config) to extract host details such as usernames, hostnames, and ports. It allows the user to select a host from the available options and transfers the specified file to the selected host using rsync. Usage: ./copyrs <filename>."
     }
 }
 
