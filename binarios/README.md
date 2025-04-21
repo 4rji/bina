@@ -1,7 +1,3 @@
-netstat-cargo Muestra las conexiones de red en formato normal para macOS
-proxyloco Descarga y configura ligolo-ng Agent/Proxy con configuración guiada
-proxyverifica Verifica la funcionalidad de proxies usando un archivo CSV
-
 Github              Binarios
 netstat-cargo-jsonm netstat en formato json para mac
 netstat-cargo-json  netstat en formato json
