@@ -130,7 +130,11 @@
         "short_desc": "Instala y ejecuta Ollama con modelos de IA.",
         "detailed_desc": "curl -fsSL https://ollama.com/install.sh | sh\nollama run deepseek-coder-v2"
     },
-    
+    "amigoinst": {
+        "name": "amigoinst",
+        "short_desc": "Instala dependencias necesarias para el chatbot Amigo según el sistema operativo.",
+        "detailed_desc": "Este script detecta el sistema operativo y utiliza el gestor de paquetes correspondiente para instalar dependencias como 'python3-pip' y 'python3-virtualenv'.\n\nUso: Ejecutar el script directamente en la terminal.\n\nEl proceso:\n1. Detecta el sistema operativo (Debian, Ubuntu, CentOS, Fedora, Arch, etc.).\n2. Verifica si los paquetes necesarios ya están instalados.\n3. Si no están instalados, los instala automáticamente usando el gestor de paquetes adecuado.\n4. Proporciona instrucciones para configurar un entorno virtual y continuar con la instalación del chatbot Amigo.\n\nIdeal para preparar el entorno de desarrollo del chatbot Amigo de manera rápida y sencilla."
+    },
     "knock-http": {
         "name": "knock-http",
         "short_desc": "Configura knockd para abrir/cerrar puerto HTTP.",

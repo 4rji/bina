@@ -4,12 +4,12 @@
 
 
 #el archivo esta en noraa aqui mismo en binarios
-echo "cat /opt/4rji/bin/noraa | xclip -sel clip"
-cat /opt/4rji/bin/noraa | xclip -sel clip
+echo "cp /opt/4rji/bin/noraa ."
+cp /opt/4rji/bin/noraa .
+mv noraa privesc.c  
 
-
-echo "paso1: Renombra noraa a privesc.c"   
-echo "mv noraa privesc.c"
+echo "paso1: Renombra noraa a privesc.c (ya esta hecho, solo verificar existe)"   
+echo "ls -la"
 echo "paso2: Compila el archivo"
 echo "gcc privesc.c -o privesc"
 echo "paso3: Ejecuta el archivo"
