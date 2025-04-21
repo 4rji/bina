@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Script para configurar consoleblank=30 segundos en GRUB y actualizar sin reiniciar automáticamente
+
+set -euo pipefail
+
+# Verificar ejecución como root\if [[ $EUID -ne 0 ]]; then
+    echo "Este script debe ejecutarse como root. Usa sudo o inicia sesión como root."
+    exit 1
+fi
+
+CFG="/etc/default/grub"
+PARAM="consoleblank=30"
+
+# Añadir o reemplazar el parámetro consoleblank en GRUB_CMDLINE_LINUX_DEFAULT\if grep -q "consoleblank=" "$CFG"; then
+    sed -i -r "s/consoleblank=[0-9]+/${PARAM}/" "$CFG"
+else
+    sed -i -r "s/(GRUB_CMDLINE_LINUX_DEFAULT=\")(.*)(\")/\1\2 $PARAM\3/" "$CFG"
+fi
+
+# Actualizar configuración de GRUB
+update-grub
+
+echo "Configuración de consoleblank ajustada a 30 segundos. Por favor, reinicia el sistema para aplicar los cambios."
+
