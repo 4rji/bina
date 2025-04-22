@@ -1,50 +1,88 @@
 #!/usr/bin/env bash
 
-# Función para mostrar el uso del script
+echo
+echo -e "\e[94m_________________________________________________________\e[0m"
+echo
+
+# Muestra uso y sale
 mostrar_uso() {
-    echo "Uso: $0 [-c] archivo"
-    echo "-c: Solo mostrar los resultados, no copiar al portapapeles"
+    echo "Uso: $0 [-v] [-c] [-b] archivo"
+    echo "  -v: Mostrar resultados en terminal sin comentarios ni líneas vacías"
+    echo "  -c: Generar clean.conf con líneas sin comentarios ni vacías"
+    echo "  -b: Entrar en modo interactivo de modificación de archivo"
     exit 1
 }
 
-# Verificar si se proporciona al menos un argumento
-if [ $# -lt 1 ]; then
-    mostrar_uso
-fi
+# Expande ~ a $HOME
+expand_path() {
+    local path="$1"
+    [[ "$path" == "~"* ]] && echo "${path/#~/$HOME}" || echo "$path"
+}
 
-# Verificar las opciones de línea de comandos
-copiar=true
-while getopts ":c" opcion; do
-    case "${opcion}" in
-        c)
-            copiar=false
-            ;;
-        *)
-            mostrar_uso
-            ;;
+# Modo interactivo (-b)
+modify_file() {
+    local file_path="$1"
+    local search_term new_content continue_modifying="s"
+    while [[ "$continue_modifying" == "s" ]]; do
+        echo
+        echo -e "\e[94mArchivo: $file_path\e[0m"
+        read -p "Buscar (insensible a may/min): " search_term
+        mapfile -t lines < <(grep -ni "^$search_term" "$file_path")
+        [[ ${#lines[@]} -eq 0 ]] && echo "No se encontró '$search_term'" && continue
+        echo; echo -e "\e[94mLíneas encontradas:\e[0m"
+        for i in "${!lines[@]}"; do echo -e "\e[93m$((i+1))) ${lines[i]}\e[0m"; done
+        read -p "Selecciona número: " sel
+        (( sel<1 || sel> ${#lines[@]} )) && echo "Selección inválida" && continue
+        line_num=${lines[$((sel-1))]%%:*}
+        echo -e "\e[91mLinea $line_num será comentada y reemplazada:\e[0m"
+        sed -n "${line_num}p" "$file_path"
+        read -p "Nuevo contenido: " new_content
+        sed -i "${line_num}s/^/# /; ${line_num}a $new_content" "$file_path"
+        read -n1 -p "¿Otra? (s/n): " continue_modifying; echo
+    done
+    echo -e "\e[94mModificaciones completadas.\e[0m"
+}
+
+# Elimina comentarios y líneas vacías
+trim_and_strip() {
+    local f="$1"
+    sed -E 's/^[[:space:]]*//; s/[[:space:]]*$//' "$f" | grep -vE '^[[:space:]]*#|^[[:space:]]*$'
+}
+
+# Procesa flags
+verbose=false; clean=false; modify=false
+while getopts "vcb" opt; do
+    case "$opt" in
+        v) verbose=true ;;  
+        c) clean=true ;;  
+        b) modify=true ;;  
+        *) mostrar_uso ;;  
     esac
 done
 shift $((OPTIND-1))
 
-# Nombre del archivo a procesar
-archivo="$1"
+# Valida archivo
+[[ $# -ne 1 ]] && mostrar_uso
+archivo="$(expand_path "$1")"
+[[ ! -f "$archivo" ]] && echo "El archivo '$archivo' no existe." && exit 1
 
-# Comprobar si se proporciona un archivo como argumento
-if [ -z "$archivo" ]; then
-    mostrar_uso
+# Ejecuta opciones
+if [[ "$modify" == true ]]; then
+    modify_file "$archivo"
+    exit 0
 fi
 
-# Verificar si el archivo existe
-if [ ! -f "$archivo" ]; then
-    echo "El archivo '$archivo' no existe."
-    exit 1
+if [[ "$clean" == true ]]; then
+    trim_and_strip "$archivo" > clean.conf
+    echo "Archivo 'clean.conf' creado con líneas sin comentarios ni vacías."
+    exit 0
 fi
 
-# Mostrar o copiar al portapapeles las líneas que no son comentarios
-if [ "$copiar" = true ]; then
-    sed -E 's/^[[:space:]]*//;s/[[:space:]]*$//' "$archivo" | grep -v '^#' | xclip -selection clipboard
-    echo "Las líneas sin comentarios y espacios adicionales del archivo '$archivo' se han copiado al portapapeles."
-else
-    sed -E 's/^[[:space:]]*//;s/[[:space:]]*$//' "$archivo" | grep -v '^#'
+if [[ "$verbose" == true ]]; then
+    trim_and_strip "$archivo"
+    exit 0
 fi
 
+# Por defecto copia al portapapeles
+trim_and_strip "$archivo" | xclip -selection clipboard
+echo "Las líneas sin comentarios ni vacías de '$archivo' se copiaron al portapapeles."
