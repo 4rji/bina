@@ -1,4 +1,10 @@
 {
+    "comentadas": {
+        "name": "comentadas",
+        "short_desc": "Procesa archivos de configuración eliminando comentarios y líneas vacías.",
+        "detailed_desc": "Este script permite procesar archivos de configuración para extraer solo las líneas útiles, eliminando comentarios y líneas vacías.\n\nUso: comentadas [-v] [-c] [-b] archivo\n\nOpciones:\n1. -v: Muestra resultados en terminal sin comentarios ni líneas vacías\n2. -c: Genera un archivo clean.conf con líneas sin comentarios ni vacías\n3. -b: Entra en modo interactivo para modificar el archivo, permitiendo buscar líneas, comentarlas y reemplazarlas\n\nSin opciones, copia al portapapeles el contenido del archivo sin comentarios ni líneas vacías.\n\nÚtil para limpiar y editar archivos de configuración de forma rápida y eficiente."
+    },
+    
     "decoyfile": {
         "name": "decoyfile",
         "short_desc": "Recopila metadatos de archivos para crear señuelos de tiempos de acceso.",
