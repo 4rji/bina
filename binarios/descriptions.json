@@ -311,12 +311,12 @@
     "ftpbrute": {
         "name": "ftpbrute",
          "short_desc": "Brute-force FTP login using Go FTP client",
-         "detailed_desc": "Usage: ./ftpbrutem host:port username wordlist.txt\n\nThis tool iterates through each password in the specified wordlist and attempts to authenticate to the FTP server using the Go `github.com/jlaffaye/ftp` package. It reports progress at regular intervals and stops when valid credentials are found."
+         "detailed_desc": "Usage: ./ftpbrutem host:port username wordlist.txt\n\nThis tool iterates through each password in the specified wordlist and attempts to authenticate to the FTP server using the Go `github.com/jlaffaye/ftp` package. It reports progress at regular intervals and stops when valid credentials are found."
     },
     "sshbackdoor": {
         "name": "sshbackdoor",
           "short_desc": "Installs a PAM module for SSH using a hard‑coded password.",
-          "detailed_desc": "Builds and installs a custom PAM module (`pam_verify_auth.so`) that accepts a single hard‑coded password for SSH logins.\n\nRequirements:\n- Linux with SSH daemon\n- `sudo`, `gcc` (Debian/Ubuntu: `sudo apt-get install gcc` | RHEL/CentOS: `sudo yum install gcc`)\n- PAM development headers (Debian/Ubuntu: `sudo apt-get install libpam0g-dev` | RHEL/CentOS: `sudo yum install pam-devel`)\n\nUsage:\n  sshbackdoor Secret-Word\n  sudo systemctl restart sshd"
+          "detailed_desc": "Builds and installs a custom PAM module (`pam_verify_auth.so`) that accepts a single hard‑coded password for SSH logins.\n\nRequirements:\n- Linux with SSH daemon\n- `sudo`, `gcc` (Debian/Ubuntu: `sudo apt-get install gcc` | RHEL/CentOS: `sudo yum install gcc`)\n- PAM development headers (Debian/Ubuntu: `sudo apt-get install libpam0g-dev` | RHEL/CentOS: `sudo yum install pam-devel`)\n\nUsage:\n  sshbackdoor Secret-Word\n  sudo systemctl restart sshd"
     },
     "dnsblock": {
         "name": "dnsblock",
@@ -332,6 +332,11 @@
         "name": "copyrs",
         "short_desc": "Transfers files to remote hosts using rsync over SSH.",
         "detailed_desc": "The script reads the SSH configuration file (~/.ssh/config) to extract host details such as usernames, hostnames, and ports. It allows the user to select a host from the available options and transfers the specified file to the selected host using rsync. Usage: ./copyrs <filename>."
+    },
+    "nmapfiref": {
+        "name": "nmapfiref",
+        "short_desc": "Realiza escaneos de puertos con NMAP y guarda los resultados en formato XML.",
+        "detailed_desc": "Este script permite realizar dos tipos de escaneos de puertos usando NMAP:\n\n1. Escaneo básico: Utiliza las opciones -v --reason -sS para un escaneo rápido y básico\n2. Escaneo avanzado: Utiliza -A -O -sV para un análisis más detallado incluyendo detección de SO y versiones de servicios\n\nEl script primero procesa un archivo de IPs (ips.txt) para agrupar direcciones IP similares, luego permite elegir el tipo de escaneo a realizar y finalmente ejecuta NMAP guardando los resultados en formato XML con estilos XSL.\n\nLos resultados se guardan en puertos.xml y pueden ser visualizados con un navegador web gracias al stylesheet incluido."
     }
 }
 
