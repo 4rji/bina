@@ -487,7 +487,7 @@ chismes             Ejecuta tcpdump y tshark para ver la red, captura wireshark 
 proxyloco           Menu para descargar, agente - proxy y tiene -2 para segundo - ligolo
 proxyloco-only      Instala el proxy, interface e inicia - ligolo
 
-proxyagente         Instala amd agente, lo descarga y ejecuta
+proxyagente         proxyloco ligolo Instala amd agente de proxyloco, lo descarga y ejecuta
 
 proxyserver         proxyloco ya descargado, como binario, solo ejecutarlo: proxyserver -selfcert
 torperlnipe         Script para mandar trafico por tor, no funciona aun.
