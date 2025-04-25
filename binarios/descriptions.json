@@ -344,12 +344,12 @@
         "name": "ataquehttp",
         "short_desc": "Configura y ejecuta GoldenEye para pruebas de estrés HTTP.",
         "detailed_desc": "Este script automatiza la configuración y ejecución de GoldenEye, una herramienta de prueba de estrés HTTP.\n\nEl proceso:\n1. Descomprime el archivo GoldenEye-master.zip desde /opt/4rji/bin\n2. Cambia al directorio descomprimido en /tmp/GoldenEye-master\n3. Asegura que el script Python tenga permisos de ejecución\n4. Proporciona instrucciones para ejecutar el script con la URL objetivo\n\nOpciones más comunes en GoldenEye:\n• -u: especificar archivo de user-agents\n• -w: número de workers (hilos)\n• -s: número de sockets por worker\n• -m: método HTTP (get, post, random)\n• -n: desactiva verificación SSL\n• -d: modo debug (salida más detallada)\n\nEjemplo de uso:\n./goldeneye.py https://objetivo.com -w 50 -s 1000 -m random -n\n\nIMPORTANTE: Este script debe usarse únicamente con fines educativos y en entornos controlados. El uso indebido puede ser ilegal y está estrictamente prohibido."
+    },
 
     "nmapfiref": {
         "name": "nmapfiref",
         "short_desc": "Realiza escaneos de puertos con NMAP y guarda los resultados en formato XML.",
         "detailed_desc": "Este script permite realizar dos tipos de escaneos de puertos usando NMAP:\n\n1. Escaneo básico: Utiliza las opciones -v --reason -sS para un escaneo rápido y básico\n2. Escaneo avanzado: Utiliza -A -O -sV para un análisis más detallado incluyendo detección de SO y versiones de servicios\n\nEl script primero procesa un archivo de IPs (ips.txt) para agrupar direcciones IP similares, luego permite elegir el tipo de escaneo a realizar y finalmente ejecuta NMAP guardando los resultados en formato XML con estilos XSL.\n\nLos resultados se guardan en puertos.xml y pueden ser visualizados con un navegador web gracias al stylesheet incluido."
-
     }
 }
 
