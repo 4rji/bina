@@ -176,16 +176,23 @@ function mktem2() {
 
 function __fzf_history_search() {
   local selected
-  selected=$(fc -rl 1 | fzf --tac +s --tiebreak=index --toggle-sort=ctrl-r | awk '{$1=""; sub("  ", ""); print}')
+  selected=$(
+    # 1) saca listas sin números, cronológico
+    fc -l -n 1 |
+    # 2) pásalo a fzf con tu buffer como query inicial
+    fzf -x --tiebreak=index --toggle-sort=ctrl-r --query="$LBUFFER"
+  )
   if [[ -n $selected ]]; then
     LBUFFER="$selected"
     RBUFFER=""
   fi
   zle reset-prompt
 }
-
 zle -N __fzf_history_search
 bindkey '^R' __fzf_history_search
+
+
+
 
 function fzf-lovely(){
     if [ "$1" = "h" ]; then
