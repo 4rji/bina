@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
+
 # Descomprime el archivo ZIP
-unzip -d /tmp /usr/bin/GoldenEye-master.zip
+unzip -d . /opt/4rji/bin/GoldenEye-master.zip
 
 # Cambia al directorio descomprimido
 cd /tmp/GoldenEye-master

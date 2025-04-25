@@ -5,6 +5,12 @@
         "detailed_desc": "Este script permite procesar archivos de configuración para extraer solo las líneas útiles, eliminando comentarios y líneas vacías.\n\nUso: comentadas [-v] [-c] [-b] archivo\n\nOpciones:\n1. -v: Muestra resultados en terminal sin comentarios ni líneas vacías\n2. -c: Genera un archivo clean.conf con líneas sin comentarios ni vacías\n3. -b: Entra en modo interactivo para modificar el archivo, permitiendo buscar líneas, comentarlas y reemplazarlas\n\nSin opciones, copia al portapapeles el contenido del archivo sin comentarios ni líneas vacías.\n\nÚtil para limpiar y editar archivos de configuración de forma rápida y eficiente."
     },
     
+    "ayudabinario": {
+        "name": "ayudabinario",
+        "short_desc": "Agrega mensajes de ayuda personalizados a scripts bash/zsh.",
+        "detailed_desc": "Este script modifica archivos bash/zsh para agregar un mensaje de ayuda personalizado que se muestra al usar el argumento -h.\n\nUso: ./ayudabinario <archivo_a_modificar>\n\nEl proceso:\n1. Solicita al usuario un mensaje de ayuda personalizado\n2. Modifica el archivo especificado para:\n   - Asegurar que el shebang sea #!/bin/bash\n   - Agregar una función show_help_and_confirm() que muestra el mensaje\n   - Formatea el mensaje con colores en la terminal\n3. El mensaje de ayuda se mostrará cuando se ejecute el script con -h\n\nÚtil para estandarizar y mejorar la documentación de scripts bash/zsh."
+    },
+    
     "decoyfile": {
         "name": "decoyfile",
         "short_desc": "Recopila metadatos de archivos para crear señuelos de tiempos de acceso.",
@@ -311,12 +317,12 @@
     "ftpbrute": {
         "name": "ftpbrute",
          "short_desc": "Brute-force FTP login using Go FTP client",
-         "detailed_desc": "Usage: ./ftpbrutem host:port username wordlist.txt\n\nThis tool iterates through each password in the specified wordlist and attempts to authenticate to the FTP server using the Go `github.com/jlaffaye/ftp` package. It reports progress at regular intervals and stops when valid credentials are found."
+         "detailed_desc": "Usage: ./ftpbrutem host:port username wordlist.txt\n\nThis tool iterates through each password in the specified wordlist and attempts to authenticate to the FTP server using the Go `github.com/jlaffaye/ftp` package. It reports progress at regular intervals and stops when valid credentials are found."
     },
     "sshbackdoor": {
         "name": "sshbackdoor",
           "short_desc": "Installs a PAM module for SSH using a hard‑coded password.",
-          "detailed_desc": "Builds and installs a custom PAM module (`pam_verify_auth.so`) that accepts a single hard‑coded password for SSH logins.\n\nRequirements:\n- Linux with SSH daemon\n- `sudo`, `gcc` (Debian/Ubuntu: `sudo apt-get install gcc` | RHEL/CentOS: `sudo yum install gcc`)\n- PAM development headers (Debian/Ubuntu: `sudo apt-get install libpam0g-dev` | RHEL/CentOS: `sudo yum install pam-devel`)\n\nUsage:\n  sshbackdoor Secret-Word\n  sudo systemctl restart sshd"
+          "detailed_desc": "Builds and installs a custom PAM module (`pam_verify_auth.so`) that accepts a single hard‑coded password for SSH logins.\n\nRequirements:\n- Linux with SSH daemon\n- `sudo`, `gcc` (Debian/Ubuntu: `sudo apt-get install gcc` | RHEL/CentOS: `sudo yum install gcc`)\n- PAM development headers (Debian/Ubuntu: `sudo apt-get install libpam0g-dev` | RHEL/CentOS: `sudo yum install pam-devel`)\n\nUsage:\n  sshbackdoor Secret-Word\n  sudo systemctl restart sshd"
     },
     "dnsblock": {
         "name": "dnsblock",
@@ -332,6 +338,11 @@
         "name": "copyrs",
         "short_desc": "Transfers files to remote hosts using rsync over SSH.",
         "detailed_desc": "The script reads the SSH configuration file (~/.ssh/config) to extract host details such as usernames, hostnames, and ports. It allows the user to select a host from the available options and transfers the specified file to the selected host using rsync. Usage: ./copyrs <filename>."
+    },
+    "ataquehttp": {
+        "name": "ataquehttp",
+        "short_desc": "Configura y ejecuta GoldenEye para pruebas de estrés HTTP.",
+        "detailed_desc": "Este script automatiza la configuración y ejecución de GoldenEye, una herramienta de prueba de estrés HTTP.\n\nEl proceso:\n1. Descomprime el archivo GoldenEye-master.zip desde /opt/4rji/bin\n2. Cambia al directorio descomprimido en /tmp/GoldenEye-master\n3. Asegura que el script Python tenga permisos de ejecución\n4. Proporciona instrucciones para ejecutar el script con la URL objetivo\n\nOpciones más comunes en GoldenEye:\n• -u: especificar archivo de user-agents\n• -w: número de workers (hilos)\n• -s: número de sockets por worker\n• -m: método HTTP (get, post, random)\n• -n: desactiva verificación SSL\n• -d: modo debug (salida más detallada)\n\nEjemplo de uso:\n./goldeneye.py https://objetivo.com -w 50 -s 1000 -m random -n\n\nIMPORTANTE: Este script debe usarse únicamente con fines educativos y en entornos controlados. El uso indebido puede ser ilegal y está estrictamente prohibido."
     }
 }
 
