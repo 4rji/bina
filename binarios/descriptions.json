@@ -1,4 +1,10 @@
 {
+    
+    "backd": {
+        "name": "backd",
+        "short_desc": "Monitorea conexiones de red establecidas y muestra datos del proceso en tiempo real.",
+        "detailed_desc": "Este binario ejecuta un bucle infinito que, cada 5 s, lista las conexiones TCP/UDP en estado ESTABLISHED excepto las locales y las asociadas a procesos excluidos (firefox, chrome, google-chrome). Para cada conexión imprime PID, nombre de proceso, usuario, línea de comando, direcciones local/remota y hostname inverso.\n\nEl programa se auto-eleva: si no se ejecuta como root, relanza a sí mismo con sudo preservando variables de entorno. También admite capabilities (cap_net_raw, cap_net_admin) para funcionar sin sudo.\n\nUso: backd\n\nSin argumentos, comienza a monitorizar hasta que el usuario lo interrumpe con Ctrl-C."
+    },
     "comentadas": {
         "name": "comentadas",
         "short_desc": "Procesa archivos de configuración eliminando comentarios y líneas vacías.",
