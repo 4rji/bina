@@ -55,7 +55,7 @@ linuxappinst        Instala app image en linux para que se vean en el inicio
 chr                 aplica chttr +i  a binarios - script binario
 chrr                quita chttr -i a binarios script binario
 cpng                Convierte png a webp en mac usango magik
-cweb                Convierte todas las imagens png a webp en mac
+webc                Convierte todas las imagens png a webp en mac
 gocomm              compila un binario en go, muestra como hacerlo tambien
 nets                Comprueba el acceso a subnets en la variable allowips como wireguard.
 qemuagent           Habilita en proxmox los qemu agentes a todas las VMs
