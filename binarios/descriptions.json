@@ -351,6 +351,11 @@
         "short_desc": "Configura y ejecuta GoldenEye para pruebas de estrés HTTP.",
         "detailed_desc": "Este script automatiza la configuración y ejecución de GoldenEye, una herramienta de prueba de estrés HTTP.\n\nEl proceso:\n1. Descomprime el archivo GoldenEye-master.zip desde /opt/4rji/bin\n2. Cambia al directorio descomprimido en /tmp/GoldenEye-master\n3. Asegura que el script Python tenga permisos de ejecución\n4. Proporciona instrucciones para ejecutar el script con la URL objetivo\n\nOpciones más comunes en GoldenEye:\n• -u: especificar archivo de user-agents\n• -w: número de workers (hilos)\n• -s: número de sockets por worker\n• -m: método HTTP (get, post, random)\n• -n: desactiva verificación SSL\n• -d: modo debug (salida más detallada)\n\nEjemplo de uso:\n./goldeneye.py https://objetivo.com -w 50 -s 1000 -m random -n\n\nIMPORTANTE: Este script debe usarse únicamente con fines educativos y en entornos controlados. El uso indebido puede ser ilegal y está estrictamente prohibido."
     },
+    "dominf": {
+    "name": "dominf",
+    "short_desc": "Interactive reconnaissance and enumeration tool for domains.",
+    "detailed_desc": "DomInf is an interactive and fast Go-based tool for gathering information about domains. It allows users to perform tasks like bypassing Cloudflare protection, scanning common TCP ports, grabbing service banners, doing reverse PTR lookups, checking real IP via DNS and HTTP headers, testing for DNS zone transfers, brute-forcing subdomains, and resolving DNS records (A and AAAA). The tool provides a menu-driven interface and saves output to a log file for later analysis. Usage: 'go run dominf.go <domain>'."
+    },
 
     "nmapfiref": {
         "name": "nmapfiref",
