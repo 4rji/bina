@@ -3,6 +3,12 @@
 
 
 
+    "ipsclean": {
+        "name": "ipsclean",
+        "short_desc": "Script to extract and clean IP addresses from any file.",
+        "detailed_desc": "This script extracts all IPv4 addresses from a given file, using strings to ensure data is readable even from binaries. It allows the user to sort and deduplicate the results, saving them into ips.txt. It displays the commands executed and counts the number of extracted IPs.\n\nUsage:\n  ./ipsclean archivo\n\nMain commands executed:\n  - strings to extract printable characters.\n  - grep -Eo to match IP address patterns.\n  - sort -u (optional) to remove duplicates.\n  - wc -l to count the number of extracted IPs.\n\nThe script colors outputs for better visibility (success, warnings, errors)."
+    },
+
 
     "ipt": {
         "name": "ipt",
