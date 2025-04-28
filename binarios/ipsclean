@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+# Colores
+verde="\033[1;32m"
+rojo="\033[1;31m"
+amarillo="\033[1;33m"
+reset="\033[0m"
+
+if [ -z "$1" ]; then
+    echo -e "${rojo}Uso: $0 archivo${reset}"
+    exit 1
+fi
+
+archivo="$1"
+
+# Verificar si el archivo es binario o texto
+if file "$archivo" | grep -q 'text'; then
+    fuente="$archivo"
+else
+    fuente=$(mktemp)
+    strings "$archivo" > "$fuente"
+fi
+
+echo -e "${amarillo}¿Qué deseas extraer?${reset}"
+echo "1) IPs"
+echo "2) Dominios"
+echo "3) URLs"
+echo "4) Todo"
+read -p "Selecciona (1-4): " opcion
+
+read -p "¿Deseas aplicar sort y uniq? (s/n): " ordenar
+
+case "$opcion" in
+    1)
+        patron='\b([0-9]{1,3}\.){3}[0-9]{1,3}\b'
+        nombre="ips.txt"
+        ;;
+    2)
+        patron='\b([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}\b'
+        nombre="dominios.txt"
+        ;;
+    3)
+        patron='https?://[a-zA-Z0-9./?=_-]*'
+        nombre="urls.txt"
+        ;;
+    4)
+        patron='\b([0-9]{1,3}\.){3}[0-9]{1,3}\b|\b([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}\b|https?://[a-zA-Z0-9./?=_-]*'
+        nombre="todo.txt"
+        ;;
+    *)
+        echo -e "${rojo}Opción no válida.${reset}"
+        exit 1
+        ;;
+esac
+
+grep -Eo "$patron" "$fuente" > "$nombre"
+
+if [ "$ordenar" = "s" ] || [ "$ordenar" = "S" ]; then
+    sort -u "$nombre" -o "$nombre"
+fi
+
+echo -e "${verde}[+] Resultado guardado en: $nombre${reset}"
+echo -e "${verde}[+] Número de líneas extraídas: $(wc -l < "$nombre")${reset}"
+
+# Limpia si era binario
+if [ "$fuente" != "$archivo" ]; then
+    rm "$fuente"
+fi
