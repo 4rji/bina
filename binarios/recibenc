@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+
+# Comprobaciones rápidas
+if [ $# -ne 2 ]; then
+    echo -e "\e[31m[!] Uso: $0 Port NewFile\e[0m"
+    exit 1
+fi
+
+PUERTO="$1"
+ARCHIVO="$2"
+
+echo
+echo -e "\e[33m[*] Escuchando en puerto $PUERTO y guardando en '$ARCHIVO'\e[0m"
+echo
+
+# Escuchar con nc
+nc -lvp "$PUERTO" > "$ARCHIVO"
+if [ $? -ne 0 ]; then
+    echo -e "\e[31m[!] Error en la transferencia\e[0m"
+    exit 2
+fi
+
+echo
+echo -e "\e[32m[+] Transferencia completa\e[0m"
+echo
+echo -e "\e[34m[*] SHA256SUM del archivo recibido:\e[0m"
+sha256sum "$ARCHIVO"
+echo
