@@ -183,6 +183,7 @@ contenedor          Instala paquetes basicos, util en contenedores docker
 
 
 ###------nmap scaners
+ips                 hace un nmap simple a un archivo llamado ips.txt
 nombre_{IP}         Da el nombre de la maquina si es linux o windows                                   
 scanporty           python3 program que hace un escaneo y pregunta el numero de puertos.usa socket               
 sweep               Hace un sweep y despues pregunta si desea ejecutar expo
@@ -324,6 +325,7 @@ ansihost            Cat a los hosts y pregunta si quiero editarlo ansible
 
 
 ###------seguridad de sistemas
+ipt                 Para acceptar todo trafico o bloquear todo el trafico. 
 snifferip           Sniffer paquetes red que captura las cabeceras IP en dirección IP especifica.
 iarpon              Arpon para protejer de arp poising. arp sniff 
 iicmp               para protejer de ataques icmp, solo cambia el 0 a 1 este script
