@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+
+# Comprobaciones rápidas
+if [ $# -ne 3 ]; then
+    echo -e "\e[31m[!] Uso: $0 <IP> <Puerto> <Archivo>\e[0m"
+    exit 1
+fi
+
+IP="$1"
+PUERTO="$2"
+ARCHIVO="$3"
+
+echo
+echo -e "\e[33m[*] Ejecutando:\e[0m"
+echo "exec 3<>/dev/tcp/$IP/$PUERTO && cat $ARCHIVO >&3 && exec 3>&-"
+echo
+
+# Intentar abrir conexión
+exec 3<>/dev/tcp/"$IP"/"$PUERTO"
+if [ $? -ne 0 ]; then
+    echo -e "\e[31m[!] Error: No se pudo conectar a $IP:$PUERTO\e[0m"
+    exit 2
+fi
+
+# Transferencia
+cat "$ARCHIVO" >&3
+exec 3>&-
+
+echo
+echo -e "\e[32m[+] Archivo '$ARCHIVO' enviado a $IP:$PUERTO\e[0m"
+echo
+echo -e "\e[34m[*] SHA256SUM local:\e[0m"
+sha256sum "$ARCHIVO"
+echo
+
+# Comprobaciones rápidas
+if [ $# -ne 3 ]; then
+    echo -e "\e[31m[!] Uso: $0 <IP> <Puerto> <Archivo>\e[0m"
+    exit 1
+fi
+
+IP="$1"
+PUERTO="$2"
+ARCHIVO="$3"
+
+# Transferencia
+exec 3<>/dev/tcp/"$IP"/"$PUERTO" && cat "$ARCHIVO" >&3 && exec 3>&-
+
+# Mensaje final
+echo -e "\e[32m[+] Archivo '$ARCHIVO' enviado a $IP:$PUERTO\e[0m"

@@ -46,8 +46,8 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
-enviarnc            Envia archivos con bash puro, NO NC 
-recibenc            recibe archivos con nc, usando enviarnc  
+enviarnc            Envia archivos con bash puro, NO NC, hace sha256sum
+recibenc            recibe archivos con nc, usando enviarnc hace sha256sum  
 descrip             Formato para hacer AI que haga una description para todo
 apagarlcd           Apaga la pantalla de la laptop desde grub, para servidores
 codexx              Muestra los modelos disponibles de codex
