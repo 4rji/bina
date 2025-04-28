@@ -357,6 +357,12 @@
     "detailed_desc": "DomInf is an interactive and fast Go-based tool for gathering information about domains. It allows users to perform tasks like bypassing Cloudflare protection, scanning common TCP ports, grabbing service banners, doing reverse PTR lookups, checking real IP via DNS and HTTP headers, testing for DNS zone transfers, brute-forcing subdomains, and resolving DNS records (A and AAAA). The tool provides a menu-driven interface and saves output to a log file for later analysis. Usage: 'go run dominf.go <domain>'."
     },
 
+    "locip": {
+    "name": "locip",
+    "short_desc": "Geo-localiza IPs usando GeoLite2 mostrando ciudad, región y país.",
+    "detailed_desc": "Este script en Go utiliza la base de datos GeoLite2-City para geolocalizar direcciones IP. Permite recibir una IP individual como argumento o un archivo de texto (como 'ips.txt') que contenga múltiples IPs, línea por línea. Si no se especifica argumento, intenta leer automáticamente 'ips.txt'. Muestra la ciudad, región (si está disponible) y país asociados a cada IP. Usa la librería 'geoip2-golang' para acceder a la base de datos MaxMind."
+    },
+
     "nmapfiref": {
         "name": "nmapfiref",
         "short_desc": "Realiza escaneos de puertos con NMAP y guarda los resultados en formato XML.",
