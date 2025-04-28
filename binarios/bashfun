@@ -151,23 +151,6 @@ bindkey '^S' __fzf_ssh_host_search
 
 
 
-recibenc() {
-    local puerto=$1
-    local archivo=$2
-
-    if [[ -z "$puerto" || -z "$archivo" ]]; then
-        echo -e "\e[31m[!] Uso: transfer_nc <puerto> <archivo>\e[0m"
-        return 1
-    fi
-
-    nc -lvp "$puerto" > "$archivo" && {
-        echo -e "\e[32m[+] Transferencia completa\e[0m"
-        echo -e "\e[34m[*] SHA256SUM:\e[0m"
-        sha256sum "$archivo"
-    }
-}
-
-
 
 
 function mktem() {
