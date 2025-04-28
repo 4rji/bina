@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+# Comprobaciones rápidas
+if [ $# -ne 3 ]; then
+    echo -e "\e[31m[!] Uso: $0 <IP> <Puerto> <Archivo_destino>\e[0m"
+    exit 1
+fi
+
+IP="$1"
+PUERTO="$2"
+ARCHIVO="$3"
+
+echo
+echo -e "\e[33m[*] Ejecutando:\e[0m"
+echo "exec 3<>/dev/tcp/$IP/$PUERTO && cat <&3 > $ARCHIVO && exec 3>&-"
+echo
+
+# Conexión y recepción
+exec 3<>/dev/tcp/"$IP"/"$PUERTO"
+if [ $? -ne 0 ]; then
+    echo -e "\e[31m[!] Error: No se pudo conectar a $IP:$PUERTO\e[0m"
+    exit 2
+fi
+
+cat <&3 > "$ARCHIVO"
+exec 3>&-
+
+echo
+echo -e "\e[32m[+] Archivo '$ARCHIVO' recibido desde $IP:$PUERTO\e[0m"
+echo
+echo -e "\e[34m[*] SHA256SUM del archivo recibido:\e[0m"
+sha256sum "$ARCHIVO"
+echo

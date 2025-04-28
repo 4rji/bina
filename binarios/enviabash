@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+if [ $# -ne 2 ]; then
+    echo -e "\e[31m[!] Uso: $0 <Puerto> <Archivo_destino>\e[0m"
+    exit 1
+fi
+
+PUERTO="$1"
+ARCHIVO="$2"
+
+echo
+echo -e "\e[33m[*] Ejecutando:\e[0m"
+echo "nc -lvp $PUERTO > $ARCHIVO"
+echo
+
+# Escuchar y recibir archivo
+nc -lvp "$PUERTO" > "$ARCHIVO"
+
+echo
+echo -e "\e[32m[+] Archivo '$ARCHIVO' recibido (o conexión cerrada)\e[0m"
+echo
+echo -e "\e[34m[*] SHA256SUM del archivo recibido:\e[0m"
+sha256sum "$ARCHIVO"
+echo
