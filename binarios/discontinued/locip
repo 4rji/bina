@@ -5,31 +5,21 @@ import os
 import subprocess
 import geoip2.database
 
-# Comprueba que se haya proporcionado una dirección IP como argumento
-if len(sys.argv) != 2:
-    print("Usage: ./script IP-target")
-    sys.exit(1)
-
-# La dirección IP objetivo se toma del argumento de línea de comandos
-tgt = sys.argv[1]
-
-# Ubicación de la base de datos GeoLite2
 DATABASE_LOCATION = '/opt/4rji/GeoLite2-City.mmdb'
 
-# Función para verificar y descargar la base de datos si es necesario
 def check_and_download_database():
     if not os.path.exists(DATABASE_LOCATION):
         print(f"La base de datos en {DATABASE_LOCATION} no existe.")
         answer = input("¿Desea descargar la base de datos? (Y/n): ")
         if answer.lower() in ['', 'y']:
             print("Descargando la base de datos...")
-            subprocess.run(['downgeo'])  # Asegúrate de que 'downgeo' es ejecutable y está en el PATH
+            subprocess.run(['downgeo'])
             print("Descarga completada.")
         else:
             print("Operación cancelada.")
             sys.exit(1)
 
-def printRecord(tgt):
+def print_full_record(tgt):
     with geoip2.database.Reader(DATABASE_LOCATION) as reader:
         response = reader.city(tgt)
         ciudad = response.city.name
@@ -42,8 +32,36 @@ def printRecord(tgt):
         print(f'[+] {ciudad}, {region}, {pais}')
         print(f'[+] Latitude: {latitud}, Longitude: {longitud}')
 
-# Verificar y descargar la base de datos antes de proceder
+def print_city_only(tgt):
+    with geoip2.database.Reader(DATABASE_LOCATION) as reader:
+        response = reader.city(tgt)
+        ciudad = response.city.name
+        region = response.subdivisions.most_specific.name
+        pais = response.country.name
+        if ciudad and region and pais:
+            print(f'[+] {tgt} -> {ciudad}, {region}, {pais}')
+        else:
+            print(f'[+] {tgt} -> Información no disponible')
+
 check_and_download_database()
 
-# Llama a la función para imprimir la información geográfica de la IP proporcionada
-printRecord(tgt)
+if len(sys.argv) == 2:
+    arg = sys.argv[1]
+    if os.path.isfile(arg):
+        with open(arg, 'r') as f:
+            for line in f:
+                ip = line.strip()
+                if ip:
+                    print_city_only(ip)
+    else:
+        tgt = arg
+        print_full_record(tgt)
+else:
+    if not os.path.exists('ips.txt'):
+        print("ips.txt no encontrado.")
+        sys.exit(1)
+    with open('ips.txt', 'r') as f:
+        for line in f:
+            ip = line.strip()
+            if ip:
+                print_city_only(ip)
