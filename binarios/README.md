@@ -4,6 +4,13 @@ netstat-cargo-json  netstat en formato json
 netstat-cargom      netstat en formato normal cargo para mac
 netstat-cargo       netstat en formato normal cargo
 
+
+
+#dominios o ips 
+ipsclean            Extrae ips, dominios y urls de archivos, limpia y cuenta sort uniq 
+
+
+
 #labs
 lab                 Ejecuta el servidor http 8000 en python para labs, creado ahora htb
 
@@ -322,6 +329,9 @@ ansipl              Alias ansible playbook
 sshansi_nonames     Conecta los hosts de ansible con ssh cuando no tienen nombre
 sshansi             Conecta por ssh hosts con nombre al inicio ansible
 ansihost            Cat a los hosts y pregunta si quiero editarlo ansible
+
+
+
 
 
 ###------seguridad de sistemas

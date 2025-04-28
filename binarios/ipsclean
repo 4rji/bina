@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Colores
 verde="\033[1;32m"
@@ -13,14 +13,11 @@ fi
 
 archivo="$1"
 
-# Verificar si el archivo es binario o texto
-if file "$archivo" | grep -q 'text'; then
-    fuente="$archivo"
-else
-    fuente=$(mktemp)
-    strings "$archivo" > "$fuente"
-fi
-
+# Siempre trabajar sobre strings, para evitar problemas
+fuente=$(mktemp -p /dev/shm)
+#echo -e "${amarillo}[+] Ejecutando: strings \"$archivo\" > \"$fuente\"${reset}"
+strings "$archivo" > "$fuente"
+echo ""
 echo -e "${amarillo}¿Qué deseas extraer?${reset}"
 echo "1) IPs"
 echo "2) Dominios"
@@ -49,20 +46,21 @@ case "$opcion" in
         ;;
     *)
         echo -e "${rojo}Opción no válida.${reset}"
+        rm "$fuente"
         exit 1
         ;;
 esac
 
+echo -e "${amarillo}[+] Ejecutando: grep -Eo \"$patron\" \"$fuente\" > \"$nombre\"${reset}"
 grep -Eo "$patron" "$fuente" > "$nombre"
 
 if [ "$ordenar" = "s" ] || [ "$ordenar" = "S" ]; then
+    echo -e "${amarillo}[+] Ejecutando: sort -u \"$nombre\" -o \"$nombre\"${reset}"
     sort -u "$nombre" -o "$nombre"
 fi
 
 echo -e "${verde}[+] Resultado guardado en: $nombre${reset}"
 echo -e "${verde}[+] Número de líneas extraídas: $(wc -l < "$nombre")${reset}"
 
-# Limpia si era binario
-if [ "$fuente" != "$archivo" ]; then
-    rm "$fuente"
-fi
+# Limpiar temporal
+rm "$fuente"
