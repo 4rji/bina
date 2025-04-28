@@ -1,7 +1,11 @@
 {
 
 
-
+    "maskapps": {
+        "name": "ipsclean",
+        "short_desc": "mask ftpd tftpd and remove others.",
+        "detailed_desc": "9   │ sudo apt remove -y telnet ftp ftpd tftp talk talkd tftp tftpd"
+    },
 
     "ipsclean": {
         "name": "ipsclean",
