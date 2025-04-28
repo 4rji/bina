@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+# Comprobaciones rápidas
+if [ $# -ne 3 ]; then
+    echo -e "\e[31m[!] Uso: $0 <IP> <Puerto> <Archivo>\e[0m"
+    exit 1
+fi
+
+IP="$1"
+PUERTO="$2"
+ARCHIVO="$3"
+
+# Transferencia
+exec 3<>/dev/tcp/"$IP"/"$PUERTO" && cat "$ARCHIVO" >&3 && exec 3>&-
+
+# Mensaje final
+echo -e "\e[32m[+] Archivo '$ARCHIVO' enviado a $IP:$PUERTO\e[0m"
