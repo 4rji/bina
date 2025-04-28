@@ -86,4 +86,11 @@ if [ $# -eq 0 ]; then
 fi
 
 service=$1
+
+# Check if service exists
+if ! systemctl list-unit-files | grep -q "^$service\.service"; then
+    echo "Error: Service '$service' does not exist."
+    exit 1
+fi
+
 control_service
