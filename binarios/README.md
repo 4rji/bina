@@ -456,7 +456,8 @@ pnmap               El script escanea los puertos especificados de un host objet
 sweepport           Escane un puerto con python estilo nmap.
 pip2inst            Para instalar pip2 y paramiko
 pythonreq           Instala los requirements para python
-trafico             Genera trafico falso de varios sitios
+trafico             Genera trafico falso de varios sitios o un sitio tipo ddos webmonitor
+siegee              Genera trafico como hping3 para ddos, webmonitor, como inundacion 
 monitcp             Muestra captura.cap en colores con python, integrado en chismes
 monitcpl            Muestra una lista de todos los archivos pcap cap 
 autorun-no          Crea un archivo para usb, autorun. NO funcional yet.
