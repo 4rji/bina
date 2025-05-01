@@ -71,7 +71,7 @@ qemuagent           Habilita en proxmox los qemu agentes a todas las VMs
 searchinst          Instala searxng que es como google pero privado.
 lazydinst           Instala lazydocker con go. instala go tambien
 miniserver          Abre un mini server http para subir o descargar, con authenticacion
-webmonitor          abre una pagina web y monitore hping3 y inundaciones
+webmonitor          Website que monitorea hping3 y inundaciones, apache, test, ddos
 kasm                Abre una pagina en kasm  kasm google.com ejemplo
 servidores          Inicia el programa servidores que es la webapp de flash para proxmox
 servidoresprogram   El codigo de servidores para proxmox servidores
