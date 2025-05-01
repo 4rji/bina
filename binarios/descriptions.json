@@ -403,10 +403,21 @@
         "short_desc": "Simulador de tráfico HTTP concurrente tipo Siege escrito en Go.",
         "detailed_desc": "Este script está diseñado para realizar pruebas de carga enviando múltiples solicitudes HTTP de forma concurrente a un objetivo específico (IP o dominio). Permite especificar el número de conexiones simultáneas (workers) y la duración total de la prueba en minutos. Mide estadísticas como transacciones exitosas y fallidas, tasa de transacciones por segundo, tiempo de respuesta promedio y disponibilidad.\n\nUso:\n  siegee <url> <concurrencia> <duración_en_minutos>\n\nEjemplos:\n  siegee 192.168.142.17:8080 500 1\n  siegee https://4rji.com 1 1\n\nEl script utiliza el paquete net/http de Go con configuración optimizada para alto rendimiento. Internamente, lanza múltiples goroutines (trabajadores) que envían solicitudes GET al destino. Se genera un reporte final similar a Siege, mostrando el comportamiento del servidor frente a la carga generada.\n\nEjemplo de salida:\n[INFO] Target: https://4rji.com\n[INFO] Concurrency: 1\n[INFO] Duration: 1m0s\n\n========= Siege Report =========\nTransactions:         879 hits\nAvailability:         100.00 %\nElapsed time:         60.00 secs\nResponse time:        0.07 secs\nTransaction rate:     14.65 trans/sec\nSuccessful transactions: 879\nFailed transactions:  0"
     },
+    "siegeem": {
+        "name": "siegeem",
+        "short_desc": "Simulador de tráfico HTTP concurrente tipo Siege escrito en Go.",
+        "detailed_desc": "Igual que siegee pero para mac"
+    },
     "trafico": {
         "name": "trafico",
         "short_desc": "Simulador de navegación web concurrente a sitios populares.",
         "detailed_desc": "Este script simula tráfico web realista enviando múltiples solicitudes HTTP a una lista de sitios populares como Facebook, YouTube, Instagram, etc. Utiliza goroutines en Go para generar múltiples conexiones en paralelo, lo que permite ajustar el volumen de tráfico enviado. También permite especificar un único objetivo (IP o dominio) como parámetro, reemplazando la lista de sitios por defecto.\n\nParámetros solicitados al ejecutar:\n- Duración de la sesión en minutos (0 = infinito)\n- Delay entre solicitudes en segundos (0 = tráfico rápido)\n- Número de trabajadores (conexiones simultáneas)\n\nTambién puede usarse así:\n  go run trafico.go <sitio_o_ip>\n\nEjemplo:\n  go run trafico.go http://192.168.1.10:8080\n\nEn este modo, todas las solicitudes se dirigirán únicamente a la URL o IP indicada, útil para pruebas dirigidas. El tráfico es completamente válido (HTTP GET), simulando navegación de usuario sin generar errores en servidores con controles básicos. Al finalizar, muestra las URLs que fueron accedidas."
+    },
+
+    "webmonitor": {
+        "name": "webmonitor",
+        "short_desc": "HTTP server in Go for real-time web traffic monitoring.",
+        "detailed_desc": "This script launches a web server that logs and visualizes HTTP requests in real-time, displaying a graphical interface with 'traffic light' indicators (green, yellow, red). It exposes the routes '/' (redirect), '/monitor' (dashboard), '/status' (JSON API count), and '/reset' (log reset). Uses `Chart.js` to graphically represent requests received in the last 60 seconds. Also automatically detects the server's IP to display test commands like `siege` or `curl`. Ideal for load testing and local demonstrations. Run with:\n\n  go run webmonitor.go\n\nAnd access via:\n\n  http://<your-local-ip>:8080/monitor\n\nSupports automatic browser opening on startup.\n\nFor testing, run in another terminal:\n  siege -c 255 -r 1000 http://192.168.142.17:8080/\n  while true; do curl -s http://192.168.142.17:8080/ > /dev/null; done"
     }
 }
 
