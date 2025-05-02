@@ -194,6 +194,9 @@ contenedor          Instala paquetes basicos, util en contenedores docker
 
 
 ###------nmap scaners
+nmap-full           Create a html file with full scan of network
+nmap-half           Same has full, just half of scann no vuln or smb
+nmap-html           nmap A -O -sV  nmap -A -O -sV -oX puerto.xml --stylesheet=https://svn.nmap.org/nmap/docs/nmap.xsl (probar varios firefox)
 ips                 hace un nmap simple a un archivo llamado ips.txt
 nombre_{IP}         Da el nombre de la maquina si es linux o windows                                   
 scanporty           python3 program que hace un escaneo y pregunta el numero de puertos.usa socket               
@@ -201,7 +204,7 @@ sweep               Hace un sweep y despues pregunta si desea ejecutar expo
 sweepold            solo hace el sweep normal de las ips
 nsweep_{192.168.1}  hace un nmap -sn en la red para buscar maquinas activas.   
 nsweep2             Otro que hace un nmap -sn                        
-puertos2            nmap A -O -sV  nmap -A -O -sV -oX puerto.xml --stylesheet=https://svn.nmap.org/nmap/docs/nmap.xsl (probar varios firefox)
+
 expo                Hace un scaneo con o sin Pn, y lo genera en carpeta tmp, hace expo1, expo2, expo3
 expos               Version mejorada de expo, usar este. ./script IP
 expo4               crea un archibo clip1 del portapapeles para expo5                                  

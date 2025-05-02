@@ -1,5 +1,17 @@
 {
 
+"nmap-full": {
+      "name": "nmap_full_scan_report",
+      "short_desc": "Performs a full multi-stage network scan and generates a styled HTML report.",
+      "detailed_desc": "It performs host discovery (ping sweep), fast or deep TCP/UDP port scanning (user-selectable), and includes SMB enumeration, SNMP information retrieval, and a vulnerability scan using nmap NSE scripts. All results are compiled into a visually structured HTML dashboard with metadata (host IP, gateway, subnet), raw outputs, and formatted sections. Ideal for full-scope internal scanning. Usage: sudo ./nmap_full_scan_report.sh <CIDR>."
+    },
+
+"nmap-half": {
+      "name": "nmap_half_scan_report",
+      "short_desc": "Performs a quick network scan and generates a basic HTML report.",
+      "detailed_desc": "It performs a ping sweep to identify live hosts, runs a fast top-1000 TCP port scan, and generates an HTML dashboard with IP, network, gateway, and port scan results. The goal is to test the layout and functionality of the report without executing heavier modules like SMB, SNMP, or vulnerability scanning. Usage: sudo ./nmap_half_scan_report.sh <CIDR>."
+    },
+
 
     "maskapps": {
         "name": "ipsclean",
