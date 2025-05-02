@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+usage() {
+    echo "Uso:"
+    echo "  $0 archivo.txt       # Pega clipboard al archivo"
+    echo "  $0 -b archivo.sh     # Pega y ejecuta en bash"
+    echo "  $0 -g archivo.go     # Pega y ejecuta con go run"
+    exit 1
+}
+
+if [[ $# -eq 0 ]]; then
+    usage
+fi
+
+# Flags
+mode="paste"
+file=""
+
+if [[ "$1" == "-b" || "$1" == "-g" ]]; then
+    mode="$1"
+    file="$2"
+    [[ -z "$file" ]] && usage
+else
+    file="$1"
+fi
+
+# Pega clipboard en archivo con xclip
+xclip -selection clipboard -o > "$file"
+echo "Pegado en $file"
+
+# Ejecutar si se indicó
+if [[ "$mode" == "-b" ]]; then
+    echo "→ Ejecutando con bash:"
+    echo "-----"
+    bash "$file"
+elif [[ "$mode" == "-g" ]]; then
+    echo "→ Ejecutando con go run:"
+    echo "-----"
+    go run "$file"
+fi
