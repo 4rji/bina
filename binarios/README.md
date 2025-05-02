@@ -46,7 +46,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
-pgm                 pega y ejecuta scripts -g go -b para bash para mac
+pgaa                pega y ejecuta scripts -g go -b para bash para mac
 pga                 pega y ejecuta scripts -g go -b para bash para Arch
 enviarnc            Envia archivos con bash puro, NO NC, hace sha256sum
 recibenc            recibe archivos con nc, usando enviarnc hace sha256sum  
@@ -488,6 +488,8 @@ sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 search              Crea datos para la pagina web, para llenar la base de busqueda search
 
 #Redstuff
+scanbl              Scanea dispositivos bluetooth
+ataquebl            Envia ping de ataque para bluetooth, solo funciona en equipos viejos
 airsend             Enviar archivos, mensajes por c2, puerto 443
 ncarchivos          Muestra comandos para nc para enviar archivos o enviar comandos
 socat1              Bajado de https://github.com/aledbf/socat-static-binary/releases/download/v0.0.1/socat-linux-amd64

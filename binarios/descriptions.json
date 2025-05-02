@@ -418,6 +418,18 @@
         "name": "webmonitor",
         "short_desc": "HTTP server in Go for real-time web traffic monitoring.",
         "detailed_desc": "This script launches a web server that logs and visualizes HTTP requests in real-time, displaying a graphical interface with 'traffic light' indicators (green, yellow, red). It exposes the routes '/' (redirect), '/monitor' (dashboard), '/status' (JSON API count), and '/reset' (log reset). Uses `Chart.js` to graphically represent requests received in the last 60 seconds. Also automatically detects the server's IP to display test commands like `siege` or `curl`. Ideal for load testing and local demonstrations. Run with:\n\n  go run webmonitor.go\n\nAnd access via:\n\n  http://<your-local-ip>:8080/monitor\n\nSupports automatic browser opening on startup.\n\nFor testing, run in another terminal:\n  siege -c 255 -r 1000 http://192.168.142.17:8080/\n  while true; do curl -s http://192.168.142.17:8080/ > /dev/null; done"
-    }
+    },
+
+    "scanbl": {
+        "name": "scanbl",
+        "short_desc": "Scan nearby Bluetooth Classic devices and select one.",
+        "detailed_desc": "This Go script uses 'bluetoothctl scan on' to scan for nearby Bluetooth Classic devices. It captures the MAC and name of each detected device, displays them in a numbered list, saves the output to 'scan_result.txt', and allows the user to select one device by index. It then prints the selected MAC and name for use in further scripts. This script helps quickly identify and target Bluetooth devices for manual or automated interaction."
+    },
+
+    "ataquebl": {
+        "name": "ataquebl",
+        "short_desc": "Bluetooth DoS script using multithreaded l2ping flood.",
+        "detailed_desc": "This Go script launches multiple threads that each execute the 'l2ping' command with flood mode (-f) against a specified Bluetooth MAC address using a selected HCI interface (e.g., hci1). The user provides the target MAC and the number of threads to launch. The script displays colored output showing each command being executed per thread, simulating a DoS-style pressure on the target device. It's intended for use in testing how devices react to ping flood attacks over Bluetooth Classic. Example usage: 'sudo ./ataquebl XX:XX:XX:XX:XX:XX 10'."
+        }
 }
 
