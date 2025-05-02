@@ -47,6 +47,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
 pgm                 pega y ejecuta scripts -g go -b para bash para mac
+pga                 pega y ejecuta scripts -g go -b para bash para Arch
 enviarnc            Envia archivos con bash puro, NO NC, hace sha256sum
 recibenc            recibe archivos con nc, usando enviarnc hace sha256sum  
 descrip             Formato para hacer AI que haga una description para todo
