@@ -1,11 +1,26 @@
 #!/usr/bin/env bash
 
+shopt -s nullglob nocaseglob
+
 if [[ -n "$1" ]]; then
   imgs=("$1")
 else
-  imgs=(*.png)
+  imgs=(*.heic *.png *.jpg)
 fi
 
 for img in "${imgs[@]}"; do
-  cwebp -q 80 "$img" -o "${img%.png}.webp"
+  ext="${img##*.}"
+  ext="${ext,,}"  # convierte extensión a minúsculas
+  base="${img%.*}"
+  out="${base}.webp"
+
+  # Saltar si ya existe el .webp
+  [[ -f "$out" ]] && continue
+
+  if [[ "$ext" == "heic" ]]; then
+    tmp="${base}_tmp.jpg"
+    magick "$img" "$tmp" && cwebp -q 80 "$tmp" -o "$out" && rm "$tmp"
+  else
+    cwebp -q 80 "$img" -o "$out"
+  fi
 done
