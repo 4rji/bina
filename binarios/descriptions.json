@@ -1,5 +1,14 @@
 {
 
+
+    
+
+"bannerm": {
+    "name": "bannerm",
+    "short_desc": "Script to set up a login banner warning message.",
+    "detailed_desc": "This script creates a login banner warning message by writing a predefined text to /etc/mctcbanner, setting appropriate permissions, and replacing /etc/issue and /etc/motd with symbolic links to the new file. It also backs up the original /etc/issue and /etc/motd files. This ensures the banner is displayed during both local and remote logins."
+},
+
 "nmap-full": {
       "name": "nmap_full_scan_report",
       "short_desc": "Performs a full multi-stage network scan and generates a styled HTML report.",
