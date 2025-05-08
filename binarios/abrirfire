@@ -1,14 +1,13 @@
 #!/usr/bin/env bash
+rm -f /tmp/fx-profile/places.sqlite
+
 
 xhost +local:docker
 
 docker run \
-  --rm \
-  --entrypoint firefox \
-  -e DISPLAY="$DISPLAY" \
+  -e DISPLAY=$DISPLAY \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   -v /tmp/fx-profile:/home/user/.mozilla/firefox/default-release \
-  firefox-ephemeral \
+  --rm firefox-ephemeral \
   -profile /home/user/.mozilla/firefox/default-release \
-  -private-window \
   "https://www.whatsmybrowser.org/"
