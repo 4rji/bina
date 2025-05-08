@@ -1,10 +1,26 @@
 #!/usr/bin/env bash
 
-/usr/local/bin/docker run \
-  -e DISPLAY=host.docker.internal:0 \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -v /tmp/fx-profile:/home/user/.mozilla/firefox/default-release \
-  --rm firefox-ephemeral \
-  -profile /home/user/.mozilla/firefox/default-release \
-  "https://www.whatsmybrowser.org/"
+# Default: modo efímero
+PERSISTENTE=false
 
+# Parse arg
+if [[ "$1" == "-p" ]]; then
+  PERSISTENTE=true
+fi
+
+# Docker base
+BASE_DOCKER_CMD=(
+  /usr/local/bin/docker run
+  -e DISPLAY=host.docker.internal:0
+  -v /tmp/.X11-unix:/tmp/.X11-unix
+  --rm firefox-ephemeral
+  -profile /home/user/.mozilla/firefox/default-release
+  -private "https://www.whatsmybrowser.org/"
+)
+
+# Ejecutar según modo
+if $PERSISTENTE; then
+  exec "${BASE_DOCKER_CMD[@]}" -v /tmp/fx-profile:/home/user/.mozilla/firefox/default-release
+else
+  exec "${BASE_DOCKER_CMD[@]}" --tmpfs /home/user/.mozilla/firefox/default-release
+fi
