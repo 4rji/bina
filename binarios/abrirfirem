@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+echo -e "\e[31mRUN: xhost + 127.0.0.1\e[0m"
+echo -e "\e[31mRUN: firefoxephemeral to create language profile\e[0m"
+
 rm -f /tmp/fx-profile/places.sqlite
 
 /usr/local/bin/docker run \
