@@ -1,5 +1,13 @@
 {
 
+
+
+"bashfun": {
+  "name": "bashfun",
+  "short_desc": "Genera y añade funciones y variables de entorno personalizadas a Bash/Zsh",
+  "detailed_desc": "Script en Python que define un bloque de configuración para .bashrc y .zshrc. Incluye: evitar cierre con Ctrl+D (setopt ignoreeof); exportar AllowedIPs con subredes predefinidas; función nv() para abrir Neovim dentro de nix-shell en NixOS; espacio para añadir más alias/configuraciones de macOS. Para usar, añade el contenido de la variable `text` a tus archivos de configuración de shell."
+},
+
 "bashcurl": {
     "name": "bashcurl",
     "short_desc": "Genera un script de reverse shell y lanza un servidor HTTP.",
