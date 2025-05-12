@@ -483,6 +483,12 @@
         "name": "bateria",
         "short_desc": "Monitorea el estado de la batería y el adaptador de corriente.",
         "detailed_desc": "Este script utiliza comandos del sistema para obtener información sobre el estado de la batería y el adaptador de corriente. Ejecuta `upower` para extraer datos como el consumo de energía y el tiempo estimado para carga completa, y `acpi` para verificar si el adaptador de corriente está conectado. Muestra el consumo de energía en vatios y el tiempo estimado para carga completa en minutos, además de la conexión del adaptador de corriente."
+    },
+
+    "blockicmp": {
+        "name": "blockicmp",
+        "short_desc": "Blocks ICMP (ping) requests at the firewall level.",
+        "detailed_desc": "This script configures the system's firewall to block ICMP echo requests (pings) to prevent potential network reconnaissance and denial of service attacks.\n\nUsage: sudo ./blockicmp\n\nProcess:\n1. Checks if running with root privileges\n2. Configures iptables to drop incoming ICMP echo requests\n3. Saves the firewall rules to persist across reboots\n4. Verifies the rules are properly applied\n\nExternal commands used:\n- iptables for firewall configuration\n- iptables-save to persist rules\n\nIMPORTANT: This script requires root privileges and may affect legitimate network monitoring tools that rely on ICMP."
     }
 }
 
