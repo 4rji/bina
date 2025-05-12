@@ -292,7 +292,7 @@
     "batfzf": {
         "name": "batfzf",
         "short_desc": "Configura bat, fzf, thefuck y zoxide con temas personalizados.",
-        "detailed_desc": "Este script automatiza la configuración de varias herramientas de línea de comandos para mejorar la experiencia del usuario en la terminal.\n\nDescarga y aplica un tema personalizado para 'bat', un visualizador de archivos similar a 'cat' pero con resaltado de sintaxis.\n\nConfigura 'fzf', una herramienta de búsqueda interactiva, con opciones avanzadas de previsualización.\n\nTambién instala 'thefuck', que corrige comandos mal escritos, y 'zoxide', un mejorado comando 'cd'.\n\nLas configuraciones se añaden al archivo .zshrc para que se apliquen automáticamente al iniciar una nueva sesión de terminal."
+        "detailed_desc": "Este script automatiza la configuración de varias herramientas de línea de comandos para mejorar la experiencia del usuario en la terminal.\n\nDescarga y aplica un tema personalizado para 'bat', un visualizador de archivos similar a 'cat' pero con resaltado de sintaxis.\n\nConfigura 'fzf', una herramienta de búsqueda interactiva, con opciones avanzadas de previsualización.\n\nTambién instala 'thefuck', que corrige comandos mal escritos, y 'zoxide', un mejorado comando 'cd'.\n\nLas configuraciones se añaden al archivo .zshrc para que se apliquen automáticamente al iniciar una nueva sesión de terminal. \n\nLuego solo escribe fuck o fk para que el comando se corrija automáticamente.  "
     },
     
     "qemuconsola": {
