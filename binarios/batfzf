@@ -1,63 +1,63 @@
-#!/usr/bin/env bash
+# #!/usr/bin/env bash
 
-#crea the fuck que corrige un comando mal escrito, con el alias fk
-#cambia el theme de batcat por el descargado,
-#instala zoxide que es un  "cd"  mejorado
-
-
-
-# Create a directory for bat themes
-mkdir -p ~/.config/bat/themes
-
-# Navigate to the directory
-cd ~/.config/bat/themes
-
-# Download the tokyonight theme
-curl -O https://raw.githubusercontent.com/folke/tokyonight.nvim/main/extras/sublime/tokyonight_night.tmTheme
-
-# Rebuild the bat cache
-bat cache --build
-batcat cache --build
-
-# Append the BAT_THEME configuration to ~/.zshrc
-echo 'export BAT_THEME="tokyonight_night"' >> ~/.zshrc
-#echo 'eval "$(fzf --zsh)"' >> ~/.zshrc
-echo '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' >> ~/.zshrc
-echo 'eval $(thefuck --alias)' >> ~/.zshrc
-echo 'eval $(thefuck --alias fk)' >> ~/.zshrc
-echo 'eval "$(zoxide init zsh)"' >> ~/.zshrc
-# Install fzf
-sudo apt install fzf thefuck zoxide
+# #crea the fuck que corrige un comando mal escrito, con el alias fk
+# #cambia el theme de batcat por el descargado,
+# #instala zoxide que es un  "cd"  mejorado
 
 
-#agrega a la funcion zsh de busqueda y previo
-# Agrega las configuraciones de FZF al archivo .zshrc
-echo "export FZF_CTRL_T_OPTS=\"--preview 'bat -n --color=always --line-range :500 {}'\"" >> ~/.zshrc
-echo "export FZF_ALT_C_OPTS=\"--preview 'eza --tree --color=always {} | head -200'\"" >> ~/.zshrc
 
-# Agrega la función personalizada para fzf
-cat <<EOF >> ~/.zshrc
-# Advanced customization of fzf options via _fzf_comprun function
-# - The first argument to the function is the name of the command.
-# - You should make sure to pass the rest of the arguments to fzf.
-_fzf_comprun() {
-  local command=\$1
-  shift
+# # Create a directory for bat themes
+# mkdir -p ~/.config/bat/themes
 
-  case "\$command" in
-    cd)           fzf --preview 'eza --tree --color=always {} | head -200' "\$@" ;;
-    export|unset) fzf --preview "eval 'echo \$'{}"         "\$@" ;;
-    ssh)          fzf --preview 'dig {}'                   "\$@" ;;w
-    *)            fzf --preview "bat -n --color=always --line-range :500 {}" "\$@" ;;
-  esac
-}
-EOF
+# # Navigate to the directory
+# cd ~/.config/bat/themes
 
-echo "Las configuraciones de FZF han sido agregadas a tu archivo .zshrc. recarga la zsh"
+# # Download the tokyonight theme
+# curl -O https://raw.githubusercontent.com/folke/tokyonight.nvim/main/extras/sublime/tokyonight_night.tmTheme
+
+# # Rebuild the bat cache
+# bat cache --build
+# batcat cache --build
+
+# # Append the BAT_THEME configuration to ~/.zshrc
+# echo 'export BAT_THEME="tokyonight_night"' >> ~/.zshrc
+# #echo 'eval "$(fzf --zsh)"' >> ~/.zshrc
+# echo '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' >> ~/.zshrc
+# echo 'eval $(thefuck --alias)' >> ~/.zshrc
+# echo 'eval $(thefuck --alias fk)' >> ~/.zshrc
+# echo 'eval "$(zoxide init zsh)"' >> ~/.zshrc
+# # Install fzf
+# sudo apt install fzf thefuck zoxide
 
 
+# #agrega a la funcion zsh de busqueda y previo
+# # Agrega las configuraciones de FZF al archivo .zshrc
+# echo "export FZF_CTRL_T_OPTS=\"--preview 'bat -n --color=always --line-range :500 {}'\"" >> ~/.zshrc
+# echo "export FZF_ALT_C_OPTS=\"--preview 'eza --tree --color=always {} | head -200'\"" >> ~/.zshrc
+
+# # Agrega la función personalizada para fzf
+# cat <<EOF >> ~/.zshrc
+# # Advanced customization of fzf options via _fzf_comprun function
+# # - The first argument to the function is the name of the command.
+# # - You should make sure to pass the rest of the arguments to fzf.
+# _fzf_comprun() {
+#   local command=\$1
+#   shift
+
+#   case "\$command" in
+#     cd)           fzf --preview 'eza --tree --color=always {} | head -200' "\$@" ;;
+#     export|unset) fzf --preview "eval 'echo \$'{}"         "\$@" ;;
+#     ssh)          fzf --preview 'dig {}'                   "\$@" ;;w
+#     *)            fzf --preview "bat -n --color=always --line-range :500 {}" "\$@" ;;
+#   esac
+# }
+# EOF
+
+# echo "Las configuraciones de FZF han sido agregadas a tu archivo .zshrc. recarga la zsh"
 
 
 
 
-#https://www.josean.com/posts/7-amazing-cli-tools
+
+
+# #https://www.josean.com/posts/7-amazing-cli-tools

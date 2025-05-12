@@ -292,7 +292,8 @@
     "batfzf": {
         "name": "batfzf",
         "short_desc": "Configura bat, fzf, thefuck y zoxide con temas personalizados.",
-        "detailed_desc": "mkdir -p ~/.config/bat/themes\ncurl -O https://raw.githubusercontent.com/folke/tokyonight.nvim/main/extras/sublime/tokyonight_night.tmTheme\nbat cache --build\nsudo apt install fzf thefuck zoxide\necho 'export BAT_THEME=\"tokyonight_night\"' >> ~/.zshrc\necho '[ -f ~/.fzf.zsh ] && source ~/.fzf.zsh' >> ~/.zshrc\necho 'eval $(thefuck --alias fk)' >> ~/.zshrc\necho 'eval \"$(zoxide init zsh)\"' >> ~/.zshrc"
+        "detailed_desc": "Este script automatiza la configuración de varias herramientas de línea de comandos para mejorar la experiencia del usuario en la terminal. Descarga y aplica un tema personalizado para 'bat', un visualizador de archivos similar a 'cat' pero con resaltado de sintaxis. Configura 'fzf', una herramienta de búsqueda interactiva, con opciones avanzadas de previsualización. También instala 'thefuck', que corrige comandos mal escritos, y 'zoxide', un mejorado comando 'cd'. Las configuraciones se añaden al archivo .zshrc para que se apliquen automáticamente al iniciar una nueva sesión de terminal.",
+        "usage": "Ejecuta el script para configurar automáticamente las herramientas mencionadas. Asegúrate de tener permisos de superusuario para instalar paquetes. Una vez completado, recarga tu terminal o ejecuta 'source ~/.zshrc' para aplicar los cambios. Usa 'bat' para visualizar archivos con el nuevo tema, 'fzf' para búsquedas interactivas, 'thefuck' para corregir comandos, y 'zoxide' para navegar rápidamente entre directorios."
     },
     
     "qemuconsola": {
@@ -477,6 +478,12 @@
         "name": "ataquebl",
         "short_desc": "Bluetooth DoS script using multithreaded l2ping flood.",
         "detailed_desc": "This Go script launches multiple threads that each execute the 'l2ping' command with flood mode (-f) against a specified Bluetooth MAC address using a selected HCI interface (e.g., hci1). The user provides the target MAC and the number of threads to launch. The script displays colored output showing each command being executed per thread, simulating a DoS-style pressure on the target device. It's intended for use in testing how devices react to ping flood attacks over Bluetooth Classic. Example usage: 'sudo ./ataquebl XX:XX:XX:XX:XX:XX 10'."
-        }
+        },
+
+    "bateria": {
+        "name": "bateria",
+        "short_desc": "Monitorea el estado de la batería y el adaptador de corriente.",
+        "detailed_desc": "Este script utiliza comandos del sistema para obtener información sobre el estado de la batería y el adaptador de corriente. Ejecuta `upower` para extraer datos como el consumo de energía y el tiempo estimado para carga completa, y `acpi` para verificar si el adaptador de corriente está conectado. Muestra el consumo de energía en vatios y el tiempo estimado para carga completa en minutos, además de la conexión del adaptador de corriente."
+    }
 }
 
