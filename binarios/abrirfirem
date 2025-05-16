@@ -1,14 +1,17 @@
 #!/usr/bin/env bash
+# abre WhatsMyBrowser + SearXNG local en la misma red
 
 echo -e "\e[31mRUN: xhost + 127.0.0.1\e[0m"
-echo -e "\e[31mRUN: firefoxephemeral to create language profile\e[0m"
+echo -e "\e[31mRUN: firefoxephemeral para crear perfil de idioma (si no existe)\e[0m"
 
 rm -f /tmp/fx-profile/places.sqlite
 
 /usr/local/bin/docker run \
+  --network searchnet \
   -e DISPLAY=host.docker.internal:0 \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   -v /tmp/fx-profile:/home/user/.mozilla/firefox/default-release \
   --rm firefox-ephemeral \
   -profile /home/user/.mozilla/firefox/default-release \
-  "https://www.whatsmybrowser.org/"
+  "https://www.whatsmybrowser.org/" \
+  "http://searxng:8080"
