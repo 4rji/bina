@@ -1,7 +1,0 @@
-#!/usr/bin/env bash
-
-archivo=$1
-
-sudo cp $archivo /opt/4rji/bin/
-mv $archivo ~/Documents/GitHub/bina/binarios/
-

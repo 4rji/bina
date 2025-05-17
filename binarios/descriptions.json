@@ -489,6 +489,12 @@
         "name": "blockicmp",
         "short_desc": "Blocks ICMP (ping) requests at the firewall level.",
         "detailed_desc": "This script configures the system's firewall to block ICMP echo requests (pings) to prevent potential network reconnaissance and denial of service attacks.\n\nUsage: sudo ./blockicmp\n\nProcess:\n1. Checks if running with root privileges\n2. Configures iptables to drop incoming ICMP echo requests\n3. Saves the firewall rules to persist across reboots\n4. Verifies the rules are properly applied\n\nExternal commands used:\n- iptables for firewall configuration\n- iptables-save to persist rules\n\nIMPORTANT: This script requires root privileges and may affect legitimate network monitoring tools that rely on ICMP."
+    },
+
+    "blockip-tables": {
+        "name": "blockip-tables",
+        "short_desc": "Configura un conjunto de IPs bloqueadas usando ipset e iptables.",
+        "detailed_desc": "Este script configura un sistema de bloqueo de IPs usando ipset e iptables. Lee una lista de IPs desde ips.txt y las agrega a un conjunto ipset llamado 'blacklist'. Luego configura una regla iptables para bloquear todo el tráfico entrante desde esas IPs.\n\nEl proceso:\n1. Crea un conjunto ipset de tipo hash:ip llamado 'blacklist'\n2. Limpia el conjunto actual\n3. Lee IPs desde ips.txt y las agrega al conjunto\n4. Configura una regla iptables para bloquear el tráfico desde las IPs en el conjunto\n5. Guarda la configuración de ipset e iptables para persistencia\n\nUso: Ejecutar el script como root. Asegúrate de tener un archivo ips.txt con las IPs a bloquear."
     }
 }
 
