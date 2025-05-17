@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#!/usr/bin/env bash
 progress_bar() {
     total=10
     current=$1
