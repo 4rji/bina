@@ -342,6 +342,8 @@ ansihost            Cat a los hosts y pregunta si quiero editarlo ansible
 
 
 ###------seguridad de sistemas
+dnsleak             Consulta si el dns se esta saliendo
+dnslist             Menu para ver dns, ruta, opciones, capturar trafico
 ipt                 Para acceptar todo trafico o bloquear todo el trafico. 
 snifferip           Sniffer paquetes red que captura las cabeceras IP en dirección IP especifica.
 iarpon              Arpon para protejer de arp poising. arp sniff 
