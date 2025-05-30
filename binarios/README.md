@@ -46,6 +46,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+oniuxinst           Instala cargo, oniux y curl ip
 pgaa                pega y ejecuta scripts -g go -b para bash para mac
 pga                 pega y ejecuta scripts -g go -b para bash para Arch
 enviarnc            Envia archivos con bash puro, NO NC, hace sha256sum
