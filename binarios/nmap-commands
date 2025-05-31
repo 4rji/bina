@@ -1,3 +1,0 @@
-Top 1000 puertos::nmap --top-ports 1000 {target}
-Aggressive TCP scan::sudo nmap -p- --open -sS --min-rate 5000 -v -n -Pn -oG allPorts {target}
-Service/version enumeration::nmap -sCV -p- -oN expo3 {target}
