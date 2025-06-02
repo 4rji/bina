@@ -1,0 +1,87 @@
+#!/usr/bin/env bash
+# Menu con loop infinito y detección de tecla sin ENTER
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+BOLD='\033[1m'
+
+# Detectar sistema
+OS="$(uname)"
+is_macos=false
+is_linux=false
+if [[ "$OS" == "Darwin" ]]; then
+  is_macos=true
+elif [[ "$OS" == "Linux" ]]; then
+  is_linux=true
+fi
+
+while true; do
+  echo -e "${RED}1)${NC} Ejecutar dnsleak      ${CYAN}– Comprueba fugas DNS con tu script en PATH${NC}"
+  echo -e "${RED}2)${NC} Mostrar interfaz       ${CYAN}– Muestra la interfaz por defecto usada para Internet${NC}"
+  echo -e "${RED}3)${NC} Listar servidores DNS   ${CYAN}– Detalla resolvers, interfaces y nameservers activos${NC}"
+  echo -e "${RED}4)${NC} Captura DNS (live)     ${CYAN}– Muestra en tiempo real todo el tráfico DNS${NC}"
+  echo -e "${RED}5)${NC} Captura DNS (pcap)     ${CYAN}– Graba todo el tráfico DNS en dns_capture.pcap${NC}"
+  echo -e "${RED}q)${NC} Salir                   ${CYAN}– Termina el script${NC}"
+  echo
+  echo -n "Selecciona opción [1-5,q]: "
+  read -n1 -s opt
+  echo && echo
+
+  case "$opt" in
+    1)
+      echo -e "${GREEN}>> Ejecutando dnsleak test...${NC}"
+      dnsleak
+      ;;
+    2)
+      echo -e "${YELLOW}>> Obteniendo interfaz por defecto...${NC}"
+      if $is_macos; then
+        route get default | grep interface
+      elif $is_linux; then
+        ip route | grep '^default' | awk '{print "interface: "$5}'
+      else
+        echo "Sistema no soportado para esta acción."
+      fi
+      ;;
+    3)
+      echo -e "${BLUE}>> Listando resolvers y DNS...${NC}"
+      if $is_macos; then
+        scutil --dns | grep -E 'resolver\ #[0-9]+|interface|nameserver'
+      elif $is_linux; then
+        echo "Resolv.conf:" 
+        grep -E 'nameserver|search|domain' /etc/resolv.conf
+        echo
+        if command -v systemd-resolve &>/dev/null; then
+          echo "systemd-resolve status:"
+          systemd-resolve --status | grep -E 'DNS Servers:|Link [0-9]+:'
+        fi
+      else
+        echo "Sistema no soportado para esta acción."
+      fi
+      ;;
+    4)
+      echo -e "${MAGENTA}>> Capturando DNS en vivo (puerto 53)...${NC}"
+      sudo tcpdump -n -i any port 53
+      ;;
+    5)
+      echo -e "${CYAN}>> Grabando DNS en dns_capture.pcap...${NC}"
+      sudo tcpdump -n -i any port 53 -s 0 -w dns_capture.pcap
+      echo -e "${CYAN}>> Listo: abre dns_capture.pcap con Wireshark${NC}"
+      ;;
+    q | Q)
+      echo -e "${RED}Saliendo...${NC}"
+      break
+      ;;
+    *)
+      echo -e "${RED}Opción inválida.${NC}"
+      ;;
+  esac
+
+  echo
+  echo -e "${BOLD}Presiona cualquier tecla para volver al menú...${NC}"
+  read -n1 -s
+done
