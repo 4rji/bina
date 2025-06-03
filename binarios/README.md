@@ -290,7 +290,8 @@ cssh                copia mui clave a una maquina remota
 ccssh               Version para M1 mac de cssh
 googlessh           Instala la authenticacion de google para ssh                                               
 sshconf             Hace un archivo .ssh/config para conectarse por medio de jump ejemplo: ssh maquina-final
-sshhost             Lista los hosts del archivo sshconf, para conectarse
+sshhostt            Lista los hosts del archivo sshconf, para conectarse
+sshhost             Lista igual pero en go. binario. 
 sshjump             Configura los jumps infinitamente.
 sshlist             Modifica la lista de /etc/hosts allow deny para asegurar la red ssh
 sshhuesped          Huespedes de mi configuracion

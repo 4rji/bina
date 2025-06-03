@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
+archivo_config="$HOME/.ssh/config"  # Ruta al archivo config de SSH
+
+declare -A host_ip_map  # Usamos un diccionario para mapear hosts a IPs
+declare -A host_status  # Diccionario para almacenar el estado de los hosts
+
+# Función para verificar si un host está en línea
+check_host_status() {
+    local ip=$1
+    if ping -c 1 -W 1 "$ip" &>/dev/null; then
+        return 0  # Host está en línea
+    else
+        return 1  # Host está fuera de línea
+    fi
+}
+
+# Verificar si se usa el modo rápido
+fast_mode=false
+if [[ "$1" == "-f" ]]; then
+    fast_mode=true
+fi
+
+# Leer nombres e IPs de hosts del archivo de configuración
+current_host=""
+skip=false
+
+while IFS= read -r linea || [[ -n "$linea" ]]; do
+    # Limpia comentarios, espacios al inicio y al final
+    linea=$(echo "$linea" | sed 's/#.*//;s/^\s*//;s/\s*$//')
+    if [[ -z "$linea" ]]; then continue; fi  # Ignora líneas en blanco
+
+    # Manejar insensibilidad de mayúsculas y minúsculas para Host y HostName
+    key=$(echo "$linea" | awk '{print tolower($1)}')
+    value=$(echo "$linea" | awk '{print $2}')
+
+    if [[ "$key" == "host" ]]; then
+        current_host="$value"
+        host_ip_map["$current_host"]="IP no encontrada"  # Inicializamos con IP no encontrada
+        skip=false
+    elif [[ "$key" == "hostname" ]] && [[ -n "$current_host" ]] && ! $skip; then
+        host_ip_map["$current_host"]=$value  # Actualizamos la IP para el host actual
+        skip=true  # Evita capturar múltiples HostName si existen
+    fi
+done < "$archivo_config"
+
+# Mostrar los hosts disponibles
+echo "List of available hosts:"
+i=1
+host_list=()  # Array to hold host keys
+for host in "${!host_ip_map[@]}"; do
+    ip=${host_ip_map[$host]}
+    if $fast_mode; then
+        echo -e "$i. \033[0;34m$host\033[0m - \033[0;33m$ip\033[0m"
+    else
+        if [[ "$ip" != "IP no encontrada" ]]; then
+            if check_host_status "$ip"; then
+                echo -e "$i. \033[0;34m$host\033[0m - \033[0;32m$ip\033[0m (online)"
+            else
+                echo -e "$i. \033[0;34m$host\033[0m - \033[0;33m$ip\033[0m (offline)"
+            fi
+        else
+            echo -e "$i. \033[0;34m$host\033[0m - \033[0;33m$ip\033[0m"
+        fi
+    fi
+    host_list+=("$host")  # Store the host in order
+    ((i++))
+done
+
+# Solicitar al usuario que elija un host para conectar
+echo -e "\n\033[1;35m_________________________________________________________\033[0m\n"
+read -p $'\n\e[33mEnter the number of the host you want to connect to: \e[0m' chosen_host_number
+
+# Validar la entrada del usuario
+if ! [[ "$chosen_host_number" =~ ^[0-9]+$ ]] || ((chosen_host_number < 1 || chosen_host_number > ${#host_list[@]})); then
+    echo -e "\n\e[31mError: Please enter a valid number within the range.\e[0m\n"
+    exit 1
+fi
+
+# Conectar al host elegido
+chosen_host=${host_list[$((chosen_host_number-1))]}
+chosen_ip=${host_ip_map[$chosen_host]}
+echo -e "\n\e[33mConnecting to \033[0;34m$chosen_host\033[0m (\033[0;33m$chosen_ip\033[0m)...\e[0m\n"
+ssh "$chosen_host"
