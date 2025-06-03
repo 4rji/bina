@@ -113,6 +113,7 @@ x11inst             Instala x11 u otros desktops kali y sddm por default
 batfzf              Instala el theme night tokio para batcat, tambien fzf 
 tiles               Instala la configuracion de tiles sdd manager krohn y da instruciones de descarga
 nvidiapromox        instala nvidia passtrhought 3070, en promox
+nv-agent            Agente de nvidia para gpu monitor
 nvidiakali          Instala nvidia en kali, baja el driver  
 limpiarherrabin     Limpia los binarios de /usr/bin/ 
 shm                 Aumenta la memoria de tmp de la /dev/shm, y la limpia con -c
