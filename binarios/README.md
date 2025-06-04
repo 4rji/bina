@@ -147,6 +147,7 @@ lid                 cambia el comportamiento de lid laptop
 
 
 #Util
+backd-detect        detecta conexiones sospechosas hacia rangos RFC1918 e identifica procesos asociados
 blockip-tables      Bloquea ips.txt con iptables (usado en c2), limpiar archivo adentro ###
 msmb                monta un smb o samba
 smbcomm             Explota samba, arregla s tty, consola interactiva, control c     
