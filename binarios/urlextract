@@ -1,0 +1,69 @@
+#!/bin/bash
+# urlextract -- Extrae enlaces de una URL usando lynx.
+# Opciones:
+#   -d : muestra solo los dominios principales de los enlaces encontrados
+#   -r : solo enlaces internos (mismo dominio que el proporcionado)
+#   -a : solo enlaces externos (diferente dominio)
+#
+# Uso:
+#   ./urlextract https://example.com
+#   ./urlextract -d https://example.com
+#   ./urlextract -r https://example.com
+#   ./urlextract -a https://example.com
+#
+# Ejemplos de salida:
+#   ./urlextract -d https://example.com
+#     www.example.com
+#     cdn.example.org
+#
+#   ./urlextract -r https://example.com
+#     /about
+#     /contact
+#
+#   ./urlextract -a https://example.com
+#     https://external-site.com/page
+#     https://another.com/
+
+if [ $# -eq 0 ]; then
+  echo "Uso: $0 [-d|-r|-a] url" >&2
+  echo "Ejemplos:"
+  echo "  $0 https://example.com         # Todos los links"
+  echo "  $0 -d https://example.com      # Solo dominios"
+  echo "  $0 -r https://example.com      # Solo internos"
+  echo "  $0 -a https://example.com      # Solo externos"
+  exit 1
+fi
+
+if [ $# -eq 2 ]; then
+  case "$1" in
+    -d)
+      lastcmd="cut -d/ -f3 | sort | uniq"
+      shift
+      ;;
+    -r)
+      basedomain="http://$(echo $2 | cut -d/ -f3)/"
+      lastcmd="grep \"^$basedomain\" | sed \"s|$basedomain||g\" | sort | uniq"
+      shift
+      ;;
+    -a)
+      basedomain="http://$(echo $2 | cut -d/ -f3)/"
+      lastcmd="grep -v \"^$basedomain\" | sort | uniq"
+      shift
+      ;;
+    *)
+      echo "$0: opción desconocida: $1" >&2
+      exit 1
+      ;;
+  esac
+else
+  lastcmd="sort | uniq"
+fi
+
+lynx -dump "$1" | \
+  sed -n '/^References$/,$p' | \
+  grep -E '[[:digit:]]+\.' | \
+  awk '{print $2}' | \
+  cut -d\? -f1 | \
+  eval $lastcmd
+
+exit 0

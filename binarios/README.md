@@ -46,6 +46,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+urlextract          Extrae url de dominios
 oniuxinst           Instala cargo, oniux y curl ip
 pgaa                pega y ejecuta scripts -g go -b para bash para mac
 pga                 pega y ejecuta scripts -g go -b para bash para Arch
@@ -345,6 +346,7 @@ ansihost            Cat a los hosts y pregunta si quiero editarlo ansible
 
 
 ###------seguridad de sistemas
+dnscheck            Verifica si quad9 se usa, consulta whois Ip propia y externa de consultas
 dnsleak             Consulta si el dns se esta saliendo
 dnslist             Menu para ver dns, ruta, opciones, capturar trafico
 ipt                 Para acceptar todo trafico o bloquear todo el trafico. 
