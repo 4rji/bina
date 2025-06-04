@@ -1,17 +1,56 @@
 #!/usr/bin/env bash
-# abre WhatsMyBrowser + SearXNG local en la misma red
+set -e
 
-echo -e "\e[31mRUN: xhost + 127.0.0.1\e[0m"
-echo -e "\e[31mRUN: firefoxephemeral para crear perfil de idioma (si no existe)\e[0m"
+# ----------- Configuración -----------------
+NETWORK="searchnet"
+PORT=8080
+CONTAINER_NAME="searxng"
+FIREFOX_IMG="firefox-ephemeral"
+# -------------------------------------------
 
-rm -f /tmp/fx-profile/places.sqlite
+# red docker
+docker network inspect "$NETWORK" >/dev/null 2>&1 || docker network create "$NETWORK"
 
-/usr/local/bin/docker run \
-  --network searchnet \
+# SearXNG
+docker image inspect searxng/searxng >/dev/null 2>&1 || docker pull searxng/searxng
+if ! docker ps --format '{{.Names}}' | grep -qw "$CONTAINER_NAME"; then
+  mkdir -p searxng
+  docker run -d --rm \
+    --name "$CONTAINER_NAME" \
+    --network "$NETWORK" \
+    -p "${PORT}:8080" \
+    -v "${PWD}/searxng:/etc/searxng" \
+    -e "BASE_URL=http://${CONTAINER_NAME}:${PORT}/" \
+    searxng/searxng
+fi
+
+# idioma
+LANG_CODES=( "en-US" "es-ES" "ja" "zh-CN" "ru" "fr-FR" "de-DE" "pt-BR" "it-IT" "ko" )
+LANG_NAMES=( "English" "Español" "日本語" "中文(简)" "Русский" "Français" "Deutsch" "Português(BR)" "Italiano" "한국어" )
+
+echo -e "\nSelecciona idioma:"
+for i in "${!LANG_CODES[@]}"; do n=$(printf "%02d" $((i+1))); echo "  $n) ${LANG_CODES[$i]} - ${LANG_NAMES[$i]}"; done
+read -rp "Número: " choice
+idx=$((choice-1)); lang="${LANG_CODES[$idx]}"
+[ -z "$lang" ] && { echo "Selección inválida"; exit 1; }
+
+# perfil efímero + user.js
+PROFILE=$(mktemp -d)
+trap 'rm -rf "$PROFILE"' EXIT
+cat > "$PROFILE/user.js" <<EOF
+user_pref("intl.accept_languages", "$lang,en");
+user_pref("general.useragent.locale", "$lang");
+user_pref("intl.locale.requested", "$lang");
+EOF
+
+xhost + 127.0.0.1
+
+docker run --rm \
+  --network "$NETWORK" \
   -e DISPLAY=host.docker.internal:0 \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -v /tmp/fx-profile:/home/user/.mozilla/firefox/default-release \
-  --rm firefox-ephemeral \
+  -v "$PROFILE":/home/user/.mozilla/firefox/default-release \
+  "$FIREFOX_IMG" \
   -profile /home/user/.mozilla/firefox/default-release \
   "https://www.whatsmybrowser.org/" \
-  "http://searxng:8080"
+  "http://${CONTAINER_NAME}:${PORT}"
