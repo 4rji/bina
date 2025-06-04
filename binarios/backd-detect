@@ -1,0 +1,14 @@
+#!/bin/bash
+
+echo -e "\033[36m🔎 Listando conexiones salientes sospechosas (RFC1918)...\033[0m"
+
+echo -e "\033[33m\n1️⃣ Conexiones activas a IPs privadas (RFC1918):\033[0m"
+netstat -an | grep --color=auto ESTABLISHED | grep --color=auto -E '10\.|192\.168|172\.(1[6-9]|2[0-9]|3[01])'
+
+echo -e "\033[33m\n2️⃣ Procesos que están conectados o escuchando en esas IPs:\033[0m"
+lsof -i | grep --color=auto -E '10\.|192\.168|172\.(1[6-9]|2[0-9]|3[01])'
+
+echo -e "\033[33m\n3️⃣ Últimos procesos que intentaron conexión (últimos 5 minutos):\033[0m"
+sudo tcpdump -n -i any dst net 10.0.0.0/8 or dst net 192.168.0.0/16 or dst net 172.16.0.0/12 -c 50
+
+echo -e "\033[32m\n✅ Listo. Si ves conexiones que no reconoces, investiga el PID/proceso.\033[0m"
