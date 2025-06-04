@@ -1,56 +1,68 @@
 #!/usr/bin/env bash
 set -e
 
-# ----------- Configuración -----------------
+# ----------- red & SearXNG ------------
 NETWORK="searchnet"
 PORT=8080
-CONTAINER_NAME="searxng"
-FIREFOX_IMG="firefox-ephemeral"
-# -------------------------------------------
+CONTAINER="searxng"
 
-# red docker
 docker network inspect "$NETWORK" >/dev/null 2>&1 || docker network create "$NETWORK"
-
-# SearXNG
 docker image inspect searxng/searxng >/dev/null 2>&1 || docker pull searxng/searxng
-if ! docker ps --format '{{.Names}}' | grep -qw "$CONTAINER_NAME"; then
-  mkdir -p searxng
-  docker run -d --rm \
-    --name "$CONTAINER_NAME" \
-    --network "$NETWORK" \
-    -p "${PORT}:8080" \
-    -v "${PWD}/searxng:/etc/searxng" \
-    -e "BASE_URL=http://${CONTAINER_NAME}:${PORT}/" \
-    searxng/searxng
-fi
 
-# idioma
+CID=""
+if ! docker ps --format '{{.Names}}' | grep -qw "$CONTAINER"; then
+  mkdir -p searxng
+  CID=$(docker run -d --rm \
+        --name "$CONTAINER" \
+        --network "$NETWORK" \
+        -p "${PORT}:8080" \
+        -v "${PWD}/searxng:/etc/searxng" \
+        -e "BASE_URL=http://${CONTAINER}:${PORT}/" \
+        searxng/searxng)
+fi
+# --------------------------------------
+
+# ----------- idioma -------------------
 LANG_CODES=( "en-US" "es-ES" "ja" "zh-CN" "ru" "fr-FR" "de-DE" "pt-BR" "it-IT" "ko" )
 LANG_NAMES=( "English" "Español" "日本語" "中文(简)" "Русский" "Français" "Deutsch" "Português(BR)" "Italiano" "한국어" )
 
-echo -e "\nSelecciona idioma:"
-for i in "${!LANG_CODES[@]}"; do n=$(printf "%02d" $((i+1))); echo "  $n) ${LANG_CODES[$i]} - ${LANG_NAMES[$i]}"; done
-read -rp "Número: " choice
-idx=$((choice-1)); lang="${LANG_CODES[$idx]}"
-[ -z "$lang" ] && { echo "Selección inválida"; exit 1; }
+echo; echo "Selecciona idioma:"
+for i in "${!LANG_CODES[@]}"; do printf "  %02d) %-7s - %s\n" $((i+1)) "${LANG_CODES[$i]}" "${LANG_NAMES[$i]}"; done
+read -rp "Número: " num
+idx=$((num-1)); LANG="${LANG_CODES[$idx]}"
+[ -z "$LANG" ] && { [[ -n "$CID" ]] && docker stop "$CID" >/dev/null; exit 1; }
+# --------------------------------------
 
-# perfil efímero + user.js
-PROFILE=$(mktemp -d)
-trap 'rm -rf "$PROFILE"' EXIT
+# ----------- perfil efímero -----------
+PROFILE=$(mktemp -d /tmp/fx-profile-XXXXXX)
+trap '[[ -n "$CID" ]] && docker stop "$CID" >/dev/null; rm -rf "$PROFILE"' EXIT
+
 cat > "$PROFILE/user.js" <<EOF
-user_pref("intl.accept_languages", "$lang,en");
-user_pref("general.useragent.locale", "$lang");
-user_pref("intl.locale.requested", "$lang");
+user_pref("intl.accept_languages", "$LANG,en");
+user_pref("general.useragent.locale", "$LANG");
+user_pref("intl.locale.requested", "$LANG");
 EOF
+# --------------------------------------
 
-xhost + 127.0.0.1
+# ----------- XQuartz ------------------
+if ! pgrep -x "XQuartz" >/dev/null; then
+  open -a XQuartz
+  sleep 2
+fi
+
+# DISPLAY local (para xhost)
+export DISPLAY=:0
+xhost +127.0.0.1 >/dev/null
+
+# DISPLAY para el contenedor
+DOCKER_DISPLAY="host.docker.internal:0"
+# --------------------------------------
 
 docker run --rm \
   --network "$NETWORK" \
-  -e DISPLAY=host.docker.internal:0 \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
+  -e DISPLAY="$DOCKER_DISPLAY" \
   -v "$PROFILE":/home/user/.mozilla/firefox/default-release \
-  "$FIREFOX_IMG" \
+  firefox-ephemeral \
   -profile /home/user/.mozilla/firefox/default-release \
   "https://www.whatsmybrowser.org/" \
-  "http://${CONTAINER_NAME}:${PORT}"
+  "http://${CONTAINER}:${PORT}"
