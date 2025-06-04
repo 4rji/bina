@@ -1,6 +1,10 @@
 {
 
-
+"dnscheck": {
+    "name": "dnscheck",
+    "short_desc": "Verifica si estás utilizando Quad9 como tu DNS y muestra información relacionada.",
+    "detailed_desc": "Este script realiza una verificación completa del uso de Quad9 como servidor DNS. Incluye consultas a on.quad9.net para validar si estás usando Quad9, realiza una consulta directa a whoami.quad9.net y obtiene la versión del nodo Quad9 desde version.bind. Además, detecta el resolver local usado por el sistema, identifica la IP externa utilizada por el DNS mediante whoami.akamai.net, y ejecuta el binario locip o locipm dependiendo de la arquitectura (amd64 o arm64) para mostrar detalles de geolocalización. También ejecuta una consulta WHOIS para determinar si la IP externa pertenece directamente a Quad9. Al final, muestra la IP pública del sistema y la información de geolocalización (ciudad, región y país) usando ipinfo.io. Requiere tener instalados: curl, dig, whois, y locip/locipm."
+},
 
 "bashfun": {
   "name": "bashfun",
