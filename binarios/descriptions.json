@@ -1,4 +1,9 @@
 {
+"urlextract": {
+    "name": "urlextract",
+    "short_desc": "Extrae enlaces (URLs) desde una página web usando lynx.",
+    "detailed_desc": "Este script permite extraer enlaces de una página web utilizando la herramienta 'lynx' en modo texto. Soporta tres modos de filtrado: '-d' para mostrar solo los dominios principales de los enlaces, '-r' para mostrar únicamente los enlaces internos (mismo dominio que el proporcionado) y '-a' para mostrar únicamente los enlaces externos (diferente dominio). El script procesa la salida de 'lynx -dump', filtra las URLs relevantes y aplica los comandos de filtrado según la opción seleccionada. Ejemplo de uso: './urlextract -d https://example.com' mostrará solo los dominios encontrados en la página. Requiere que 'lynx' esté instalado en el sistema."
+},
 
 "dnscheck": {
     "name": "dnscheck",

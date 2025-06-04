@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # urlextract -- Extrae enlaces de una URL usando lynx.
 # Opciones:
 #   -d : muestra solo los dominios principales de los enlaces encontrados
