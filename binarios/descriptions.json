@@ -1,4 +1,10 @@
 {
+"zipcheck": {
+    "name": "zipcheck",
+    "short_desc": "Muestra las principales ciudades de EE.UU. y permite consultar información de un ZIP.",
+    "detailed_desc": "Este script muestra una lista de las 10 principales ciudades de EE.UU. con sus ZIP codes representativos. Además, permite consultar un código ZIP específico y obtener la ciudad y estado correspondiente desde city-data.com. Utiliza colores ANSI para resaltar la salida. Uso: ./zipcheck <zip_code> para hacer una consulta individual."
+},
+
 "urlextract": {
     "name": "urlextract",
     "short_desc": "Extrae enlaces (URLs) desde una página web usando lynx.",

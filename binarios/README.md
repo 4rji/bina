@@ -46,6 +46,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+zipcheck            Muestra zip de 10 ciudades top y permite consultar zipcodes
 urlextract          Extrae url de dominios
 oniuxinst           Instala cargo, oniux y curl ip
 pgaa                pega y ejecuta scripts -g go -b para bash para mac

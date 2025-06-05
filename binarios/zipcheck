@@ -1,0 +1,41 @@
+#!/bin/bash
+# cityzipinfo -- Muestra las 10 principales ciudades y permite consultar info de un ZIP
+
+baseURL="http://www.city-data.com/zips"
+
+# Colores ANSI
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+CYAN='\033[0;36m'
+YELLOW='\033[1;33m'
+RESET='\033[0m'
+
+# Mostrar ciudades principales
+echo -e "${CYAN}Top 10 ciudades de EE.UU. con ZIP code representativo:${RESET}"
+echo
+printf "${YELLOW}%-20s %-10s${RESET}\n" "Ciudad" "ZIP Code"
+echo -e "${YELLOW}-------------------- ----------${RESET}"
+printf "%-20s %-10s\n" "New York, NY" "10001"
+printf "%-20s %-10s\n" "Los Angeles, CA" "90001"
+printf "%-20s %-10s\n" "Chicago, IL" "60601"
+printf "%-20s %-10s\n" "Houston, TX" "77001"
+printf "%-20s %-10s\n" "Phoenix, AZ" "85001"
+printf "%-20s %-10s\n" "Philadelphia, PA" "19019"
+printf "%-20s %-10s\n" "San Antonio, TX" "78201"
+printf "%-20s %-10s\n" "San Diego, CA" "92101"
+printf "%-20s %-10s\n" "Dallas, TX" "75201"
+printf "%-20s %-10s\n" "San Jose, CA" "95101"
+echo
+echo -e "${GREEN}Para consultar un ZIP específico, usa: ${RESET}${YELLOW}$0 <zip_code>${RESET}"
+echo
+
+# Si se pasa un ZIP, hacer consulta
+if [ $# -eq 1 ]; then
+    echo -e "${RED}================ ZIP Lookup ================${RESET}"
+    echo -ne "${GREEN}ZIP code $1 is in ${RESET}"
+    location=$(curl -Ls "http://www.city-data.com/zips/$1.html" | grep -i '<title>' | cut -d\( -f2 | cut -d\) -f1)
+    echo -e "${CYAN}$location${RESET}"
+    echo -e "${RED}===========================================${RESET}"
+fi
+
+exit 0
