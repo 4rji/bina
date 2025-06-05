@@ -1,4 +1,11 @@
 {
+
+"websave": {
+    "name": "websave",
+    "short_desc": "Monitorea una página web y detecta cambios visibles.",
+    "detailed_desc": "Este script en Go usa 'lynx -dump' para obtener el contenido visible de una URL, lo limpia de texto ruidoso (como fechas o IDs) y lo compara con una versión anterior guardada localmente en /opt/4rji/web-saved/websave. Si detecta cambios, los reporta por consola y los guarda, registrando cada evento en webtrack.log. Uso: ./websave <url>"
+},
+
 "zipcheck": {
     "name": "zipcheck",
     "short_desc": "Muestra las principales ciudades de EE.UU. y permite consultar información de un ZIP.",

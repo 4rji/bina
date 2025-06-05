@@ -1,0 +1,59 @@
+#!/bin/bash
+# changetrack.sh — Verifica cambios en páginas web (contenido visible) usando lynx
+# Guarda en /opt/4rji/web-saved
+
+ARCHIVE_DIR="/opt/4rji/web-saved"
+
+# Verificar lynx
+if ! command -v lynx >/dev/null 2>&1; then
+    echo "❌ lynx no está instalado. Instálalo con: sudo apt install lynx"
+    exit 1
+fi
+
+# Verificar args
+if [ $# -ne 1 ]; then
+    echo "Uso: $0 <url>"
+    exit 1
+fi
+
+URL="$1"
+
+# Asegurar esquema
+[[ "$URL" =~ ^http.* ]] || URL="https://$URL"
+
+# Crear carpeta si no existe
+if [ ! -d "$ARCHIVE_DIR" ]; then
+    echo "⚙️  Creando $ARCHIVE_DIR con sudo..."
+    sudo mkdir -p "$ARCHIVE_DIR" || exit 1
+    sudo chown "$USER" "$ARCHIVE_DIR" || exit 1
+fi
+
+# Normalizar nombre de archivo
+FILENAME=$(echo "$URL" | sed 's|https\?://||g' | tr '/?&' '_')
+OLDFILE="$ARCHIVE_DIR/$FILENAME"
+NEWFILE="$ARCHIVE_DIR/$FILENAME.new"
+
+# Descargar contenido visible
+lynx -dump "$URL" > "$NEWFILE" || {
+    echo "❌ Error al descargar $URL"
+    exit 1
+}
+
+# Si ya existe versión anterior, comparar
+if [ -f "$OLDFILE" ]; then
+    if cmp -s "$OLDFILE" "$NEWFILE"; then
+        echo "✅ No hay cambios en $URL"
+        rm -f "$NEWFILE"
+        exit 0
+    else
+        echo "⚠️  Cambios detectados en $URL"
+    fi
+else
+    echo "📥 Primera vez viendo $URL, archivo guardado."
+fi
+
+# Actualizar snapshot
+mv "$NEWFILE" "$OLDFILE"
+chmod 644 "$OLDFILE"
+
+exit 0
