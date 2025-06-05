@@ -7,7 +7,8 @@ netstat-cargo       netstat en formato normal cargo
 
 
 #dominios o ips 
-ipsclean            Extrae ips, dominios y urls de archivos, limpia y cuenta sort uniq 
+
+cleanips            Extrae ips, dominios y urls de archivos, limpia y cuenta sort uniq 
 
 
 
