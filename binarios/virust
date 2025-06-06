@@ -1,0 +1,57 @@
+#!/usr/bin/env python3
+import requests
+import sys
+import time
+import os
+
+API_KEY = os.getenv("VT_API_KEY")
+if not API_KEY:
+    print("Error: la variable de entorno VT_API_KEY no está definida.")
+    sys.exit(1)
+
+VT_URL = "https://www.virustotal.com/api/v3/ip_addresses/{}"
+HEADERS = {"x-apikey": API_KEY}
+GEO_URL = "http://ip-api.com/json/{}"
+
+def get_geoloc(ip):
+    try:
+        r = requests.get(GEO_URL.format(ip), timeout=5)
+        if r.status_code == 200:
+            data = r.json()
+            city = data.get("city", "Desconocida")
+            country = data.get("country", "Desconocido")
+            return city, country
+    except:
+        pass
+    return "Desconocida", "Desconocido"
+
+def consultar_ip(ip):
+    try:
+        r = requests.get(VT_URL.format(ip), headers=HEADERS)
+        if r.status_code == 200:
+            data = r.json()["data"]["attributes"]
+            detecciones = data["last_analysis_stats"]
+            city, country = get_geoloc(ip)
+            print(f"{ip} → {detecciones['malicious']} maliciosos / {detecciones['suspicious']} sospechosos → {city}, {country}")
+        else:
+            print(f"{ip} → Error {r.status_code}")
+    except Exception as e:
+        print(f"{ip} → Error: {e}")
+
+def main():
+    if len(sys.argv) == 2:
+        arg = sys.argv[1]
+        if arg.endswith(".txt"):
+            with open(arg, "r") as f:
+                for line in f:
+                    ip = line.strip()
+                    if ip:
+                        consultar_ip(ip)
+                        time.sleep(15)  # Respetar límite de VT
+        else:
+            consultar_ip(arg)
+    else:
+        print("Uso: python script.py [IP | archivo.txt]")
+
+if __name__ == "__main__":
+    main()
