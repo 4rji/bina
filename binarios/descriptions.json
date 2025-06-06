@@ -1,5 +1,11 @@
 {
 
+"virust": {
+    "name": "virust",
+    "short_desc": "Consulta IPs contra VirusTotal e incluye geolocalización.",
+    "detailed_desc": "Este script permite verificar una IP o una lista de IPs (desde un archivo .txt) usando la API de VirusTotal. Reporta cuántos motores la marcan como maliciosa o sospechosa. Además, usa la API pública de ip-api.com para mostrar la ciudad y país asociados a cada IP. Uso: 'python script.py 8.8.8.8' o 'python script.py ips.txt'."
+},
+
 "websave": {
     "name": "websave",
     "short_desc": "Monitorea una página web y detecta cambios visibles.",

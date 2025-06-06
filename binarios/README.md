@@ -171,7 +171,6 @@ maquinasova         Convierte maquinas ova para qemu
 limpiartest         Genera archivos de varios tamanos para probar
 limpiar             Limpia el home con shred y scrub (solo home del usuario actual)
 cortes              Muestra cortes archivos con awk cut (no grep or find)
-
 genarc              genera archivos conjuntos de 100 MB
 ddf                 hace un diff archivo vs archivo.backup                                             
 copycar	            Copia una carpeta folder por medio de ssh scp
@@ -349,6 +348,7 @@ ansihost            Cat a los hosts y pregunta si quiero editarlo ansible
 
 
 ###------seguridad de sistemas
+virust              Usa la API de virustotal para ver ips.txt o IP su uso. 
 dnscheck            Verifica si quad9 se usa, consulta whois Ip propia y externa de consultas
 dnsleak             Consulta si el dns se esta saliendo
 dnslist             Menu para ver dns, ruta, opciones, capturar trafico
