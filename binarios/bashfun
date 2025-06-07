@@ -389,7 +389,7 @@ cyan="#2CF9ED"
     
 
 export FZF_DEFAULT_OPTS="
-  --height 40% 
+  --height 80% 
   --border 
   --preview-window=right:50% 
   --reverse 
