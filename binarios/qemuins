@@ -9,22 +9,19 @@ read -p "Introduce tu elección (1/2), o Enter: " eleccion
 
 case $eleccion in
     1)
-        echo "Instalando en Debian..."
+        echo "Instalando en Debian/Ubuntu..."
         sudo apt update
-        sudo apt install -y qemu-system virt-manager spice-vdagent
-        sudo systemctl enable libvirtd
-        sudo systemctl start libvirtd
-        sudo systemctl enable spice-vdagent
-        sudo systemctl start spice-vdagent
+        sudo apt install -y qemu-kvm libvirt-daemon-system libvirt-clients bridge-utils virt-manager spice-vdagent
+        sudo systemctl enable --now libvirtd
+        sudo systemctl enable --now spice-vdagent
+        sudo usermod -aG libvirt $(whoami)
         ;;
     2)
         echo "Instalando en Arch..."
-        sudo pacman -Syu --noconfirm qemu virt-manager spice-vdagent dnsmasq
-        sudo systemctl enable libvirtd
-        sudo systemctl start libvirtd
-
-        #sudo systemctl enable spice-vdagent
-        #sudo systemctl start spice-vdagent
+        sudo pacman -Syu --noconfirm qemu virt-manager spice-vdagent dnsmasq vde2 bridge-utils openbsd-netcat libvirt
+        sudo systemctl enable --now libvirtd
+        # spice-vdagent no se maneja vía systemd en Arch por defecto
+        sudo usermod -aG libvirt $(whoami)
         ;;
     *)
         echo "Opción no válida o ninguna opción seleccionada. Continuando..."
@@ -35,7 +32,7 @@ echo ""
 echo "Si necesitas arreglar permisos en carpetas:"
 echo "  sudo chown -R <usuario> /ruta/a/carpeta"
 
-# Si quieres verificar:
+echo ""
+echo "Verificando spice-vdagent..."
 sleep 2
-spice-vdagent
-sudo systemctl status spice-vdagent
+command -v spice-vdagent && echo "spice-vdagent está instalado." || echo "spice-vdagent no encontrado."
