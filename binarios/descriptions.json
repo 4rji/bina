@@ -534,13 +534,27 @@
     "name": "bomba",
     "short_desc": "Script fork bomb que satura el sistema creando procesos infinitos.",
     "detailed_desc": "Este script define una función recursiva que se ejecuta dos veces en segundo plano cada vez que se llama, generando una explosión exponencial de procesos. Utiliza una combinación de pipes y ejecución en segundo plano para saturar rápidamente los recursos del sistema. Su propósito es demostrar el impacto de los ataques de denegación de servicio a nivel de sistema. Uso: ejecutar el script en un entorno controlado para evitar daños permanentes."
-},
-"bruto": {
-    "name": "bruto",
-    "short_desc": "Script multihilo para fuerza bruta de rutas en servidores web HTTP.",
-    "detailed_desc": "Este script en Python realiza fuerza bruta de directorios y archivos sobre un servidor web objetivo usando múltiples hilos (por defecto 50). Solo funciona con URLs que usen HTTP (no HTTPS). Permite descargar una lista de palabras predefinida desde GitHub o usar una local ('all.txt'). El script construye posibles rutas, prueba con extensiones comunes como .php, .bak, .orig, .inc y detecta respuestas positivas (diferentes a 404). Muestra en consola los códigos de respuesta HTTP devueltos para cada intento. Uso recomendado en entornos de pruebas de seguridad."
-},
-
+    },
+    "bruto": {
+        "name": "bruto",
+        "short_desc": "Script multihilo para fuerza bruta de rutas en servidores web HTTP.",
+        "detailed_desc": "Este script en Python realiza fuerza bruta de directorios y archivos sobre un servidor web objetivo usando múltiples hilos (por defecto 50). Solo funciona con URLs que usen HTTP (no HTTPS). Permite descargar una lista de palabras predefinida desde GitHub o usar una local ('all.txt'). El script construye posibles rutas, prueba con extensiones comunes como .php, .bak, .orig, .inc y detecta respuestas positivas (diferentes a 404). Muestra en consola los códigos de respuesta HTTP devueltos para cada intento. Uso recomendado en entornos de pruebas de seguridad."
+    },
+    "bucle": {
+        "name": "bucle",
+        "short_desc": "Ejecuta un comando indefinidamente con intervalos definidos por el usuario.",
+        "detailed_desc": "Este script en Bash solicita al usuario un comando a ejecutar y un intervalo de tiempo en segundos. Luego entra en un bucle infinito donde ejecuta el comando proporcionado usando 'eval' y espera el número de segundos especificado antes de repetir. Es útil para automatizar tareas periódicas simples sin necesidad de cron ni herramientas externas."
+    },
+    "buscando": {
+        "name": "buscando",
+        "short_desc": "Script interactivo para sugerir comandos de búsqueda con grep o awk.",
+        "detailed_desc": "Este script en Bash presenta un menú interactivo al usuario con dos opciones: usar grep para búsqueda recursiva de palabras o ejecutar un comando awk. Según la opción seleccionada, muestra el comando sugerido correspondiente. No ejecuta los comandos directamente, solo indica cómo hacerlo. Es útil como guía rápida para recordar sintaxis básica de grep y awk."
+    },
+    "buspal": {
+        "name": "buspal",
+        "short_desc": "Busca palabras clave en archivos dentro de un directorio específico.",
+        "detailed_desc": "Este script en Bash solicita una palabra o frase al usuario y la busca en todos los archivos del directorio proporcionado como argumento. Verifica si el directorio existe y recorre cada archivo con grep. Si encuentra coincidencias, muestra el nombre del archivo y su contenido completo. Es útil para localizar rápidamente texto específico en archivos de configuración, logs o documentos planos dentro de una carpeta."
+    }
 
 }
 
