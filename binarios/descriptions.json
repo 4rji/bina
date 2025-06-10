@@ -529,6 +529,18 @@
         "name": "blockip-tables",
         "short_desc": "Configura un conjunto de IPs bloqueadas usando ipset e iptables.",
         "detailed_desc": "Este script configura un sistema de bloqueo de IPs usando ipset e iptables. Lee una lista de IPs desde ips.txt y las agrega a un conjunto ipset llamado 'blacklist'. Luego configura una regla iptables para bloquear todo el tráfico entrante desde esas IPs.\n\nEl proceso:\n1. Crea un conjunto ipset de tipo hash:ip llamado 'blacklist'\n2. Limpia el conjunto actual\n3. Lee IPs desde ips.txt y las agrega al conjunto\n4. Configura una regla iptables para bloquear el tráfico desde las IPs en el conjunto\n5. Guarda la configuración de ipset e iptables para persistencia\n\nUso: Ejecutar el script como root. Asegúrate de tener un archivo ips.txt con las IPs a bloquear."
-    }
+    },
+    "bomba": {
+    "name": "bomba",
+    "short_desc": "Script fork bomb que satura el sistema creando procesos infinitos.",
+    "detailed_desc": "Este script define una función recursiva que se ejecuta dos veces en segundo plano cada vez que se llama, generando una explosión exponencial de procesos. Utiliza una combinación de pipes y ejecución en segundo plano para saturar rápidamente los recursos del sistema. Su propósito es demostrar el impacto de los ataques de denegación de servicio a nivel de sistema. Uso: ejecutar el script en un entorno controlado para evitar daños permanentes."
+},
+"bruto": {
+    "name": "bruto",
+    "short_desc": "Script multihilo para fuerza bruta de rutas en servidores web HTTP.",
+    "detailed_desc": "Este script en Python realiza fuerza bruta de directorios y archivos sobre un servidor web objetivo usando múltiples hilos (por defecto 50). Solo funciona con URLs que usen HTTP (no HTTPS). Permite descargar una lista de palabras predefinida desde GitHub o usar una local ('all.txt'). El script construye posibles rutas, prueba con extensiones comunes como .php, .bak, .orig, .inc y detecta respuestas positivas (diferentes a 404). Muestra en consola los códigos de respuesta HTTP devueltos para cada intento. Uso recomendado en entornos de pruebas de seguridad."
+},
+
+
 }
 
