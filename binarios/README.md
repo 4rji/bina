@@ -150,6 +150,7 @@ lid                 cambia el comportamiento de lid laptop
 
 
 #Util
+https-bloq-boots    Detecta IPs al puerto 443 en ips.txt y las bloquea o ralentiza automáticamente vía firewall.
 backd-detect        detecta conexiones sospechosas hacia rangos RFC1918 e identifica procesos asociados
 blockip-tables      Bloquea ips.txt con iptables (usado en c2), limpiar archivo adentro ###
 msmb                monta un smb o samba

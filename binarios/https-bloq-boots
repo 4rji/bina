@@ -1,0 +1,23 @@
+#!/bin/bash
+
+IP_FILE="ips.txt"
+
+if [ ! -f "$IP_FILE" ]; then
+    echo "[!] No se encontró el archivo $IP_FILE"
+    exit 1
+fi
+
+echo "[+] Bloqueando IPs desde $IP_FILE..."
+
+while read -r ip; do
+    [[ -z "$ip" ]] && continue  # salta líneas vacías
+    echo "   [!] Procesando IP: $ip"
+
+    # Tarpit si está disponible
+    iptables -A INPUT -s "$ip" -p tcp --dport 443 -j TARPIT 2>/dev/null
+
+    # Bloqueo silencioso como fallback
+    iptables -A INPUT -s "$ip" -j DROP
+done < "$IP_FILE"
+
+echo "[✓] Proceso completado."
