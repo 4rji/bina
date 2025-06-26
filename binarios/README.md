@@ -190,7 +190,7 @@ servicios           Encuentra servicios que no son del kernel linux corriendo.
 findinst             Busca si un programa esta instalado, en dpkg - apt - systemctl
 ctl {servicio}      Aplica un sudo systemctl a un servicio
 findpak             Busca paquetes y servicios que esten instalados en varias distros
-
+logilogsclean       Limpia archivos de una carpeta de logitech en mac, para evitar datos en disco
 
 ###------Repositorios
 fixme               corre fix-4rji para solucionar repositorios despuies de la instalacion             

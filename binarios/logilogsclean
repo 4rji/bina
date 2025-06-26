@@ -1,0 +1,20 @@
+#!/bin/bash
+
+DIR="$HOME/Library/Logs/xlog_logitech"
+
+if [ -d "$DIR" ]; then
+  SIZE=$(du -sh "$DIR" | cut -f1)
+  echo "Tamaño de la carpeta: $SIZE"
+
+  read -p "¿Quieres borrar todo el contenido de $DIR? (s/N): " CONFIRM
+  if [[ "$CONFIRM" == "s" || "$CONFIRM" == "S" ]]; then
+    find "$DIR" -type f -delete
+    find "$DIR" -type d -empty -delete
+    echo "Contenido borrado."
+  else
+    echo "Operación cancelada."
+  fi
+else
+  echo "La carpeta no existe: $DIR"
+fi
+
