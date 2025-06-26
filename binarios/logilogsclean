@@ -1,5 +1,20 @@
 #!/bin/bash
 
+# ============================================
+# Script para gestionar la carpeta de logs de Logitech:
+# - Muestra comandos útiles para bloquear/desbloquear la escritura en los logs
+# - Muestra el tamaño actual de la carpeta de logs
+# - Pregunta si deseas borrar su contenido
+# ============================================
+
+echo "Comandos útiles:"
+echo "  Bloquear escritura: "
+echo "sudo chmod -R 000 ~/Library/Logs/xlog_logitech"
+echo ""
+echo "  Restaurar permisos: "
+echo "sudo chmod -R 755 ~/Library/Logs/xlog_logitech"
+
+echo ""
 DIR="$HOME/Library/Logs/xlog_logitech"
 
 if [ -d "$DIR" ]; then
@@ -17,4 +32,3 @@ if [ -d "$DIR" ]; then
 else
   echo "La carpeta no existe: $DIR"
 fi
-
