@@ -1,58 +1,90 @@
 #!/usr/bin/env bash
 set -e
 
-# ---------- config ----------
+# --- Red y SearXNG -------------------------------------------------
+NETWORK="searchnet"
 PORT=8080
 CONTAINER_NAME="searxng"
-SEARXNG_STARTED=0
-# ----------------------------
 
-# ---------- arranca SearXNG con host ----------
+# crea la red si no existe
+docker network inspect "$NETWORK" >/dev/null 2>&1 || docker network create "$NETWORK"
+
+# descarga la imagen si falta
 docker image inspect searxng/searxng >/dev/null 2>&1 || docker pull searxng/searxng
 
-if ! docker ps --format '{{.Names}}' | grep -qw "$CONTAINER_NAME"; then
+# arranca SearXNG si no está corriendo
+if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
   mkdir -p searxng
-  docker run -d --rm \
+  docker run --rm -d \
     --name "$CONTAINER_NAME" \
-    --network host \
+    --network "$NETWORK" \
     -p "${PORT}:8080" \
     -v "${PWD}/searxng:/etc/searxng" \
-    -e "BASE_URL=http://localhost:${PORT}/" \
-    searxng/searxng >/dev/null
-  SEARXNG_STARTED=1
+    -e "BASE_URL=http://${CONTAINER_NAME}:${PORT}/" \
+    -e "INSTANCE_NAME=my-instance" \
+    searxng/searxng
 fi
-# -----------------------------------------------
+# ------------------------------------------------------------------
 
-# ---------- idioma ----------
+# --- Firefox ephemeral --------------------------------------------
+PROFILE_DIR="/tmp/fx-profile"
+USER_JS="$PROFILE_DIR/user.js"
+DOCKERFILE_URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/Dockerfile-universal-lenguages"
+DOCKERFILE_NAME="Dockerfile"
+
+mkdir -p "$PROFILE_DIR"
+
 LANG_CODES=( "en-US" "es-ES" "ja" "zh-CN" "ru" "fr-FR" "de-DE" "pt-BR" "it-IT" "ko" )
-LANG_NAMES=( "English" "Español" "日本語" "中文(简)" "Русский" "Français" "Deutsch" "Português(BR)" "Italiano" "한국어" )
+LANG_NAMES=( "English" "Spanish" "Japanese" "Chinese (Simplified)" "Russian" "French" "German" "Portuguese (Brazil)" "Italian" "Korean" )
 
-echo; echo "Selecciona idioma:"
-for i in "${!LANG_CODES[@]}"; do printf "  %02d) %-7s - %s\n" $((i+1)) "${LANG_CODES[$i]}" "${LANG_NAMES[$i]}"; done
-read -rp "Número: " choice
-idx=$((choice-1)); LANG="${LANG_CODES[$idx]}"
-[ -z "$LANG" ] && { echo "Selección inválida"; [[ $SEARXNG_STARTED -eq 1 ]] && docker stop "$CONTAINER_NAME" >/dev/null; exit 1; }
-# ----------------------------
+echo -e "\n\033[36m01)\033[0m Selecciona un idioma:"
+for i in "${!LANG_CODES[@]}"; do
+  num=$(printf "%02d" $((i+1)))
+  echo -e "  \033[36m${num})\033[0m ${LANG_CODES[$i]}  - ${LANG_NAMES[$i]}"
+done
 
-# ---------- perfil efímero ----------
-PROFILE=$(mktemp -d /tmp/fx-profile-XXXXXX)
-trap '[[ $SEARXNG_STARTED -eq 1 ]] && docker stop "$CONTAINER_NAME" >/dev/null; rm -rf "$PROFILE"' EXIT
+echo
+read -rp "$(echo -e "\033[36m02)\033[0m Número de idioma: ")" choice
+index=$((choice - 1))
 
-cat > "$PROFILE/user.js" <<EOF
-user_pref("intl.accept_languages", "$LANG,en");
-user_pref("general.useragent.locale", "$LANG");
-user_pref("intl.locale.requested", "$LANG");
+lang_code="${LANG_CODES[$index]}"
+lang_name="${LANG_NAMES[$index]}"
+
+if [ -z "$lang_code" ]; then
+  echo -e "\033[31m03) Selección inválida.\033[0m"
+  exit 1
+fi
+
+cat > "$USER_JS" <<EOF
+user_pref("intl.accept_languages", "$lang_code,en");
+user_pref("general.useragent.locale", "$lang_code");
+user_pref("intl.locale.requested", "$lang_code");
 EOF
-# ------------------------------------
 
-xhost +local:docker
+echo -e "\n\033[32m04) ✅ user.js actualizado a $lang_code ($lang_name)\033[0m"
 
-docker run \
-  --network host \
-  -e DISPLAY="$DISPLAY" \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  -v "$PROFILE":/home/user/.mozilla/firefox/default-release \
-  --rm firefox-ephemeral \
-  -profile /home/user/.mozilla/firefox/default-release \
-  "https://www.whatsmybrowser.org/" \
-  "http://localhost:${PORT}"
+echo -en "\033[36m05)\033[0m ¿Descargar Dockerfile de GitHub? [y/N]: "
+read -r confirm
+
+if [[ "$confirm" =~ ^[yY]$ ]]; then
+  curl -fsSL "$DOCKERFILE_URL" -o "$DOCKERFILE_NAME" \
+    && echo -e "\033[32m06) ✅ Dockerfile guardado como '${DOCKERFILE_NAME}'\033[0m"
+else
+  echo -e "\033[33m06) ℹ️ Descarga de Dockerfile omitida.\033[0m"
+fi
+
+echo -e "\n\033[36m07) ➡️ Para construir la imagen de Firefox:\033[0m"
+echo "    docker build -t firefox-ephemeral ."
+
+echo -e "\n\033[36m08) 📄 Contenido de ${USER_JS}:\033[0m"
+cat "$USER_JS"
+
+echo -e "\n\033[32m09) ✅ Ejecuta 'abrirfire' (o 'abrirfirem' en macOS)\033[0m"
+
+echo -e "\n\033[33m10) ⚠️ Si hay error:\033[0m"
+echo -e "\033[36m    echo \$DISPLAY   # suele ser :0\033[0m"
+echo -e "\033[36m    xhost + 127.0.0.1\033[0m"
+
+echo -e "\n\033[36m11)\033[0m Ejemplo para lanzar Firefox en la misma red:"
+echo "    docker run --network ${NETWORK} ... firefox-ephemeral http://${CONTAINER_NAME}:8080"
+# ------------------------------------------------------------------
