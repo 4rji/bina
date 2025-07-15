@@ -1,26 +1,27 @@
 #!/usr/bin/env bash
 set -e
 
-# ---------- red & SearXNG ----------
-NETWORK="searchnet"
+# ---------- config ----------
 PORT=8080
 CONTAINER_NAME="searxng"
 SEARXNG_STARTED=0
+# ----------------------------
 
-docker network inspect "$NETWORK" >/dev/null 2>&1 || docker network create "$NETWORK"
+# ---------- arranca SearXNG con host ----------
 docker image inspect searxng/searxng >/dev/null 2>&1 || docker pull searxng/searxng
+
 if ! docker ps --format '{{.Names}}' | grep -qw "$CONTAINER_NAME"; then
   mkdir -p searxng
   docker run -d --rm \
     --name "$CONTAINER_NAME" \
-    --network "$NETWORK" \
+    --network host \
     -p "${PORT}:8080" \
     -v "${PWD}/searxng:/etc/searxng" \
-    -e "BASE_URL=http://${CONTAINER_NAME}:${PORT}/" \
+    -e "BASE_URL=http://localhost:${PORT}/" \
     searxng/searxng >/dev/null
   SEARXNG_STARTED=1
 fi
-# -----------------------------------
+# -----------------------------------------------
 
 # ---------- idioma ----------
 LANG_CODES=( "en-US" "es-ES" "ja" "zh-CN" "ru" "fr-FR" "de-DE" "pt-BR" "it-IT" "ko" )
@@ -47,11 +48,11 @@ EOF
 xhost +local:docker
 
 docker run \
-  --network "$NETWORK" \
+  --network host \
   -e DISPLAY="$DISPLAY" \
   -v /tmp/.X11-unix:/tmp/.X11-unix \
   -v "$PROFILE":/home/user/.mozilla/firefox/default-release \
   --rm firefox-ephemeral \
   -profile /home/user/.mozilla/firefox/default-release \
   "https://www.whatsmybrowser.org/" \
-  "http://${CONTAINER_NAME}:${PORT}"
+  "http://localhost:${PORT}"
