@@ -117,7 +117,7 @@ line
 
 
 # Mostrar IP pública del sistema y ubicación
-echo -e "\n[+]  IP pública del sistema (consulta directa):"
+echo -e "\n[+]  IP pública del sistema (consulta curl ):"
 pubip=$(curl -s https://ifconfig.me || curl -s https://ipinfo.io/ip)
 
 if [[ -n "$pubip" ]]; then
