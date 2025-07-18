@@ -1,71 +1,33 @@
 #!/usr/bin/env bash
+# Simple: muestra el comando, su salida y ejemplos de orden
 
-# Función para mostrar mensajes
-echo_msg() {
-    echo "=============================================="
-    echo "$1"
-    echo "=============================================="
-}
+cmd='networksetup -listallnetworkservices'
+echo "Comando ejecutado: $cmd"
 
-# Leer servicios (omite encabezado y deshabilitados)
-mapfile_cmd=$(command -v mapfile 2>/dev/null)
-if [[ -z "$mapfile_cmd" ]]; then
-  services=( $(networksetup -listallnetworkservices | sed '1d' | sed '/^\*/d') )
-else
-  mapfile -t services < <(networksetup -listallnetworkservices | sed '1d' | sed '/^\*/d')
-fi
+services=()
+while IFS= read -r line; do
+  services+=("$line")
+done < <($cmd | tail -n +2 | sed '/^\*/d')
 
-# Mostrar lista de servicios
-echo ""
-echo "_________________________________________________________"
-echo ""
-echo -e "\033[31m"
-echo_msg "Servicios de red disponibles:"
-echo -e "\033[0m"
-for i in "${!services[@]}"; do
-  echo -e "\033[32m  $((i+1)). ${services[$i]}  \033[0m"
+echo
+echo "Servicios de red:"
+printf '  %s\n' "${services[@]}"
+
+echo
+echo "Ejemplo Wi-Fi primero:"
+printf 'sudo networksetup -ordernetworkservices "%s"' "Wi-Fi"
+for s in "${services[@]}"; do
+  [[ $s == "Wi-Fi" ]] && continue
+  printf ' "%s"' "$s"
 done
+echo
 
-echo ""
-echo "_________________________________________________________"
-echo ""
-echo -e "\033[33m"
-echo_msg "Ejemplos de orden de servicios:"  
-echo -e "\033[0m"
-
-# Ejemplo Wi-Fi primero
-echo -e "\033[34m  Para Wi-Fi primero:  \033[0m"
-wifi="Wi-Fi"
-others=()
-for svc in "${services[@]}"; do
-  [[ "$svc" == "$wifi" ]] && continue
-  others+=("$svc")
-done
-
-printf '  sudo networksetup -ordernetworkservices "%s"' "$wifi"
-for svc in "${others[@]}"; do
-  printf ' "%s"' "$svc"
-done
-printf '\n'
-
-echo ""
-echo "_________________________________________________________"
-echo ""
-echo -e "\033[35m"
-echo_msg "Ejemplos de orden de servicios:"  
-echo -e "\033[0m"
-
-# Ejemplo Ethernet primero
-echo -e "\033[36m  Para Ethernet primero:  \033[0m"
+echo
+echo "Ejemplo Ethernet primero:"
 eth="Ethernet"
-others=()
-for svc in "${services[@]}"; do
-  [[ "$svc" == "$eth" ]] && continue
-  others+=("$svc")
+printf 'sudo networksetup -ordernetworkservices "%s"' "$eth"
+for s in "${services[@]}"; do
+  [[ $s == "$eth" ]] && continue
+  printf ' "%s"' "$s"
 done
-
-printf '  sudo networksetup -ordernetworkservices "%s"' "$eth"
-for svc in "${others[@]}"; do
-  printf ' "%s"' "$svc"
-done
-printf '\n'
+echo
