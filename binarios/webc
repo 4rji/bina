@@ -10,7 +10,7 @@ fi
 
 for img in "${imgs[@]}"; do
   ext="${img##*.}"
-  ext="${ext,,}"  # convierte extensión a minúsculas
+  ext="$(echo "$ext" | tr '[:upper:]' '[:lower:]')"  # convierte extensión a minúsculas
   base="${img%.*}"
   out="${base}.webp"
 
