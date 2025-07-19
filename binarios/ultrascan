@@ -1,0 +1,148 @@
+#!/usr/bin/env bash
+
+trap "echo -e '\n\e[1;31mAborted by user. Exiting...\e[0m'; exit" SIGINT
+
+# Check for target
+if [[ -z "$1" ]]; then
+    echo -e "\e[1;31mUsage:\e[0m $0 <target>"
+    echo "Example: $0 192.168.1.1"
+    exit 1
+fi
+
+TARGET="$1"
+
+function check_dependencies() {
+    local deps=("nmap")
+    for dep in "${deps[@]}"; do
+        if ! command -v "$dep" &>/dev/null; then
+            echo -e "\e[1;31mMissing dependency:\e[0m $dep"
+            read -p "Do you want to install $dep? (y/n): " choice
+            if [[ "$choice" =~ ^[Yy]$ ]]; then
+                sudo apt update
+                sudo apt install "$dep" -y
+            else
+                echo -e "\e[1;31mCannot continue without $dep. Exiting...\e[0m"
+                exit 1
+            fi
+        fi
+    done
+}
+
+function show_header() {
+    clear
+    echo -e "\e[1;34m=========== ULTRA SCAN MENU ===========\e[0m"
+    echo "Target: $TARGET"
+}
+
+check_dependencies
+
+while true; do
+    show_header
+
+    echo -e "\e[1;32mSelect scan type:\e[0m"
+   options=(
+    $'\e[1;33m1.\e[0m  Ping Scan                [nmap -sn]'
+    $'\e[1;33m2.\e[0m  TCP SYN Scan             [nmap -sS]'
+    $'\e[1;33m3.\e[0m  UDP Scan                 [nmap -sU]'
+    $'\e[1;33m4.\e[0m  OS Detection             [nmap -O]'
+    $'\e[1;33m5.\e[0m  Version Detection        [nmap -sV]'
+    $'\e[1;33m6.\e[0m  Aggressive Scan          [nmap -A]'
+    $'\e[1;33m7.\e[0m  Fast Scan                [nmap -F]'
+    $'\e[1;33m8.\e[0m  All Ports Scan           [nmap -p-]'
+    $'\e[1;33m9.\e[0m  Top Ports Scan           [nmap --top-ports]'
+    $'\e[1;33m10.\e[0m Firewall Evasion          [nmap -f]'
+    $'\e[1;33m11.\e[0m Vulnerability Scan        [nmap --script vuln]'
+    $'\e[1;33m12.\e[0m NSE Script Scan           [nmap --script default,vuln]'
+    $'\e[1;33m13.\e[0m Decoy Scan                [nmap -D]'
+    $'\e[1;33m14.\e[0m Traceroute                [nmap --traceroute]'
+    $'\e[1;33m15.\e[0m Custom Ports              [nmap -p]'
+    $'\e[1;33m16.\e[0m Output to File            [nmap -oA]'
+    $'\e[1;33m17.\e[0m Spoof MAC                 [nmap --spoof-mac]'
+    $'\e[1;33m18.\e[0m DNS Brute Force           [nmap --script dns-brute]'
+    $'\e[1;33m19.\e[0m HTTP Title Enum           [nmap --script http-title]'
+    $'\e[1;33m20.\e[0m SMB Enumeration           [nmap --script smb-*]'
+    $'\e[1;33m21.\e[0m FTP Anonymous Check       [nmap --script ftp-anon]'
+    $'\e[1;33m22.\e[0m SSL Certificate Info      [nmap --script ssl-cert]'
+    $'\e[1;33m23.\e[0m Detect WAF                [nmap --script http-waf-detect]'
+    $'\e[1;33m24.\e[0m HTTP Methods Check        [nmap --script http-methods]'
+    $'\e[1;33m25.\e[0m Extract Robots.txt        [nmap --script http-robots.txt]'
+    $'\e[1;33m26.\e[0m Whois Lookup              [nmap --script whois]'
+    $'\e[1;33m27.\e[0m Run All Safe Scripts      [nmap --script safe]'
+    $'\e[1;33m28.\e[0m Exit'
+
+    )
+
+    for opt in "${options[@]}"; do
+        echo "$opt"
+    done
+
+    echo -ne "\nEnter option number: "
+    read opt
+
+    case $opt in
+        1) echo -e "\e[1;31mnmap -sn $TARGET\e[0m"
+           nmap -sn "$TARGET" ;;
+        2) echo -e "\e[1;31mnmap -sS $TARGET\e[0m"
+           nmap -sS "$TARGET" ;;
+        3) echo -e "\e[1;31mnmap -sU $TARGET\e[0m"
+           nmap -sU "$TARGET" ;;
+        4) echo -e "\e[1;31mnmap -O $TARGET\e[0m"
+           nmap -O "$TARGET" ;;
+        5) echo -e "\e[1;31mnmap -sV $TARGET\e[0m"
+           nmap -sV "$TARGET" ;;
+        6) echo -e "\e[1;31mnmap -A $TARGET\e[0m"
+           nmap -A "$TARGET" ;;
+        7) echo -e "\e[1;31mnmap -F $TARGET\e[0m"
+           nmap -F "$TARGET" ;;
+        8) echo -e "\e[1;31mnmap -p- $TARGET\e[0m"
+           nmap -p- "$TARGET" ;;
+        9) echo -e "\e[1;31mnmap --top-ports 100 $TARGET\e[0m"
+           nmap --top-ports 100 "$TARGET" ;;
+        10) echo -e "\e[1;31mnmap -f --data-length 200 $TARGET\e[0m"
+            nmap -f --data-length 200 "$TARGET" ;;
+        11) echo -e "\e[1;31mnmap --script vuln $TARGET\e[0m"
+            nmap --script vuln "$TARGET" ;;
+        12) echo -e "\e[1;31mnmap --script default,vuln $TARGET\e[0m"
+            nmap --script default,vuln "$TARGET" ;;
+        13) read -p "Enter decoy IP (or RND:10): " decoy
+            echo -e "\e[1;31mnmap -D $decoy $TARGET\e[0m"
+            nmap -D "$decoy" "$TARGET" ;;
+        14) echo -e "\e[1;31mnmap --traceroute $TARGET\e[0m"
+            nmap --traceroute "$TARGET" ;;
+        15) read -p "Enter ports (e.g. 21,22,80): " ports
+            echo -e "\e[1;31mnmap -p $ports $TARGET\e[0m"
+            nmap -p "$ports" "$TARGET" ;;
+        16) read -p "Output filename (no extension): " filename
+            echo -e "\e[1;31mnmap -A -oA $filename $TARGET\e[0m"
+            nmap -A -oA "$filename" "$TARGET" ;;
+        17) read -p "Enter MAC type (e.g. 0=random): " mac
+            echo -e "\e[1;31mnmap --spoof-mac $mac $TARGET\e[0m"
+            nmap --spoof-mac "$mac" "$TARGET" ;;
+        18) echo -e "\e[1;31mnmap --script dns-brute $TARGET\e[0m"
+            nmap --script dns-brute "$TARGET" ;;
+        19) echo -e "\e[1;31mnmap --script http-title $TARGET\e[0m"
+            nmap --script http-title "$TARGET" ;;
+        20) echo -e "\e[1;31mnmap --script smb-enum-shares,smb-enum-users $TARGET\e[0m"
+            nmap --script smb-enum-shares,smb-enum-users "$TARGET" ;;
+        21) echo -e "\e[1;31mnmap --script ftp-anon $TARGET\e[0m"
+            nmap --script ftp-anon "$TARGET" ;;
+        22) echo -e "\e[1;31mnmap --script ssl-cert $TARGET\e[0m"
+            nmap --script ssl-cert "$TARGET" ;;
+        23) echo -e "\e[1;31mnmap --script http-waf-detect $TARGET\e[0m"
+            nmap --script http-waf-detect "$TARGET" ;;
+        24) echo -e "\e[1;31mnmap --script http-methods $TARGET\e[0m"
+            nmap --script http-methods "$TARGET" ;;
+        25) echo -e "\e[1;31mnmap --script http-robots.txt $TARGET\e[0m"
+            nmap --script http-robots.txt "$TARGET" ;;
+        26) echo -e "\e[1;31mnmap --script whois $TARGET\e[0m"
+            nmap --script whois "$TARGET" ;;
+        27) echo -e "\e[1;31mnmap --script safe $TARGET\e[0m"
+            nmap --script safe "$TARGET" ;;
+        28) echo -e "\n\e[1;31mExiting Ultra Scan... Goodbye!\e[0m"
+            exit 0 ;;
+        *) echo -e "\e[1;31mInvalid option. Try again.\e[0m" ;;
+    esac
+
+    echo -e "\nPress ENTER to return to menu..."
+    read
+done

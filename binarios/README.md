@@ -201,6 +201,7 @@ contenedor          Instala paquetes basicos, util en contenedores docker
 
 
 ###------nmap scaners
+ultrascan           varios escaneos, menu y todo
 nmap-full           Create a html file with full scan of network
 nmap-half           Same has full, just half of scann no vuln or smb
 nmap-html           nmap A -O -sV  nmap -A -O -sV -oX puerto.xml --stylesheet=https://svn.nmap.org/nmap/docs/nmap.xsl (probar varios firefox)
