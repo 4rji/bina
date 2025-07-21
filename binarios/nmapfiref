@@ -15,9 +15,9 @@ datos=$(cat resultado.txt)
 
 # Selección del comando según la opción elegida
 if [ "$opcion" = "1" ]; then
-    comando="nmap -v --reason -sS -oX puertos.xml --stylesheet=\"https://svn.nmap.org/nmap/docs/nmap.xsl\" $datos"
+    comando="nmap -v -p-  --reason -sS -oX puertos.xml --stylesheet=\"https://svn.nmap.org/nmap/docs/nmap.xsl\" $datos"
 elif [ "$opcion" = "2" ]; then
-    comando="sudo nmap -A -O -sV -oX puertos.xml --stylesheet=\"https://svn.nmap.org/nmap/docs/nmap.xsl\" $datos"
+    comando="sudo nmap -p- -A -O -sV -oX puertos.xml --stylesheet=\"https://svn.nmap.org/nmap/docs/nmap.xsl\" $datos"
 else
     echo "Opción inválida. Saliendo..."
     exit 1
