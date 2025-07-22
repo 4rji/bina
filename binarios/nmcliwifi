@@ -31,6 +31,10 @@ echo -e "${BLUE}Paso 5:${RESET} ${YELLOW}Si configuraste una IP estática en /et
 echo -e "${GREEN}sudo systemctl restart systemd-networkd${RESET}"
 echo
 
-echo -e "${BLUE}Paso 6:${RESET} ${YELLOW}Reinicia la interfaz usb0 para aplicar la IP:${RESET}"
-echo -e "${GREEN}sudo ip link set usb0 down && sudo ip addr flush dev usb0 && sudo ip link set usb0 up${RESET}"
+echo -e "${BLUE}Paso 6:${RESET} ${YELLOW}Limpia cualquier IP previa de la interfaz usb0:${RESET}"
+echo -e "${GREEN}sudo ip addr flush dev usb0${RESET}"
+echo
+
+echo -e "${BLUE}Paso 7:${RESET} ${YELLOW}Reinicia la interfaz usb0:${RESET}"
+echo -e "${GREEN}sudo ip link set usb0 down && sudo ip link set usb0 up${RESET}"
 echo
