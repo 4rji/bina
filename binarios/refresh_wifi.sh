@@ -3,7 +3,7 @@ if [[ $EUID -ne 0 ]]; then
   echo "Run as root or with sudo"; exit 1
 fi
 
-rfkill unblock wifi
+sudo rfkill unblock wifi
 ip link set wlan0 down
 sleep 2
 ip link set wlan0 up
