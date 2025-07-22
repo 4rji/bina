@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# add_wifi.sh – Add a new Wi-Fi network to wpa_supplicant.conf and restart the interface
+
+if [[ $EUID -ne 0 ]]; then
+  echo "Error: This script must be run as root or with sudo."
+  exit 1
+fi
+
+if [[ $# -ne 2 ]]; then
+  echo "Usage: sudo $0 <SSID> <PSK>"
+  echo "Example: sudo $0 MyNetwork MyPassword"
+  exit 1
+fi
+
+CONF="/etc/wpa_supplicant/wpa_supplicant.conf"
+SSID="$1"
+PSK="$2"
+
+echo "Appending new network to $CONF:"
+echo "  network={"
+echo "    ssid=\"$SSID\""
+echo "    psk=\"$PSK\""
+echo "  }"
+cat <<EOF >> "$CONF"
+
+network={
+  ssid="$SSID"
+  psk="$PSK"
+}
+EOF
+
+echo "Reloading wpa_supplicant configuration..."
+echo "> wpa_cli -i wlan0 reconfigure"
+wpa_cli -i wlan0 reconfigure
+
+echo "Requesting DHCP lease on wlan0..."
+echo "> dhclient wlan0"
+dhclient wlan0
+
+echo "Done. Now attempting to connect to \"$SSID\"."
