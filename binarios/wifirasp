@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 # add_wifi.sh – Add a new Wi-Fi network to wpa_supplicant.conf and restart the interface
 
+echo "USE nmcli"
+
+echo "dont use this"
+
+echo ""
+
 if [[ $EUID -ne 0 ]]; then
   echo "Error: This script must be run as root or with sudo."
   exit 1
@@ -8,9 +14,12 @@ fi
 
 if [[ $# -ne 2 ]]; then
   echo "Usage: sudo $0 <SSID> <PSK>"
-  echo "Example: sudo $0 MyNetwork MyPassword"
   exit 1
 fi
+
+
+
+
 
 CONF="/etc/wpa_supplicant/wpa_supplicant.conf"
 SSID="$1"
