@@ -20,9 +20,17 @@ echo -e "${BLUE}Paso 3:${RESET} ${YELLOW}Agrega la línea debajo de [wifi-securi
 echo -e "${GREEN}psk=WIFIPASSWORD${RESET}"
 echo
 
-echo -e "${YELLOW}Recuerda reemplazar ${GREEN}WIFINAME${YELLOW} y ${GREEN}WIFIPASSWORD${YELLOW} con el nombre de tu red Wi-Fi y la contraseña correspondiente.${RESET}"
+echo -e "${YELLOW}Recuerda reemplazar ${GREEN}WIFINAME${YELLOW} y ${GREEN}WIFIPASSWORD${YELLOW} con el nombre de tu red${RESET}"
 echo
 
 echo -e "${BLUE}Paso 4:${RESET} ${YELLOW}Guarda los cambios y reinicia NetworkManager para aplicar la configuración:${RESET}"
 echo -e "${GREEN}sudo systemctl restart NetworkManager${RESET}"
+echo
+
+echo -e "${BLUE}Paso 5:${RESET} ${YELLOW}Si configuraste una IP estática en /etc/systemd/network/usb0.network:${RESET}"
+echo -e "${GREEN}sudo systemctl restart systemd-networkd${RESET}"
+echo
+
+echo -e "${BLUE}Paso 6:${RESET} ${YELLOW}Reinicia la interfaz usb0 para aplicar la IP:${RESET}"
+echo -e "${GREEN}sudo ip link set usb0 down && sudo ip addr flush dev usb0 && sudo ip link set usb0 up${RESET}"
 echo
