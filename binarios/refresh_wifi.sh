@@ -9,3 +9,4 @@ sleep 2
 ip link set wlan0 up
 systemctl restart wpa_supplicant@wlan0.service
 systemctl restart NetworkManager.service
+echo "WiFi reset completed successfully."
