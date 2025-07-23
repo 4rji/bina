@@ -1,0 +1,37 @@
+#!/bin/bash
+
+
+echo "Mover AppImage a la ubicación final:"
+echo "sudo mv dist/Proxmox-App-1.0.0.AppImage /opt/4rji/bin/promox.AppImage"
+echo ""
+
+echo "Dar permisos de ejecución al AppImage:"
+echo "sudo chmod +x /opt/4rji/bin/promox.AppImage"
+echo ""
+
+echo "Copiar icono a /usr/share/icons:"
+echo "sudo cp build/icon.png /usr/share/icons/promox.png"
+echo ""
+echo ""
+
+echo "Crear archivo .desktop en ~/.local/share/applications:"
+echo "nano ~/.local/share/applications/promox.desktop"
+
+
+echo ""
+echo ""
+
+echo "Contenido del archivo:"
+echo "[Desktop Entry]"
+echo "Name=Promox"
+echo "Exec=/opt/4rji/bin/promox.AppImage"
+echo "Icon=promox"
+echo "Type=Application"
+echo "Categories=Utility;"
+echo "Terminal=false"
+
+
+echo ""
+echo ""
+
+echo "Listo. Puedes buscarlo en el menú y anclarlo."
