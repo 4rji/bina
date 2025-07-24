@@ -63,17 +63,19 @@ for paquete in "${paquetes[@]}"; do
     esac
 done
 
-
-
-
-
-# Check if a parameter is provided and not empty
 if [[ -z "$1" ]]; then
-    echo "[-] error: missing required argument!"
-    echo "Usage: $0 <password>"
+    echo "[-] Error: falta argumento requerido."
+    echo ""
+    echo "Uso: $0 <contraseña>"
+    echo "Ejemplo: $0 nala"
+    echo
+    echo "[*] Después de ejecutar:"
+    echo "    - Asegúrate de iniciar sesion con tu usuario donde se ejecuto"
+    echo "    - Inicia sesión SSH con:"
+    echo "        ssh usuario@localhost"
+    echo "      y usa como contraseña: nala"
     exit 1
 fi
-
 PASSWORD="$1"
 echo "[+] preparing for password: ${PASSWORD}"
 

