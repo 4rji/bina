@@ -23,9 +23,11 @@ fi
 
 # Ejecutar nmap
 if [ "$opcion" = "1" ]; then
-    nmap -v -p- --reason -sS -oX puertos.xml --stylesheet="https://svn.nmap.org/nmap/docs/nmap.xsl" $datos
+    archivo="basico-${datos}.txt"
+    nmap -v -p- --reason -sS $datos | tee "$archivo"
 elif [ "$opcion" = "2" ]; then
-    sudo nmap -p- -A -O -sV -oX puertos.xml --stylesheet="https://svn.nmap.org/nmap/docs/nmap.xsl" $datos
+    archivo="puertos-${datos}.xml"
+    sudo nmap -p- -A -O -sV -oX "$archivo" --stylesheet="https://svn.nmap.org/nmap/docs/nmap.xsl" $datos
 else
     echo "Opción inválida. Saliendo..."
     exit 1
