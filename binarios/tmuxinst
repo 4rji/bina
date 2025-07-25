@@ -74,9 +74,9 @@ rm .tmux.conf
 #wget https://raw.githubusercontent.com/4rji/4rji/main/tmux/.tmux.conf
 
 #new estofado
-
-wget https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/tmux.conf
-mv .tmux.conf ~/.tmux.conf
+wget https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/tmux.conf -O ~/.tmux.conf
+#wget https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/tmux.conf
+#mv .tmux.conf ~/.tmux.conf
 
 
 #new with dotfiles
