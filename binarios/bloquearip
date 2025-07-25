@@ -1,0 +1,53 @@
+#!/usr/bin/env bash
+
+# Función para mostrar mensajes
+echo_msg() {
+    echo ""
+    echo "=============================================="
+    echo -e "\033[1;35m$1\033[0m"
+    echo "=============================================="
+    echo ""
+}
+
+echo ""
+echo -e "\033[1;36m  Uso:\033[0m"
+echo -e "\033[1;32m    ./script.sh <IP>            \033[0m→ Bloquea solo la IP proporcionada"
+echo -e "\033[1;33m    ./script.sh                 \033[0m→ Carga IPs desde ips.txt y las bloquea"
+echo ""
+echo -e "\033[1;34m_________________________________________________________\033[0m"
+echo ""
+
+# Verifica si hay argumento o archivo ips.txt
+if [[ -z "$1" && ! -f ips.txt ]]; then
+    echo_msg "No se proporcionó una IP ni se encontró el archivo ips.txt. Abortando."
+    exit 1
+fi
+
+# Crear el set si no existe
+ipset list blacklist &>/dev/null || ipset create blacklist hash:ip
+
+# Si se pasa una IP como argumento, agregarla
+if [[ -n "$1" ]]; then
+    echo_msg "Agregando IP al blacklist: $1"
+    ipset add blacklist "$1"
+else
+    # Si no, cargar desde archivo
+    echo_msg "Cargando IPs desde archivo ips.txt"
+    ipset flush blacklist
+    while read ip; do ipset add blacklist "$ip"; done < ips.txt
+fi
+
+# Aplicar regla iptables si no existe
+iptables -C INPUT -m set --match-set blacklist src -j DROP 2>/dev/null || \
+iptables -I INPUT -m set --match-set blacklist src -j DROP
+
+echo_msg "Regla iptables aplicada para bloquear blacklist"
+
+# Guardar configuración
+ipset save > /etc/ipset.conf
+iptables-save > /etc/iptables/rules.v4
+
+echo -e "\033[1;36m  Configuración guardada en /etc/ipset.conf y /etc/iptables/rules.v4\033[0m"
+echo ""
+echo -e "\033[1;34m_________________________________________________________\033[0m"
+echo ""
