@@ -15,6 +15,7 @@ echo -e "\033[1;32m    ./script.sh <IP>            \033[0m→ Agrega una IP al b
 echo -e "\033[1;33m    ./script.sh                 \033[0m→ Carga y bloquea IPs desde ips.txt"
 echo -e "\033[1;31m    ./script.sh -d <IP>         \033[0m→ Elimina una IP del blacklist"
 echo -e "\033[1;31m    ./script.sh -d              \033[0m→ Elimina IPs del archivo ips.txt"
+echo -e "\033[1;36m    ./script.sh -c <IP>         \033[0m→ Verifica si una IP está en el blacklist"
 echo ""
 echo -e "\033[1;34m_________________________________________________________\033[0m"
 echo ""
@@ -26,22 +27,38 @@ if [[ -z "$1" && ! -f ips.txt ]]; then
 fi
 
 # Crear el set si no existe
-ipset list blacklist &>/dev/null || ipset create blacklist hash:ip
+sudo ipset list blacklist &>/dev/null || sudo ipset create blacklist hash:ip
+
+# Modo verificar
+if [[ "$1" == "-c" ]]; then
+    if [[ -n "$2" ]]; then
+        if sudo ipset test blacklist "$2" &>/dev/null; then
+            echo_msg "La IP $2 está en el blacklist"
+        else
+            echo_msg "La IP $2 NO está en el blacklist"
+        fi
+    else
+        echo_msg "Falta IP para verificar"
+    fi
+    exit 0
+fi
 
 # Modo eliminar
 if [[ "$1" == "-d" ]]; then
     if [[ -n "$2" ]]; then
         echo_msg "Eliminando IP del blacklist: $2"
-        ipset del blacklist "$2"
+        sudo ipset test blacklist "$2" &>/dev/null && sudo ipset del blacklist "$2"
     elif [[ -f ips.txt ]]; then
         echo_msg "Eliminando IPs del archivo ips.txt"
-        while read ip; do ipset del blacklist "$ip"; done < ips.txt
+        while read ip; do
+            sudo ipset test blacklist "$ip" &>/dev/null && sudo ipset del blacklist "$ip"
+        done < ips.txt
     else
         echo_msg "No se proporcionó IP ni archivo. Abortando."
         exit 1
     fi
 
-    ipset save > /etc/ipset.conf
+    sudo ipset save | sudo tee /etc/ipset.conf > /dev/null
     echo_msg "IPs eliminadas del set. Configuración actualizada."
     exit 0
 fi
@@ -49,23 +66,25 @@ fi
 # Agregar IP individual
 if [[ -n "$1" ]]; then
     echo_msg "Agregando IP al blacklist: $1"
-    ipset add blacklist "$1"
+    sudo ipset add blacklist "$1"
 else
     # Agregar desde archivo
     echo_msg "Cargando IPs desde archivo ips.txt"
-    ipset flush blacklist
-    while read ip; do ipset add blacklist "$ip"; done < ips.txt
+    sudo ipset flush blacklist
+    while read ip; do
+        sudo ipset add blacklist "$ip"
+    done < ips.txt
 fi
 
 # Aplicar regla iptables si no existe
-iptables -C INPUT -m set --match-set blacklist src -j DROP 2>/dev/null || \
-iptables -I INPUT -m set --match-set blacklist src -j DROP
+sudo iptables -C INPUT -m set --match-set blacklist src -j DROP 2>/dev/null || \
+sudo iptables -I INPUT -m set --match-set blacklist src -j DROP
 
 echo_msg "Regla iptables aplicada para bloquear blacklist"
 
 # Guardar configuración
-ipset save > /etc/ipset.conf
-iptables-save > /etc/iptables/rules.v4
+sudo ipset save | sudo tee /etc/ipset.conf > /dev/null
+sudo iptables-save | sudo tee /etc/iptables/rules.v4 > /dev/null
 
 echo -e "\033[1;36m  Configuración guardada en /etc/ipset.conf y /etc/iptables/rules.v4\033[0m"
 echo ""
