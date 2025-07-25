@@ -11,8 +11,10 @@ echo_msg() {
 
 echo ""
 echo -e "\033[1;36m  Uso:\033[0m"
-echo -e "\033[1;32m    ./script.sh <IP>            \033[0m→ Bloquea solo la IP proporcionada"
-echo -e "\033[1;33m    ./script.sh                 \033[0m→ Carga IPs desde ips.txt y las bloquea"
+echo -e "\033[1;32m    ./script.sh <IP>            \033[0m→ Agrega una IP al blacklist"
+echo -e "\033[1;33m    ./script.sh                 \033[0m→ Carga y bloquea IPs desde ips.txt"
+echo -e "\033[1;31m    ./script.sh -d <IP>         \033[0m→ Elimina una IP del blacklist"
+echo -e "\033[1;31m    ./script.sh -d              \033[0m→ Elimina IPs del archivo ips.txt"
 echo ""
 echo -e "\033[1;34m_________________________________________________________\033[0m"
 echo ""
@@ -26,12 +28,30 @@ fi
 # Crear el set si no existe
 ipset list blacklist &>/dev/null || ipset create blacklist hash:ip
 
-# Si se pasa una IP como argumento, agregarla
+# Modo eliminar
+if [[ "$1" == "-d" ]]; then
+    if [[ -n "$2" ]]; then
+        echo_msg "Eliminando IP del blacklist: $2"
+        ipset del blacklist "$2"
+    elif [[ -f ips.txt ]]; then
+        echo_msg "Eliminando IPs del archivo ips.txt"
+        while read ip; do ipset del blacklist "$ip"; done < ips.txt
+    else
+        echo_msg "No se proporcionó IP ni archivo. Abortando."
+        exit 1
+    fi
+
+    ipset save > /etc/ipset.conf
+    echo_msg "IPs eliminadas del set. Configuración actualizada."
+    exit 0
+fi
+
+# Agregar IP individual
 if [[ -n "$1" ]]; then
     echo_msg "Agregando IP al blacklist: $1"
     ipset add blacklist "$1"
 else
-    # Si no, cargar desde archivo
+    # Agregar desde archivo
     echo_msg "Cargando IPs desde archivo ips.txt"
     ipset flush blacklist
     while read ip; do ipset add blacklist "$ip"; done < ips.txt
