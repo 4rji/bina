@@ -6,6 +6,13 @@
     "detailed_desc": "Este script automatiza un ataque de fuerza bruta contra el login del panel de administración de Joomla. Utiliza múltiples hilos para probar combinaciones de usuario y contraseñas desde un archivo wordlist (por defecto 'cain.txt'). Extrae automáticamente los campos ocultos del formulario antes de enviar los datos vía POST. Para usarlo, edita el script con la URL del objetivo, el usuario y el archivo de contraseñas, luego ejecuta: python3 script.py."
 },
 
+"pythonnc": {
+  "name": "pythonnc",
+  "short_desc": "Netcat replacement written in Python.",
+  "detailed_desc": "Implements client and server functionalities similar to Netcat. Supports remote command shell (-c), file upload (-u), and command execution (-e) over TCP connections. Can operate in listen mode to accept incoming connections or act as a client to send data. Includes multi-threaded connection handling for concurrent sessions."
+},
+
+
 "virust": {
     "name": "virust",
     "short_desc": "Consulta IPs contra VirusTotal e incluye geolocalización.",
