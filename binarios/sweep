@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-clear
+#clear
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 echo -e "\e[34mPerforms ARP and ping scan, shows both scans. To avoid ARP scan, run with -a\e[0m"
 
