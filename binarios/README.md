@@ -107,8 +107,8 @@ wwinst              Crea el script ww que es la presentacion de colores del host
 barrierinst         Instala barrier debian flatpat, crea alias barrier
 coll                Muestra comandos con colores con batcat y un tmp archivo
 wgett               Descarga archivos con wget, carpeta completa reescribiendo o no
-remoto              Instala xrdp, inicia el servicio y copia la configuracion para plasma #vnc
-remoto2             Remueve xrpd e instala lxde que usa Lightweight X11 para equipos lentos
+xrdpinst            Instala xrdp, inicia el servicio y copia la configuracion para plasma #vnc
+lxdeinst            Remueve xrpd e instala lxde que usa Lightweight X11 para equipos lentos #vnc
 vnckali             (USAR xrdp) x11vnc, si no funciona install Xvfb and posiblemente install full kde. 
 rutainter           Definir la via ruta de internet cuando hay 2 interfaces internet
 veloint             iperf3 para medir la velocidad de ethernet o conexion, instrucciones e instala
