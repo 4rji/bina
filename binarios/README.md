@@ -497,6 +497,8 @@ mensajecl           Envia un mensaje encriptado de mensajeser, pide el host
 tunelhttp           Envia mensaje por medio de http para c2, camuflaje por http
 tunelhttpser        Servidor de tunelhttp, recibe el mensaje por tunnel camuflaje http
 secreto             Encripta y desencripta archivos con python y se asigna contrasena
+luks                Crea un contenedor para luks, hace todo montar y desmontar
+
 pythonnc            Crea un servidor nc escucha, ejem. pythonnc -t IPserver -p 55551 -l -c
 pythonnc            como cliente: pythonnc -t IPServer -p 55551 (control+d) para tener shell
 sshforward          IPkali -p 8081 -r IPLocal:3000 --user=ass --password (3000 puerto nagios a enviar)
