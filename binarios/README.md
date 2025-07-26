@@ -501,7 +501,9 @@ luks                Crea un contenedor para luks, hace todo montar y desmontar
 
 pythonnc            Crea un servidor nc escucha, ejem. pythonnc -t IPserver -p 55551 -l -c
 pythonnc            como cliente: pythonnc -t IPServer -p 55551 (control+d) para tener shell
-sshforward          IPkali -p 8081 -r IPLocal:3000 --user=ass --password (3000 puerto nagios a enviar)
+
+sshforward          similar to the openssh -R option.
+
 arper               arp poisonig scapy, crea un archivo y ejecuta arpers, no funciona con unifi Firewall
 bruto               brute forcing directorios, lista all.txt se descarga web hacking no https
 contrawp            Fuerza bruta a wordpress joomla, descarga cain.txt diccionario

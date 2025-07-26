@@ -554,6 +554,11 @@
         "name": "buspal",
         "short_desc": "Busca palabras clave en archivos dentro de un directorio específico.",
         "detailed_desc": "Este script en Bash solicita una palabra o frase al usuario y la busca en todos los archivos del directorio proporcionado como argumento. Verifica si el directorio existe y recorre cada archivo con grep. Si encuentra coincidencias, muestra el nombre del archivo y su contenido completo. Es útil para localizar rápidamente texto específico en archivos de configuración, logs o documentos planos dentro de una carpeta."
+    },
+    "sshforward": {
+          "name": "sshforward",
+          "short_desc": "Reverse SSH port forwarding over Paramiko.",
+          "detailed_desc": "Creates a reverse SSH tunnel using Python and Paramiko. It connects to a remote SSH server and opens a remote port that forwards traffic back to a specified host:port accessible from the local machine. Equivalent to 'ssh -R', useful for exposing local services remotely. Supports password or key authentication and can be automated or integrated into other Python tools."
     }
 
 }
