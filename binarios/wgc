@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-reset
+#reset
 echo ""
 
 # Check if the WireGuard interface name was provided
