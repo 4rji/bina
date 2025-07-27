@@ -5,12 +5,6 @@
 
 set -euo pipefail
 
-# Verificar permisos
-if [[ $EUID -ne 0 ]]; then
-  echo "Ejecuta este script como root (o con sudo)."
-  exit 1
-fi
-
 # Pedir datos al usuario
 echo "Leyendo tamaño y nombre del contenedor"
 read -p "Tamaño del contenedor en MB: " SIZE_MB
@@ -26,27 +20,33 @@ echo "Ejecutando: dd if=/dev/zero of=${target_file} bs=1M count=${SIZE_MB}"
 dd if=/dev/zero of="${target_file}" bs=1M count="${SIZE_MB}"
 
 # Inicializar LUKS
-echo "Ejecutando: cryptsetup luksFormat ${target_file}"
-cryptsetup luksFormat "${target_file}"
+echo "Ejecutando: sudo cryptsetup luksFormat ${target_file}"
+sudo cryptsetup luksFormat "${target_file}"
 
-echo "Ejecutando: cryptsetup open ${target_file} ${mapper_name}"
-cryptsetup open "${target_file}" "${mapper_name}"
+echo "Ejecutando: sudo cryptsetup open ${target_file} ${mapper_name}"
+sudo cryptsetup open "${target_file}" "${mapper_name}"
 
-echo "Ejecutando: mkfs.ext4 /dev/mapper/${mapper_name}"
-mkfs.ext4 "/dev/mapper/${mapper_name}"
+echo "Ejecutando: sudo mkfs.ext4 /dev/mapper/${mapper_name}"
+sudo mkfs.ext4 "/dev/mapper/${mapper_name}"
 
-echo "Ejecutando: mkdir -p ${mount_point}"
-mkdir -p "${mount_point}"
+echo "Ejecutando: sudo mkdir -p ${mount_point}"
+sudo mkdir -p "${mount_point}"
 
-echo "Ejecutando: mount /dev/mapper/${mapper_name} ${mount_point}"
-mount "/dev/mapper/${mapper_name}" "${mount_point}"
+echo "Ejecutando: sudo mount /dev/mapper/${mapper_name} ${mount_point}"
+sudo mount "/dev/mapper/${mapper_name}" "${mount_point}"
 
 # Instrucciones para desmontar y cerrar
 
 cat << EOF
 
 Contenedor '${target_file}' creado y montado en: ${mount_point}
+
 Para desmontar y cerrar, ejecuta:
   sudo umount ${mount_point}
   sudo cryptsetup close ${mapper_name}
+
+Para montarlo de nuevo después:
+  sudo cryptsetup open ${target_file} ${mapper_name}
+  sudo mkdir -p ${mount_point}
+  sudo mount /dev/mapper/${mapper_name} ${mount_point}
 EOF
