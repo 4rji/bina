@@ -313,6 +313,7 @@ sshmont             Monta una carpeta usando sshh           Edita el banner de i
 
 #monitor conexiones
 sshc                envia comando a todos los hosts por medio de ssh, tipo ansible
+sshcm               Mac version: envia comando a todos los hosts por medio de ssh, tipo ansible
 sshcom              Copia y ejecuta un script en una maquina ssh remota en /tmp
 sshmoni             sshmoni loop para correr el sshmoni while loop
 lsofmoni            Lo mismo que ssh pero escanea conexiones con lsof, detecta backdoors 
