@@ -1,0 +1,8 @@
+#!/bin/bash
+ip route | grep -E "^default dev veth" | awk '{print $3}' | while read dev; do
+    echo "Eliminando ruta default en $dev"
+    ip route del default dev "$dev"
+done
+
+
+
