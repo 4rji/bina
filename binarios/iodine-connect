@@ -1,17 +1,48 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
+import subprocess
+import sys
 
-# Ejecutar iodine con los parámetros dados
-sudo iodine -P carp -T A mic2.4rji.com tunel.midominio.com &
+# Configuración
+authority = "mic2.4rji.com"
+password = "carp"
+host = "tunel.midominio.com"
+remote_ip = "172.16.0.1"
 
-# Esperar a que iodine establezca la conexión (ajusta si es necesario)
-sleep 10
+# Inicia iodine y captura salida
+print(f"Iniciando iodine contra {host}...")
+proc = subprocess.Popen(
+    ["sudo", "iodine", "-P", password, "-T", "A", authority, host],
+    stdout=subprocess.PIPE,
+    stderr=subprocess.STDOUT,
+    text=True
+)
 
-# Verificar conectividad con ping
-if ping -c1 172.16.0.1 >/dev/null 2>&1; then
-    echo "Conectado al túnel"
-else
-    echo "Fallo la conexión al túnel"
-fi
+# Espera a que iodine confirme la conexión
+for line in proc.stdout:
+    sys.stdout.write(line)
+    if "Connection setup complete" in line:
+        break
 
+print("\nConexión establecida.")
 
-echo "sudo pkill iodine"
+# Pregunta para verificar conectividad
+def prompt_yes_no(msg, default_yes=False):
+    yn = input(msg).strip().lower()
+    if yn == "":
+        return default_yes
+    return yn[0] == "y"
+
+if prompt_yes_no("¿Verificar conectividad con ping? [y/N]: ", False):
+    ret = subprocess.call(["ping", "-c", "1", remote_ip])
+    if ret == 0:
+        print("✅ El túnel responde correctamente.")
+    else:
+        print("❌ No hubo respuesta del túnel.")
+
+# Pregunta para detener iodine
+if prompt_yes_no("¿Detener iodine? [Y/n]: ", True):
+    proc.terminate()
+    proc.wait(timeout=5)
+    print("iodine detenido.")
+else:
+    print(f"iodine sigue corriendo (PID {proc.pid}).")
