@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import subprocess
 import sys
+import time
 
 # Configuration
 authority = "mic2.4rji.com"
@@ -8,8 +9,20 @@ password = "carp"
 host = "tunel.midominio.com"
 remote_ip = "172.16.0.1"
 
+# Function to print styled titles
+def echo_msg(text):
+    print("\033[1;34m")  # Blue
+    print("==============================================")
+    print(text)
+    print("==============================================")
+    print("\033[0m")
+
 # Start iodine and capture output
-print(f"Starting iodine against {host}...")
+print("\n\033[1;32m")  # Green
+print("_________________________________________________________")
+print("\033[0m")
+echo_msg(f"Starting iodine against {host}...")
+
 proc = subprocess.Popen(
     ["sudo", "iodine", "-P", password, "-T", "A", authority, host],
     stdout=subprocess.PIPE,
@@ -19,32 +32,38 @@ proc = subprocess.Popen(
 
 # Wait for iodine to confirm the connection
 for line in proc.stdout:
-    sys.stdout.write(line)
+    print("\033[0;36m" + line.strip() + "\033[0m")  # Cyan
     if "Connection setup complete" in line:
         break
 
-print("\nConnection established.")
+print("\n\033[1;32m")  # Green
+print("_________________________________________________________")
+print("\033[0m")
+print("  \033[1;32m✅ Tunnel established successfully.\033[0m\n")  # Green
 
 # Yes/No prompt function
 def prompt_yes_no(msg, default_yes=False):
-    yn = input(msg).strip().lower()
+    print("\n\033[1;35m")  # Magenta
+    yn = input(f"  {msg} ").strip().lower()
+    print("\033[0m")
     if yn == "":
         return default_yes
     return yn[0] == "y"
 
-# Ask to verify connectivity
-if prompt_yes_no("Verify connectivity with ping? [Y/n]: ", True):
+# Ping check
+if prompt_yes_no("Check connectivity with ping? [Y/n]:", True):
+    print("\n\033[1;33mPinging tunnel endpoint...\033[0m\n")  # Yellow
     ret = subprocess.call(["ping", "-c", "1", remote_ip])
+    print("")
     if ret == 0:
-        print("✅ The tunnel responds correctly.")
+        print("  \033[1;32m✅ Tunnel is responding correctly.\033[0m\n")  # Green
     else:
-        print("❌ No response from the tunnel.")
+        print("  \033[1;31m❌ No response from tunnel.\033[0m\n")  # Red
 
 # Ask to stop iodine
-if prompt_yes_no("Stop iodine? (or use sudo pkill iodine) [Y/n]: ", True):
-    proc.terminate()
-    proc.wait(timeout=5)
-    print("iodine stopped.")
+if prompt_yes_no("Stop iodine? (will use sudo pkill) [Y/n]:", True):
+    print("\n\033[1;34mStopping iodine with sudo pkill...\033[0m\n")  # Blue
+    subprocess.call(["sudo", "pkill", "iodine"])
+    print("  \033[1;32miodine stopped.\033[0m\n")
 else:
-    print(f"iodine is still running (PID {proc.pid}).")
-
+    print(f"  \033[1;33miodine is still running.\033[0m\n")
