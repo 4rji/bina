@@ -25,14 +25,15 @@ for line in proc.stdout:
 
 print("\nConexión establecida.")
 
-# Pregunta para verificar conectividad
+# Función de prompt sí/no
 def prompt_yes_no(msg, default_yes=False):
     yn = input(msg).strip().lower()
     if yn == "":
         return default_yes
     return yn[0] == "y"
 
-if prompt_yes_no("¿Verificar conectividad con ping? [y/N]: ", False):
+# Pregunta para verificar conectividad
+if prompt_yes_no("¿Verificar conectividad con ping? [Y/n]: ", True):
     ret = subprocess.call(["ping", "-c", "1", remote_ip])
     if ret == 0:
         print("✅ El túnel responde correctamente.")
