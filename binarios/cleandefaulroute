@@ -4,14 +4,33 @@
 # Propósito: eliminar rutas 'default' que apuntan a interfaces veth*, generadas por contenedores
 # Útil para evitar conflictos de red causados por rutas default inyectadas por Docker/Kasm
 
-# Buscar rutas que empiecen con 'default dev veth*'
-ip route | grep -E "^default dev veth" | awk '{print $3}' | while read dev; do
-    # Mostrar en consola/log qué ruta se eliminará
-    echo "Eliminando ruta default en $dev"
+echo ""
+echo ";5;39m_________________________________________________________m"
+echo ";5;39m      🔍 Buscando rutas 'default dev veth*' activas...    m"
+echo ";5;39m_________________________________________________________m"
+echo ""
 
-    # Eliminar la ruta default específica
-    ip route del default dev "$dev"
+ip route | grep -E "^default dev veth" | awk '{print $3}' | while read dev; do
+
+  echo ""
+  echo ";5;208m---------------------------------------------------------m"
+  echo ";5;208m     🚨 Ruta default encontrada en interfaz: $dev         m"
+  echo ";5;208m---------------------------------------------------------m"
+  echo ""
+
+  echo ";5;196m   ➤ Ejecutando: ip route del default dev $devm"
+  ip route del default dev "$dev"
+
+  echo ""
+  echo ";5;82m   ✔ Ruta eliminada exitosamente para $devm"
+  echo ""
 done
+
+echo ""
+echo ";5;33m=========================================================m"
+echo ";5;33m   ✅ Limpieza de rutas default dev veth* completada.     m"
+echo ";5;33m=========================================================m"
+echo ""
 
 # -----------------------------------------------
 # Para ejecutarlo automáticamente cada minuto:
@@ -19,4 +38,3 @@ done
 # Y agrega esta línea al final:
 # * * * * * /usr/local/bin/clean-veth-default.sh >> /var/log/clean-veth.log 2>&1
 # -----------------------------------------------
-
