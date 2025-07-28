@@ -547,10 +547,10 @@
         "short_desc": "Script multihilo para fuerza bruta de rutas en servidores web HTTP.",
         "detailed_desc": "Este script en Python realiza fuerza bruta de directorios y archivos sobre un servidor web objetivo usando múltiples hilos (por defecto 50). Solo funciona con URLs que usen HTTP (no HTTPS). Permite descargar una lista de palabras predefinida desde GitHub o usar una local ('all.txt'). El script construye posibles rutas, prueba con extensiones comunes como .php, .bak, .orig, .inc y detecta respuestas positivas (diferentes a 404). Muestra en consola los códigos de respuesta HTTP devueltos para cada intento. Uso recomendado en entornos de pruebas de seguridad."
     },
-    "bucle": {
-        "name": "bucle",
-        "short_desc": "Ejecuta un comando indefinidamente con intervalos definidos por el usuario.",
-        "detailed_desc": "Este script en Bash solicita al usuario un comando a ejecutar y un intervalo de tiempo en segundos. Luego entra en un bucle infinito donde ejecuta el comando proporcionado usando 'eval' y espera el número de segundos especificado antes de repetir. Es útil para automatizar tareas periódicas simples sin necesidad de cron ni herramientas externas."
+    "loop": {
+        "name": "loop",
+        "short_desc": "Runs a command indefinitely with user-defined intervals",
+        "detailed_desc": "This Bash script prompts the user for a command to execute and a time interval in seconds. It then enters an infinite loop where it runs the provided command using ‘eval’ and waits the specified number of seconds before repeating. It’s useful for automating simple periodic tasks without needing cron or external tools."
     },
     "buscando": {
         "name": "buscando",
@@ -566,7 +566,12 @@
           "name": "sshforward",
           "short_desc": "Reverse SSH port forwarding over Paramiko.",
           "detailed_desc": "Creates a reverse SSH tunnel using Python and Paramiko. It connects to a remote SSH server and opens a remote port that forwards traffic back to a specified host:port accessible from the local machine. Equivalent to 'ssh -R', useful for exposing local services remotely. Supports password or key authentication and can be automated or integrated into other Python tools."
-    }
+    },
+    "sshc": {
+      "name": "sshc",
+      "short_desc": "Parallel SSH command executor.",
+      "detailed_desc": "Executes any command concurrently on all hosts defined in ~/.ssh/config. Implemented in Go; connects using SSH keys or agent (no password prompts) and colors each host’s output line—green for success, red for offline. Usage: sshc <command> [args]."
+}
 
 }
 
