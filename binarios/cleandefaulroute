@@ -1,8 +1,22 @@
 #!/bin/bash
+
+# Script: clean-veth-default.sh
+# Propósito: eliminar rutas 'default' que apuntan a interfaces veth*, generadas por contenedores
+# Útil para evitar conflictos de red causados por rutas default inyectadas por Docker/Kasm
+
+# Buscar rutas que empiecen con 'default dev veth*'
 ip route | grep -E "^default dev veth" | awk '{print $3}' | while read dev; do
+    # Mostrar en consola/log qué ruta se eliminará
     echo "Eliminando ruta default en $dev"
+
+    # Eliminar la ruta default específica
     ip route del default dev "$dev"
 done
 
-
+# -----------------------------------------------
+# Para ejecutarlo automáticamente cada minuto:
+# Ejecuta: crontab -e
+# Y agrega esta línea al final:
+# * * * * * /usr/local/bin/clean-veth-default.sh >> /var/log/clean-veth.log 2>&1
+# -----------------------------------------------
 
