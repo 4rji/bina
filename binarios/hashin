@@ -1,0 +1,48 @@
+#!/usr/bin/python3
+
+import hashlib
+import sys
+import os
+
+def multi_hash(filename):
+    md5 = hashlib.md5()
+    sha256 = hashlib.sha256()
+
+    with open(filename, 'rb') as f:
+        while True:
+            buf = f.read(2**20)
+            if not buf:
+                break
+            md5.update(buf)
+            sha256.update(buf)
+
+    return [md5.hexdigest(), sha256.hexdigest()]
+
+
+if __name__ == '__main__':
+    RED = '\033[91m'
+    GREEN = '\033[92m'
+    YELLOW = '\033[93m'
+    CYAN = '\033[96m'
+    RESET = '\033[0m'
+
+    hashes = []
+
+    print(f"{YELLOW}[*] Bash equivalent:{RESET} echo -n && ", end="")
+    for i, f in enumerate(sys.argv[1:]):
+        if i > 0:
+            print(" && ", end="")
+        print(f"md5sum {f} && sha256sum {f}", end="")
+    print("\n")
+
+    print(f"{CYAN}---------- MD5 sums ----------{RESET}")
+    for filename in sys.argv[1:]:
+        h = multi_hash(filename)
+        hashes.append(h)
+        print(f"{GREEN}{h[0]}{RESET}  {filename}")
+    print()
+
+    print(f"{CYAN}---------- SHA256 sums ----------{RESET}")
+    for i in range(len(hashes)):
+        print(f"{GREEN}{hashes[i][1]}{RESET}  {sys.argv[i+1]}")
+    print()
