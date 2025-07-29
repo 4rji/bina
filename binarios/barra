@@ -1,0 +1,10 @@
+#!/bin/bash
+
+total=50
+for ((i=1; i<=total; i++)); do
+    filled=$(printf "%0.s█" $(seq 1 $i))
+    empty=$(printf "%0.s " $(seq $i $total))
+    printf "\r[%s%s] %d%%" "$filled" "$empty" $((i*100/total))
+    sleep 0.05
+done
+echo
