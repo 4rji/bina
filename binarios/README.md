@@ -358,6 +358,7 @@ ansihost            Cat a los hosts y pregunta si quiero editarlo ansible
 
 
 ###------seguridad de sistemas
+littlearp           Version de python de arp, no detecta tan bien como arp-scan
 hashin              Muestra md5  y sha256sum hashes
 virust              Usa la API de virustotal para ver ips.txt o IP su uso. 
 dnscheck            Verifica si quad9 se usa, consulta whois Ip propia y externa de consultas
