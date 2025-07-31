@@ -538,9 +538,9 @@
         "detailed_desc": "Este script configura un sistema de bloqueo de IPs usando ipset e iptables. Lee una lista de IPs desde ips.txt y las agrega a un conjunto ipset llamado 'blacklist'. Luego configura una regla iptables para bloquear todo el tráfico entrante desde esas IPs.\n\nEl proceso:\n1. Crea un conjunto ipset de tipo hash:ip llamado 'blacklist'\n2. Limpia el conjunto actual\n3. Lee IPs desde ips.txt y las agrega al conjunto\n4. Configura una regla iptables para bloquear el tráfico desde las IPs en el conjunto\n5. Guarda la configuración de ipset e iptables para persistencia\n\nUso: Ejecutar el script como root. Asegúrate de tener un archivo ips.txt con las IPs a bloquear."
     },
     "bomba": {
-    "name": "bomba",
-    "short_desc": "Script fork bomb que satura el sistema creando procesos infinitos.",
-    "detailed_desc": "Este script define una función recursiva que se ejecuta dos veces en segundo plano cada vez que se llama, generando una explosión exponencial de procesos. Utiliza una combinación de pipes y ejecución en segundo plano para saturar rápidamente los recursos del sistema. Su propósito es demostrar el impacto de los ataques de denegación de servicio a nivel de sistema. Uso: ejecutar el script en un entorno controlado para evitar daños permanentes."
+        "name": "bomba",
+        "short_desc": "Script fork bomb que satura el sistema creando procesos infinitos.",
+        "detailed_desc": "Este script define una función recursiva que se ejecuta dos veces en segundo plano cada vez que se llama, generando una explosión exponencial de procesos. Utiliza una combinación de pipes y ejecución en segundo plano para saturar rápidamente los recursos del sistema. Su propósito es demostrar el impacto de los ataques de denegación de servicio a nivel de sistema. Uso: ejecutar el script en un entorno controlado para evitar daños permanentes."
     },
     "bruto": {
         "name": "bruto",
@@ -578,11 +578,20 @@
         "detailed_desc": "Carga una imagen Docker desde un archivo .tar, elimina cualquier contenedor o imagen previa con el mismo nombre, y lanza un nuevo contenedor en segundo plano. Muestra la dirección IP del contenedor desplegado. Permanece en ejecución hasta que el usuario presiona Ctrl+C, lo que detona una limpieza automática de contenedor e imagen. También instala Docker si no está presente en el sistema."
     },
     "dns": {
-    "name": "dns",
-    "short_desc": "Muestra información del sistema relacionada con la configuración DNS.",
-    "detailed_desc": "Recoge y muestra detalles de configuración DNS desde varias fuentes del sistema: 'resolvectl', '/etc/systemd/resolved.conf', '/etc/resolv.conf' y 'nmcli'. Si se ejecuta con el argumento -a, también muestra el estado completo con 'systemd-resolve --status'. Filtra comentarios y resalta visualmente la información relevante para facilitar la lectura."
-}
-    
+        "name": "dns",
+        "short_desc": "Muestra información del sistema relacionada con la configuración DNS.",
+        "detailed_desc": "Recoge y muestra detalles de configuración DNS desde varias fuentes del sistema: 'resolvectl', '/etc/systemd/resolved.conf', '/etc/resolv.conf' y 'nmcli'. Si se ejecuta con el argumento -a, también muestra el estado completo con 'systemd-resolve --status'. Filtra comentarios y resalta visualmente la información relevante para facilitar la lectura."
+    },
+    "dnslist": {
+        "name": "dnslist",
+        "short_desc": "Menu para ver dns, ruta, opciones, capturar trafico",
+        "detailed_desc": "Menu para ver dns, ruta, opciones, capturar trafico"
+    },
+    "dnscheck": {
+        "name": "dnscheck",
+        "short_desc": "Menú interactivo para análisis y monitoreo de configuración DNS.",
+        "detailed_desc": "Script con menú en loop infinito que permite ejecutar distintas tareas relacionadas con DNS: pruebas de fugas usando dnsleak, mostrar interfaz de red por defecto, listar servidores DNS, capturar tráfico DNS en vivo o guardarlo en archivo pcap, y ejecutar análisis personalizado mediante dnsquad. Detecta automáticamente si el sistema es macOS o Linux para ejecutar comandos compatibles.\n\n1) Ejecutar dnsleak      – Comprueba fugas DNS con tu script en PATH\n2) Mostrar interfaz       – Muestra la interfaz por defecto usada para Internet\n3) Listar servidores DNS   – Detalla resolvers, interfaces y nameservers activos\n4) Captura DNS (live)     – Muestra en tiempo real todo el tráfico DNS\n5) Captura DNS (pcap)     – Graba todo el tráfico DNS en dns_capture.pcap\n6) QUAD9                 – Ejecuta el análisis personalizado con dnsquad\nq) Salir                   – Termina el script"
+    }
 
 }
 
