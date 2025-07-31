@@ -47,6 +47,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+ddtest              probar rendimiento de escritura en disco (benchmark de I/O).
 cleandefaulroute    elimina rutas default creadas por interfaces veth* (docker kasm error)
 linux-shortcut      Pasos para crear un shortcut en linux 
 mac-route           Prioritizar wifi sobre ethernet en mac
