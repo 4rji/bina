@@ -362,9 +362,9 @@ ansihost            Cat a los hosts y pregunta si quiero editarlo ansible
 littlearp           Version de python de arp, no detecta tan bien como arp-scan
 hashin              Muestra md5  y sha256sum hashes
 virust              Usa la API de virustotal para ver ips.txt o IP su uso. 
-dnscheck            Verifica si quad9 se usa, consulta whois Ip propia y externa de consultas
+dnsquad             Verifica si quad9 se usa, consulta whois Ip propia y externa de consultas
 dnsleak             Consulta si el dns se esta saliendo
-dnslist             Menu para ver dns, ruta, opciones, capturar trafico
+dnscheck            Menu para ver dns, ruta, opciones, capturar trafico
 ipt                 Para acceptar todo trafico o bloquear todo el trafico. 
 snifferip           Sniffer paquetes red que captura las cabeceras IP en dirección IP especifica.
 iarpon              Arpon para protejer de arp poising. arp sniff 

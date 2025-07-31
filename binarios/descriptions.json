@@ -37,8 +37,8 @@
     "detailed_desc": "Este script permite extraer enlaces de una página web utilizando la herramienta 'lynx' en modo texto. Soporta tres modos de filtrado: '-d' para mostrar solo los dominios principales de los enlaces, '-r' para mostrar únicamente los enlaces internos (mismo dominio que el proporcionado) y '-a' para mostrar únicamente los enlaces externos (diferente dominio). El script procesa la salida de 'lynx -dump', filtra las URLs relevantes y aplica los comandos de filtrado según la opción seleccionada. Ejemplo de uso: './urlextract -d https://example.com' mostrará solo los dominios encontrados en la página. Requiere que 'lynx' esté instalado en el sistema."
 },
 
-"dnscheck": {
-    "name": "dnscheck",
+"dnsquad": {
+    "name": "dnsquad",
     "short_desc": "Verifica si estás utilizando Quad9 como tu DNS y muestra información relacionada.",
     "detailed_desc": "Este script realiza una verificación completa del uso de Quad9 como servidor DNS. Incluye consultas a on.quad9.net para validar si estás usando Quad9, realiza una consulta directa a whoami.quad9.net y obtiene la versión del nodo Quad9 desde version.bind. Además, detecta el resolver local usado por el sistema, identifica la IP externa utilizada por el DNS mediante whoami.akamai.net, y ejecuta el binario locip o locipm dependiendo de la arquitectura (amd64 o arm64) para mostrar detalles de geolocalización. También ejecuta una consulta WHOIS para determinar si la IP externa pertenece directamente a Quad9. Al final, muestra la IP pública del sistema y la información de geolocalización (ciudad, región y país) usando ipinfo.io. Requiere tener instalados: curl, dig, whois, y locip/locipm."
 },
@@ -571,7 +571,18 @@
       "name": "sshc",
       "short_desc": "Parallel SSH command executor.",
       "detailed_desc": "Executes any command concurrently on all hosts defined in ~/.ssh/config. Implemented in Go; connects using SSH keys or agent (no password prompts) and colors each host’s output line—green for success, red for offline. Usage: sshc <command> [args]."
+    },
+    "deploy": {
+        "name": "deploy",
+        "short_desc": "Despliega una máquina vulnerable en Docker desde una imagen .tar.",
+        "detailed_desc": "Carga una imagen Docker desde un archivo .tar, elimina cualquier contenedor o imagen previa con el mismo nombre, y lanza un nuevo contenedor en segundo plano. Muestra la dirección IP del contenedor desplegado. Permanece en ejecución hasta que el usuario presiona Ctrl+C, lo que detona una limpieza automática de contenedor e imagen. También instala Docker si no está presente en el sistema."
+    },
+    "dns": {
+    "name": "dns",
+    "short_desc": "Muestra información del sistema relacionada con la configuración DNS.",
+    "detailed_desc": "Recoge y muestra detalles de configuración DNS desde varias fuentes del sistema: 'resolvectl', '/etc/systemd/resolved.conf', '/etc/resolv.conf' y 'nmcli'. Si se ejecuta con el argumento -a, también muestra el estado completo con 'systemd-resolve --status'. Filtra comentarios y resalta visualmente la información relevante para facilitar la lectura."
 }
+    
 
 }
 

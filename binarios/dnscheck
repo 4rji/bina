@@ -1,136 +1,92 @@
 #!/usr/bin/env bash
+# Menu con loop infinito y detección de tecla sin ENTER
 
-# Colores
-green="\033[1;32m"
-red="\033[1;31m"
-yellow="\033[1;33m"
-reset="\033[0m"
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[0;33m'
+BLUE='\033[0;34m'
+MAGENTA='\033[0;35m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+BOLD='\033[1m'
 
-line() {
-  echo -e "_________________________________________________________\n"
-}
-
-msg_ok() {
-  echo -e "${green}✅  $1${reset}"
-}
-
-msg_fail() {
-  echo -e "${red}❌  $1${reset}"
-}
-
-msg_warn() {
-  echo -e "${yellow}⚠️   $1${reset}"
-}
-
-# Verifica si se está usando Quad9 (HTTP)
-check_quad9_http() {
-  echo "[+]  Checando salida HTTP (on.quad9.net)..."
-  result=$(curl -s https://on.quad9.net/)
-  if echo "$result" | grep -iq "yes"; then
-    msg_ok "Estás usando Quad9 (según on.quad9.net)"
-  else
-    msg_fail "No estás usando Quad9 (según on.quad9.net)"
-  fi
-}
-
-# Consulta directa a Quad9
-check_quad9_dns() {
-  echo "[+]  Probando consulta directa a Quad9 (whoami.quad9.net)..."
-  ip=$(dig +short whoami.quad9.net @9.9.9.9)
-  if [[ -n "$ip" ]]; then
-    msg_ok "Consulta directa llegó. IP pública: $ip"
-  else
-    msg_warn "No hubo respuesta de whoami.quad9.net"
-  fi
-}
-
-# Ver versión del nodo Quad9
-check_version_bind() {
-  echo "[+]  Consultando versión del nodo Quad9..."
-  version=$(dig @9.9.9.9 version.bind txt chaos +short | tr -d '"')
-  if [[ -n "$version" ]]; then
-    msg_ok "Nodo respondió con versión: $version"
-  else
-    msg_warn "Nodo no respondió a version.bind"
-  fi
-}
-
-# Ver el DNS configurado localmente
-check_local_resolver() {
-  echo "[+]  Servidor DNS usado por consultas locales..."
-  resolver=$(dig google.com | grep '^;; SERVER:' | awk '{print $3}')
-  if [[ -n "$resolver" ]]; then
-    echo "🧩  Resolver local en uso: $resolver"
-  else
-    msg_warn "No se detectó servidor DNS local"
-  fi
-}
-
-# Ver la IP externa usada para resolver y si es Quad9
-check_external_ip() {
-  echo "[+]  Detectando IP pública usada por el resolver..."
-  ip=$(dig +short whoami.akamai.net)
-  if [[ -z "$ip" ]]; then
-    msg_warn "No se pudo obtener la IP externa del resolver"
-    return
-  fi
-  echo -e "${green}🌐  IP externa detectada: $ip${reset}"
-
-  echo "[+]  Información WHOIS de $ip:"
-  whois_info=$(whois "$ip")
-  echo "$whois_info" | grep -Ei 'orgname|netname|descr|origin|owner' | sed 's/^/   /'
-
-  if echo "$whois_info" | grep -iqE 'quad9|as19281'; then
-    msg_ok "Resolver DNS detectado pertenece a Quad9 directamente."
-  else
-    msg_warn "Resolver DNS detectado NO pertenece directamente a Quad9."
-  fi
-
-  # Detectar arquitectura y ejecutar el locip correcto
-  arch=$(uname -m)
-  if [[ "$arch" == "arm64" || "$arch" == "aarch64" ]]; then
-    bin="locipm"
-  else
-    bin="locip"
-  fi
-
-  echo -e "[+]  Ejecutando $bin -i $ip...\n"
-  if command -v $bin >/dev/null 2>&1; then
-    $bin -i "$ip"
-  else
-    msg_warn "El binario '$bin' no está disponible en el PATH."
-  fi
-}
-
-# Ejecución secuencial
-line
-check_quad9_http
-line
-check_quad9_dns
-line
-check_version_bind
-line
-check_local_resolver
-line
-check_external_ip
-line
-
-
-# Mostrar IP pública del sistema y ubicación
-echo -e "\n[+]  IP pública del sistema (consulta curl ):"
-pubip=$(curl -s https://ifconfig.me || curl -s https://ipinfo.io/ip)
-
-if [[ -n "$pubip" ]]; then
-  echo -e "${green}➡️   $pubip${reset}"
-
-  loc=$(curl -s "https://ipinfo.io/$pubip/json")
-  city=$(echo "$loc" | grep '"city"' | cut -d'"' -f4)
-  region=$(echo "$loc" | grep '"region"' | cut -d'"' -f4)
-  country=$(echo "$loc" | grep '"country"' | cut -d'"' -f4)
-
-  echo -e "${green}📍  City: $city${reset}"
-  echo -e "${green}🌎  Region: $region${reset}"
-  echo -e "${green}🏳️  Country: $country${reset}\n"
-else
-  msg_warn "No se pudo obtener la IP pública del sistema"
+# Detectar sistema
+OS="$(uname)"
+is_macos=false
+is_linux=false
+if [[ "$OS" == "Darwin" ]]; then
+  is_macos=true
+elif [[ "$OS" == "Linux" ]]; then
+  is_linux=true
 fi
+
+while true; do
+  echo -e "${RED}1)${NC} Ejecutar dnsleak      ${CYAN}– Comprueba fugas DNS con tu script en PATH${NC}"
+  echo -e "${RED}2)${NC} Mostrar interfaz       ${CYAN}– Muestra la interfaz por defecto usada para Internet${NC}"
+  echo -e "${RED}3)${NC} Listar servidores DNS   ${CYAN}– Detalla resolvers, interfaces y nameservers activos${NC}"
+  echo -e "${RED}4)${NC} Captura DNS (live)     ${CYAN}– Muestra en tiempo real todo el tráfico DNS${NC}"
+  echo -e "${RED}5)${NC} Captura DNS (pcap)     ${CYAN}– Graba todo el tráfico DNS en dns_capture.pcap${NC}"
+  echo -e "${RED}6)${NC} QUAD9                 ${CYAN}– Ejecuta el análisis personalizado con dnsquad${NC}"
+  echo -e "${RED}q)${NC} Salir                   ${CYAN}– Termina el script${NC}"
+  echo
+  echo -n "Selecciona opción [1-6,q]: "
+  read -n1 -s opt
+  echo && echo
+
+  case "$opt" in
+    1)
+      echo -e "${GREEN}>> Ejecutando dnsleak test...${NC}"
+      dnsleak
+      ;;
+    2)
+      echo -e "${YELLOW}>> Obteniendo interfaz por defecto...${NC}"
+      if $is_macos; then
+        route get default | grep interface
+      elif $is_linux; then
+        ip route | grep '^default' | awk '{print "interface: "$5}'
+      else
+        echo "Sistema no soportado para esta acción."
+      fi
+      ;;
+    3)
+      echo -e "${BLUE}>> Listando resolvers y DNS...${NC}"
+      if $is_macos; then
+        scutil --dns | grep -E 'resolver\ #[0-9]+|interface|nameserver'
+      elif $is_linux; then
+        echo "Resolv.conf:" 
+        grep -E 'nameserver|search|domain' /etc/resolv.conf
+        echo
+        if command -v systemd-resolve &>/dev/null; then
+          echo "systemd-resolve status:"
+          systemd-resolve --status | grep -E 'DNS Servers:|Link [0-9]+:'
+        fi
+      else
+        echo "Sistema no soportado para esta acción."
+      fi
+      ;;
+    4)
+      echo -e "${MAGENTA}>> Capturando DNS en vivo (puerto 53)...${NC}"
+      sudo tcpdump -n -i any port 53
+      ;;
+    5)
+      echo -e "${CYAN}>> Grabando DNS en dns_capture.pcap...${NC}"
+      sudo tcpdump -n -i any port 53 -s 0 -w dns_capture.pcap
+      echo -e "${CYAN}>> Listo: abre dns_capture.pcap con Wireshark${NC}"
+      ;;
+    6)
+      echo -e "${GREEN}>> Ejecutando QUAD9 con /opt/4rji/bin/dnsquad...${NC}"
+      /opt/4rji/bin/dnsquad
+      ;;
+    q | Q)
+      echo -e "${RED}Saliendo...${NC}"
+      break
+      ;;
+    *)
+      echo -e "${RED}Opción inválida.${NC}"
+      ;;
+  esac
+
+  echo
+  echo -e "${BOLD}Presiona cualquier tecla para volver al menú...${NC}"
+  read -n1 -s
+done
