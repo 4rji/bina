@@ -591,6 +591,11 @@
         "name": "dnscheck",
         "short_desc": "Menú interactivo para análisis y monitoreo de configuración DNS.",
         "detailed_desc": "Script con menú en loop infinito que permite ejecutar distintas tareas relacionadas con DNS: pruebas de fugas usando dnsleak, mostrar interfaz de red por defecto, listar servidores DNS, capturar tráfico DNS en vivo o guardarlo en archivo pcap, y ejecutar análisis personalizado mediante dnsquad. Detecta automáticamente si el sistema es macOS o Linux para ejecutar comandos compatibles.\n\n1) Ejecutar dnsleak      – Comprueba fugas DNS con tu script en PATH\n2) Mostrar interfaz       – Muestra la interfaz por defecto usada para Internet\n3) Listar servidores DNS   – Detalla resolvers, interfaces y nameservers activos\n4) Captura DNS (live)     – Muestra en tiempo real todo el tráfico DNS\n5) Captura DNS (pcap)     – Graba todo el tráfico DNS en dns_capture.pcap\n6) QUAD9                 – Ejecuta el análisis personalizado con dnsquad\nq) Salir                   – Termina el script"
+    },
+    "fastconf": {
+        "name": "fastconf",
+        "short_desc": "Configuración de fastfetch para mostrar información del sistema.",
+        "detailed_desc": "Pregunta por un mensaje a mostrar y genera un arhcivo .jsonc para fastfetch."
     }
 
 }
