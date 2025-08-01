@@ -258,9 +258,9 @@ artires             Reinicia el servicio artilleria
 
 
 ###------portspoof
-fakeinst            aplica las reglas para portspoof, IPTABLES, proteje puertos y redirecciona trafico
-fakeinst2           Instala portspoof emula servicios para nmap, instala todo
-fakei               alias para iniciar el portspoof, despues de instalarlo
+portspoofinst       aplica las reglas para portspoof, IPTABLES, proteje puertos y redirecciona trafico
+portspoofinst2           Instala portspoof emula servicios para nmap, instala todo
+portspoofi               alias para iniciar el portspoof, despues de instalarlo
 
                                
  

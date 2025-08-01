@@ -596,6 +596,11 @@
         "name": "fastconf",
         "short_desc": "Configuración de fastfetch para mostrar información del sistema.",
         "detailed_desc": "Pregunta por un mensaje a mostrar y genera un arhcivo .jsonc para fastfetch."
+    },
+    "portspoofinst": {
+        "name": "portspoofinst",
+        "short_desc": "Script para redirección y manipulación de puertos usando iptables.",
+        "detailed_desc": "Este script permite inspeccionar puertos abiertos, aceptar tráfico explícitamente en ciertos puertos definidos por el usuario, y opcionalmente redirigir todo el resto del tráfico TCP al puerto 4444 mediante reglas de iptables (PREROUTING en la tabla nat). También ofrece la opción de eliminar dicha redirección y guardar las reglas actuales con iptables-save. Incluye comandos como ss -lntp, lsof -i, y múltiples operaciones iptables."
     }
 
 }
