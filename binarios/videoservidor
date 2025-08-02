@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+echo "📺  Servidor de video HTTP"
+echo "──────────────────────────────"
+
+# Mostrar todas las IPs locales disponibles
+echo "👉 Puedes acceder desde cualquiera de estas IPs:"
+ip -4 addr show | grep inet | grep -v '127.0.0.1' | awk '{print "   → http://" $2}' | cut -d/ -f1 | sed 's/$/:10999\//'
+
+echo ""
+echo "📂 Carpeta servida: /home/ass/video-downoad"
+echo "🌐 Puerto local: 10999"
+echo "🔄 Lanzando contenedor Docker..."
+
+# Ejecutar contenedor Apache
+docker run -d \
+  -v /home/ass/video-downoad:/usr/local/apache2/htdocs \
+  -p 10999:80 \
+  httpd:alpine
