@@ -38,11 +38,28 @@ idx=$((choice-1)); LANG="${LANG_CODES[$idx]}"
 PROFILE=$(mktemp -d /tmp/fx-profile-XXXXXX)
 trap '[[ $SEARXNG_STARTED -eq 1 ]] && docker stop "$CONTAINER_NAME" >/dev/null; rm -rf "$PROFILE"' EXIT
 
-cat > "$PROFILE/user.js" <<EOF
+# arkenfox user.js base
+curl -sSL https://raw.githubusercontent.com/arkenfox/user.js/master/user.js -o "$PROFILE/user.js"
+
+# preferencias extra (fingerprint hardening)
+cat >> "$PROFILE/user.js" <<EOF
 user_pref("intl.accept_languages", "$LANG,en");
 user_pref("general.useragent.locale", "$LANG");
 user_pref("intl.locale.requested", "$LANG");
+user_pref("privacy.resistFingerprinting", true);
+user_pref("privacy.resistFingerprinting.randomization.enabled", true);
+user_pref("canvas.transferFromImageBitmap.enabled", false);
+user_pref("webgl.disabled", true);
+user_pref("webgl.enable-webgl2", false);
+user_pref("dom.maxHardwareConcurrency", 8);
+user_pref("general.userAgent.override", "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0");
+user_pref("general.oscpu.override", "Linux x86_64");
 EOF
+
+# CanvasBlocker
+mkdir -p "$PROFILE/extensions"
+curl -sSL https://addons.mozilla.org/firefox/downloads/file/4145310/canvasblocker-1.14.3-an+fx.xpi \
+     -o "$PROFILE/extensions/canvasblocker@canvasblocker.xpi"
 # ------------------------------------
 
 xhost +local:docker
@@ -54,5 +71,6 @@ docker run \
   -v "$PROFILE":/home/user/.mozilla/firefox/default-release \
   --rm firefox-ephemeral \
   -profile /home/user/.mozilla/firefox/default-release \
+  "https://coveryourtracks.eff.org/" \
   "https://www.whatsmybrowser.org/" \
   "http://localhost:${PORT}"
