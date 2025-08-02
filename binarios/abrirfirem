@@ -85,5 +85,6 @@ docker run --rm \
   -width 1920 -height 1080 \
   -profile /home/user/.mozilla/firefox/default-release \
   "https://coveryourtracks.eff.org/" \
+  "https://mullvad.net/en/check/" \
   "https://www.whatsmybrowser.org/" \
   "http://${CONTAINER}:${PORT}"
