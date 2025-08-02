@@ -1,0 +1,31 @@
+#!/bin/bash
+
+DOMAINS=(
+  github.com
+  deb.debian.org
+  security.debian.org
+  www.google.com
+  www.chatgpt.com
+  docker.io
+  archive.ubuntu.com
+)
+
+for TARGET in "${DOMAINS[@]}"; do
+    echo -e "\n==> Conectando a $TARGET:443"
+
+    OUTPUT=$(echo | timeout 5 openssl s_client -servername "$TARGET" -connect "$TARGET:443" -showcerts 2>/dev/null)
+
+    if [ $? -ne 0 ]; then
+        echo "❌ Fallo en conexión TLS (timeout o rechazo)"
+        continue
+    fi
+
+    CN=$(echo "$OUTPUT" | openssl x509 -noout -subject 2>/dev/null | sed -n 's/.*CN *= *//p')
+    PROTO=$(echo "$OUTPUT" | grep -i "Protocol" | head -n1)
+    CIPHER=$(echo "$OUTPUT" | grep -i "Cipher" | head -n1)
+
+    echo "✅ TLS OK"
+    echo "CN: $CN"
+    echo "$PROTO"
+    echo "$CIPHER"
+done
