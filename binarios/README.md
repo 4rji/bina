@@ -153,7 +153,8 @@ clipc               Copia el ultimo comando escrito en la terminal
 clipa_archivo       copia el contenido del archivo al portapapeles                                     
 pas                 Copia el contenido del portapapeles en la variable $htcon
 jfirefox            firejail a firefox             
-lid                 cambia el comportamiento de lid laptop                                             
+lid                 cambia el comportamiento de lid laptop         
+servidorvideo       Crea en docker alpine como servidor, monta una carpeta para ver videos que hay en ella.                                     
 
 
 #Util
