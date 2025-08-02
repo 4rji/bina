@@ -26,10 +26,14 @@ fi
 LANG_CODES=( "en-US" "es-ES" "ja" "zh-CN" "ru" "fr-FR" "de-DE" "pt-BR" "it-IT" "ko" )
 LANG_NAMES=( "English" "Español" "日本語" "中文(简)" "Русский" "Français" "Deutsch" "Português(BR)" "Italiano" "한국어" )
 
-echo; echo "Selecciona idioma:"
-for i in "${!LANG_CODES[@]}"; do printf "  %02d) %-7s - %s\n" $((i+1)) "${LANG_CODES[$i]}" "${LANG_NAMES[$i]}"; done
+echo
+echo "Selecciona idioma:"
+for i in "${!LANG_CODES[@]}"; do
+  printf "  %02d) %-7s - %s\n" $((i+1)) "${LANG_CODES[$i]}" "${LANG_NAMES[$i]}"
+done
 read -rp "Número: " num
-idx=$((num-1)); LANG="${LANG_CODES[$idx]}"
+idx=$((num-1))
+LANG="${LANG_CODES[$idx]}"
 [ -z "$LANG" ] && { [[ -n "$CID" ]] && docker stop "$CID" >/dev/null; exit 1; }
 # --------------------------------------
 
@@ -37,24 +41,39 @@ idx=$((num-1)); LANG="${LANG_CODES[$idx]}"
 PROFILE=$(mktemp -d /tmp/fx-profile-XXXXXX)
 trap '[[ -n "$CID" ]] && docker stop "$CID" >/dev/null; rm -rf "$PROFILE"' EXIT
 
-cat > "$PROFILE/user.js" <<EOF
+ARKENFOX_URL="https://raw.githubusercontent.com/arkenfox/user.js/master/user.js"
+CANVASBLOCKER_URL="https://addons.mozilla.org/firefox/downloads/file/4145310/canvasblocker-1.14.3-an+fx.xpi"
+
+curl -sSL "$ARKENFOX_URL" -o "$PROFILE/user.js"
+cat >> "$PROFILE/user.js" <<EOF
 user_pref("intl.accept_languages", "$LANG,en");
 user_pref("general.useragent.locale", "$LANG");
 user_pref("intl.locale.requested", "$LANG");
+user_pref("privacy.resistFingerprinting", true);
+user_pref("privacy.resistFingerprinting.randomization.enabled", true);
+user_pref("canvas.transferFromImageBitmap.enabled", false);
+user_pref("webgl.disabled", true);
+user_pref("webgl.enable-webgl2", false);
+user_pref("dom.maxHardwareConcurrency", 8);
+// UA/OS spoof coherente con Linux x86_64
+user_pref("general.userAgent.override", "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0");
+user_pref("general.oscpu.override", "Linux x86_64");
 EOF
+
+mkdir -p "$PROFILE/extensions"
+curl -sSL "$CANVASBLOCKER_URL" -o "$PROFILE/extensions/canvasblocker@canvasblocker.xpi"
 # --------------------------------------
 
-# ----------- XQuartz ------------------
-if ! pgrep -x "XQuartz" >/dev/null; then
-  open -a XQuartz
-  sleep 2
-fi
+# ----------- XQuartz a 1920×1080 --------
+# permite conexiones TCP
+defaults write org.macosforge.xquartz.X11 nolisten_tcp -bool false
+# reinicia XQuartz con pantalla a 1920×1080
+killall XQuartz 2>/dev/null || true
+open -a XQuartz --args -listen tcp -screen 0 1920x1080x24
+sleep 2
+# autoriza al contenedor a usar el display
+xhost + 127.0.0.1 >/dev/null
 
-# DISPLAY local (para xhost)
-export DISPLAY=:0
-xhost +127.0.0.1 >/dev/null
-
-# DISPLAY para el contenedor
 DOCKER_DISPLAY="host.docker.internal:0"
 # --------------------------------------
 
@@ -63,6 +82,8 @@ docker run --rm \
   -e DISPLAY="$DOCKER_DISPLAY" \
   -v "$PROFILE":/home/user/.mozilla/firefox/default-release \
   firefox-ephemeral \
+  -width 1920 -height 1080 \
   -profile /home/user/.mozilla/firefox/default-release \
+  "https://coveryourtracks.eff.org/" \
   "https://www.whatsmybrowser.org/" \
   "http://${CONTAINER}:${PORT}"
