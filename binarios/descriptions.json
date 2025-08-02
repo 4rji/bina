@@ -601,6 +601,11 @@
         "name": "portspoofinst",
         "short_desc": "Script para redirección y manipulación de puertos usando iptables.",
         "detailed_desc": "Este script permite inspeccionar puertos abiertos, aceptar tráfico explícitamente en ciertos puertos definidos por el usuario, y opcionalmente redirigir todo el resto del tráfico TCP al puerto 4444 mediante reglas de iptables (PREROUTING en la tabla nat). También ofrece la opción de eliminar dicha redirección y guardar las reglas actuales con iptables-save. Incluye comandos como ss -lntp, lsof -i, y múltiples operaciones iptables."
+    },
+    "videoservidor": {
+        "name": "videoservidor",
+        "short_desc": "Inicia un servidor HTTP para ver archivos de video vía navegador o Infuse.",
+        "detailed_desc": "Este script lanza un contenedor Docker con Apache usando la imagen httpd:alpine para servir archivos de video desde la carpeta /home/ass/video-downoad. Antes de iniciar, muestra todas las IPs locales disponibles para que el usuario sepa desde qué dirección puede acceder al servidor. El servicio queda disponible en el puerto 10999. Uso: ejecutar el script y luego acceder vía navegador o Infuse a http://<IP>:10999/"
     }
 
 }
