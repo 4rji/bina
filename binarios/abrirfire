@@ -72,5 +72,6 @@ docker run \
   --rm firefox-ephemeral \
   -profile /home/user/.mozilla/firefox/default-release \
   "https://coveryourtracks.eff.org/" \
+  "https://mullvad.net/en/check/" \
   "https://www.whatsmybrowser.org/" \
   "http://localhost:${PORT}"
