@@ -17,34 +17,29 @@ echo_msg() {
 echo ""
 echo "_________________________________________________________"
 echo ""
-
 # Mensaje al inicio
-echo "Para montarlo de nuevo después:"
-echo -e "\e[31m  sudo cryptsetup open nombre.luks nombre\e[0m"
-echo -e "\e[31m  sudo mkdir -p /mnt/nombre\e[0m"
-echo -e "\e[31m  sudo mount /dev/mapper/nombre /mnt/nombre\e[0m"
+echo -e "\e[33mPara montarlo de nuevo después:\e[0m"
+echo -e "\e[97m  sudo cryptsetup open nombre.luks nombre\e[0m"
+echo -e "\e[97m  sudo mkdir -p /mnt/nombre\e[0m"
+echo -e "\e[97m  sudo mount /dev/mapper/nombre /mnt/nombre\e[0m"
+
+echo -e "\e[32m_________________________________________________________\e[0m"
+echo ""
+
+echo -e "\e[33mPara desmontar y cerrar, ejecuta:\e[0m"
+echo -e "\e[97m  sudo umount /mnt/nombre\e[0m"
+echo -e "\e[97m  sudo cryptsetup close nombre\e[0m"
+echo ""
 
 echo "_________________________________________________________"
 echo ""
-
-echo -e "\e[31mPara desmontar y cerrar, ejecuta:\e[0m"
-echo ""
-echo "  sudo umount /mnt/nombre"
-echo "  sudo cryptsetup close nombre"
 echo ""
 
-echo ""
-echo "_________________________________________________________"
-echo ""
-
-
-
-
-read -p $'\e[32m  Tamaño del contenedor a crear en MB: \e[0m' SIZE_MB
-read -p $'\e[33m  Nombre del contenedor (sin extensión): \e[0m' NAME
+read -p $'\e[32m     Tamaño del contenedor a crear en MB: \e[0m' SIZE_MB
+read -p $'\e[32m     Nombre del contenedor (sin extensión): \e[0m' NAME
 
 echo ""
-echo "_________________________________________________________"
+echo -e "\e[32m_________________________________________________________\e[0m"
 echo ""
 
 
