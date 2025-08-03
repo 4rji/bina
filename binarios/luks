@@ -20,9 +20,18 @@ echo ""
 
 # Mensaje al inicio
 echo "Para montarlo de nuevo después:"
-echo -e "\e[31m  sudo cryptsetup open as.luks map_as\e[0m"
-echo -e "\e[31m  sudo mkdir -p /mnt/as\e[0m"
-echo -e "\e[31m  sudo mount /dev/mapper/map_as /mnt/as\e[0m"
+echo -e "\e[31m  sudo cryptsetup open nombre.luks nombre\e[0m"
+echo -e "\e[31m  sudo mkdir -p /mnt/nombre\e[0m"
+echo -e "\e[31m  sudo mount /dev/mapper/nombre /mnt/nombre\e[0m"
+
+echo "_________________________________________________________"
+echo ""
+
+echo -e "\e[31mPara desmontar y cerrar, ejecuta:\e[0m"
+echo ""
+echo "  sudo umount /mnt/nombre"
+echo "  sudo cryptsetup close nombre"
+echo ""
 
 echo ""
 echo "_________________________________________________________"
@@ -41,7 +50,7 @@ echo ""
 
 # Variables
 target_file="${NAME}.luks"
-mapper_name="map_${NAME}"
+mapper_name="${NAME}"
 mount_point="/mnt/${NAME}"
 echo ""
 echo "_________________________________________________________"
