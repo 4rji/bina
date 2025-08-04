@@ -162,6 +162,7 @@ servidorvideo       Crea en docker alpine como servidor, monta una carpeta para 
 https-bloq-boots    Detecta IPs al puerto 443 en ips.txt y las bloquea o ralentiza automáticamente vía firewall.
 backd-detect        detecta conexiones sospechosas hacia rangos RFC1918 e identifica procesos asociados
 bloquearip          Bloquea IPs (./scrt IP o de ips.txt) agregando a un set ipset y aplicando una regla iptables
+rango-ip            Crea una lista de ips X.X.X y crea una lista de ips 255 con esa subnet
 msmb                monta un smb o samba
 smbcomm             Explota samba, arregla s tty, consola interactiva, control c     
 servidor            Inicia y detiene un servidor apache en 8080                                                         
