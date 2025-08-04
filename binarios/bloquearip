@@ -65,23 +65,23 @@ for paquete in "${paquetes[@]}"; do
 done
 
 
+#!/usr/bin/env bash
 
-
-
-
-# Función para mostrar mensajes
+# Función para mostrar mensajes con color por parámetro: 31=rojo,34=azul,35=magenta(default)
 echo_msg() {
+    local msg="$1"
+    local color="${2:-35}"
     echo -e "\n=============================================="
-    echo -e "\033[1;35m$1\033[0m"
+    echo -e "\033[1;${color}m${msg}\033[0m"
     echo -e "==============================================\n"
 }
 
-# Asegurar set exists
+# Asegurar existencia del set
 ensure_set() {
     sudo ipset list blacklist &>/dev/null || sudo ipset create blacklist hash:ip
 }
 
-# Aplicar regla iptables si no existe
+# Asegurar regla iptables
 ensure_iptables() {
     sudo iptables -C INPUT -m set --match-set blacklist src -j DROP &>/dev/null || \
     sudo iptables -I INPUT -m set --match-set blacklist src -j DROP
@@ -93,87 +93,104 @@ save_conf() {
     sudo iptables-save | sudo tee /etc/iptables/rules.v4 > /dev/null
 }
 
-# Mostrar uso
+# Mostrar uso breve
 display_usage() {
-    echo_msg "Uso:"
-    echo "  ./script.sh                → Bloquear desde ips.txt si existe"
-    echo "  ./script.sh <IP>           → Manejar IP individual"
+    echo_msg "Uso:" 34
+    echo "  $0                → Bloquear desde ips.txt si existe"
+    echo "  $0 <IP>           → Seleccionar acción para IP"
 }
 
 # Bloquear IPs desde ips.txt
 block_file() {
-    echo_msg "Cargando y bloqueando IPs desde ips.txt"
+    echo_msg "Cargando y bloqueando IPs desde ips.txt" 34
     sudo ipset flush blacklist
     while read -r ip; do
         sudo ipset add blacklist "$ip"
     done < ips.txt
     ensure_iptables
-    echo_msg "Bloqueo de ips.txt aplicado"
+    echo_msg "Bloqueo de ips.txt aplicado" 34
 }
 
 # Bloquear IP única
 block_ip() {
-    echo_msg "Bloqueando IP: $1"
+    echo_msg "Bloqueando IP: $1" 31
     sudo ipset add blacklist "$1"
     ensure_iptables
-    echo_msg "IP $1 bloqueada"
+    echo_msg "IP $1 bloqueada" 31
 }
 
 # Comprobar IP
 check_ip() {
     if sudo ipset test blacklist "$1" &>/dev/null; then
-        echo_msg "La IP $1 está en el blacklist"
+        echo_msg "La IP $1 está en el blacklist" 34
     else
-        echo_msg "La IP $1 NO está en el blacklist"
+        echo_msg "La IP $1 NO está en el blacklist" 34
     fi
 }
 
 # Eliminar IP
 delete_ip() {
-    echo_msg "Eliminando IP: $1"
+    echo_msg "Eliminando IP: $1" 35
     sudo ipset test blacklist "$1" &>/dev/null && sudo ipset del blacklist "$1"
-    echo_msg "IP $1 eliminada si existía"
+    echo_msg "IP $1 eliminada si existía" 35
 }
 
-# Inicio
-if [[ -z "$1" && ! -f ips.txt ]]; then
-    display_usage
-    exit 1
-fi
+# -------------------------
+# Inicio del script
+# -------------------------
 
 ensure_set
 
-# Modo archivo
-if [[ -z "$1" && -f ips.txt ]]; then
-    read -n1 -p "Se encontró ips.txt. ¿Desea bloquear las IPs? [s/N]: " resp
-    echo
-    if [[ "$resp" =~ [sS] ]]; then
-        block_file
-        save_conf
+# Si no hay argumentos
+tput civis 2>/dev/null # Hide cursor
+if [[ $# -eq 0 ]]; then
+    if [[ -f ips.txt ]]; then
+        read -n1 -p "Se encontró ips.txt. ¿Desea bloquear las IPs? [s/N]: " resp
+        echo
+        if [[ "$resp" =~ [sS] ]]; then
+            block_file
+            save_conf
+        else
+            echo_msg "No se bloquearán las IPs de ips.txt" 34
+        fi
     else
-        echo_msg "No se bloquearán las IPs de ips.txt"
+        display_usage
     fi
+    tput cnorm 2>/dev/null # Restore cursor
     exit 0
 fi
 
 # Modo IP individual
 IP="$1"
-read -n1 -p "Seleccione acción para IP $IP: (b)loquear, (c)omprobar, (d)esbloquear: " action
-echo
-case "$action" in
-    b|B)
-        block_ip "$IP"
-        ;;
-    c|C)
-        check_ip "$IP"
-        ;;
-    d|D)
-        delete_ip "$IP"
-        ;;
-    *)
-        echo_msg "Opción inválida"
-        exit 1
-        ;;
-esac
+while true; do
+    echo -e "\nAcciones para IP $IP:"
+    echo "  b) Bloquear"
+    echo "  c) Comprobar"
+    echo "  d) Desbloquear"
+    echo "  q) Salir"
+    read -n1 -p "Elige opción: " action
+    echo
+    case "$action" in
+        b|B)
+            block_ip "$IP"
+            ;;
+        c|C)
+            check_ip "$IP"
+            ;;
+        d|D)
+            delete_ip "$IP"
+            ;;
+        q|Q)
+            save_conf
+            break
+            ;;
+        *)
+            echo_msg "Opción inválida" 33
+            ;;
+    esac
+done
 
-save_conf
+# Restaurar cursor y salir
+tput cnorm 2>/dev/null
+exit 0
+
