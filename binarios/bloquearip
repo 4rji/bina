@@ -65,9 +65,12 @@ for paquete in "${paquetes[@]}"; do
 done
 
 
-#!/usr/bin/env bash
 
-# Función para mostrar mensajes con color por parámetro: 31=rojo,34=azul,35=magenta(default)
+
+
+
+# Función para mostrar mensajes con color por parámetro: 31=rojo,34=azul,35=magenta(default),32=verde
+
 echo_msg() {
     local msg="$1"
     local color="${2:-35}"
@@ -130,9 +133,9 @@ check_ip() {
 
 # Eliminar IP
 delete_ip() {
-    echo_msg "Eliminando IP: $1" 35
+    echo_msg "Eliminando IP: $1" 32
     sudo ipset test blacklist "$1" &>/dev/null && sudo ipset del blacklist "$1"
-    echo_msg "IP $1 eliminada si existía" 35
+    echo_msg "IP $1 eliminada si existía" 32
 }
 
 # -------------------------
