@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# gen_ips.sh
+prefix="$1"
+[[ "${prefix: -1}" != "." ]] && prefix="${prefix}."
+: > ips-rango.txt
+for i in {0..255}; do
+  printf '%s%d\n' "$prefix" "$i" >> ips-rango.txt
+done
