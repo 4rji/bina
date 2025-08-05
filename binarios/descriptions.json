@@ -611,8 +611,12 @@
     "name": "fkinst",
     "short_desc": "Instala y configura thefuck para corrección de comandos en Zsh.",
     "detailed_desc": "Este script instala la herramienta 'thefuck' usando pip, muestra la ubicación de instalación, crea un enlace simbólico en /opt/4rji/bin/, y agrega alias de uso al archivo .zshrc para habilitar su funcionalidad en el shell Zsh."
+    },
+    "luks": {
+    "name": "luks",
+    "short_desc": "Crea y monta contenedores cifrados LUKS de forma interactiva.",
+    "detailed_desc": "Este script interactivo solicita tamaño y nombre para crear un contenedor LUKS. Luego crea un archivo, lo cifra con cryptsetup, lo abre, lo formatea con ext4, y lo monta en /mnt/nombre. También muestra los comandos necesarios para desmontar y volver a montar el contenedor posteriormente."
     }
-
 
 }
 
