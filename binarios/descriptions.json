@@ -616,6 +616,11 @@
     "name": "luks",
     "short_desc": "Crea y monta contenedores cifrados LUKS de forma interactiva.",
     "detailed_desc": "Este script interactivo solicita tamaño y nombre para crear un contenedor LUKS. Luego crea un archivo, lo cifra con cryptsetup, lo abre, lo formatea con ext4, y lo monta en /mnt/nombre. También muestra los comandos necesarios para desmontar y volver a montar el contenedor posteriormente."
+    },
+    "logt": {
+    "name": "logt",
+    "short_desc": "Ejecuta un binario en bucle infinito con reinicio automático.",
+    "detailed_desc": "Este script ejecuta un binario proporcionado como argumento dentro de un bucle infinito usando 'nohup' para que continúe ejecutándose tras cerrar la terminal. El binario se reinicia cada 2 segundos después de finalizar. Toda la salida estándar y de error se redirige al archivo 'log.txt'. Uso: ./kigt <ruta_al_binario>."
     }
 
 }
