@@ -9,7 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 if (process.argv.length < 3) {
-  console.error("Uso: ./grab-audio.js <URL> [--wait 10000]");
+  console.error("Uso: ./audiodown <URL> --wait 10000");
   process.exit(1);
 }
 
