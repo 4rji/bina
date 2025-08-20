@@ -76,6 +76,12 @@
     "detailed_desc": "This script creates a login banner warning message by writing a predefined text to /etc/mctcbanner, setting appropriate permissions, and replacing /etc/issue and /etc/motd with symbolic links to the new file. It also backs up the original /etc/issue and /etc/motd files. This ensures the banner is displayed during both local and remote logins."
 },
 
+"audiodown": {
+    "name": "audiodown",
+    "short_desc": "Descarga automáticamente todos los archivos de audio desde cualquier página web.",
+    "detailed_desc": "Script basado en Puppeteer que abre la página en un navegador headless y captura todas las respuestas HTTP con contenido de audio (por ejemplo .ogg, .mp3, .wav, .m4a, .opus). Guarda cada archivo en un directorio 'downloads'.\n\nUso:\n  node audiodown.js <URL> [--wait 10000]\n\nArgumentos:\n  <URL>        Página web de la cual descargar los audios.\n  --wait ms    Tiempo adicional en milisegundos para mantener la página abierta y permitir que carguen sonidos disparados por animaciones o interacciones.\n\nEjemplo:\n  node audiodown.js https://ejemplo.com --wait 10000\n\nLos audios se guardan automáticamente con nombre único en la carpeta 'downloads'."
+},
+
 "nmap-full": {
       "name": "nmap_full_scan_report",
       "short_desc": "Performs a full multi-stage network scan and generates a styled HTML report.",
