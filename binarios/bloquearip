@@ -1,171 +1,165 @@
 #!/usr/bin/env bash
 
-
-
+# ==============================================
+# Bloqueo por IPSET / IPTABLES
+# - Si pasas un ARCHIVO: bloquea todas las IPs del archivo (una por línea).
+# - Si pasas una IP: menú para bloquear/comprobar/desbloquear esa IP.
+# - Sin argumentos: muestra uso.
+# ==============================================
 
 # Lista de paquetes a instalar
 paquetes=("ipset" "iptables" "iptables-persistent" "kmod")
 
-# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
-paquete_instalado_apt() {
-    dpkg -l "$1" | grep -q '^ii'
-}
-
-# Función para verificar si un paquete está instalado (CentOS/RHEL)
-paquete_instalado_yum() {
-    yum list installed "$1" &> /dev/null
-}
-
-# Función para verificar si un paquete está instalado (Fedora)
-paquete_instalado_dnf() {
-    dnf list installed "$1" &> /dev/null
-}
-
-# Función para verificar si un paquete está instalado (Arch Linux)
-paquete_instalado_pacman() {
-    pacman -Qi "$1" &> /dev/null
-}
+# Funciones de verificación de paquetes
+paquete_instalado_apt() { dpkg -l "$1" | grep -q '^ii'; }
+paquete_instalado_yum() { yum list installed "$1" &> /dev/null; }
+paquete_instalado_dnf() { dnf list installed "$1" &> /dev/null; }
+paquete_instalado_pacman() { pacman -Qi "$1" &> /dev/null; }
 
 # Detectar el sistema operativo
 if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    OS=$ID
+  . /etc/os-release
+  OS=$ID
 fi
 
-# Instalar paquetes basados en el sistema operativo
+# Instalar paquetes según SO
 for paquete in "${paquetes[@]}"; do
-    case $OS in
-        "debian"|"ubuntu"|"kali")
-            if ! paquete_instalado_apt "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo apt-get install -y "$paquete"
-            fi
-            ;;
-        "centos"|"rhel")
-            if ! paquete_instalado_yum "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo yum install -y "$paquete"
-            fi
-            ;;
-        "fedora")
-            if ! paquete_instalado_dnf "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo dnf install -y "$paquete"
-            fi
-            ;;
-        "arch")
-            if ! paquete_instalado_pacman "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo pacman -S --noconfirm "$paquete"
-            fi
-            ;;
-        *)
-            ;;
-    esac
+  case $OS in
+    "debian"|"ubuntu"|"kali")
+      if ! paquete_instalado_apt "$paquete"; then
+        echo "Instalando $paquete..."
+        sudo apt-get install -y "$paquete"
+      fi
+      ;;
+    "centos"|"rhel")
+      if ! paquete_instalado_yum "$paquete"; then
+        echo "Instalando $paquete..."
+        sudo yum install -y "$paquete"
+      fi
+      ;;
+    "fedora")
+      if ! paquete_instalado_dnf "$paquete"; then
+        echo "Instalando $paquete..."
+        sudo dnf install -y "$paquete"
+      fi
+      ;;
+    "arch")
+      if ! paquete_instalado_pacman "$paquete"; then
+        echo "Instalando $paquete..."
+        sudo pacman -S --noconfirm "$paquete"
+      fi
+      ;;
+    *) ;;
+  esac
 done
 
+# -------------------------
+# Utilidades
+# -------------------------
 
-
-
-
-
-# Función para mostrar mensajes con color por parámetro: 31=rojo,34=azul,35=magenta(default),32=verde
-
+# Mensaje con color (31 rojo, 34 azul, 35 magenta por default, 32 verde, 33 amarillo)
 echo_msg() {
-    local msg="$1"
-    local color="${2:-35}"
-    echo -e "\n=============================================="
-    echo -e "\033[1;${color}m${msg}\033[0m"
-    echo -e "==============================================\n"
+  local msg="$1"
+  local color="${2:-35}"
+  echo -e "\n=============================================="
+  echo -e "\033[1;${color}m${msg}\033[0m"
+  echo -e "==============================================\n"
 }
 
-# Asegurar existencia del set
-ensure_set() {
-    sudo ipset list blacklist &>/dev/null || sudo ipset create blacklist hash:ip
-}
-
-# Asegurar regla iptables
+# Asegurar ipset y regla iptables
+ensure_set() { sudo ipset list blacklist &>/dev/null || sudo ipset create blacklist hash:ip; }
 ensure_iptables() {
-    sudo iptables -C INPUT -m set --match-set blacklist src -j DROP &>/dev/null || \
-    sudo iptables -I INPUT -m set --match-set blacklist src -j DROP
+  sudo iptables -C INPUT -m set --match-set blacklist src -j DROP &>/dev/null || \
+  sudo iptables -I INPUT -m set --match-set blacklist src -j DROP
 }
 
 # Guardar configuración
 save_conf() {
-    sudo ipset save | sudo tee /etc/ipset.conf > /dev/null
-    sudo iptables-save | sudo tee /etc/iptables/rules.v4 > /dev/null
+  sudo ipset save | sudo tee /etc/ipset.conf > /dev/null
+  sudo iptables-save | sudo tee /etc/iptables/rules.v4 > /dev/null
 }
 
-# Mostrar uso breve
+# Uso
 display_usage() {
-    echo_msg "Uso:" 34
-    echo "  $0                → Bloquear desde ips.txt si existe"
-    echo "  $0 <IP>           → Seleccionar acción para IP"
+  echo_msg "Uso" 34
+  cat <<EOF
+  $0 <archivo>       → Bloquea todas las IPs listadas (una por línea)
+  $0 <IP>            → Menú para bloquear/comprobar/desbloquear esa IP
+  $0                 → Mostrar esta ayuda
+
+Ejemplos:
+  $0 lista_ips.txt
+  $0 203.0.113.10
+EOF
 }
 
-# Bloquear IPs desde ips.txt
+# Bloquear IPs desde archivo
 block_file() {
-    echo_msg "Cargando y bloqueando IPs desde ips.txt" 34
-    sudo ipset flush blacklist
-    while read -r ip; do
-        sudo ipset add blacklist "$ip"
-    done < ips.txt
-    ensure_iptables
-    echo_msg "Bloqueo de ips.txt aplicado" 34
+  local file="$1"
+  echo_msg "Cargando y bloqueando IPs desde: $file" 34
+  sudo ipset flush blacklist
+  # Ignora líneas vacías y comentarios (#)
+  while IFS= read -r ip; do
+    [[ -z "$ip" || "$ip" =~ ^[[:space:]]*# ]] && continue
+    sudo ipset add blacklist "$ip" 2>/dev/null
+  done < "$file"
+  ensure_iptables
+  save_conf
+  echo_msg "Bloqueo aplicado desde $file" 34
 }
 
 # Bloquear IP única
 block_ip() {
-    echo_msg "Bloqueando IP: $1" 31
-    sudo ipset add blacklist "$1"
-    ensure_iptables
-    echo_msg "IP $1 bloqueada" 31
+  echo_msg "Bloqueando IP: $1" 31
+  sudo ipset add blacklist "$1" 2>/dev/null
+  ensure_iptables
+  echo_msg "IP $1 bloqueada" 31
 }
 
 # Comprobar IP
 check_ip() {
-    if sudo ipset test blacklist "$1" &>/dev/null; then
-        echo_msg "La IP $1 está en el blacklist" 34
-    else
-        echo_msg "La IP $1 NO está en el blacklist" 34
-    fi
+  if sudo ipset test blacklist "$1" &>/dev/null; then
+    echo_msg "La IP $1 está en el blacklist" 34
+  else
+    echo_msg "La IP $1 NO está en el blacklist" 34
+  fi
 }
 
 # Eliminar IP
 delete_ip() {
-    echo_msg "Eliminando IP: $1" 32
-    sudo ipset test blacklist "$1" &>/dev/null && sudo ipset del blacklist "$1"
-    echo_msg "IP $1 eliminada si existía" 32
+  echo_msg "Eliminando IP: $1" 32
+  sudo ipset test blacklist "$1" &>/dev/null && sudo ipset del blacklist "$1"
+  echo_msg "IP $1 eliminada si existía" 32
 }
 
 # -------------------------
-# Inicio del script
+# Inicio
 # -------------------------
 
 ensure_set
+tput civis 2>/dev/null
 
-# Si no hay argumentos
-tput civis 2>/dev/null # Hide cursor
+# Sin argumentos → ayuda
 if [[ $# -eq 0 ]]; then
-    if [[ -f ips.txt ]]; then
-        read -n1 -p "Se encontró ips.txt. ¿Desea bloquear las IPs? [s/N]: " resp
-        echo
-        if [[ "$resp" =~ [sS] ]]; then
-            block_file
-            save_conf
-        else
-            echo_msg "No se bloquearán las IPs de ips.txt" 34
-        fi
-    else
-        display_usage
-    fi
-    tput cnorm 2>/dev/null # Restore cursor
-    exit 0
+  display_usage
+  tput cnorm 2>/dev/null
+  exit 0
 fi
 
-# Modo IP individual
-IP="$1"
-while true; do
+ARG="$1"
+
+# Si es archivo legible → bloquear archivo
+if [[ -f "$ARG" && -r "$ARG" ]]; then
+  block_file "$ARG"
+  tput cnorm 2>/dev/null
+  exit 0
+fi
+
+# Si parece IP → menú de acciones
+IP_REGEX='^([0-9]{1,3}\.){3}[0-9]{1,3}(/[0-9]{1,2})?$'
+if [[ "$ARG" =~ $IP_REGEX ]]; then
+  IP="$ARG"
+  while true; do
     echo -e "\nAcciones para IP $IP:"
     echo "  b) Bloquear"
     echo "  c) Comprobar"
@@ -174,26 +168,19 @@ while true; do
     read -n1 -p "Elige opción: " action
     echo
     case "$action" in
-        b|B)
-            block_ip "$IP"
-            ;;
-        c|C)
-            check_ip "$IP"
-            ;;
-        d|D)
-            delete_ip "$IP"
-            ;;
-        q|Q)
-            save_conf
-            break
-            ;;
-        *)
-            echo_msg "Opción inválida" 33
-            ;;
+      b|B) block_ip "$IP" ;;
+      c|C) check_ip "$IP" ;;
+      d|D) delete_ip "$IP" ;;
+      q|Q) save_conf; break ;;
+      *) echo_msg "Opción inválida" 33 ;;
     esac
-done
+  done
+  tput cnorm 2>/dev/null
+  exit 0
+fi
 
-# Restaurar cursor y salir
+# Si no es archivo ni IP válida → ayuda
+echo_msg "Argumento no reconocido: $ARG" 33
+display_usage
 tput cnorm 2>/dev/null
-exit 0
-
+exit 1
