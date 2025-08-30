@@ -5,7 +5,7 @@
 set -euo pipefail
 
 # ===== Colores ANSI =====
-G="\e[92m"; Y="\e[93m"; B="\e[94m"; R="\e[91m"; GR="\e[90m"; X="\e[0m"
+G="\e[92m"; Y="\e[93m"; B="\e[94m"; R="\e[91m"; X="\e[0m"
 
 echo -e "\n${B}──────────────────────────────────────────────────────────────${X}"
 echo -e "${B}                 INSTALACIÓN • SURICATA (APT)                 ${X}"
@@ -20,13 +20,10 @@ fi
 ARG_IFACE="${1:-}"
 ENV_IFACE="${IFACE:-}"
 choose_iface() {
-  # 1) arg/env; 2) por default route; 3) primera física UP
   if [[ -n "$ARG_IFACE" ]]; then echo "$ARG_IFACE"; return; fi
   if [[ -n "$ENV_IFACE" ]]; then echo "$ENV_IFACE"; return; fi
-
   DEF=$(ip route show default 2>/dev/null | awk '/default/ {for(i=1;i<=NF;i++) if($i=="dev"){print $(i+1); exit}}')
   if [[ -n "${DEF:-}" ]]; then echo "$DEF"; return; fi
-
   ip -o link show up | awk -F': ' '{print $2}' \
     | grep -Eiv '^(lo|docker.*|br-.*|veth.*|wg.*|tun.*|tap.*|virbr.*|vmnet.*|tailscale.*)$' \
     | head -n1
@@ -50,7 +47,7 @@ apt install -y suricata
 echo -e "${G}→${X} ${Y}sudo suricata-update${X}\n"
 suricata-update
 
-# ===== Config: /etc/default/suricata (modo systemd con -i IFACE) =====
+# ===== Config: /etc/default/suricata =====
 echo -e "${G}→${X} ${Y}Configurando /etc/default/suricata${X}\n"
 install -m 0644 /dev/null /etc/default/suricata || true
 cat >/etc/default/suricata <<EOF
@@ -80,8 +77,19 @@ systemctl --no-pager --full -l status suricata | sed -n '1,15p' || true
 echo
 echo -e "${B}──────────────────────────────────────────────────────────────${X}"
 echo -e "${G}✅ Suricata instalado y corriendo en interfaz:${X} ${Y}${IFACE}${X}\n"
-echo -e "${G}📄 Config:${X} ${Y}/etc/suricata/suricata.yaml${X}"
+echo -e "${G}📄 Config principal:${X} ${Y}/etc/suricata/suricata.yaml${X}"
 echo -e "${G}⚙  Servicio:${X} ${Y}systemctl [status|restart] suricata${X}"
-echo -e "${G}🧪 Reglas:${X} ${Y}suricata-update${X}\n"
+echo -e "${G}🧪 Reglas:${X} ${Y}suricata-update${X}"
 echo -e "${G}🔎 Logs (rápido):${X} ${Y}tail -f /var/log/suricata/fast.log${X}\n"
+
+echo -e "${Y}⚠ IMPORTANTE:${X}"
+echo -e "  Suricata NO cambia automáticamente la interfaz en el archivo YAML."
+echo -e "  Abre ${Y}/etc/suricata/suricata.yaml${X} y busca esta sección:\n"
+echo -e "    af-packet:"
+echo -e "      - interface: eth0\n"
+echo -e "  Debes reemplazar 'eth0' por tu interfaz real → ${G}${IFACE}${X}\n"
+echo -e "  Después ejecuta:\n"
+echo -e "    ${Y}sudo suricata -T -c /etc/suricata/suricata.yaml${X}"
+echo -e "    ${Y}sudo systemctl restart suricata${X}\n"
+
 echo -e "${B}──────────────────────────────────────────────────────────────${X}\n"
