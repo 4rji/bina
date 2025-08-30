@@ -2,10 +2,9 @@
 # Instala Zeek en Debian 12/13 + servicio systemd
 set -euo pipefail
 
-#--- root requerido
-[ "$EUID" -ne 0 ] && { echo "Ejecuta como root"; exit 1; }
+#--- instalar gpg
+sudo apt install -y gpg
 
-apt install gpg
 #--- detectar versión
 . /etc/os-release
 case "${VERSION_CODENAME:-}" in
@@ -16,23 +15,23 @@ esac
 
 #--- repo Zeek
 echo "deb http://download.opensuse.org/repositories/security:/zeek/${DIST}/ /" \
-  | tee /etc/apt/sources.list.d/security:zeek.list
+  | sudo tee /etc/apt/sources.list.d/security:zeek.list
 curl -fsSL "https://download.opensuse.org/repositories/security:zeek/${DIST}/Release.key" \
-  | gpg --dearmor > /etc/apt/trusted.gpg.d/security_zeek.gpg
+  | gpg --dearmor | sudo tee /etc/apt/trusted.gpg.d/security_zeek.gpg > /dev/null
 
-apt update
-apt install -y --no-install-recommends zeek
+sudo apt update
+sudo apt install -y --no-install-recommends zeek
 
 #--- PATH global
-echo 'export PATH="$PATH:/opt/zeek/bin"' > /etc/profile.d/zeek.sh
-chmod 644 /etc/profile.d/zeek.sh
+echo 'export PATH="$PATH:/opt/zeek/bin"' | sudo tee /etc/profile.d/zeek.sh
+sudo chmod 644 /etc/profile.d/zeek.sh
 
 #--- interfaz por default
 IFACE="$(ip -o -4 route show to default | awk '{print $5}' | head -n1)"
 [ -z "$IFACE" ] && { echo "No se detectó interfaz. Edita /opt/zeek/etc/node.cfg manualmente."; exit 1; }
 
 #--- node.cfg standalone
-cat > /opt/zeek/etc/node.cfg <<EOF
+cat <<EOF | sudo tee /opt/zeek/etc/node.cfg
 [zeek]
 type=standalone
 host=localhost
@@ -40,10 +39,10 @@ interface=${IFACE}
 EOF
 
 #--- primer deploy
-/opt/zeek/bin/zeekctl deploy || true
+sudo /opt/zeek/bin/zeekctl deploy || true
 
 #--- servicio systemd
-cat > /etc/systemd/system/zeek.service <<'EOF'
+cat <<'EOF' | sudo tee /etc/systemd/system/zeek.service
 [Unit]
 Description=Zeek Network Security Monitor
 After=network-online.target
@@ -61,8 +60,8 @@ Restart=on-failure
 WantedBy=multi-user.target
 EOF
 
-systemctl daemon-reload
-systemctl enable --now zeek
+sudo systemctl daemon-reload
+sudo systemctl enable --now zeek
 source /etc/profile.d/zeek.sh
 
 echo -e "\n\e[92m✅ Zeek instalado y corriendo en interfaz:\e[0m  \e[96m${IFACE}\e[0m\n"
@@ -71,5 +70,5 @@ echo -e "\e[93mLogs:\e[0m    \e[96m/opt/zeek/spool/zeek (live)\e[0m"
 echo -e "         \e[96m/opt/zeek/logs/<timestamp>/ (rotados)\e[0m\n"
 
 echo -e "         \e[96msource /etc/profile.d/zeek.sh \e[0m\n"
-echo -e "\n\e[92m✅ Execute systemctl stop zeek and restart\e[0m"
+echo -e "\n\e[92m✅ Execute: sudo systemctl stop zeek && sudo systemctl restart zeek\e[0m"
 zeek -v
