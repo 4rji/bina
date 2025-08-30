@@ -5,6 +5,7 @@ set -euo pipefail
 #--- root requerido
 [ "$EUID" -ne 0 ] && { echo "Ejecuta como root"; exit 1; }
 
+apt install gpg
 #--- detectar versión
 . /etc/os-release
 case "${VERSION_CODENAME:-}" in
@@ -20,18 +21,11 @@ curl -fsSL "https://download.opensuse.org/repositories/security:zeek/${DIST}/Rel
   | gpg --dearmor > /etc/apt/trusted.gpg.d/security_zeek.gpg
 
 apt update
-apt install -y zeek
+apt install -y --no-install-recommends zeek
 
-
-
-#--- PATH global para Zeek (bash + zsh)
+#--- PATH global
 echo 'export PATH="$PATH:/opt/zeek/bin"' > /etc/profile.d/zeek.sh
 chmod 644 /etc/profile.d/zeek.sh
-
-# para zsh explícito
-echo 'export PATH="$PATH:/opt/zeek/bin"' > /etc/zsh/zprofile.d/zeek.zsh
-chmod 644 /etc/zsh/zprofile.d/zeek.zsh
-
 
 #--- interfaz por default
 IFACE="$(ip -o -4 route show to default | awk '{print $5}' | head -n1)"
@@ -70,6 +64,7 @@ EOF
 systemctl daemon-reload
 systemctl enable --now zeek
 
-echo "✅ Zeek instalado y corriendo en interfaz: ${IFACE}"
-echo "Config: /opt/zeek/etc/node.cfg"
-echo "Logs:   /opt/zeek/spool/zeek (live) /opt/zeek/logs/<timestamp>/ (rotados)"
+echo -e "\n\e[92m✅ Zeek instalado y corriendo en interfaz:\e[0m  \e[96m${IFACE}\e[0m\n"
+echo -e "\e[93mConfig:\e[0m  \e[96m/opt/zeek/etc/node.cfg\e[0m\n"
+echo -e "\e[93mLogs:\e[0m    \e[96m/opt/zeek/spool/zeek (live)\e[0m"
+echo -e "         \e[96m/opt/zeek/logs/<timestamp>/ (rotados)\e[0m\n"
