@@ -11,11 +11,6 @@ echo -e "\n${B}─────────────────────�
 echo -e "${B}                 INSTALACIÓN • SURICATA (APT)                 ${X}"
 echo -e "${B}──────────────────────────────────────────────────────────────${X}\n"
 
-# ===== Root requerido =====
-if [[ $EUID -ne 0 ]]; then
-  echo -e "${R}✖ Ejecuta como root${X}\n"; exit 1
-fi
-
 # ===== Descubrir interfaz =====
 ARG_IFACE="${1:-}"
 ENV_IFACE="${IFACE:-}"
@@ -38,19 +33,19 @@ echo -e "${G}✔ Interfaz detectada:${X} ${Y}${IFACE}${X}\n"
 
 # ===== APT =====
 echo -e "${G}→${X} ${Y}sudo apt update${X}\n"
-apt update -y
+sudo apt update -y
 
 echo -e "${G}→${X} ${Y}sudo apt install suricata -y${X}\n"
-apt install -y suricata
+sudo apt install -y suricata
 
 # ===== Reglas =====
 echo -e "${G}→${X} ${Y}sudo suricata-update${X}\n"
-suricata-update
+sudo suricata-update
 
 # ===== Config: /etc/default/suricata =====
 echo -e "${G}→${X} ${Y}Configurando /etc/default/suricata${X}\n"
-install -m 0644 /dev/null /etc/default/suricata || true
-cat >/etc/default/suricata <<EOF
+sudo install -m 0644 /dev/null /etc/default/suricata || true
+cat | sudo tee /etc/default/suricata >/dev/null <<EOF
 # Autogenerado: interfaz y opciones de Suricata
 LISTENMODE=af-packet
 IFACE="${IFACE}"
@@ -59,28 +54,28 @@ EOF
 
 # ===== Modo promiscuo (sesión actual) =====
 echo -e "${G}→${X} ${Y}Activando modo promiscuo en ${IFACE}${X}\n"
-ip link set "${IFACE}" promisc on
+sudo ip link set "${IFACE}" promisc on
 
 # ===== Probar sintaxis =====
 echo -e "${G}→${X} ${Y}Validando configuración${X}\n"
-suricata -T -c /etc/suricata/suricata.yaml >/dev/null
+sudo suricata -T -c /etc/suricata/suricata.yaml >/dev/null
 
 # ===== Habilitar servicio =====
 echo -e "${G}→${X} ${Y}sudo systemctl enable --now suricata${X}\n"
-systemctl enable --now suricata
+sudo systemctl enable --now suricata
 
 # ===== Estado rápido =====
 echo -e "${G}→${X} ${Y}systemctl --no-pager --full -l status suricata | sed -n '1,15p'${X}\n"
-systemctl --no-pager --full -l status suricata | sed -n '1,15p' || true
+sudo systemctl --no-pager --full -l status suricata | sed -n '1,15p' || true
 
 # ===== Mensajes finales =====
 echo
 echo -e "${B}──────────────────────────────────────────────────────────────${X}"
 echo -e "${G}✅ Suricata instalado y corriendo en interfaz:${X} ${Y}${IFACE}${X}\n"
 echo -e "${G}📄 Config principal:${X} ${Y}/etc/suricata/suricata.yaml${X}"
-echo -e "${G}⚙  Servicio:${X} ${Y}systemctl [status|restart] suricata${X}"
-echo -e "${G}🧪 Reglas:${X} ${Y}suricata-update${X}"
-echo -e "${G}🔎 Logs (rápido):${X} ${Y}tail -f /var/log/suricata/fast.log${X}\n"
+echo -e "${G}⚙  Servicio:${X} ${Y}sudo systemctl [status|restart] suricata${X}"
+echo -e "${G}🧪 Reglas:${X} ${Y}sudo suricata-update${X}"
+echo -e "${G}🔎 Logs (rápido):${X} ${Y}sudo tail -f /var/log/suricata/fast.log${X}\n"
 
 echo -e "${Y}⚠ IMPORTANTE:${X}"
 echo -e "  Suricata NO cambia automáticamente la interfaz en el archivo YAML."
