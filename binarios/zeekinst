@@ -1,55 +1,52 @@
 #!/usr/bin/env bash
-# Zeek standalone (host-only) en Debian 12/13 + systemd
+# Instala Zeek en Debian 12/13 + servicio systemd
 set -euo pipefail
 
-#--- root
-[ "$EUID" -ne 0 ] && { echo "Run as root."; exit 1; }
+#--- root requerido
+[ "$EUID" -ne 0 ] && { echo "Ejecuta como root"; exit 1; }
 
 #--- detectar versión
 . /etc/os-release
 case "${VERSION_CODENAME:-}" in
-  trixie|Trixie|trixie/unstable|trixie/testing) DIST="Debian_13" ;;
-  bookworm|Bookworm) DIST="Debian_12" ;;
-  *) echo "Soporta Debian 12/13. Detectado: ${VERSION_CODENAME:-unknown}"; exit 1 ;;
+  trixie) DIST="Debian_13" ;;
+  bookworm) DIST="Debian_12" ;;
+  *) echo "Solo soporta Debian 12/13 (detectado: ${VERSION_CODENAME:-unknown})"; exit 1 ;;
 esac
-
-#--- deps base
-apt update
-apt install -y curl gnupg ca-certificates lsb-release
 
 #--- repo Zeek
 echo "deb http://download.opensuse.org/repositories/security:/zeek/${DIST}/ /" \
-  > /etc/apt/sources.list.d/security:zeek.list
+  | tee /etc/apt/sources.list.d/security:zeek.list
 curl -fsSL "https://download.opensuse.org/repositories/security:zeek/${DIST}/Release.key" \
   | gpg --dearmor > /etc/apt/trusted.gpg.d/security_zeek.gpg
 
 apt update
 apt install -y zeek
 
-#--- PATH global (si /opt/zeek existe)
-if [ -x /opt/zeek/bin/zeekctl ]; then
-  echo 'export PATH="$PATH:/opt/zeek/bin"' > /etc/profile.d/zeek.sh
-  chmod 644 /etc/profile.d/zeek.sh
-fi
 
-#--- interfaz por default route
-IFACE="$(ip -o -4 route show to default 2>/dev/null | awk '{print $5}' | head -n1)"
-[ -z "$IFACE" ] && { echo "No se detectó interfaz. Exporta IFACE y reintenta."; exit 1; }
 
-#--- node.cfg (standalone)
-if [ -d /opt/zeek/etc ]; then
-  cat > /opt/zeek/etc/node.cfg <<EOF
+#--- PATH global para Zeek (bash + zsh)
+echo 'export PATH="$PATH:/opt/zeek/bin"' > /etc/profile.d/zeek.sh
+chmod 644 /etc/profile.d/zeek.sh
+
+# para zsh explícito
+echo 'export PATH="$PATH:/opt/zeek/bin"' > /etc/zsh/zprofile.d/zeek.zsh
+chmod 644 /etc/zsh/zprofile.d/zeek.zsh
+
+
+#--- interfaz por default
+IFACE="$(ip -o -4 route show to default | awk '{print $5}' | head -n1)"
+[ -z "$IFACE" ] && { echo "No se detectó interfaz. Edita /opt/zeek/etc/node.cfg manualmente."; exit 1; }
+
+#--- node.cfg standalone
+cat > /opt/zeek/etc/node.cfg <<EOF
 [zeek]
 type=standalone
 host=localhost
 interface=${IFACE}
 EOF
-fi
 
 #--- primer deploy
-if [ -x /opt/zeek/bin/zeekctl ]; then
-  /opt/zeek/bin/zeekctl deploy || true
-fi
+/opt/zeek/bin/zeekctl deploy || true
 
 #--- servicio systemd
 cat > /etc/systemd/system/zeek.service <<'EOF'
@@ -73,14 +70,6 @@ EOF
 systemctl daemon-reload
 systemctl enable --now zeek
 
-#--- permisos lectura de logs para el usuario actual (si existe grupo zeek)
-if getent group zeek >/dev/null 2>&1; then
-  if [ -n "${SUDO_USER:-}" ]; then
-    usermod -aG zeek "$SUDO_USER" || true
-  fi
-fi
-
-#--- salida mínima
-echo "OK. Interfaz: ${IFACE}"
-echo "Logs: /opt/zeek/spool/zeek (en vivo)  y  /opt/zeek/logs/<timestamp>/ (rotados)"
+echo "✅ Zeek instalado y corriendo en interfaz: ${IFACE}"
 echo "Config: /opt/zeek/etc/node.cfg"
+echo "Logs:   /opt/zeek/spool/zeek (live) /opt/zeek/logs/<timestamp>/ (rotados)"
