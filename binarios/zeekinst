@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+# Zeek standalone (host-only) en Debian 12/13 + systemd
+set -euo pipefail
+
+#--- root
+[ "$EUID" -ne 0 ] && { echo "Run as root."; exit 1; }
+
+#--- detectar versión
+. /etc/os-release
+case "${VERSION_CODENAME:-}" in
+  trixie|Trixie|trixie/unstable|trixie/testing) DIST="Debian_13" ;;
+  bookworm|Bookworm) DIST="Debian_12" ;;
+  *) echo "Soporta Debian 12/13. Detectado: ${VERSION_CODENAME:-unknown}"; exit 1 ;;
+esac
+
+#--- deps base
+apt update
+apt install -y curl gnupg ca-certificates lsb-release
+
+#--- repo Zeek
+echo "deb http://download.opensuse.org/repositories/security:/zeek/${DIST}/ /" \
+  > /etc/apt/sources.list.d/security:zeek.list
+curl -fsSL "https://download.opensuse.org/repositories/security:zeek/${DIST}/Release.key" \
+  | gpg --dearmor > /etc/apt/trusted.gpg.d/security_zeek.gpg
+
+apt update
+apt install -y zeek
+
+#--- PATH global (si /opt/zeek existe)
+if [ -x /opt/zeek/bin/zeekctl ]; then
+  echo 'export PATH="$PATH:/opt/zeek/bin"' > /etc/profile.d/zeek.sh
+  chmod 644 /etc/profile.d/zeek.sh
+fi
+
+#--- interfaz por default route
+IFACE="$(ip -o -4 route show to default 2>/dev/null | awk '{print $5}' | head -n1)"
+[ -z "$IFACE" ] && { echo "No se detectó interfaz. Exporta IFACE y reintenta."; exit 1; }
+
+#--- node.cfg (standalone)
+if [ -d /opt/zeek/etc ]; then
+  cat > /opt/zeek/etc/node.cfg <<EOF
+[zeek]
+type=standalone
+host=localhost
+interface=${IFACE}
+EOF
+fi
+
+#--- primer deploy
+if [ -x /opt/zeek/bin/zeekctl ]; then
+  /opt/zeek/bin/zeekctl deploy || true
+fi
+
+#--- servicio systemd
+cat > /etc/systemd/system/zeek.service <<'EOF'
+[Unit]
+Description=Zeek Network Security Monitor
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=forking
+ExecStart=/opt/zeek/bin/zeekctl start
+ExecStop=/opt/zeek/bin/zeekctl stop
+ExecReload=/opt/zeek/bin/zeekctl restart
+WorkingDirectory=/opt/zeek
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl daemon-reload
+systemctl enable --now zeek
+
+#--- permisos lectura de logs para el usuario actual (si existe grupo zeek)
+if getent group zeek >/dev/null 2>&1; then
+  if [ -n "${SUDO_USER:-}" ]; then
+    usermod -aG zeek "$SUDO_USER" || true
+  fi
+fi
+
+#--- salida mínima
+echo "OK. Interfaz: ${IFACE}"
+echo "Logs: /opt/zeek/spool/zeek (en vivo)  y  /opt/zeek/logs/<timestamp>/ (rotados)"
+echo "Config: /opt/zeek/etc/node.cfg"
