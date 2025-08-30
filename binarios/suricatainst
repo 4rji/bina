@@ -45,13 +45,12 @@ sudo suricata-update
 # ===== Config: /etc/default/suricata =====
 echo -e "${G}→${X} ${Y}Configurando /etc/default/suricata${X}\n"
 sudo install -m 0644 /dev/null /etc/default/suricata || true
-cat | sudo tee /etc/default/suricata >/dev/null <<EOF
+sudo tee /etc/default/suricata >/dev/null <<EOF
 # Autogenerado: interfaz y opciones de Suricata
 LISTENMODE=af-packet
 IFACE="${IFACE}"
 SURICATA_OPTIONS="-i \${IFACE}"
 EOF
-
 # ===== Modo promiscuo (sesión actual) =====
 echo -e "${G}→${X} ${Y}Activando modo promiscuo en ${IFACE}${X}\n"
 sudo ip link set "${IFACE}" promisc on
