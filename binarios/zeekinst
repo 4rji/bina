@@ -63,8 +63,13 @@ EOF
 
 systemctl daemon-reload
 systemctl enable --now zeek
+source /etc/profile.d/zeek.sh
 
 echo -e "\n\e[92m✅ Zeek instalado y corriendo en interfaz:\e[0m  \e[96m${IFACE}\e[0m\n"
 echo -e "\e[93mConfig:\e[0m  \e[96m/opt/zeek/etc/node.cfg\e[0m\n"
 echo -e "\e[93mLogs:\e[0m    \e[96m/opt/zeek/spool/zeek (live)\e[0m"
 echo -e "         \e[96m/opt/zeek/logs/<timestamp>/ (rotados)\e[0m\n"
+
+echo -e "         \e[96msource /etc/profile.d/zeek.sh \e[0m\n"
+echo -e "\n\e[92m✅ Execute systemctl stop zeek and restart\e[0m 
+zeek -v
