@@ -48,6 +48,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
 zeekinst            Zeek para debian 12 y 13
+zeeklogs            Muestra los logs de spool (live) y los muestra tambien
 audiodown           Baja sonidos de archivos de cualquier pagina, usa node y puppeteer
 tlscheck            Prueba TLS a múltiples dominios,y detecta bloqueos o fallos de handshake.
 ddtest              probar rendimiento de escritura en disco (benchmark de I/O).
