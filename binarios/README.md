@@ -47,6 +47,7 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+zeekinst            Zeek para debian 12 y 13
 audiodown           Baja sonidos de archivos de cualquier pagina, usa node y puppeteer
 tlscheck            Prueba TLS a múltiples dominios,y detecta bloqueos o fallos de handshake.
 ddtest              probar rendimiento de escritura en disco (benchmark de I/O).
