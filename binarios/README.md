@@ -525,6 +525,7 @@ sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 search              Crea datos para la pagina web, para llenar la base de busqueda search
 
 #Redstuff
+bashrc-rvshell      reverse shell en la bashrc
 iodine-connect      Script que conecta iodine a mi c2. automatizado
 scanbl              Scanea dispositivos bluetooth
 ataquebl            Envia ping de ataque para bluetooth, solo funciona en equipos viejos
