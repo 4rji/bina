@@ -63,3 +63,12 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+
+
+
+#otros test 
+#curl -sSk -u elastic:'rancid12' 'https://localhost:9200/filebeat-*/_search?q=event.module:zeek&size=1&filter_path=hits.total.value'
+
+#curl -sSk -u elastic:'rancid12' 'https://localhost:9200/filebeat-*/_search?q=event.dataset:zeek.dhcp&size=1&filter_path=hits.hits._source'
