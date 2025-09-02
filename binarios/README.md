@@ -47,6 +47,8 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 ###------utilidades 
+elast-fileb-inst    Instala y configura elasticsearch, filebeat y envio suricata logs
+filebeattest        Test que prueba conectividad de filebeat con suricata y elasticsearch
 zeekinst            Zeek para debian 12 y 13
 zeeklogs            Muestra los logs de spool (live) y los muestra tambien
 audiodown           Baja sonidos de archivos de cualquier pagina, usa node y puppeteer
