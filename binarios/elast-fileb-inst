@@ -1,140 +1,25 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
-# ====== VARS (ajustadas a lo que pediste) ======
-ES_HOST="https://localhost:9200"
-USER="elastic"
-PASS="rancid12"
-CA_SRC="/etc/elasticsearch/certs/http_ca.crt"
-CA_DST="/etc/ssl/certs/es-http-ca.crt"
-INDEX_PATTERN="filebeat-*"
-SURICATA_YAML="/etc/suricata/suricata.yaml"
 
-# ====== Repos/paquetes ======
+wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg
+
+
+sudo apt-get install apt-transport-https
+sudo apt-get update && sudo apt-get install elasticsearch
+
+
+
+# Importa la llave y repositorio
 curl -fsSL https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg
 echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://artifacts.elastic.co/packages/8.x/apt stable main" \
- | sudo tee /etc/apt/sources.list.d/elastic-8.x.list >/dev/null
-sudo apt-get update
-sudo apt-get install -y apt-transport-https elasticsearch filebeat
+  | sudo tee /etc/apt/sources.list.d/elastic-8.x.list
 
-# Suricata (si no lo tienes):
-if ! command -v suricata >/dev/null 2>&1; then
-  sudo apt-get install -y suricata
-fi
+# Instala
+sudo apt update
+sudo apt install filebeat elasticsearch -y
 
-# ====== Elasticsearch on ======
-sudo systemctl enable --now elasticsearch
 
-# ====== Copia CA legible ======
-if [ -f "$CA_SRC" ]; then
-  sudo cp "$CA_SRC" "$CA_DST"
-  sudo chmod 644 "$CA_DST"
-fi
 
-# ====== Suricata: outputs en suricata.yaml ======
-if [ -f "$SURICATA_YAML" ]; then
-  sudo cp "$SURICATA_YAML" "${SURICATA_YAML}.bak.$(date +%s)"
-  sudo awk '
-    BEGIN{skip=0}
-    /^outputs:/{
-      print "outputs:";
-      print "  - fast:";
-      print "      enabled: no";
-      print "  - eve-log:";
-      print "      enabled: yes";
-      print "      filetype: regular";
-      print "      filename: eve.json";
-      print "      types:";
-      print "        - alert";
-      print "        - dns";
-      print "        - http";
-      print "        - tls";
-      print "        - ssh";
-      print "        - stats";
-      skip=1; next
-    }
-    skip==1 && /^[^[:space:]]/ { skip=0 }    # fin del bloque outputs al ver una clave top-level
-    skip==1 { next }
-    { print }
-  ' "${SURICATA_YAML}.bak.$(date +%s -d @0 2>/dev/null || echo "")" 2>/dev/null || true
-  # El awk anterior usa el .bak más reciente; si falla, reescribe desde el original:
-  if ! grep -q '^outputs:' "$SURICATA_YAML" 2>/dev/null; then
-    sudo awk '
-      BEGIN{skip=0}
-      /^outputs:/{
-        print "outputs:";
-        print "  - fast:";
-        print "      enabled: no";
-        print "  - eve-log:";
-        print "      enabled: yes";
-        print "      filetype: regular";
-        print "      filename: eve.json";
-        print "      types:";
-        print "        - alert";
-        print "        - dns";
-        print "        - http";
-        print "        - tls";
-        print "        - ssh";
-        print "        - stats";
-        skip=1; next
-      }
-      skip==1 && /^[^[:space:]]/ { skip=0 }
-      skip==1 { next }
-      { print }
-    ' "${SURICATA_YAML}.bak."* | sudo tee "$SURICATA_YAML" >/dev/null
-  fi
-  sudo systemctl restart suricata
-fi
-
-# ====== Filebeat: módulo Suricata y config ======
-sudo filebeat modules enable suricata
-
-sudo tee /etc/filebeat/modules.d/suricata.yml >/dev/null <<'YAML'
-- module: suricata
-  eve:
-    enabled: true
-    var.paths: ["/var/log/suricata/eve.json"]
-YAML
-
-# filebeat.yml mínimo (backup y reemplazo del output)
-if [ -f /etc/filebeat/filebeat.yml ]; then
-  sudo cp /etc/filebeat/filebeat.yml /etc/filebeat/filebeat.yml.bak.$(date +%s)
-fi
-sudo tee /etc/filebeat/filebeat.yml >/dev/null <<YAML
-filebeat.config.modules:
-  path: /etc/filebeat/modules.d/*.yml
-  reload.enabled: false
-
-output.elasticsearch:
-  hosts: ["${ES_HOST}"]
-  username: "${USER}"
-  password: "${PASS}"
-  ssl.certificate_authorities: ["${CA_DST}"]
-YAML
-
-# ====== Cargar assets y arrancar Filebeat ======
-sudo filebeat setup -e \
-  -E output.elasticsearch.hosts=["${ES_HOST}"] \
-  -E output.elasticsearch.username="${USER}" \
-  -E output.elasticsearch.password="${PASS}" \
-  -E output.elasticsearch.ssl.certificate_authorities=["${CA_DST}"]
-
-sudo systemctl enable --now filebeat
-
-# ====== Verificación rápida ======
-echo "[*] Verificando conexión a ES…"
-curl -sS --cacert "$CA_DST" -u "$USER:$PASS" "${ES_HOST}/" | jq -r '.tagline' || true
-
-echo "[*] Índices filebeat:"
-curl -sS --cacert "$CA_DST" -u "$USER:$PASS" "${ES_HOST}/_cat/indices?v" | grep filebeat || true
-
-echo "[*] Conteo Suricata en ${INDEX_PATTERN}:"
-curl -sS --cacert "$CA_DST" -u "$USER:$PASS" \
-  "${ES_HOST}/${INDEX_PATTERN}/_count" \
-  -H 'Content-Type: application/json' \
-  -d '{"query":{"term":{"event.module":"suricata"}}}' | jq .
-
-echo "[*] 1 documento de muestra:"
-curl -sS --cacert "$CA_DST" -u "$USER:$PASS" \
-  "${ES_HOST}/${INDEX_PATTERN}/_search" \
-  -H 'Content-Type: application/json' -d '{"size":1}' | jq -r '.hits.hits[0]._source | @json'
+# copia a /etc/ssl/certs/ con permisos abiertos
+sudo cp /etc/elasticsearch/certs/http_ca.crt /etc/ssl/certs/es-http-ca.crt
+sudo chmod 644 /etc/ssl/certs/es-http-ca.crt
