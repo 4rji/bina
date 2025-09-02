@@ -1,18 +1,14 @@
 #!/usr/bin/env python3
-
-#pip install requests tabulate
-
-
+# pip install requests
 
 import requests
 import json
-from tabulate import tabulate
 
 ES_URL = "https://localhost:9200"
 ES_USER = "elastic"
 ES_PASS = "rancid12"
 INDEX   = "filebeat-*"
-VERIFY  = False   # pon la ruta del http_ca.crt si quieres validar
+VERIFY  = False   # pon ruta a http_ca.crt si quieres validar
 
 def get_dns_events(size=10):
     query = {
@@ -28,18 +24,47 @@ def get_dns_events(size=10):
             "destination.ip"
         ]
     }
-
     url = f"{ES_URL}/{INDEX}/_search"
-    resp = requests.post(url, auth=(ES_USER, ES_PASS),
-                         headers={"Content-Type": "application/json"},
-                         data=json.dumps(query), verify=VERIFY)
+    resp = requests.post(
+        url,
+        auth=(ES_USER, ES_PASS),
+        headers={"Content-Type": "application/json"},
+        data=json.dumps(query),
+        verify=VERIFY
+    )
 
     if resp.status_code != 200:
         print("Error:", resp.status_code, resp.text)
         return []
 
     hits = resp.json().get("hits", {}).get("hits", [])
-    return [h["_source"] for h in hits]
+    return [h.get("_source", {}) for h in hits]
+
+def markdown_table(headers, rows):
+    # calcula anchos
+    cols = len(headers)
+    widths = [len(h) for h in headers]
+    for r in rows:
+        for i in range(cols):
+            val = "" if i >= len(r) or r[i] is None else str(r[i])
+            if len(val) > widths[i]:
+                widths[i] = len(val)
+    # helpers
+    def fmt_row(cells):
+        padded = []
+        for i in range(cols):
+            val = "" if i >= len(cells) or cells[i] is None else str(cells[i])
+            padded.append(val.ljust(widths[i]))
+        return "| " + " | ".join(padded) + " |"
+    def sep():
+        return "|-" + "-|-".join("-" * w for w in widths) + "-|"
+
+    out = []
+    out.append(fmt_row(headers))
+    out.append(sep())
+    for r in rows:
+        out.append(fmt_row(r))
+    return "\n".join(out)
 
 def main():
     events = get_dns_events(10)
@@ -47,28 +72,19 @@ def main():
         print("No hay resultados")
         return
 
-    table = []
+    headers = ["timestamp", "src_ip", "dst_ip", "query", "qtype", "rcode"]
+    rows = []
     for e in events:
-        table.append([
+        rows.append([
             e.get("@timestamp", ""),
-            e.get("source", {}).get("ip", ""),
-            e.get("destination", {}).get("ip", ""),
-            e.get("zeek", {}).get("dns", {}).get("query", ""),
-            e.get("zeek", {}).get("dns", {}).get("qtype", ""),
-            e.get("zeek", {}).get("dns", {}).get("rcode", ""),
+            (e.get("source") or {}).get("ip", ""),
+            (e.get("destination") or {}).get("ip", ""),
+            ((e.get("zeek") or {}).get("dns") or {}).get("query", ""),
+            ((e.get("zeek") or {}).get("dns") or {}).get("qtype", ""),
+            ((e.get("zeek") or {}).get("dns") or {}).get("rcode", ""),
         ])
 
-    headers = ["timestamp", "src_ip", "dst_ip", "query", "qtype", "rcode"]
-    print(tabulate(table, headers=headers, tablefmt="github"))
+    print(markdown_table(headers, rows))
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-#otros test 
-#curl -sSk -u elastic:'rancid12' 'https://localhost:9200/filebeat-*/_search?q=event.module:zeek&size=1&filter_path=hits.total.value'
-
-#curl -sSk -u elastic:'rancid12' 'https://localhost:9200/filebeat-*/_search?q=event.dataset:zeek.dhcp&size=1&filter_path=hits.hits._source'
