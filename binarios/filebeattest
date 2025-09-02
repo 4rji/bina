@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# --- Config ---
+ES_HOST="https://localhost:9200"
+USER="elastic"
+PASS="rancid12"
+CA="/etc/ssl/certs/es-http-ca.crt"
+INDEX_PATTERN="filebeat-*"
+MODULE="suricata"
+TIME_RANGE="now-1h"
+
+curl_json() {
+  curl -sS --cacert "$CA" -u "$USER:$PASS" \
+    -H 'Content-Type: application/json' "$@"
+}
+
+line() { printf '%s\n' "------------------------------------------------------------"; }
+
+echo "[*] Elasticsearch: $ES_HOST  Index: $INDEX_PATTERN  Module: $MODULE  Range: $TIME_RANGE"
+line
+
+# 1) Conteo total
+echo "[1] Conteo total:"
+curl_json -X POST "$ES_HOST/$INDEX_PATTERN/_count" -d "{
+  \"query\":{\"term\":{\"event.module\":\"$MODULE\"}}
+}" | jq -r '"Total: \(.count)"'
+line
+
+# 2) Top tipos de evento
+echo "[2] Top event_type (últimas 24h):"
+curl_json -X POST "$ES_HOST/$INDEX_PATTERN/_search" -d "{
+  \"size\":0,
+  \"query\":{\"bool\":{\"filter\":[
+    {\"term\":{\"event.module\":\"$MODULE\"}},
+    {\"range\":{\"@timestamp\":{\"gte\":\"now-24h\"}}}
+  ]}},
+  \"aggs\":{\"t\":{\"terms\":{\"field\":\"suricata.eve.event_type\",\"size\":20}}}
+}" | jq -r '.aggregations.t.buckets[] | "\(.key)\t\(.doc_count)"'
+line
+
+# 3) Últimos 5 eventos
+echo "[3] Últimos 5 eventos:"
+curl_json -X POST "$ES_HOST/$INDEX_PATTERN/_search" -d "{
+  \"size\":5, \"sort\":[{\"@timestamp\":{\"order\":\"desc\"}}],
+  \"query\":{\"bool\":{\"filter\":[
+    {\"term\":{\"event.module\":\"$MODULE\"}},
+    {\"range\":{\"@timestamp\":{\"gte\":\"$TIME_RANGE\"}}}
+  ]}},
+  \"_source\":[\"@timestamp\",\"suricata.eve.event_type\",\"source.ip\",\"source.port\",\"destination.ip\",\"destination.port\",\"network.protocol\",\"suricata.eve.alert.signature\"]
+}" | jq -r '.hits.hits[]?._source |
+  "\(.["@timestamp"])  \(.["suricata.eve.event_type"] // "-")  \(.["source.ip"] // "-"):\(.["source.port"] // "") -> \(.["destination.ip"] // "-"):\(.["destination.port"] // "")  \(.["network.protocol"] // "")  \(.["suricata.eve.alert.signature"] // "")"'
+line
+
+# 4) IPs únicas
+echo "[4] IPs únicas (rango: $TIME_RANGE):"
+curl_json -X POST "$ES_HOST/$INDEX_PATTERN/_search" -d "{
+  \"size\":0,
+  \"query\":{\"bool\":{\"filter\":[
+    {\"term\":{\"event.module\":\"$MODULE\"}},
+    {\"range\":{\"@timestamp\":{\"gte\":\"$TIME_RANGE\"}}}
+  ]}},
+  \"aggs\":{
+    \"src\":{\"terms\":{\"field\":\"source.ip\",\"size\":10000}},
+    \"dst\":{\"terms\":{\"field\":\"destination.ip\",\"size\":10000}}
+  }
+}" | jq -r '.aggregations.src.buckets[]?.key, .aggregations.dst.buckets[]?.key' | sort -u
