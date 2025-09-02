@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "[*] Sobrescribiendo /etc/filebeat/modules.d/zeek.yml ..."
+sudo tee /etc/filebeat/modules.d/zeek.yml >/dev/null <<'YAML'
+- module: zeek
+
+  capture_loss:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/capture_loss.log
+
+  dhcp:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/dhcp.log
+
+  dns:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/dns.log
+
+  http:
+    enabled: false
+    var.paths: []
+
+  ntp:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/ntp.log
+
+  ssl:
+    enabled: false
+    var.paths: []
+
+  stats:
+    enabled: true
+    var.paths:
+      - /opt/zeek/logs/current/stats.log
+YAML
+
+echo
+echo "[*] Validando sintaxis de configuración..."
+sudo filebeat test config -e || { echo "❌ Error en configuración"; exit 1; }
+
+echo
+echo "[*] Reiniciando Filebeat..."
+sudo systemctl restart filebeat
+
+echo
+echo "[*] Estado del servicio Filebeat:"
+sudo systemctl status filebeat --no-pager -l | head -n 20
+
+echo
+echo "[*] Últimas 20 líneas de logs de Filebeat:"
+sudo journalctl -u filebeat --no-pager | tail -n 20
