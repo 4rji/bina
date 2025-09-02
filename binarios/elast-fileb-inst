@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+curl -L -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-9.1.3-amd64.deb
+sudo dpkg -i filebeat-9.1.3-amd64.deb
+
 
 wget -qO - https://artifacts.elastic.co/GPG-KEY-elasticsearch | sudo gpg --dearmor -o /usr/share/keyrings/elasticsearch-keyring.gpg
 
@@ -16,7 +19,7 @@ echo "deb [signed-by=/usr/share/keyrings/elasticsearch-keyring.gpg] https://arti
 
 # Instala
 sudo apt update
-sudo apt install filebeat elasticsearch -y
+sudo apt install elasticsearch -y
 
 
 
