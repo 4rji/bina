@@ -1,0 +1,39 @@
+#!/bin/bash
+set -euo pipefail
+
+# --- Detecta interfaz activa (default route). Permite override con IFACE=eth0 ./script.sh
+IFACE="${IFACE:-$(ip route get 1.1.1.1 2>/dev/null | awk '/dev/ {for (i=1;i<=NF;i++) if ($i=="dev") {print $(i+1); exit}}')}"
+# Fallback si no hay default route: toma la primera UP con carrier y no virtual
+if [[ -z "${IFACE}" || "${IFACE}" == "lo" ]]; then
+  IFACE="$(for i in /sys/class/net/*; do n=$(basename "$i");
+    [[ "$n" == lo || "$n" == docker* || "$n" == veth* || "$n" == br-* || "$n" == vmnet* || "$n" == vnet* || "$n" == virbr* || "$n" == tailscale* || "$n" == wg* || "$n" == tun* ]] && continue
+    [[ -f "$i/operstate" && "$(cat "$i/operstate")" == "up" && -f "$i/carrier" && "$(cat "$i/carrier")" == "1" ]] && echo "$n"
+  done | head -n1)"
+fi
+[[ -z "${IFACE}" ]] && { echo "No se pudo detectar interfaz"; exit 1; }
+
+echo "Interfaz: ${IFACE}"
+
+# --- Instala dhclient si no existe
+if [[ ! -x /sbin/dhclient ]]; then
+  sudo apt update
+  sudo apt install -y isc-dhcp-client
+fi
+
+# --- Limpia leases antiguos
+#sudo rm -f /var/lib/dhcp/dhclient*.leases /var/lib/dhcp/dhclient.*.leases || true
+
+# --- MAC aleatoria (locally-admin, unicast)
+MAC=$(printf '02:%02X:%02X:%02X:%02X:%02X' $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256)) $((RANDOM%256)))
+echo "Nueva MAC: ${MAC}"
+
+# --- Renueva IP con MAC nueva
+sudo ip link set dev "${IFACE}" down
+sudo ip link set dev "${IFACE}" address "${MAC}"
+sudo ip link set dev "${IFACE}" up
+sudo /sbin/dhclient -r "${IFACE}" || true
+sudo /sbin/dhclient "${IFACE}"
+
+# --- Muestra IP asignada
+ip -4 -o addr show dev "${IFACE}" | awk '{print "IPv4: " $4}'
+ip -6 -o addr show dev "${IFACE}" | awk '{print "IPv6: " $4}'

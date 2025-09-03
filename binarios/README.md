@@ -49,6 +49,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###------utilidades 
+liberarIP           Cambia la MAC de debian para liberar una IP duplicada, usa dhclient
 zeektest            Prueba filebeat zeek
 zeekmodules         Instala los modules de zeek para filebeat
 elast-fileb-inst    Instala y configura elasticsearch, filebeat y envio suricata logs
