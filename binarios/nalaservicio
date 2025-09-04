@@ -1,0 +1,30 @@
+#!/bin/bash
+# Uso: ./mk_nala_service.sh /ruta/a/app
+set -euo pipefail
+
+APP_PATH="${1:?Uso: $0 /ruta/a/app}"
+USER_NAME="$(id -un)"
+SERVICE_FILE="/etc/systemd/system/nala.service"
+
+sudo tee "$SERVICE_FILE" >/dev/null <<EOF
+# /etc/systemd/system/nala.service
+[Unit]
+Description=Nala
+After=network.target
+
+[Service]
+WorkingDirectory=${APP_PATH}
+ExecStart=/usr/bin/npm start
+Restart=always
+User=${USER_NAME}
+Environment=NODE_ENV=production
+Environment=PATH=/usr/bin:/usr/local/bin
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable nala
+sudo systemctl restart nala
+systemctl status nala -l --no-pager || true
