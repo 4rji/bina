@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# Check if an Elasticsearch API Key is read-only or has write permissions.
+# Usage: ./check_es_apikey.sh <APIKEY_BASE64>
+set -euo pipefail
+
+TOKEN="${1:-}"
+if [[ -z "$TOKEN" ]]; then
+  echo "Missing APIKEY_BASE64"
+  exit 2
+fi
+
+ES_URL="${ES_URL:-https://localhost:9200}"
+ES_CA="${ES_CA:-/etc/ssl/certs/es-http-ca.crt}"
+IDX="apikey_check_$(date +%s)_$$"
+
+# Colors
+RED="\e[31m"
+GREEN="\e[32m"
+YELLOW="\e[33m"
+RESET="\e[0m"
+
+curl_code() {
+  curl --silent --output /dev/null --write-out "%{http_code}" \
+       --cacert "$ES_CA" \
+       -H "Authorization: ApiKey $TOKEN" "$@"
+}
+
+# 1) Authentication
+AUTH_CODE=$(curl_code "$ES_URL/_security/_authenticate")
+if [[ "$AUTH_CODE" != "200" ]]; then
+  echo -e "${RED}RESULT: INVALID TOKEN / NOT AUTHENTICATED (HTTP $AUTH_CODE)${RESET}"
+  exit 1
+fi
+
+# 2) Basic read
+READ_CODE=$(curl_code "$ES_URL/_search?size=0")
+if [[ "$READ_CODE" != "200" ]]; then
+  echo -e "${YELLOW}RESULT: AUTHENTICATED BUT NO READ ACCESS (HTTP $READ_CODE)${RESET}"
+  exit 1
+fi
+
+# 3) Try to create index
+CREATE_CODE=$(curl_code -X PUT "$ES_URL/$IDX" \
+  -H "Content-Type: application/json" \
+  --data '{"settings":{"number_of_shards":1}}')
+
+WRITE_OK=false
+if [[ "$CREATE_CODE" == "200" || "$CREATE_CODE" == "201" ]]; then
+  DOC_CODE=$(curl_code -X POST "$ES_URL/$IDX/_doc" \
+    -H "Content-Type: application/json" \
+    --data '{"ok":true}')
+  if [[ "$DOC_CODE" == "200" || "$DOC_CODE" == "201" ]]; then
+    WRITE_OK=true
+  fi
+  curl_code -X DELETE "$ES_URL/$IDX" >/dev/null || true
+fi
+
+# 4) Result
+if $WRITE_OK; then
+  echo -e "${GREEN}RESULT: TOKEN HAS WRITE PERMISSIONS (HTTP create=$CREATE_CODE)${RESET}"
+else
+  if [[ "$CREATE_CODE" == "403" || "$CREATE_CODE" == "401" ]]; then
+    echo -e "${GREEN}RESULT: TOKEN IS READ-ONLY (HTTP create=$CREATE_CODE)${RESET}"
+  else
+    echo -e "${YELLOW}RESULT: TOKEN AUTHENTICATED BUT UNKNOWN PRIVILEGES (HTTP create=$CREATE_CODE)${RESET}"
+  fi
+fi

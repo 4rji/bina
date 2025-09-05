@@ -49,6 +49,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###------utilidades 
+testapisearch       Para probar si la API es lectura escritura en elasticsearch
 nalaservicio        Crea un systemctl servicio para la app nala electron.
 liberarIP           Cambia la MAC de debian para liberar una IP duplicada, usa dhclient
 zeektest            Prueba filebeat zeek
