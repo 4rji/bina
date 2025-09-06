@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# Check arg
+if [ $# -ne 1 ]; then
+    echo "Usage: $0 <ApiKeyBase64>"
+    exit 1
+fi
+
+APIKEY=$1
+
+CMD="curl --cacert /etc/ssl/certs/es-http-ca.crt \
+  -H \"Authorization: ApiKey $APIKEY\" \
+  https://localhost:9200/_cat/indices?v"
+
+echo "------------------------------------------------------------"
+echo "Executing command:"
+echo "$CMD"
+echo "------------------------------------------------------------"
+
+# Ejecutar
+eval $CMD
