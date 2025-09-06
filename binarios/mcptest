@@ -1,89 +1,110 @@
 #!/usr/bin/env bash
-# Usage: ./es_health.sh API_BASE64 [ES_URL] [CA_CERT]
-# Example: ./es_health.sh c0Iwa0dKa0J... https://localhost:9200 /etc/ssl/certs/es-http-ca.crt
-
+# Uso: ./es_health_mcp.sh API_BASE64 [ES_URL] [INSPECTOR_CONFIG] [MCP_DIR]
+# Ej:  ./es_health_mcp.sh c0Iwa0dK... https://localhost:9200 inspector.config.json ~/.local/mcp
 set -euo pipefail
 
 API_KEY="${1:-}"
 ES_URL="${2:-https://localhost:9200}"
-CA_CERT="${3:-/etc/ssl/certs/es-http-ca.crt}"
+INSPECT_CFG="${3:-$HOME/.local/mcp/inspector.config.json}"
+MCP_DIR="${4:-$HOME/.local/mcp}"
 
-# Colors
 RED='\033[1;31m'; GRN='\033[1;32m'; YEL='\033[1;33m'; BLU='\033[1;34m'; CYN='\033[1;36m'; CLR='\033[0m'
 
-if [[ -z "$API_KEY" ]]; then
-  echo -e "${RED}[!] Missing API key.${CLR}"
-  echo -e "${YEL}Usage:${CLR} $0 ${CYN}API_BASE64 [ES_URL] [CA_CERT]${CLR}"
+[[ -z "$API_KEY" ]] && { echo -e "${RED}[!] Falta API key${CLR}"; exit 1; }
+
+# Validar archivo de configuración del inspector
+if [[ ! -f "$INSPECT_CFG" ]]; then
+  echo -e "${RED}[!] No existe config: ${INSPECT_CFG}${CLR}"
+  echo -e "${YEL}[i] Pásala como 3er argumento o coloca el archivo en esa ruta.${CLR}"
   exit 1
 fi
 
-CURL_BASE=(curl --silent --show-error --fail --tlsv1.2
-  -H "Authorization: ApiKey ${API_KEY}"
-  "${ES_URL}/_cluster/health"
-)
-
-# Add CA if exists; otherwise skip verify
-if [[ -f "$CA_CERT" ]]; then
-  CURL_BASE=(curl --silent --show-error --fail --tlsv1.2
-    --cacert "$CA_CERT"
-    -H "Authorization: ApiKey ${API_KEY}"
-    "${ES_URL}/_cluster/health"
-  )
-else
-  CURL_BASE=(curl --silent --show-error --fail --tlsv1.2
-    -k
-    -H "Authorization: ApiKey ${API_KEY}"
-    "${ES_URL}/_cluster/health"
-  )
+# Detectar entrypoint de MCP (main.js o index.js)
+ENTRY="$MCP_DIR/dist/main.js"
+if [[ -f "$MCP_DIR/dist/index.js" ]]; then
+  ENTRY="$MCP_DIR/dist/index.js"
 fi
-
-echo -e "${BLU}[*] Target:${CLR} ${ES_URL}"
-echo -e "${BLU}[*] CA cert:${CLR} ${CA_CERT} $( [[ -f "$CA_CERT" ]] && echo "(found)" || echo "(not found, using -k)" )"
-echo
-
-# --- RAW JSON ---
-echo -e "${YEL}[$] Command (raw):${CLR}"
-if [[ -f "$CA_CERT" ]]; then
-  echo -e "  ${CYN}curl --silent --show-error --fail --tlsv1.2 --cacert \"$CA_CERT\" -H \"Authorization: ApiKey ****\" \"${ES_URL}/_cluster/health\"${CLR}"
-else
-  echo -e "  ${CYN}curl --silent --show-error --fail --tlsv1.2 -k -H \"Authorization: ApiKey ****\" \"${ES_URL}/_cluster/health\"${CLR}"
-fi
-
-HTTP_CODE=0
-RAW_OUT="$( "${CURL_BASE[@]}" -w $'\n%{http_code}' )" || {
-  echo -e "${RED}[!] Request failed.${CLR}"
+if [[ ! -f "$ENTRY" ]]; then
+  echo -e "${RED}[!] No existe entrypoint MCP: $MCP_DIR/dist/main.js ni dist/index.js${CLR}"
   exit 1
-}
-HTTP_CODE="$(tail -n1 <<<"$RAW_OUT")"
-BODY_RAW="$(sed '$d' <<<"$RAW_OUT")"
-
-echo -e "${GRN}[+] HTTP ${HTTP_CODE}${CLR}"
-echo -e "${GRN}[+] Raw output:${CLR}"
-echo "$BODY_RAW"
-echo
-
-# --- PRETTY JSON ---
-echo -e "${YEL}[$] Command (pretty):${CLR}"
-if command -v jq >/dev/null 2>&1; then
-  echo -e "  ${CYN}(previous command) | jq${CLR}"
-  echo -e "${GRN}[+] Pretty output (jq):${CLR}"
-  printf '%s\n' "$BODY_RAW" | jq
-else
-  echo -e "  ${CYN}(previous command) | python3 -m json.tool${CLR}"
-  echo -e "${GRN}[+] Pretty output (python json.tool):${CLR}"
-  printf '%s\n' "$BODY_RAW" | python3 -m json.tool
 fi
 
-# --- Compact summary ---
-STATUS=$(printf '%s' "$BODY_RAW" | { jq -r '.status' 2>/dev/null || python3 - <<'PY' 2>/dev/null
+echo -e "${BLU}[*] ES_URL:${CLR} ${ES_URL}"
+echo -e "${BLU}[*] Inspector config:${CLR} ${INSPECT_CFG}"
+echo -e "${BLU}[*] MCP dir:${CLR} ${MCP_DIR}"
+echo -e "${BLU}[*] MCP entry:${CLR} ${ENTRY}"
+echo
+
+# --- Chequeo MCP: tools/list ---
+SAFE_LIST="(cd \"$MCP_DIR\" && npx @modelcontextprotocol/inspector --cli --config \"$INSPECT_CFG\" --method tools/list -- node \"$ENTRY\" stdio)"
+echo -e "${YEL}[$] Comando (lista tools MCP):${CLR}"
+echo -e "  ${CYN}${SAFE_LIST}${CLR}"
+if ! LIST_RAW="$(
+  cd "$MCP_DIR" && \
+  npx @modelcontextprotocol/inspector --cli \
+    --config "$INSPECT_CFG" \
+    --method tools/list -- \
+    node "$ENTRY" stdio 2>&1
+)"; then
+  echo -e "${RED}[!] MCP no responde (tools/list)${CLR}"
+  [[ -n "$LIST_RAW" ]] && printf '%s\n' "$LIST_RAW"
+  exit 1
+fi
+echo -e "${GRN}[+] MCP activo${CLR}"
+echo
+
+# --- Llamada es.health vía MCP ---
+SAFE_HEALTH="(cd \"$MCP_DIR\" && npx @modelcontextprotocol/inspector --cli --config \"$INSPECT_CFG\" --method tools/call --tool-name es.health --arguments '{}' -e \"ELASTICSEARCH_URL=$ES_URL\" -e \"ELASTICSEARCH_API_KEY=****\" -e \"ELASTICSEARCH_TLS_REJECT_UNAUTHORIZED=0\" -- node \"$ENTRY\" stdio)"
+echo -e "${YEL}[$] Comando (es.health):${CLR}"
+echo -e "  ${CYN}${SAFE_HEALTH}${CLR}"
+
+RAW="$(
+  cd "$MCP_DIR" && \
+  npx @modelcontextprotocol/inspector --cli \
+    --config "$INSPECT_CFG" \
+    --method tools/call \
+    --tool-name es.health \
+    --arguments '{}' \
+    -e "ELASTICSEARCH_URL=${ES_URL}" \
+    -e "ELASTICSEARCH_API_KEY=${API_KEY}" \
+    -e "ELASTICSEARCH_TLS_REJECT_UNAUTHORIZED=0" -- \
+    node "$ENTRY" stdio
+)"
+echo -e "${GRN}[+] Respuesta RAW:${CLR}"
+printf '%s\n' "$RAW"
+echo
+
+# --- Extraer JSON del content y formatear ---
+have_jq=0; command -v jq >/dev/null 2>&1 && have_jq=1
+if (( have_jq )); then
+  JSON="$(printf '%s' "$RAW" | jq -r '.content[] | select(.type=="text") | .text' 2>/dev/null || true)"
+else
+  JSON="$(printf '%s' "$RAW" | python3 - <<'PY' 2>/dev/null || true
+import sys, json
+try:
+  data=json.load(sys.stdin)
+  for c in data.get("content",[]):
+    if c.get("type")=="text":
+      print(c.get("text",""))
+except: pass
+PY
+)"
+fi
+
+if [[ -n "${JSON:-}" ]]; then
+  echo -e "${GRN}[+] JSON formateado:${CLR}"
+  if (( have_jq )); then
+    printf '%s\n' "$JSON" | jq
+  else
+    printf '%s\n' "$JSON" | python3 -m json.tool
+  fi
+  STATUS="$(printf '%s' "$JSON" | { jq -r '.status' 2>/dev/null || python3 - <<'PY' 2>/dev/null
 import sys, json; print(json.load(sys.stdin).get("status"))
 PY
-} || true)
-
-if [[ -n "${STATUS:-}" ]]; then
-  COLOR=$GRN
-  [[ "$STATUS" == "yellow" ]] && COLOR=$YEL
-  [[ "$STATUS" == "red" ]] && COLOR=$RED
-  echo
-  echo -e "${COLOR}[=] Cluster status: ${STATUS}${CLR}"
+} || true)"
+  if [[ -n "$STATUS" ]]; then
+    COL=$GRN; [[ "$STATUS" == "yellow" ]] && COL=$YEL; [[ "$STATUS" == "red" ]] && COL=$RED
+    echo
+    echo -e "${COL}[=] Cluster status: ${STATUS}${CLR}"
+  fi
 fi
