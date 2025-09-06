@@ -49,6 +49,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###------utilidades 
+nodeinst            Instala node en linux debian using nvm with npm
 testapisearch       Para probar si la API es lectura escritura en elasticsearch
 nalaservicio        Crea un systemctl servicio para la app nala electron.
 liberarIP           Cambia la MAC de debian para liberar una IP duplicada, usa dhclient
@@ -199,7 +200,9 @@ ddf                 hace un diff archivo vs archivo.backup
 copycar	            Copia una carpeta folder por medio de ssh scp
 copyrsyn            Usa hosts ansible y copia un archivo con rsync y clave privada
 copyrrs             Copia archivo por rsync preguntado hosts y puerto
-copyrs              Copia archivo por rsync usando sshconf
+copyrs              Copia archivo o carpeta por rsync usando sshconf
+copyrsm             Copia archivo o carpeta por rsync usando sshconf
+copyrs-old          Copia archivo por rsync usando sshconf 
 copyrsr             Recibe un archivo por medio de rsync
 shtb                Syncroniza carpetas con rsync entre servidores, para htb vmqemu
 mackali	            Cambia la MAC de kali
