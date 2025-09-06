@@ -8,8 +8,9 @@ fi
 
 APIKEY=$1
 
-CMD="curl --cacert /etc/ssl/certs/es-http-ca.crt \
+CMD="curl --silent --show-error --cacert /etc/ssl/certs/es-http-ca.crt \
   -H \"Authorization: ApiKey $APIKEY\" \
+  -w '\n%{http_code}' \
   https://localhost:9200/_cat/indices?v"
 
 echo "------------------------------------------------------------"
@@ -17,5 +18,22 @@ echo "Executing command:"
 echo "$CMD"
 echo "------------------------------------------------------------"
 
-# Ejecutar
-eval $CMD
+# Ejecutar y capturar salida + status
+OUTPUT=$(eval $CMD)
+STATUS=$(echo "$OUTPUT" | tail -n1)
+BODY=$(echo "$OUTPUT" | sed '$d')
+
+if [ "$STATUS" -eq 200 ]; then
+    echo "$BODY"
+    echo
+    echo "✅ Success (HTTP $STATUS)"
+else
+    echo "$BODY"
+    echo
+    echo "❌ Error (HTTP $STATUS)"
+    # Intentar mostrar razón si es JSON de Elasticsearch
+    REASON=$(echo "$BODY" | grep -o '"reason":"[^"]*"' | head -n1 | cut -d':' -f2- | tr -d '"')
+    if [ -n "$REASON" ]; then
+        echo "Reason: $REASON"
+    fi
+fi
