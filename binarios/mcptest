@@ -1,16 +1,40 @@
 #!/usr/bin/env bash
-# Uso: ./es_health_mcp.sh API_BASE64 [ES_URL] [INSPECTOR_CONFIG] [MCP_DIR]
-# Ej:  ./es_health_mcp.sh c0Iwa0dK... https://localhost:9200 inspector.config.json ~/.local/mcp
+# Uso: ./es_health_mcp.sh API_BASE64 [ES_URL] [INSPECTOR_CONFIG] [MCP_DIR] [CA_CERT]
+# Ej:  ./es_health_mcp.sh c0Iwa0dK... https://localhost:9200 inspector.config.json ~/.local/mcp /etc/ssl/certs/es-http-ca.crt
 set -euo pipefail
 
 API_KEY="${1:-}"
 ES_URL="${2:-https://localhost:9200}"
 INSPECT_CFG="${3:-$HOME/.local/mcp/inspector.config.json}"
 MCP_DIR="${4:-$HOME/.local/mcp}"
+CA_CERT="${5:-/etc/ssl/certs/es-http-ca.crt}"
 
 RED='\033[1;31m'; GRN='\033[1;32m'; YEL='\033[1;33m'; BLU='\033[1;34m'; CYN='\033[1;36m'; CLR='\033[0m'
 
 [[ -z "$API_KEY" ]] && { echo -e "${RED}[!] Falta API key${CLR}"; exit 1; }
+
+# --- PROMPT: set replicas=0? (default NO) ---
+echo -e "${YEL}If you have a single-node Elasticsearch cluster.${CLR}"
+echo -e "Setting ${GRN}number_of_replicas=0${CLR} will turn health to green, but there is ${RED}no redundancy${CLR}."
+read -r -p "Do you want to set replicas=0 for ALL indices now? (yes/NO): " ans
+ans="${ans,,}"
+if [[ "$ans" == "yes" ]]; then
+  echo -e "${YEL}[*] Applying index setting: number_of_replicas=0 (ALL indices)${CLR}"
+  if [[ -f "$CA_CERT" ]]; then
+    CURL_BASE=(curl -sS --fail --tlsv1.2 --cacert "$CA_CERT")
+  else
+    CURL_BASE=(curl -sS --fail --tlsv1.2 -k)
+  fi
+  "${CURL_BASE[@]}" -X PUT "${ES_URL}/_all/_settings" \
+    -H "Authorization: ApiKey ${API_KEY}" \
+    -H 'Content-Type: application/json' \
+    -d '{"index":{"number_of_replicas":0}}' >/dev/null && \
+    echo -e "${GRN}[+] Replicas set to 0 successfully.${CLR}" || \
+    { echo -e "${RED}[!] Failed to apply replicas=0${CLR}"; exit 1; }
+else
+  echo -e "${YEL}[i] Skipped changing replicas (default NO).${CLR}"
+fi
+echo
 
 # Validar archivo de configuración del inspector
 if [[ ! -f "$INSPECT_CFG" ]]; then
@@ -21,9 +45,7 @@ fi
 
 # Detectar entrypoint de MCP (main.js o index.js)
 ENTRY="$MCP_DIR/dist/main.js"
-if [[ -f "$MCP_DIR/dist/index.js" ]]; then
-  ENTRY="$MCP_DIR/dist/index.js"
-fi
+[[ -f "$MCP_DIR/dist/index.js" ]] && ENTRY="$MCP_DIR/dist/index.js"
 if [[ ! -f "$ENTRY" ]]; then
   echo -e "${RED}[!] No existe entrypoint MCP: $MCP_DIR/dist/main.js ni dist/index.js${CLR}"
   exit 1
