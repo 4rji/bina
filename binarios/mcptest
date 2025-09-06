@@ -1,39 +1,89 @@
 #!/usr/bin/env bash
+# Usage: ./es_health.sh API_BASE64 [ES_URL] [CA_CERT]
+# Example: ./es_health.sh c0Iwa0dKa0J... https://localhost:9200 /etc/ssl/certs/es-http-ca.crt
 
-# Check arg
-if [ $# -ne 1 ]; then
-    echo "Usage: $0 <ApiKeyBase64>"
-    exit 1
+set -euo pipefail
+
+API_KEY="${1:-}"
+ES_URL="${2:-https://localhost:9200}"
+CA_CERT="${3:-/etc/ssl/certs/es-http-ca.crt}"
+
+# Colors
+RED='\033[1;31m'; GRN='\033[1;32m'; YEL='\033[1;33m'; BLU='\033[1;34m'; CYN='\033[1;36m'; CLR='\033[0m'
+
+if [[ -z "$API_KEY" ]]; then
+  echo -e "${RED}[!] Missing API key.${CLR}"
+  echo -e "${YEL}Usage:${CLR} $0 ${CYN}API_BASE64 [ES_URL] [CA_CERT]${CLR}"
+  exit 1
 fi
 
-APIKEY=$1
+CURL_BASE=(curl --silent --show-error --fail --tlsv1.2
+  -H "Authorization: ApiKey ${API_KEY}"
+  "${ES_URL}/_cluster/health"
+)
 
-CMD="curl --silent --show-error --cacert /etc/ssl/certs/es-http-ca.crt \
-  -H \"Authorization: ApiKey $APIKEY\" \
-  -w '\n%{http_code}' \
-  https://localhost:9200/_cat/indices?v"
-
-echo "------------------------------------------------------------"
-echo "Executing command:"
-echo "$CMD"
-echo "------------------------------------------------------------"
-
-# Ejecutar y capturar salida + status
-OUTPUT=$(eval $CMD)
-STATUS=$(echo "$OUTPUT" | tail -n1)
-BODY=$(echo "$OUTPUT" | sed '$d')
-
-if [ "$STATUS" -eq 200 ]; then
-    echo "$BODY"
-    echo
-    echo "✅ Success (HTTP $STATUS)"
+# Add CA if exists; otherwise skip verify
+if [[ -f "$CA_CERT" ]]; then
+  CURL_BASE=(curl --silent --show-error --fail --tlsv1.2
+    --cacert "$CA_CERT"
+    -H "Authorization: ApiKey ${API_KEY}"
+    "${ES_URL}/_cluster/health"
+  )
 else
-    echo "$BODY"
-    echo
-    echo "❌ Error (HTTP $STATUS)"
-    # Intentar mostrar razón si es JSON de Elasticsearch
-    REASON=$(echo "$BODY" | grep -o '"reason":"[^"]*"' | head -n1 | cut -d':' -f2- | tr -d '"')
-    if [ -n "$REASON" ]; then
-        echo "Reason: $REASON"
-    fi
+  CURL_BASE=(curl --silent --show-error --fail --tlsv1.2
+    -k
+    -H "Authorization: ApiKey ${API_KEY}"
+    "${ES_URL}/_cluster/health"
+  )
+fi
+
+echo -e "${BLU}[*] Target:${CLR} ${ES_URL}"
+echo -e "${BLU}[*] CA cert:${CLR} ${CA_CERT} $( [[ -f "$CA_CERT" ]] && echo "(found)" || echo "(not found, using -k)" )"
+echo
+
+# --- RAW JSON ---
+echo -e "${YEL}[$] Command (raw):${CLR}"
+if [[ -f "$CA_CERT" ]]; then
+  echo -e "  ${CYN}curl --silent --show-error --fail --tlsv1.2 --cacert \"$CA_CERT\" -H \"Authorization: ApiKey ****\" \"${ES_URL}/_cluster/health\"${CLR}"
+else
+  echo -e "  ${CYN}curl --silent --show-error --fail --tlsv1.2 -k -H \"Authorization: ApiKey ****\" \"${ES_URL}/_cluster/health\"${CLR}"
+fi
+
+HTTP_CODE=0
+RAW_OUT="$( "${CURL_BASE[@]}" -w $'\n%{http_code}' )" || {
+  echo -e "${RED}[!] Request failed.${CLR}"
+  exit 1
+}
+HTTP_CODE="$(tail -n1 <<<"$RAW_OUT")"
+BODY_RAW="$(sed '$d' <<<"$RAW_OUT")"
+
+echo -e "${GRN}[+] HTTP ${HTTP_CODE}${CLR}"
+echo -e "${GRN}[+] Raw output:${CLR}"
+echo "$BODY_RAW"
+echo
+
+# --- PRETTY JSON ---
+echo -e "${YEL}[$] Command (pretty):${CLR}"
+if command -v jq >/dev/null 2>&1; then
+  echo -e "  ${CYN}(previous command) | jq${CLR}"
+  echo -e "${GRN}[+] Pretty output (jq):${CLR}"
+  printf '%s\n' "$BODY_RAW" | jq
+else
+  echo -e "  ${CYN}(previous command) | python3 -m json.tool${CLR}"
+  echo -e "${GRN}[+] Pretty output (python json.tool):${CLR}"
+  printf '%s\n' "$BODY_RAW" | python3 -m json.tool
+fi
+
+# --- Compact summary ---
+STATUS=$(printf '%s' "$BODY_RAW" | { jq -r '.status' 2>/dev/null || python3 - <<'PY' 2>/dev/null
+import sys, json; print(json.load(sys.stdin).get("status"))
+PY
+} || true)
+
+if [[ -n "${STATUS:-}" ]]; then
+  COLOR=$GRN
+  [[ "$STATUS" == "yellow" ]] && COLOR=$YEL
+  [[ "$STATUS" == "red" ]] && COLOR=$RED
+  echo
+  echo -e "${COLOR}[=] Cluster status: ${STATUS}${CLR}"
 fi
