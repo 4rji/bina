@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BIN_FILE="/opt/4rji/bin/remotehealth"
+SERVICE_FILE="/etc/systemd/system/remotehealth.service"
+
+NODE_PATH="${1:-}"
+
+if [[ -z "$NODE_PATH" ]]; then
+  echo "[!] Debes indicar la ruta absoluta de node."
+  echo "    Ejecuta: command -v node"
+  echo "    y luego corre este script así:"
+  echo "       $0 /ruta/completa/a/node"
+  exit 1
+fi
+
+if [[ ! -x "$NODE_PATH" ]]; then
+  echo "[!] No es ejecutable: $NODE_PATH"
+  exit 1
+fi
+
+if [[ ! -x "$BIN_FILE" ]]; then
+  echo "[!] No existe o no es ejecutable el binario: $BIN_FILE"
+  exit 1
+fi
+
+echo "[*] Creando servicio systemd en $SERVICE_FILE ..."
+cat > "$SERVICE_FILE" <<EOF
+[Unit]
+Description=Remote Health endpoint (/health)
+After=network.target
+
+[Service]
+ExecStart=$NODE_PATH $BIN_FILE
+Environment=HOST=0.0.0.0
+Environment=PORT=56743
+# Opcional: token de seguridad
+# Environment=REMOTEHEALTH_TOKEN=MI_TOKEN
+Restart=always
+RestartSec=1
+User=root
+WorkingDirectory=/opt/4rji/bin
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+echo "[*] Recargando systemd ..."
+sudo systemctl daemon-reload
+
+echo "[*] Habilitando y arrancando servicio ..."
+sudo systemctl enable --now remotehealth
+
+echo "[*] Estado actual:"
+systemctl status remotehealth --no-pager
+
+echo ""
+echo "[!] Para logs en vivo:"
+echo "    sudo journalctl -u remotehealth -f"
