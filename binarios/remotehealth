@@ -1,114 +1,117 @@
-#!/usr/bin/env bash
-set -euo pipefail
-
-BIN_PATH="/opt/4rji/bin"
-BIN_FILE="$BIN_PATH/remotehealth"
-SERVICE_FILE="/etc/systemd/system/remotehealth.service"
-
-echo "[*] Creando directorio $BIN_PATH ..."
-mkdir -p "$BIN_PATH"
-
-echo "[*] Instalando ejecutable Node en $BIN_FILE ..."
-cat > "$BIN_FILE" <<'EOF'
 #!/usr/bin/env node
-const http = require('http');
-const url = require('url');
+const fs = require('fs').promises;
 const { execFile } = require('child_process');
+const http = require('http');
+const https = require('https');
+const { URL } = require('url');
 
-const HOST = process.env.HOST || '0.0.0.0';
-const PORT = Number(process.env.PORT || 56743);
-const TOKEN = process.env.REMOTEHEALTH_TOKEN || null;
-const SERVICES = (process.env.SERVICES || 'zeek,suricata,filebeat,elasticsearch')
-  .split(',').map(s => s.trim()).filter(Boolean);
+// Config
+const ZEEK_LOG = process.env.ZEEK_LOG || '/opt/zeek/logs/current/stats.log';
+const SURICATA_LOG = process.env.SURICATA_LOG || '/var/log/suricata/eve.json';
+const FILEBEAT_HTTP = process.env.FILEBEAT_HTTP || 'http://127.0.0.1:5066';
+const ES_URL = process.env.ES_URL || 'https://127.0.0.1:9200';
+const ES_USER = process.env.ES_USER || '';
+const ES_PASS = process.env.ES_PASS || '';
+const ES_API_KEY = process.env.ES_API_KEY || process.env.ES_APIKEY || '';
+const ES_INSECURE = (process.env.ES_INSECURE || '1') === '1';
+const FRESH_MIN = Number(process.env.FRESH_MIN || 5);
 
-function checkService(name) {
+// Helpers
+function sh(cmd, args = []) {
   return new Promise((resolve) => {
-    execFile('systemctl', ['is-active', '--quiet', name], (err) => {
-      resolve({ name, ok: !err });
+    execFile(cmd, args, { timeout: 4000 }, (err, stdout) => {
+      resolve({ ok: !err, out: (stdout || '').trim() });
     });
   });
 }
 
-async function buildStatus() {
-  const results = await Promise.all(SERVICES.map(checkService));
-  const status = Object.fromEntries(results.map(r => [r.name, r.ok ? 'ok' : 'down']));
-  const ok = results.every(r => r.ok);
-  return { ok, ...status };
+async function isActive(unit) {
+  const r = await sh('systemctl', ['is-active', unit]);
+  return r.ok && r.out === 'active';
 }
 
-function send(res, code, dataObj) {
-  const body = JSON.stringify(dataObj);
-  res.writeHead(code, {
+async function checkElasticsearch() {
+  const active = await isActive('elasticsearch');
+  return { active, running: active };
+}
+async function checkFilebeat() {
+  const active = await isActive('filebeat');
+  return { active, running: active };
+}
+async function checkZeek() {
+  const activeSvc = await isActive('zeek');
+  const zctl = await sh('zeekctl', ['status']);
+  return { active: activeSvc || /running/.test(zctl.out || ''), running: activeSvc || /running/.test(zctl.out || '') };
+}
+async function checkSuricata() {
+  const activeSvc = await isActive('suricata');
+  return { active: activeSvc, running: activeSvc };
+}
+
+async function checkAll() {
+  const [zeek, suricata, filebeat, elasticsearch] = await Promise.all([
+    checkZeek(),
+    checkSuricata(),
+    checkFilebeat(),
+    checkElasticsearch(),
+  ]);
+  const overall = zeek.active && suricata.active && filebeat.active && elasticsearch.active;
+  return { ok: !!overall, zeek, suricata, filebeat, elasticsearch };
+}
+
+// Remotehealth server
+const HOST = process.env.HOST || '0.0.0.0';
+const PORT = Number(process.env.PORT || process.env.REMOTEHEALTH_PORT || 56743);
+const TOKEN = (process.env.REMOTEHEALTH_TOKEN || '').trim();
+
+function sendJson(res, status, obj) {
+  const body = JSON.stringify(obj);
+  res.writeHead(status, {
     'Content-Type': 'application/json',
     'Content-Length': Buffer.byteLength(body),
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization'
   });
   res.end(body);
 }
 
 const server = http.createServer(async (req, res) => {
-  if (req.method === 'OPTIONS') {
-    res.writeHead(204, {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Headers': 'Authorization, Content-Type',
-      'Access-Control-Allow-Methods': 'GET, OPTIONS',
-      'Access-Control-Max-Age': '86400',
-    });
-    return res.end();
-  }
-
-  const { pathname } = url.parse(req.url || '/');
-  if (pathname !== '/health') return send(res, 404, { ok: false, error: 'not_found' });
-
-  if (TOKEN) {
-    const auth = req.headers['authorization'] || '';
-    const m = auth.match(/^Bearer\s+(.+)$/i);
-    if (!m || m[1] !== TOKEN) return send(res, 401, { ok: false, error: 'unauthorized' });
-  }
-
   try {
-    const payload = await buildStatus();
-    return send(res, payload.ok ? 200 : 503, payload);
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+      });
+      return res.end();
+    }
+
+    const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+
+    if (url.pathname === '/health' && req.method === 'GET') {
+      if (TOKEN) {
+        const auth = (req.headers['authorization'] || '').trim();
+        if (auth !== `Bearer ${TOKEN}`) return sendJson(res, 401, { ok: false, error: 'unauthorized' });
+      }
+      try {
+        const result = await checkAll();
+        return sendJson(res, result.ok ? 200 : 503, result);
+      } catch (e) {
+        return sendJson(res, 500, { ok: false, error: e?.message || String(e) });
+      }
+    }
+
+    if (url.pathname === '/' && req.method === 'GET') {
+      return sendJson(res, 200, { ok: true, service: 'remotehealth', endpoint: '/health', port: PORT });
+    }
+
+    sendJson(res, 404, { ok: false, error: 'not_found' });
   } catch (e) {
-    return send(res, 500, { ok: false, error: 'internal_error' });
+    try { sendJson(res, 500, { ok: false, error: e?.message || String(e) }); } catch {}
   }
 });
 
-server.listen(PORT, HOST, () => {});
-process.on('SIGTERM', () => server.close(() => process.exit(0)));
-process.on('SIGINT', () => server.close(() => process.exit(0)));
-EOF
-
-chmod +x "$BIN_FILE"
-
-echo "[*] Creando servicio systemd en $SERVICE_FILE ..."
-cat > "$SERVICE_FILE" <<EOF
-[Unit]
-Description=Remote Health endpoint (/health)
-After=network.target
-
-[Service]
-ExecStart=/usr/bin/node $BIN_FILE
-Environment=HOST=0.0.0.0
-Environment=PORT=56743
-# Opcional: token de seguridad
-# Environment=REMOTEHEALTH_TOKEN=MI_TOKEN
-Restart=always
-User=root
-WorkingDirectory=$BIN_PATH
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-echo "[*] Recargando systemd y habilitando servicio ..."
-systemctl daemon-reload
-systemctl enable --now remotehealth
-
-echo "[*] Estado del servicio:"
-systemctl status remotehealth --no-pager
-
-echo "[*] Logs en vivo:"
-journalctl -u remotehealth -f
+server.listen(PORT, HOST, () => {
+  console.log(`[remotehealth] listening on http://${HOST}:${PORT}`);
+});
