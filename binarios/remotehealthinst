@@ -25,7 +25,7 @@ if [[ ! -x "$BIN_FILE" ]]; then
 fi
 
 echo "[*] Creando servicio systemd en $SERVICE_FILE ..."
-cat > "$SERVICE_FILE" <<EOF
+sudo tee "$SERVICE_FILE" > /dev/null <<EOF
 [Unit]
 Description=Remote Health endpoint (/health)
 After=network.target
@@ -52,7 +52,7 @@ echo "[*] Habilitando y arrancando servicio ..."
 sudo systemctl enable --now remotehealth
 
 echo "[*] Estado actual:"
-systemctl status remotehealth --no-pager
+sudo systemctl status remotehealth --no-pager
 
 echo ""
 echo "[!] Para logs en vivo:"
