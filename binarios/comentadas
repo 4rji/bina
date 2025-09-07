@@ -1,55 +1,63 @@
 #!/usr/bin/env bash
 
-echo
+echo ""
 echo -e "\e[94m_________________________________________________________\e[0m"
-echo
+echo ""
 
-# Muestra uso y sale
+# Function to show framed messages
+echo_msg() {
+    echo -e "\e[95m==============================================\e[0m"
+    echo -e "\e[95m$1\e[0m"
+    echo -e "\e[95m==============================================\e[0m"
+}
+
+# Show usage and exit
 mostrar_uso() {
-    echo "Uso: $0 [-v] [-c] [-b] archivo"
-    echo "  -v: Mostrar resultados en terminal sin comentarios ni líneas vacías"
-    echo "  -c: Generar clean.conf con líneas sin comentarios ni vacías"
-    echo "  -b: Entrar en modo interactivo de modificación de archivo"
+    echo -e "\e[96mUsage: $0 [-v] [-c] [-b] file\e[0m"
+    echo -e "\e[96m  -v: Print results to terminal without comments or blank lines\e[0m"
+    echo -e "\e[96m  -c: Generate clean.conf with lines without comments or blanks\e[0m"
+    echo -e "\e[96m  -b: Enter interactive file modification mode\e[0m"
     exit 1
 }
 
-# Expande ~ a $HOME
+# Expand ~ to $HOME
 expand_path() {
     local path="$1"
     [[ "$path" == "~"* ]] && echo "${path/#~/$HOME}" || echo "$path"
 }
 
-# Modo interactivo (-b)
+# Interactive mode (-b)
 modify_file() {
     local file_path="$1"
     local search_term new_content continue_modifying="s"
     while [[ "$continue_modifying" == "s" ]]; do
-        echo
-        echo -e "\e[94mArchivo: $file_path\e[0m"
-        read -p "Buscar (insensible a may/min): " search_term
+        echo ""
+        echo -e "\e[94mFile: $file_path\e[0m"
+        read -p $'\e[93mSearch (case-insensitive): \e[0m' search_term
         mapfile -t lines < <(grep -ni "^$search_term" "$file_path")
-        [[ ${#lines[@]} -eq 0 ]] && echo "No se encontró '$search_term'" && continue
-        echo; echo -e "\e[94mLíneas encontradas:\e[0m"
+        [[ ${#lines[@]} -eq 0 ]] && echo -e "\e[91mNot found: \e[0m$search_term" && continue
+        echo ""
+        echo -e "\e[94mMatching lines:\e[0m"
         for i in "${!lines[@]}"; do echo -e "\e[93m$((i+1))) ${lines[i]}\e[0m"; done
-        read -p "Selecciona número: " sel
-        (( sel<1 || sel> ${#lines[@]} )) && echo "Selección inválida" && continue
+        read -p $'\e[96mSelect number: \e[0m' sel
+        (( sel<1 || sel> ${#lines[@]} )) && echo -e "\e[91mInvalid selection\e[0m" && continue
         line_num=${lines[$((sel-1))]%%:*}
-        echo -e "\e[91mLinea $line_num será comentada y reemplazada:\e[0m"
+        echo -e "\e[91mLine $line_num will be commented and replaced:\e[0m"
         sed -n "${line_num}p" "$file_path"
-        read -p "Nuevo contenido: " new_content
+        read -p $'\e[92mNew content: \e[0m' new_content
         sed -i "${line_num}s/^/# /; ${line_num}a $new_content" "$file_path"
-        read -n1 -p "¿Otra? (s/n): " continue_modifying; echo
+        read -n1 -p $'\e[93mAnother? (s/n): \e[0m' continue_modifying; echo
     done
-    echo -e "\e[94mModificaciones completadas.\e[0m"
+    echo -e "\e[94mModifications completed.\e[0m"
 }
 
-# Elimina comentarios y líneas vacías
+# Remove comments and blank lines
 trim_and_strip() {
     local f="$1"
     sed -E 's/^[[:space:]]*//; s/[[:space:]]*$//' "$f" | grep -vE '^[[:space:]]*#|^[[:space:]]*$'
 }
 
-# Procesa flags
+# Process flags
 verbose=false; clean=false; modify=false
 while getopts "vcb" opt; do
     case "$opt" in
@@ -61,28 +69,56 @@ while getopts "vcb" opt; do
 done
 shift $((OPTIND-1))
 
-# Valida archivo
+# Validate file
 [[ $# -ne 1 ]] && mostrar_uso
 archivo="$(expand_path "$1")"
-[[ ! -f "$archivo" ]] && echo "El archivo '$archivo' no existe." && exit 1
+[[ ! -f "$archivo" ]] && echo -e "\e[91mFile '$archivo' does not exist.\e[0m" && exit 1
 
-# Ejecuta opciones
+# Execute options
 if [[ "$modify" == true ]]; then
+    echo_msg "Interactive Mode"
     modify_file "$archivo"
     exit 0
 fi
 
 if [[ "$clean" == true ]]; then
+    echo_msg "Generating clean.conf"
     trim_and_strip "$archivo" > clean.conf
-    echo "Archivo 'clean.conf' creado con líneas sin comentarios ni vacías."
+    echo -e "\e[92mFile 'clean.conf' created (no comments, no blanks).\e[0m"
     exit 0
 fi
 
 if [[ "$verbose" == true ]]; then
+    echo_msg "Terminal Output (no comments / blanks)"
     trim_and_strip "$archivo"
     exit 0
 fi
 
-# Por defecto copia al portapapeles
-trim_and_strip "$archivo" | xclip -selection clipboard
-echo "Las líneas sin comentarios ni vacías de '$archivo' se copiaron al portapapeles."
+# Default: copy to clipboard AND show on terminal, with SSH/DISPLAY handling
+echo_msg "Clean Output (printed below and copied to clipboard if available)"
+result="$(trim_and_strip "$archivo")"
+echo ""
+echo ""
+echo -e "\e[94m$result\e[0m"
+
+# Clipboard copy: detect SSH/DISPLAY and xclip availability
+if command -v xclip >/dev/null 2>&1; then
+    if [[ -z "$DISPLAY" || -n "$SSH_CONNECTION" ]]; then
+        echo ""
+        echo ""
+        echo -e "\e[93mClipboard copy skipped: GUI clipboard not available over SSH or DISPLAY is unset.\e[0m"
+        echo -e "\e[93mHint: Use 'ssh -X' / 'ssh -Y' or copy from the printed output above.\e[0m"
+    else
+        if printf "%s" "$result" | xclip -selection clipboard 2>/dev/null; then
+            echo -e "\e[92mClean lines from '$archivo' were copied to the clipboard.\e[0m"
+        else
+            echo -e "\e[91mClipboard copy failed. Not allowed in current session (likely SSH) or clipboard service error.\e[0m"
+        fi
+    fi
+else
+    echo -e "\e[91mxclip not found. Install it to enable clipboard copy (e.g., apt install xclip).\e[0m"
+fi
+
+echo ""
+echo -e "\e[94m_________________________________________________________\e[0m"
+echo ""

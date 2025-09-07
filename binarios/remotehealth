@@ -1,0 +1,117 @@
+#!/usr/bin/env node
+const fs = require('fs').promises;
+const { execFile } = require('child_process');
+const http = require('http');
+const https = require('https');
+const { URL } = require('url');
+
+// Config
+const ZEEK_LOG = process.env.ZEEK_LOG || '/opt/zeek/logs/current/stats.log';
+const SURICATA_LOG = process.env.SURICATA_LOG || '/var/log/suricata/eve.json';
+const FILEBEAT_HTTP = process.env.FILEBEAT_HTTP || 'http://127.0.0.1:5066';
+const ES_URL = process.env.ES_URL || 'https://127.0.0.1:9200';
+const ES_USER = process.env.ES_USER || '';
+const ES_PASS = process.env.ES_PASS || '';
+const ES_API_KEY = process.env.ES_API_KEY || process.env.ES_APIKEY || '';
+const ES_INSECURE = (process.env.ES_INSECURE || '1') === '1';
+const FRESH_MIN = Number(process.env.FRESH_MIN || 5);
+
+// Helpers
+function sh(cmd, args = []) {
+  return new Promise((resolve) => {
+    execFile(cmd, args, { timeout: 4000 }, (err, stdout) => {
+      resolve({ ok: !err, out: (stdout || '').trim() });
+    });
+  });
+}
+
+async function isActive(unit) {
+  const r = await sh('systemctl', ['is-active', unit]);
+  return r.ok && r.out === 'active';
+}
+
+async function checkElasticsearch() {
+  const active = await isActive('elasticsearch');
+  return { active, running: active };
+}
+async function checkFilebeat() {
+  const active = await isActive('filebeat');
+  return { active, running: active };
+}
+async function checkZeek() {
+  const activeSvc = await isActive('zeek');
+  const zctl = await sh('zeekctl', ['status']);
+  return { active: activeSvc || /running/.test(zctl.out || ''), running: activeSvc || /running/.test(zctl.out || '') };
+}
+async function checkSuricata() {
+  const activeSvc = await isActive('suricata');
+  return { active: activeSvc, running: activeSvc };
+}
+
+async function checkAll() {
+  const [zeek, suricata, filebeat, elasticsearch] = await Promise.all([
+    checkZeek(),
+    checkSuricata(),
+    checkFilebeat(),
+    checkElasticsearch(),
+  ]);
+  const overall = zeek.active && suricata.active && filebeat.active && elasticsearch.active;
+  return { ok: !!overall, zeek, suricata, filebeat, elasticsearch };
+}
+
+// Remotehealth server
+const HOST = process.env.HOST || '0.0.0.0';
+const PORT = Number(process.env.PORT || process.env.REMOTEHEALTH_PORT || 56743);
+const TOKEN = (process.env.REMOTEHEALTH_TOKEN || '').trim();
+
+function sendJson(res, status, obj) {
+  const body = JSON.stringify(obj);
+  res.writeHead(status, {
+    'Content-Type': 'application/json',
+    'Content-Length': Buffer.byteLength(body),
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+  });
+  res.end(body);
+}
+
+const server = http.createServer(async (req, res) => {
+  try {
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+      });
+      return res.end();
+    }
+
+    const url = new URL(req.url || '/', `http://${req.headers.host || 'localhost'}`);
+
+    if (url.pathname === '/health' && req.method === 'GET') {
+      if (TOKEN) {
+        const auth = (req.headers['authorization'] || '').trim();
+        if (auth !== `Bearer ${TOKEN}`) return sendJson(res, 401, { ok: false, error: 'unauthorized' });
+      }
+      try {
+        const result = await checkAll();
+        return sendJson(res, result.ok ? 200 : 503, result);
+      } catch (e) {
+        return sendJson(res, 500, { ok: false, error: e?.message || String(e) });
+      }
+    }
+
+    if (url.pathname === '/' && req.method === 'GET') {
+      return sendJson(res, 200, { ok: true, service: 'remotehealth', endpoint: '/health', port: PORT });
+    }
+
+    sendJson(res, 404, { ok: false, error: 'not_found' });
+  } catch (e) {
+    try { sendJson(res, 500, { ok: false, error: e?.message || String(e) }); } catch {}
+  }
+});
+
+server.listen(PORT, HOST, () => {
+  console.log(`[remotehealth] listening on http://${HOST}:${PORT}`);
+});

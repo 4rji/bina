@@ -49,6 +49,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###------utilidades 
+remotehealth        Script que expone los servicios con node zeek suric elastic filebeat
 mcptest             Prueba el mcp con la API base 64 de elasticsearch
 nodeinst            Instala node en linux debian using nvm with npm
 testapisearch       Para probar si la API es lectura escritura en elasticsearch
