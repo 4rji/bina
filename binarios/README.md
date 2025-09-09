@@ -49,6 +49,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###------utilidades 
+ipsdown             Baja una base de datos de abuseIP para ips maliciosas
 remotehealthinst    Instala el remotehealth como systectl servicio
 remotehealth        Script que expone los servicios con node zeek suric elastic filebeat
 mcptest             Prueba el mcp con la API base 64 de elasticsearch
