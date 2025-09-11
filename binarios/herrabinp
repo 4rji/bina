@@ -39,7 +39,7 @@ done
 
 if [[ $omitir != true ]]; then
     # Lista de paquetes a instalar
-    paquetes=("sudo" "chafa" "zoxide" "fzf" "curl" "git" "kitty" "nano" "zsh" "xclip" "python" "bat" "lsd" "tldr" "iproute2" "net-tools" "iputils" "moreutils" "grc")
+    paquetes=("sudo" "chafa" "zoxide" "fzf" "curl" "rg" "fd-find"  "git" "kitty" "nano" "zsh" "xclip" "python" "bat" "lsd" "tldr" "iproute2" "net-tools" "iputils" "moreutils" "grc")
 
     # Verificar e instalar paquetes necesarios
     echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
