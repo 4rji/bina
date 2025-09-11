@@ -1,12 +1,19 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
-read -p "Para continuar, presiona Enter. Para restaurar el estado de la batería, escribe 'no': " cancelar
+TARGET_FILE="$HOME/.config/waybar/target.txt"
 
-if [[ "$cancelar" == "no" ]]; then
-    cp ~/.config/bin/bateria_backup.sh ~/.config/bin/bateria.sh
-    echo "El archivo bateria.sh ha sido restaurado desde el respaldo."
+if [ "$1" = "-d" ]; then
+    if [ -f "$TARGET_FILE" ]; then
+        rm "$TARGET_FILE"
+        echo "Target file deleted successfully"
+    else
+        echo "No target file found to delete"
+    fi
+elif [ -z "$1" ]; then
+    echo "Usage:"
+    echo "  ./set-target.sh <ip_address or anything>    - Set target IP address"
+    echo "  ./set-target.sh -d                          - Delete target file"
 else
-    read -p "Por favor, ingresa la nueva dirección IP de destino: " ip_target
-    echo "echo \"$ip_target\"" > ~/.config/bin/bateria.sh
-    echo "El archivo ~/.config/bin/bateria.sh ha sido actualizado con la nueva dirección IP: $ip_target"
-fi
+    echo "$1" > "$TARGET_FILE"
+    echo "Target set to: $1"
+fi 
