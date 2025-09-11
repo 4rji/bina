@@ -18,6 +18,7 @@ echo
 
 echo -e "${BLUE}Paso 3:${RESET} ${YELLOW}Agrega la línea debajo de [wifi-security]:${RESET}"
 echo -e "${GREEN}psk=WIFIPASSWORD${RESET}"
+echo -e "${GREEN}#only this two lines. (key-mgmt=wpa-psk) delete everything else on wifi-security${RESET}"
 echo
 
 echo -e "${YELLOW}Recuerda reemplazar ${GREEN}WIFINAME${YELLOW} y ${GREEN}WIFIPASSWORD${YELLOW} con el nombre de tu red${RESET}"
