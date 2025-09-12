@@ -288,7 +288,7 @@ function coll() {
     echo $cmd > "$temp_file"
 
     # Ejecutar el comando y usar 'tee' para duplicar la salida y 'batcat' para visualizarla
-    eval $cmd | tee "$temp_file" | batcat -l rb
+    eval $cmd | tee "$temp_file" | /bin/batcat --paging=never --pager=none --style=plain -l rb
 }
 
 #usa grc para mostrar color, instalar grc
