@@ -49,6 +49,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###------utilidades 
+frpinst             Instala frp y descarga dotfiles
 frpstart            Agregar a crontab para que frp inicio automaticamente. 
 ipsdown             Baja una base de datos de abuseIP para ips maliciosas
 remotehealthinst    Instala el remotehealth como systectl servicio
