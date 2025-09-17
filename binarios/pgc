@@ -1,21 +1,32 @@
 #!/usr/bin/env bash
 
-# Uso: ./script.sh 8.8.8.8
+# Uso: ./pgc <IP|host_ssh>
 
-IP="$1"
+TARGET="$1"
+[ -z "$TARGET" ] && { echo "Uso: $0 <IP o host>"; exit 1; }
 
-if [ -z "$IP" ]; then
-  echo "Uso: $0 <IP o host>"
-  exit 1
+# Resolver alias SSH -> HostName (si existe)
+RESOLVED="$TARGET"
+if command -v ssh >/dev/null 2>&1; then
+  HN=$(ssh -G "$TARGET" 2>/dev/null | awk '/^hostname /{print $2; exit}')
+  if [ -n "$HN" ] && [ "$HN" != "%h" ]; then
+    RESOLVED="$HN"
+  fi
+fi
+
+# Ajustar ping según OS
+if [ "$(uname)" = "Darwin" ]; then
+  PING_OPTS="-c 1 -W 1000"
+else
+  PING_OPTS="-c 1 -W 1"
 fi
 
 while true; do
-  if ping -c1 -W1 "$IP" >/dev/null 2>&1; then
-    # Verde
-    echo -e "\033[1;32m$IP ONLINE\033[0m"
+  TIME=$(date +"%M:%S")
+  if ping $PING_OPTS "$RESOLVED" >/dev/null 2>&1; then
+    echo -e "$TIME \033[1;32m$TARGET ONLINE\033[0m"
   else
-    # Rojo
-    echo -e "\033[1;31m$IP OFFLINE\033[0m"
+    echo -e "$TIME \033[1;31m$TARGET OFFLINE\033[0m"
   fi
-  sleep 3
+  sleep 5
 done
