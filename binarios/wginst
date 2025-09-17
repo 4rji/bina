@@ -92,9 +92,76 @@ echo -e "\033[0;32mUpdating root crontab...\033[0m"
   echo "* * * * * /usr/local/bin/check_wg.sh"; \
   echo "*/30 * * * * /usr/local/bin/bb8reconnect.sh" ) | sudo crontab -
 
+
+# === FAILOVER dominio↔IP (lectura dinámica del .conf) ===
+echo -e "\033[0;32mCreating /usr/local/bin/wg_failover.sh...\033[0m"
+sudo tee /usr/local/bin/wg_failover.sh >/dev/null <<'EOF'
+#!/usr/bin/env bash
+set -e
+IFACE="${interface_name:-wg0}"
+CONF="/etc/wireguard/${IFACE}.conf"
+
+# Si no existe, intenta usar el .conf pasado al script principal
+[ -f "$CONF" ] || { [ -n "$config_file" ] && CONF="$config_file"; }
+
+# Extrae del .conf el PublicKey del servidor y el Endpoint (dominio:puerto)
+PUBKEY=$(awk -F= '/^\s*\[Peer]/{p=1;next} p && /^\s*PublicKey/{gsub(/[[:space:]]/,"",$2);print $2;exit}' "$CONF")
+EP=$(awk -F= '/^\s*\[Peer]/{p=1;next} p && /^\s*Endpoint/{gsub(/[[:space:]]/,"",$2);print $2;exit}' "$CONF")
+
+DOM=${EP%:*}
+PORT=${EP##*:}
+
+IP="${WG_FAILOVER_IP:-23.53.181.11}"         # <-- AJUSTA la IP fallback
+DOMAIN_EP="$DOM:$PORT"
+IP_EP="$IP:$PORT"
+
+ok(){ ping -c1 -W1 "$1" >/dev/null 2>&1; }
+cur(){ wg show "$IFACE" endpoints | awk -v k="$PUBKEY" '$1==k{print $2}'; }
+setep(){ wg set "$IFACE" peer "$PUBKEY" endpoint "$1"; }
+
+# Asegura interfaz arriba
+wg show "$IFACE" >/dev/null 2>&1 || wg-quick up "$IFACE" >/dev/null 2>&1
+
+# Preferir dominio; si falla, usar IP
+if ok "$DOM"; then
+  [ "$(cur)" != "$DOMAIN_EP" ] && setep "$DOMAIN_EP"
+elif ok "$IP"; then
+  [ "$(cur)" != "$IP_EP" ] && setep "$IP_EP"
+fi
+EOF
+sudo chmod +x /usr/local/bin/wg_failover.sh
+
+# === Cron cada 15 min (idempotente) ===
+echo -e "\033[0;32mAdding cron every 15 minutes for wg_failover.sh...\033[0m"
+( sudo crontab -l 2>/dev/null | grep -v '/usr/local/bin/wg_failover.sh'; \
+  echo "*/15 * * * * WG_FAILOVER_IP=23.53.181.11 /usr/local/bin/wg_failover.sh" ) | sudo crontab -
+
+  
 echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
-echo -e "\033[1;37mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only.\033[0m"
-echo -e "\n\033[1;33m_________________________________________________________\033[0m\n"
+
+echo -e "\n\033[1;34mWG FAILOVER — Instrucciones rápidas\033[0m"
+
+echo -e "\033[1;33m1) Cambiar la IP fallback\033[0m"
+echo -e "   sudo crontab -e"
+echo -e "   # Edita la línea del cron (cada 15 min):"
+echo -e "   */15 * * * * WG_FAILOVER_IP=23.53.181.11 /usr/local/bin/wg_failover.sh"
+echo -e "   # Reemplaza 23.53.181.11 por tu IP.\n"
+echo -e "   # Test inmediato (sin esperar cron):"
+echo -e "   sudo WG_FAILOVER_IP=<NUEVA_IP> /usr/local/bin/wg_failover.sh\n"
+
+echo -e "\033[1;33m2) Cambiar la interfaz WireGuard\033[0m"
+echo -e "   sudo nano /usr/local/bin/wg_failover.sh"
+echo -e "   # Edita la línea: IFACE=\"wg0\"   # pon tu interfaz real\n"
+
+echo -e "\033[1;33m3) Cambiar la ruta del script\033[0m"
+echo -e "   sudo mv /usr/local/bin/wg_failover.sh /opt/wg_failover.sh"
+echo -e "   sudo crontab -e"
+echo -e "   # Actualiza la ruta en la línea del cron:"
+echo -e "   */15 * * * * WG_FAILOVER_IP=<IP> /opt/wg_failover.sh\n"
+
+echo -e "\033[1;33m4) Config del cliente\033[0m"
+echo -e "   /etc/wireguard/<IFACE>.conf  (Endpoint debe quedar con el DOMINIO: vipiji.com:51822)\n"
 
 sudo crontab -l
 echo
+

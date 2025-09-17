@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+# Uso: ./script.sh 8.8.8.8
+
+IP="$1"
+
+if [ -z "$IP" ]; then
+  echo "Uso: $0 <IP o host>"
+  exit 1
+fi
+
+while true; do
+  if ping -c1 -W1 "$IP" >/dev/null 2>&1; then
+    # Verde
+    echo -e "\033[1;32m$IP ONLINE\033[0m"
+  else
+    # Rojo
+    echo -e "\033[1;31m$IP OFFLINE\033[0m"
+  fi
+  sleep 3
+done

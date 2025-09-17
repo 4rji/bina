@@ -490,6 +490,7 @@ zshinst             Instala la zsh h-my-zsh powerlevel10k
 zshinst2            Instala la configuracion de barra terminal .p10k.zsh, 
 tmuxinst            Archivos para la configuracion de tmux, lo instala. con B
 neofetchinst        Instala y personaliza neofetch para ppg1
+pgc                 Ping para verificar si host esta online o no cada 3 segundos. 
 kittyinst           Instala kitty y baja su configuracion
 ovpninst            Instala OpenvpnServer para webadmin, 4rjiDocs
 
