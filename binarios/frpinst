@@ -27,9 +27,12 @@ $SUDO install -m 0755 "${PKG}/frps" /usr/local/bin/
 $SUDO install -m 0755 "${PKG}/frpc" /usr/local/bin/
 
 echo -e "${BLD}${BLU}>> Bajando frpc.toml y frps.toml al directorio: ${YLW}${PKG}${RST}"
+echo -e "${BLD}${BLU}>> Muévelo a ${YLW}/opt/4rji/bin${BLU} después de configurar tus datos${RST}"
+
 cd "${PKG}"
 
 echo -e "${GRN}${BLD}OK.${RST} ${BLD}Binarios instalados y configs descargadas.${RST}"
-echo -e "${YLW}Recuerda agregar al crontab si usas start.sh:${RST}"
-echo -e "${BLD}${GRN}* * * * * /home/havi/frp_${VER}_linux_amd64/start.sh${RST}"
+echo -e "${YLW}Recuerda agregar al crontab si usas frpstart:${RST}"
+echo -e "${BLD}${GRN}* * * * * /opt/4rji/bin/frpstart${RST}"
+
 
