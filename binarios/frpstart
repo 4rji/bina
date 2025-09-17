@@ -1,0 +1,4 @@
+#!/bin/bash
+if ! /usr/bin/pgrep -f "/home/havi/frp_0.62.1_linux_amd64/frpc.toml" >/dev/null; then
+    nohup /home/havi/frp_0.62.1_linux_amd64/frpc -c /home/havi/frp_0.62.1_linux_amd64/frpc.toml >>/home/havi/frpc.log 2>&1 &
+fi
