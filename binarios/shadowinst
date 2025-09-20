@@ -10,9 +10,11 @@ echo_msg() {
 }
 
 usage() {
-  echo -e "\033[36mUsage:\033[0m  $0 -i  |  -c [ips|file]  |  -m [ips|file]"
+  echo ""
+  echo -e "\033[36mUsage:\033[0m  $0 -i (install)  |  -c [ips|file] (inst-client)  |  -m [ips|file] (inst-client-mac)  |  -r (execute)"
   echo ""
   echo -e "\033[36mRECOMENDADO:\033[0m  Puedes pasar IPs separadas por espacios o comas, o un archivo con una IP por línea. "
+
   echo ""
   exit 1
 }
@@ -105,15 +107,51 @@ parse_ips_input() {
   fi
 }
 
+run_from_saved() {
+  ensure_dir
+  echo_msg "RUN A SAVED CONFIG"
+
+  mapfile -t configs < <(find "$SSHA_DIR" -maxdepth 1 -type f -name "*.json" | sort)
+  if [ ${#configs[@]} -eq 0 ]; then
+    echo -e "\033[31mNo configs found in $SSHA_DIR.\033[0m"
+    exit 1
+  fi
+
+  echo -e "\033[36mAvailable configs:\033[0m"
+  for i in "${!configs[@]}"; do
+    base="$(basename "${configs[$i]}")"
+    echo "[$((i+1))] $base"
+  done
+  echo ""
+
+  read -p $'\033[33mSelect a number:\033[0m ' sel
+  if ! [[ "$sel" =~ ^[0-9]+$ ]] || [ "$sel" -lt 1 ] || [ "$sel" -gt "${#configs[@]}" ]; then
+    echo -e "\033[31mInvalid selection.\033[0m"
+    exit 1
+  fi
+  cfg_path="${configs[$((sel-1))]}"
+
+  echo_msg "VERIFY CONNECTIVITY (before running)"
+  echo -e "\033[33mIn another terminal, once started, you can verify with:\033[0m"
+  echo "curl --socks5 127.0.0.1:1080 https://ifconfig.me"
+  echo ""
+
+  echo -e "\033[36mStarting client in foreground:\033[0m"
+  echo "ss-local -c \"$cfg_path\" -v"
+  echo ""
+  exec ss-local -c "$cfg_path" -v
+}
+
 # --- Parse options ---
 [ $# -eq 0 ] && usage
 
 MODE=""
-while getopts ":icm" opt; do
+while getopts ":icmr" opt; do
   case "$opt" in
     i) MODE="i" ;;
     c) MODE="c" ;;
     m) MODE="m" ;;
+    r) MODE="r" ;;
     *) usage ;;
   esac
 done
@@ -164,6 +202,10 @@ EOF
     for ip in "${IP_LIST[@]}"; do
       write_client_config "$ip" "macos"
     done
+    ;;
+
+  r)
+    run_from_saved
     ;;
 
   *)
