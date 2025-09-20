@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+set -e
+
+usage() {
+  echo "Uso: $0 -i (instalar servidor) | -c (configurar cliente)"
+  exit 1
+}
+
+if [ $# -eq 0 ]; then
+  usage
+fi
+
+while getopts "ic" opt; do
+  case "$opt" in
+    i)
+      echo ">>> Instalando Shadowsocks servidor..."
+      sudo apt update
+      sudo apt install -y shadowsocks-libev
+
+      cat <<EOF | sudo tee /etc/shadowsocks-libev/config.json
+{
+    "server": "0.0.0.0",
+    "server_port": 8388,
+    "password": "nalanga12",
+    "method": "aes-256-gcm",
+    "timeout": 300,
+    "fast_open": true
+}
+EOF
+
+      sudo systemctl enable shadowsocks-libev
+      sudo systemctl restart shadowsocks-libev
+      echo ">>> Servidor instalado y corriendo en el puerto 8388"
+      ;;
+    c)
+      read -p "IP del servidor: " IP
+      echo ">>> Configurando cliente para servidor $IP"
+      sudo apt update
+      sudo apt install -y shadowsocks-libev
+
+      cat <<EOF > ~/.shadowsock-cl.json
+{
+    "server": "$IP",
+    "server_port": 8388,
+    "local_address": "127.0.0.1",
+    "local_port": 1080,
+    "password": "nalanga12",
+    "method": "aes-256-gcm"
+}
+EOF
+
+      echo ""
+      echo ">>> Cliente configurado."
+      echo "Para lanzarlo en foreground:"
+      echo "ss-local -c ~/.shadowsock-cl.json -v"
+      echo ""
+      echo "Para lanzarlo en background con &:"
+      echo "ss-local -c ~/.shadowsock-cl.json -v &"
+      echo ""
+      echo "Para lanzarlo con nohup:"
+      echo "nohup ss-local -c ~/.shadowsock-cl.json -v > ss-client.log 2>&1 &"
+      echo ""
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
