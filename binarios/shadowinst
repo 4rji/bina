@@ -1,21 +1,35 @@
 #!/usr/bin/env bash
-
 set -e
 
+# ==============================================
+# Message helper
+echo_msg() {
+    echo ""
+    echo "=============================================="
+    echo "$1"
+    echo "=============================================="
+    echo ""
+}
+# ==============================================
+
 usage() {
-  echo "Uso: $0 -i (instalar servidor) | -c (configurar cliente)"
+  echo -e "\033[36mUsage:\033[0m  $0 -i (install server)  |  -c (configure client)"
+  echo ""
   exit 1
 }
 
-if [ $# -eq 0 ]; then
-  usage
-fi
+[ $# -eq 0 ] && usage
 
 while getopts "ic" opt; do
   case "$opt" in
     i)
-      echo ">>> Instalando Shadowsocks servidor..."
-      sudo apt update
+      echo ""
+      echo "_________________________________________________________"
+      echo ""
+      echo -e "\033[35m>>> Installing Shadowsocks server...\033[0m"
+      echo ""
+
+      #sudo apt update
       sudo apt install -y shadowsocks-libev
 
       cat <<EOF | sudo tee /etc/shadowsocks-libev/config.json
@@ -31,12 +45,24 @@ EOF
 
       sudo systemctl enable shadowsocks-libev
       sudo systemctl restart shadowsocks-libev
-      echo ">>> Servidor instalado y corriendo en el puerto 8388"
+
+      echo_msg "SERVER READY ON PORT 8388"
+      echo -e "\033[32mCheck listening port:\033[0m  ss -lnpt | grep 8388"
+      echo ""
+      echo "_________________________________________________________"
+      echo ""
       ;;
     c)
-      read -p "IP del servidor: " IP
-      echo ">>> Configurando cliente para servidor $IP"
-      sudo apt update
+      echo ""
+      echo "_________________________________________________________"
+      echo ""
+      echo -e "\033[34m>>> Configuring Shadowsocks client...\033[0m"
+      echo ""
+
+      read -p $'\033[33mServer IP: \033[0m' IP
+      echo ""
+
+     # sudo apt update
       sudo apt install -y shadowsocks-libev
 
       cat <<EOF > ~/.shadowsock-cl.json
@@ -50,16 +76,24 @@ EOF
 }
 EOF
 
+      echo_msg "CLIENT CONFIGURED"
+
+      echo -e "\033[36mRun in foreground:\033[0m"
+      echo "  ss-local -c ~/.shadowsock-cl.json -v"
       echo ""
-      echo ">>> Cliente configurado."
-      echo "Para lanzarlo en foreground:"
-      echo "ss-local -c ~/.shadowsock-cl.json -v"
+
+      echo -e "\033[35mRun in background with &:\033[0m"
+      echo "  ss-local -c ~/.shadowsock-cl.json -v &"
       echo ""
-      echo "Para lanzarlo en background con &:"
-      echo "ss-local -c ~/.shadowsock-cl.json -v &"
+
+      echo -e "\033[32mRun with nohup (no extra log redirection):\033[0m"
+      echo "  nohup ss-local -c ~/.shadowsock-cl.json -v &"
       echo ""
-      echo "Para lanzarlo con nohup:"
-      echo "nohup ss-local -c ~/.shadowsock-cl.json -v > ss-client.log 2>&1 &"
+
+      echo -e "\033[33mQuick test through SOCKS5 proxy:\033[0m"
+      echo "  curl --socks5 127.0.0.1:1080 https://ifconfig.me"
+      echo ""
+      echo "_________________________________________________________"
       echo ""
       ;;
     *)
