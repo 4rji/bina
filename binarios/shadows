@@ -11,7 +11,7 @@ echo_msg() {
 
 usage() {
   echo ""
-  echo -e "\033[36mUsage:\033[0m  $0 -i (install)  |  -c [ips|file] (inst-client)  |  -m [ips|file] (inst-client-mac)  |  -r (execute)"
+  echo -e "\033[36mUsage:\033[0m  $0 -s (server)  |  -c [ips|file] (inst-client)  |  -m [ips|file] (inst-client-mac)  |  -r (execute)"
   echo ""
   echo -e "\033[36mRECOMENDADO:\033[0m  Puedes pasar IPs separadas por espacios o comas, o un archivo con una IP por línea. "
   echo "adjuntar o usar:  /opt/4rji/bin/shadowips"
@@ -25,149 +25,13 @@ ensure_dir() {
   chmod 700 "$SSHA_DIR"
 }
 
-sanitize_ip() {
-  local ip="$1"
-  echo "${ip//./-}"
-}
-
-write_client_config() {
-  local ip="$1"
-  local flavor="$2"   # linux|macos
-  local ip_sanitized
-  ip_sanitized="$(sanitize_ip "$ip")"
-  local cfg_name=".$flavor-${ip_sanitized}.json"
-  local cfg_path="$SSHA_DIR/$cfg_name"
-
-  cat > "$cfg_path" <<EOF
-{
-  "server": "$ip",
-  "server_port": 8388,
-  "local_address": "127.0.0.1",
-  "local_port": 1080,
-  "password": "nalanga12",
-  "method": "aes-256-gcm"
-}
-EOF
-  chmod 600 "$cfg_path"
-
-  echo -e "\033[32mCreated config:\033[0m"
-  echo "$cfg_path"
-  echo ""
-
-  echo -e "\033[36mRun in foreground:\033[0m"
-  echo "ss-local -c \"$cfg_path\" -v"
-  echo ""
-
-  echo -e "\033[35mRun in background:\033[0m"
-  echo "ss-local -c \"$cfg_path\" -v &"
-  echo ""
-
-  echo -e "\033[33mQuick test:\033[0m"
-  echo "curl --socks5 127.0.0.1:1080 https://ifconfig.me"
-  echo ""
-}
-
-collect_ips_interactive() {
-  IP_LIST=()
-  while true; do
-    read -p $'\033[33mServer IP:\033[0m ' ip
-    ip="$(echo -n "$ip" | tr -d '[:space:]')"
-    [ -z "$ip" ] && continue
-    IP_LIST+=("$ip")
-    read -p $'\033[36mAdd another server? [Y/n]:\033[0m ' more
-    more_lc="$(echo "${more:-}" | tr '[:upper:]' '[:lower:]')"
-    case "$more_lc" in
-      n|no) echo ""; break ;;
-      *) echo "" ;;
-    esac
-  done
-}
-
-parse_ips_input() {
-  IP_LIST=()
-  if [ $# -gt 0 ]; then
-    if [ $# -eq 1 ] && [ -r "$1" ]; then
-      while IFS= read -r line || [ -n "$line" ]; do
-        tok="$(echo "$line" | sed 's/#.*//' | tr -d ' \t\r')"
-        [ -n "$tok" ] && IP_LIST+=("$tok")
-      done < "$1"
-    else
-      local raw="$*"
-      raw="${raw//,/ }"
-      for token in $raw; do
-        [ -n "$token" ] && IP_LIST+=("$token")
-      done
-    fi
-  else
-    collect_ips_interactive
-  fi
-  if [ ${#IP_LIST[@]} -eq 0 ]; then
-    echo -e "\033[31mNo IPs provided.\033[0m"
-    exit 1
-  fi
-}
-
-run_from_saved() {
-  ensure_dir
-  echo_msg "RUN A SAVED CONFIG"
-
-  # Portable listing (works on macOS Bash 3.2 and Linux)
-  configs=()
-  if [ "$(uname -s)" = "Darwin" ]; then
-    while IFS= read -r f; do
-      [ -n "$f" ] && configs+=("$f")
-    done <<EOF
-$(find "$SSHA_DIR" -maxdepth 1 -type f -name "*.json" | sort)
-EOF
-  else
-    if command -v mapfile >/dev/null 2>&1; then
-      mapfile -t configs < <(find "$SSHA_DIR" -maxdepth 1 -type f -name "*.json" | sort)
-    else
-      while IFS= read -r f; do
-        [ -n "$f" ] && configs+=("$f")
-      done <<EOF
-$(find "$SSHA_DIR" -maxdepth 1 -type f -name "*.json" | sort)
-EOF
-    fi
-  fi
-
-  if [ ${#configs[@]} -eq 0 ]; then
-    echo -e "\033[31mNo configs found in $SSHA_DIR.\033[0m"
-    exit 1
-  fi
-
-  echo -e "\033[36mAvailable configs:\033[0m"
-  for i in "${!configs[@]}"; do
-    base="$(basename "${configs[$i]}")"
-    echo "[$((i+1))] $base"
-  done
-  echo ""
-
-  read -p $'\033[33mSelect a number:\033[0m ' sel
-  if ! [[ "$sel" =~ ^[0-9]+$ ]] || [ "$sel" -lt 1 ] || [ "$sel" -gt "${#configs[@]}" ]; then
-    echo -e "\033[31mInvalid selection.\033[0m"
-    exit 1
-  fi
-  cfg_path="${configs[$((sel-1))]}"
-
-  echo_msg "VERIFY CONNECTIVITY (before running)"
-  echo -e "\033[33mIn another terminal, once started, you can verify with:\033[0m"
-  echo "curl --socks5 127.0.0.1:1080 https://ifconfig.me"
-  echo ""
-
-  echo -e "\033[36mStarting client in foreground:\033[0m"
-  echo "ss-local -c \"$cfg_path\" -v"
-  echo ""
-  exec ss-local -c "$cfg_path" -v
-}
-
 # --- Parse options ---
 [ $# -eq 0 ] && usage
 
 MODE=""
-while getopts ":icmr" opt; do
+while getopts ":scmr" opt; do
   case "$opt" in
-    i) MODE="i" ;;
+    s) MODE="s" ;;
     c) MODE="c" ;;
     m) MODE="m" ;;
     r) MODE="r" ;;
@@ -178,10 +42,15 @@ shift $((OPTIND-1))   # remaining args are IPs or file
 ARGS=("$@")
 
 case "$MODE" in
-  i)
+  s)
     echo_msg "SERVER INSTALL (Debian/Ubuntu)"
-    sudo apt update
-    sudo apt install -y shadowsocks-libev
+    
+    if ! dpkg -s shadowsocks-libev >/dev/null 2>&1; then
+      sudo apt install -y shadowsocks-libev
+    else
+      echo -e "\033[33mAlready installed.\033[0m"
+      echo ""
+    fi
     sudo tee /etc/shadowsocks-libev/config.json >/dev/null <<'EOF'
 {
   "server": "0.0.0.0",
@@ -194,14 +63,21 @@ case "$MODE" in
 EOF
     sudo systemctl enable shadowsocks-libev
     sudo systemctl restart shadowsocks-libev
+    echo ""
+    ss -tulpn | grep 8388
+    echo ""
     echo -e "\033[32mSERVER READY ON PORT 8388\033[0m"
     echo ""
+    echo -e "\033[36mTo start server manually:\033[0m"
+    echo "ss-server -c /etc/shadowsocks-libev/config.json -v"
+    echo ""
+    echo "pidof ss-server and kill -9"
     ;;
 
   c)
     ensure_dir
     echo_msg "CLIENT CONFIGURATION (Linux)"
-    sudo apt update
+    
     sudo apt install -y shadowsocks-libev
     parse_ips_input "${ARGS[@]}"
     for ip in "${IP_LIST[@]}"; do
