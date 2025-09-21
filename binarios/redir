@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CFG="$HOME/.ssha/.linux-192-168-3-19.json"
+PORT=12345
+OWNER_UID="${SUDO_UID:-$UID}"
+
+cleanup() {
+  # stop ss-redir if running
+  if [[ -n "${SS_PID:-}" ]]; then
+    kill "$SS_PID" 2>/dev/null || true
+    wait "$SS_PID" 2>/dev/null || true
+  else
+    pkill -f "ss-redir -c $CFG" 2>/dev/null || true
+  fi
+
+  # remove iptables rule (ignore errors)
+  sudo iptables -t nat -D OUTPUT -p tcp --dport 443 -m owner --uid-owner "$OWNER_UID" -j REDIRECT --to-ports "$PORT" 2>/dev/null || true
+}
+
+trap cleanup EXIT INT TERM
+
+# insert rule
+sudo iptables -t nat -I OUTPUT -p tcp --dport 443 -m owner --uid-owner "$OWNER_UID" -j REDIRECT --to-ports "$PORT"
+
+# start ss-redir in background and wait
+ss-redir -c "$CFG" -l "$PORT" -u -v &
+SS_PID=$!
+wait "$SS_PID"

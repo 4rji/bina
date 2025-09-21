@@ -544,6 +544,7 @@ sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 search              Crea datos para la pagina web, para llenar la base de busqueda search
 
 #Redstuff
+redir               Redirige todo el trafico de la maquina por shadows info pagina web docs.4r
 shadows             Shadowsocks como tor socks tunnel tipo vpn cliente o servidor instala
 bashrc-rvshell      reverse shell en la bashrc
 iodine-connect      Script que conecta iodine a mi c2. automatizado
