@@ -111,7 +111,26 @@ run_from_saved() {
   ensure_dir
   echo_msg "RUN A SAVED CONFIG"
 
-  mapfile -t configs < <(find "$SSHA_DIR" -maxdepth 1 -type f -name "*.json" | sort)
+  # Portable listing (works on macOS Bash 3.2 and Linux)
+  configs=()
+  if [ "$(uname -s)" = "Darwin" ]; then
+    while IFS= read -r f; do
+      [ -n "$f" ] && configs+=("$f")
+    done <<EOF
+$(find "$SSHA_DIR" -maxdepth 1 -type f -name "*.json" | sort)
+EOF
+  else
+    if command -v mapfile >/dev/null 2>&1; then
+      mapfile -t configs < <(find "$SSHA_DIR" -maxdepth 1 -type f -name "*.json" | sort)
+    else
+      while IFS= read -r f; do
+        [ -n "$f" ] && configs+=("$f")
+      done <<EOF
+$(find "$SSHA_DIR" -maxdepth 1 -type f -name "*.json" | sort)
+EOF
+    fi
+  fi
+
   if [ ${#configs[@]} -eq 0 ]; then
     echo -e "\033[31mNo configs found in $SSHA_DIR.\033[0m"
     exit 1
@@ -212,4 +231,3 @@ EOF
     usage
     ;;
 esac
-
