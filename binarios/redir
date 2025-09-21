@@ -1,29 +1,44 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-CFG="$HOME/.ssha/.linux-192-168-3-19.json"
+SSHA_DIR="$HOME/.ssha"
 PORT=12345
 OWNER_UID="${SUDO_UID:-$UID}"
+SS_PID=""
+RULE_ADDED=0
 
 cleanup() {
-  # stop ss-redir if running
-  if [[ -n "${SS_PID:-}" ]]; then
+  if (( RULE_ADDED )); then
+    sudo iptables -t nat -D OUTPUT -p tcp --dport 443 -m owner --uid-owner "$OWNER_UID" -j REDIRECT --to-ports "$PORT" 2>/dev/null || true
+  fi
+  if [[ -n "$SS_PID" ]]; then
     kill "$SS_PID" 2>/dev/null || true
     wait "$SS_PID" 2>/dev/null || true
-  else
-    pkill -f "ss-redir -c $CFG" 2>/dev/null || true
   fi
-
-  # remove iptables rule (ignore errors)
-  sudo iptables -t nat -D OUTPUT -p tcp --dport 443 -m owner --uid-owner "$OWNER_UID" -j REDIRECT --to-ports "$PORT" 2>/dev/null || true
 }
+trap 'cleanup; exit 130' INT
+trap 'cleanup' EXIT TERM
 
-trap cleanup EXIT INT TERM
+mapfile -t files < <(find "$SSHA_DIR" -maxdepth 1 -type f -name '*.json' -printf '%f\n' 2>/dev/null | sort)
+(( ${#files[@]} )) || { echo "No hay archivos .json en $SSHA_DIR"; exit 1; }
 
-# insert rule
+echo "Elige una conexión:"
+for i in "${!files[@]}"; do printf "%2d) %s\n" $((i+1)) "${files[i]}"; done
+
+while true; do
+  read -rp "Número (1-${#files[@]}): " sel || exit 130
+  if [[ "$sel" =~ ^[0-9]+$ ]] && (( sel >= 1 && sel <= ${#files[@]} )); then
+    CFG="$SSHA_DIR/${files[sel-1]}"
+    break
+  fi
+  echo "Selección inválida."
+done
+
 sudo iptables -t nat -I OUTPUT -p tcp --dport 443 -m owner --uid-owner "$OWNER_UID" -j REDIRECT --to-ports "$PORT"
+RULE_ADDED=1
 
-# start ss-redir in background and wait
 ss-redir -c "$CFG" -l "$PORT" -u -v &
 SS_PID=$!
+
+trap 'kill -TERM "$SS_PID" 2>/dev/null; cleanup; exit 130' INT
 wait "$SS_PID"
