@@ -10,12 +10,22 @@ echo_msg() {
 }
 
 usage() {
-  echo ""
-  echo -e "\033[36mUsage:\033[0m  $0 -s (server)  |  -c [ips|file] (inst-client)  |  -m [ips|file] (inst-client-mac)  |  -r (execute)"
-  echo ""
-  echo -e "\033[36mRECOMENDADO:\033[0m  Puedes pasar IPs separadas por espacios o comas, o un archivo con una IP por línea. "
-  echo "adjuntar o usar:  /opt/4rji/bin/shadowips"
-  echo ""
+  cat <<'EOF'
+
+Uso: shadows [opción] [argumentos]
+
+Opciones:
+  -s              Instala y prepara el servidor Shadowsocks (Debian/Ubuntu).
+  -c [ips|file]   Genera configuraciones de cliente para Linux.
+  -m [ips|file]   Genera configuraciones de cliente para macOS.
+  -r              Ejecuta un cliente usando una configuración guardada.
+  -i              Instala el servicio systemd ss-server.
+  -r              Ejecuta otro script para redirigir todo el trafico CLI
+
+Tips: Puedes pasar IPs separadas por espacios/comas o un archivo con una IP por línea.
+      También puedes usar el archivo: /opt/4rji/bin/shadowips
+
+EOF
   exit 1
 }
 
@@ -164,12 +174,14 @@ EOF
 [ $# -eq 0 ] && usage
 
 MODE=""
-while getopts ":scmr" opt; do
+while getopts ":scmrih" opt; do
   case "$opt" in
     s) MODE="s" ;;
     c) MODE="c" ;;
     m) MODE="m" ;;
     r) MODE="r" ;;
+    i) MODE="i" ;;
+    h) usage ;;
     *) usage ;;
   esac
 done
@@ -234,6 +246,32 @@ EOF
 
   r)
     run_from_saved
+    ;;
+
+  i)
+    echo_msg "INSTALL SYSTEMD SERVICE (ss-server)"
+    sudo tee /etc/systemd/system/ss-server.service >/dev/null <<'EOF'
+[Unit]
+Description=Shadowsocks-libev Server
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/ss-server -c /etc/shadowsocks-libev/config.json -v
+Restart=always
+RestartSec=2
+LimitNOFILE=51200
+
+[Install]
+WantedBy=multi-user.target
+EOF
+    sudo systemctl daemon-reload
+    sudo systemctl enable ss-server.service
+    sudo systemctl restart ss-server.service
+    sudo systemctl status ss-server.service --no-pager
+    echo ""
+    echo -e "\033[32mSystemd service ss-server.service installed and active.\033[0m"
+    echo -e "\033[36mManage with:\033[0m sudo systemctl [status|restart|stop] ss-server.service"
     ;;
 
   *)
