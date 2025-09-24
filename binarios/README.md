@@ -557,6 +557,7 @@ ncarchivos          Muestra comandos para nc para enviar archivos o enviar coman
 socat1              Bajado de https://github.com/aledbf/socat-static-binary/releases/download/v0.0.1/socat-linux-amd64
 linpi               Baja comprimidos, que contiene linpi, enum, chisel, pspy64, etc.
 s1pinst             Servidor, usa dockers para un reverse proxy apuntando a servidor.yop.com de cloudflare
+cloudtunnel         Inicia cloudflare tunnel en la xps con servicios ya configurados en el dashboard de cloudf..
 johninst            Install john the ripper for GPU, from github.
 busq                alias busq='/opt/4rji/BreachCompilation/query.sh'
 pixeltrack          Instala servidor apache con un track pixel para email pixel track location
