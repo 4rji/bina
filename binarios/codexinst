@@ -40,6 +40,7 @@ echo ""
 install_and_try() {
   PKG="$1"
   CMD="$2"
+  VERFLAG="$3"
 
   echo_msg "$(echo -e "\033[1;36m  Installing $PKG  \033[0m")"
   echo ""
@@ -48,12 +49,11 @@ install_and_try() {
   echo ""
   echo -e "\033[1;32m  $PKG installed.  \033[0m"
 
-  # Attempt to execute a basic help if the command exists
   if command -v "$CMD" >/dev/null 2>&1; then
     echo ""
-    echo_msg "$(echo -e "\033[1;36m  Executing: $CMD --help  \033[0m")"
+    echo_msg "$(echo -e "\033[1;36m  Executing: $CMD $VERFLAG  \033[0m")"
     echo ""
-    "$CMD" --help || true
+    "$CMD" $VERFLAG || true
   else
     echo ""
     echo -e "\033[1;31m  Command not found after install: $CMD  \033[0m"
@@ -66,18 +66,18 @@ install_and_try() {
 
 case "$CHOICE" in
   1)
-    install_and_try "@anthropic-ai/claude-code" "claude-code"
+    install_and_try "@anthropic-ai/claude-code" "claude" "-v"
     ;;
   2)
-    install_and_try "@openai/codex" "codex"
+    install_and_try "@openai/codex" "codex" "--version"
     ;;
   3)
-    install_and_try "@google/gemini-cli" "gemini"
+    install_and_try "@google/gemini-cli" "gemini" "--version"
     ;;
   4)
-    install_and_try "@anthropic-ai/claude-code" "claude-code"
-    install_and_try "@openai/codex" "codex"
-    install_and_try "@google/gemini-cli" "gemini"
+    install_and_try "@anthropic-ai/claude-code" "claude" "-v"
+    install_and_try "@openai/codex" "codex" "--version"
+    install_and_try "@google/gemini-cli" "gemini" "--version"
     ;;
   5)
     echo_msg "$(echo -e "\033[1;36m  Bye!  \033[0m")"
