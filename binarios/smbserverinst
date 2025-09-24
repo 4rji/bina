@@ -143,8 +143,10 @@ EOF
       cat <<'MSG'
 Access instructions (user):
 - Linux (smbclient): smbclient //<HOST>/SHARE -U nalasmb
+smbclient //192.168.3.7/SHARE -N     (anonymo)
 - Linux (mount):     sudo mount.cifs //<HOST>/SHARE /mnt/smb -o username=nalasmb,vers=3.0
 - Windows Explorer:  \\<HOST>\SHARE  (user: nalasmb, password as set)
+
 MSG
     )
     ;;
@@ -164,14 +166,24 @@ sudo systemctl enable --now smbd nmbd
 # If you change /etc/samba/smb.conf later:
 # sudo systemctl restart smbd
 
+-----------------------------------------------------------------
+
 # Optional: open firewall (if using UFW)
 # sudo ufw allow 445/tcp
 # sudo ufw allow 139/tcp
 
 EONOTE
-
+echo ""
+echo ""
 echo "=== How to access ==="
 echo "${ACCESS_NOTE}"
 
-echo
+echo ""
+echo ""
+
 echo "Done. Replace <HOST> with the server IP or hostname. Share name is: SHARE."
+echo "Configuration: "
+echo "sudo nano $SMB_CONF"
+echo ""
+echo "Files:"
+echo "ls $SHARE_DIR"
