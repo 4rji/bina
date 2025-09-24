@@ -1,0 +1,177 @@
+#!/usr/bin/env bash
+# Debian/Ubuntu/Kali/CentOS/Fedora/Arch quick Samba setup
+# Options: anonymous guest share OR single user "nalasmb"
+
+set -euo pipefail
+
+SHARE_NAME="SHARE"
+SHARE_DIR="/srv/samba/share"
+SMB_CONF="/etc/samba/smb.conf"
+BACKUP_SUFFIX="$(date +%Y%m%d_%H%M%S)"
+
+# ==== Package check functions ====
+paquete_instalado_apt() { dpkg -l "$1" 2>/dev/null | grep -q '^ii'; }
+paquete_instalado_yum() { yum list installed "$1" &>/dev/null; }
+paquete_instalado_dnf() { dnf list installed "$1" &>/dev/null; }
+paquete_instalado_pacman() { pacman -Qi "$1" &>/dev/null; }
+
+# ==== Detect OS ====
+if [ -f /etc/os-release ]; then
+  . /etc/os-release
+  OS=$ID
+else
+  OS="unknown"
+fi
+
+# ==== Install samba if missing ====
+case $OS in
+  debian|ubuntu|kali)
+    if ! paquete_instalado_apt samba; then
+      echo "Installing samba..."
+      sudo apt-get update -y
+      sudo apt-get install -y samba
+    fi
+    ;;
+  centos|rhel)
+    if ! paquete_instalado_yum samba; then
+      echo "Installing samba..."
+      sudo yum install -y samba
+    fi
+    ;;
+  fedora)
+    if ! paquete_instalado_dnf samba; then
+      echo "Installing samba..."
+      sudo dnf install -y samba
+    fi
+    ;;
+  arch)
+    if ! paquete_instalado_pacman samba; then
+      echo "Installing samba..."
+      sudo pacman -S --noconfirm samba
+    fi
+    ;;
+  *)
+    echo "OS not recognized. Please install Samba manually."
+    ;;
+esac
+
+# ==== Prepare share dir ====
+sudo mkdir -p "${SHARE_DIR}"
+
+# ==== Backup config ====
+if [ -f "${SMB_CONF}" ]; then
+  echo "Backing up smb.conf -> ${SMB_CONF}.bak.${BACKUP_SUFFIX}"
+  sudo cp -a "${SMB_CONF}" "${SMB_CONF}.bak.${BACKUP_SUFFIX}"
+fi
+
+# ==== Ask access mode ====
+echo
+echo "Choose access mode:"
+echo "  1) Anonymous (guest, no password)"
+echo "  2) User 'nalasmb' (password required)"
+read -rp "Enter 1 or 2: " MODE
+
+# ==== Write global defaults ====
+sudo tee "${SMB_CONF}" >/dev/null <<'EOF'
+[global]
+   workgroup = WORKGROUP
+   server role = standalone server
+   server min protocol = SMB2
+   map to guest = Bad User
+   dns proxy = no
+EOF
+
+# ==== Configure share ====
+case "${MODE}" in
+  1)
+    echo "==> Configuring ANONYMOUS share..."
+    sudo chown -R nobody:nogroup "${SHARE_DIR}"
+    sudo chmod -R 0777 "${SHARE_DIR}"
+
+    sudo tee -a "${SMB_CONF}" >/dev/null <<EOF
+
+[${SHARE_NAME}]
+   path = ${SHARE_DIR}
+   browsable = yes
+   read only = no
+   guest ok = yes
+   guest only = yes
+   force user = nobody
+   create mask = 0666
+   directory mask = 0777
+EOF
+
+    ACCESS_NOTE=$(
+      cat <<'MSG'
+Access instructions (anonymous):
+- Linux (smbclient): smbclient //<HOST>/SHARE -N
+- Linux (mount):     sudo mount.cifs //<HOST>/SHARE /mnt/smb -o guest,vers=3.0
+- Windows Explorer:  \\<HOST>\SHARE
+MSG
+    )
+    ;;
+
+  2)
+    echo "==> Configuring USER share (user: nalasmb)..."
+    sudo groupadd -f sambashare
+    if ! id -u nalasmb >/dev/null 2>&1; then
+      sudo useradd -m -s /bin/bash -G sambashare nalasmb
+    else
+      sudo usermod -aG sambashare nalasmb
+    fi
+
+    sudo chown -R nalasmb:sambashare "${SHARE_DIR}"
+    sudo chmod -R 2770 "${SHARE_DIR}"
+
+    echo "==> Set SMB password for user 'nalasmb' (prompt follows):"
+    sudo smbpasswd -a nalasmb
+
+    sudo tee -a "${SMB_CONF}" >/dev/null <<EOF
+
+[${SHARE_NAME}]
+   path = ${SHARE_DIR}
+   browsable = yes
+   read only = no
+   guest ok = no
+   valid users = nalasmb
+   force user = nalasmb
+   create mask = 0660
+   directory mask = 2770
+EOF
+
+    ACCESS_NOTE=$(
+      cat <<'MSG'
+Access instructions (user):
+- Linux (smbclient): smbclient //<HOST>/SHARE -U nalasmb
+- Linux (mount):     sudo mount.cifs //<HOST>/SHARE /mnt/smb -o username=nalasmb,vers=3.0
+- Windows Explorer:  \\<HOST>\SHARE  (user: nalasmb, password as set)
+MSG
+    )
+    ;;
+  *)
+    echo "Invalid option. Aborting." >&2
+    exit 1
+    ;;
+esac
+
+# ==== Validate config ====
+sudo testparm -s >/dev/null
+
+cat <<'EONOTE'
+
+=== Manual activation (run these when ready) ===
+sudo systemctl enable --now smbd nmbd
+# If you change /etc/samba/smb.conf later:
+# sudo systemctl restart smbd
+
+# Optional: open firewall (if using UFW)
+# sudo ufw allow 445/tcp
+# sudo ufw allow 139/tcp
+
+EONOTE
+
+echo "=== How to access ==="
+echo "${ACCESS_NOTE}"
+
+echo
+echo "Done. Replace <HOST> with the server IP or hostname. Share name is: SHARE."

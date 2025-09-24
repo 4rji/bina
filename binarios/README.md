@@ -178,6 +178,8 @@ servidorvideo       Crea en docker alpine como servidor, monta una carpeta para 
 
 
 #Util
+smbserverinst       Instala smb server en debian con usuario nalasmb o anonimo
+smbserver           smb termporar usando impact en python3
 https-bloq-boots    Detecta IPs al puerto 443 en ips.txt y las bloquea o ralentiza automáticamente vía firewall.
 backd-detect        detecta conexiones sospechosas hacia rangos RFC1918 e identifica procesos asociados
 bloquearip          Bloquea IPs (./scrt IP o de ips.txt) agregando a un set ipset y aplicando una regla iptables
