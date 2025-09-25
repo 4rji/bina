@@ -28,10 +28,11 @@ echo -e "\033[1;33m    [1]  Install @anthropic-ai/claude-code  \033[0m"
 echo -e "\033[1;32m    [2]  Install @openai/codex              \033[0m"
 echo -e "\033[1;34m    [3]  Install @google/gemini-cli         \033[0m"
 echo -e "\033[1;36m    [4]  Install ALL                         \033[0m"
-echo -e "\033[1;31m    [5]  Exit                                \033[0m"
+echo -e "\033[1;35m    [5]  Install Cursor                      \033[0m"
+echo -e "\033[1;31m    [6]  Exit                                \033[0m"
 
 echo ""
-read -rp "$(echo -e "\033[1;35m  Enter choice [1-5]: \033[0m")" CHOICE
+read -rp "$(echo -e "\033[1;35m  Enter choice [1-6]: \033[0m")" CHOICE
 
 echo ""
 echo "_________________________________________________________"
@@ -64,6 +65,18 @@ install_and_try() {
   echo ""
 }
 
+install_cursor() {
+  echo_msg "$(echo -e "\033[1;36m  Installing Cursor  \033[0m")"
+  echo ""
+  echo -e "\033[1;33m  Running: curl https://cursor.com/install -fsS | bash  \033[0m"
+  curl https://cursor.com/install -fsS | bash
+  echo ""
+  echo -e "\033[1;32m  Cursor installed.  \033[0m"
+  echo ""
+  echo "_________________________________________________________"
+  echo ""
+}
+
 case "$CHOICE" in
   1)
     install_and_try "@anthropic-ai/claude-code" "claude" "-v"
@@ -78,8 +91,12 @@ case "$CHOICE" in
     install_and_try "@anthropic-ai/claude-code" "claude" "-v"
     install_and_try "@openai/codex" "codex" "--version"
     install_and_try "@google/gemini-cli" "gemini" "--version"
+    install_cursor
     ;;
   5)
+    install_cursor
+    ;;
+  6)
     echo_msg "$(echo -e "\033[1;36m  Bye!  \033[0m")"
     exit 0
     ;;
