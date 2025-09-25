@@ -72,6 +72,17 @@ install_cursor() {
   curl https://cursor.com/install -fsS | bash
   echo ""
   echo -e "\033[1;32m  Cursor installed.  \033[0m"
+
+  if command -v cursor >/dev/null 2>&1; then
+    echo ""
+    echo_msg "$(echo -e "\033[1;36m  Executing: cursor --version  \033[0m")"
+    echo ""
+    cursor --version || true
+  else
+    echo ""
+    echo -e "\033[1;31m  Command not found after install: cursor  \033[0m"
+  fi
+
   echo ""
   echo "_________________________________________________________"
   echo ""
