@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+# ddnsinst: install a cron job to run /opt/4rji/bin/ddns every 5 minutes
+
+set -euo pipefail
+
+# Function to display messages
+echo_msg() {
+    echo "=============================================="
+    echo "$1"
+    echo "=============================================="
+}
+
+JOB_CMD="/opt/4rji/bin/ddns"
+CRON_LINE="*/5 * * * * ${JOB_CMD} >/dev/null 2>&1"
+
+
+
+# Add cron entry if not already present
+if crontab -l 2>/dev/null | grep -Fq "$JOB_CMD"; then
+  :
+else
+  (crontab -l 2>/dev/null; echo "$CRON_LINE") | crontab -
+fi
+
+echo ""
+
+# Title / important notice
+echo_msg "$(echo -e "\033[1;36m  DDNS installer  \033[0m")"
+
+# Messages (each with a different ANSI color)
+echo -e "\033[1;33m  Cron job set: runs ${JOB_CMD} every 5 minutes.  \033[0m"
+echo ""
+echo -e "\033[1;32m  Update your details inside ${JOB_CMD}; your domain will auto-update on the next run.  \033[0m"
+echo ""
+echo -e "\033[1;35m  Create an A record on cloudflare.com for your subdomain pointing to 1.1.1.1; it will be kept up to date by this script.  \033[0m"
+echo ""
+echo -e "\033[1;34m  Tip: you can edit the file now and wait for the next scheduled run (every 5 minutes).  \033[0m"
+
+echo ""
+echo "_________________________________________________________"
+echo ""

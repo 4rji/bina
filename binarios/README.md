@@ -49,6 +49,8 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###------utilidades 
+frpinst             Instala frp y descarga dotfiles
+frpstart            Agregar a crontab para que frp inicio automaticamente. 
 ipsdown             Baja una base de datos de abuseIP para ips maliciosas
 remotehealthinst    Instala el remotehealth como systectl servicio
 remotehealth        Script que expone los servicios con node zeek suric elastic filebeat
@@ -176,6 +178,8 @@ servidorvideo       Crea en docker alpine como servidor, monta una carpeta para 
 
 
 #Util
+smbserverinst       Instala smb server en debian con usuario nalasmb o anonimo
+smbserver           smb termporar usando impact en python3
 https-bloq-boots    Detecta IPs al puerto 443 en ips.txt y las bloquea o ralentiza automáticamente vía firewall.
 backd-detect        detecta conexiones sospechosas hacia rangos RFC1918 e identifica procesos asociados
 bloquearip          Bloquea IPs (./scrt IP o de ips.txt) agregando a un set ipset y aplicando una regla iptables
@@ -542,6 +546,8 @@ sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 search              Crea datos para la pagina web, para llenar la base de busqueda search
 
 #Redstuff
+redir               Redirige todo el trafico de la maquina por shadows info pagina web docs.4r
+shadows             Shadowsocks como tor socks tunnel tipo vpn cliente o servidor instala
 bashrc-rvshell      reverse shell en la bashrc
 iodine-connect      Script que conecta iodine a mi c2. automatizado
 scanbl              Scanea dispositivos bluetooth
@@ -551,6 +557,7 @@ ncarchivos          Muestra comandos para nc para enviar archivos o enviar coman
 socat1              Bajado de https://github.com/aledbf/socat-static-binary/releases/download/v0.0.1/socat-linux-amd64
 linpi               Baja comprimidos, que contiene linpi, enum, chisel, pspy64, etc.
 s1pinst             Servidor, usa dockers para un reverse proxy apuntando a servidor.yop.com de cloudflare
+cloudtunnel         Inicia cloudflare tunnel en la xps con servicios ya configurados en el dashboard de cloudf..
 johninst            Install john the ripper for GPU, from github.
 busq                alias busq='/opt/4rji/BreachCompilation/query.sh'
 pixeltrack          Instala servidor apache con un track pixel para email pixel track location

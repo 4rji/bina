@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# FRP quick setup + configs (v0.62.1)
+
+set -e
+
+
+wget -q -O frpc.toml "https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/frp/frpc.toml"
+wget -q -O frps.toml "https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/frp/frps.toml"
+
+
+VER="0.62.1"
+PKG="frp_${VER}_linux_amd64"
+TGZ="${PKG}.tar.gz"
+
+# ANSI
+BLD="\e[1m"; RED="\e[31m"; GRN="\e[32m"; YLW="\e[33m"; BLU="\e[34m"; RST="\e[0m"
+
+echo -e "${BLD}${BLU}>> Descargando FRP ${VER}...${RST}"
+wget -q --show-progress "https://github.com/fatedier/frp/releases/download/v${VER}/${TGZ}"
+
+echo -e "${BLD}${BLU}>> Extrayendo...${RST}"
+tar zxvf "${TGZ}"
+
+echo -e "${BLD}${BLU}>> Instalando binarios en /usr/local/bin...${RST}"
+SUDO="$(command -v sudo || true)"
+$SUDO install -m 0755 "${PKG}/frps" /usr/local/bin/
+$SUDO install -m 0755 "${PKG}/frpc" /usr/local/bin/
+
+echo -e "${BLD}${BLU}>> Bajando frpc.toml y frps.toml al directorio: ${YLW}${PKG}${RST}"
+echo -e "${BLD}${BLU}>> Muévelo a ${YLW}/opt/4rji/bin${BLU} después de configurar tus datos${RST}"
+
+cd "${PKG}"
+
+echo -e "${GRN}${BLD}OK.${RST} ${BLD}Binarios instalados y configs descargadas.${RST}"
+echo -e "${YLW}Recuerda agregar al crontab si usas frpstart:${RST}"
+echo -e "${BLD}${GRN}* * * * * /opt/4rji/bin/frpstart${RST}"
+
+

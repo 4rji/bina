@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PIDFILE="/tmp/cloudflared_tunnel.pid"
+
+# Function to display messages
+echo_msg() {
+    echo "=============================================="
+    echo "$1"
+    echo "=============================================="
+}
+
+usage() {
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+    echo -e "\033[1;37m  Usage: $0 [-k]  \033[0m"
+    echo -e "\033[1;37m    -k    show status and kill running cloudflared tunnel if found  \033[0m"
+    echo ""
+    exit 1
+}
+
+# parse flags
+KILL_FLAG=0
+while getopts ":k" opt; do
+  case ${opt} in
+    k ) KILL_FLAG=1 ;;
+    \? ) usage ;;
+  esac
+done
+shift $((OPTIND -1))
+
+# Ensure cloudtoken is provided (unless using -k to only kill)
+if [ "$KILL_FLAG" -eq 0 ] && [ -z "${cloudtoken:-}" ]; then
+  echo ""
+  echo "_________________________________________________________"
+  echo ""
+  echo -e "\033[1;31m  Error:  cloudtoken variable is empty.  Provide \$cloudtoken and retry.\033[0m"
+  echo ""
+  exit 1
+fi
+
+# Helper: check running pid and process
+is_running_pid() {
+  local pid="$1"
+  [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null
+}
+
+find_cloudflared_pid() {
+  # prefer pidfile
+  if [ -f "$PIDFILE" ]; then
+    pid="$(cat "$PIDFILE" 2>/dev/null || true)"
+    if is_running_pid "$pid"; then
+      echo "$pid"
+      return 0
+    else
+      rm -f "$PIDFILE" 2>/dev/null || true
+    fi
+  fi
+  # fallback to pgrep
+  pid="$(pgrep -u "$(id -u)" -f "cloudflared tunnel run" | head -n1 || true)"
+  if [ -n "$pid" ]; then
+    echo "$pid"
+    return 0
+  fi
+  return 1
+}
+
+# If -k flag used: show status and kill if running
+if [ "$KILL_FLAG" -eq 1 ]; then
+  echo ""
+  echo "_________________________________________________________"
+  echo ""
+  pid="$(find_cloudflared_pid || true)"
+  if [ -n "$pid" ]; then
+    echo -e "\033[1;33m  cloudflared tunnel is running (PID: $pid)  \033[0m"
+    echo ""
+    echo -e "\033[1;31m  Killing cloudflared tunnel (PID: $pid)...  \033[0m"
+    kill "$pid" && sleep 1
+    if ! is_running_pid "$pid"; then
+      echo -e "\033[1;32m  cloudflared tunnel stopped.  \033[0m"
+      rm -f "$PIDFILE" 2>/dev/null || true
+      echo ""
+      echo "_________________________________________________________"
+      echo ""
+      exit 0
+    else
+      echo -e "\033[1;31m  Failed to stop cloudflared (PID: $pid).  \033[0m"
+      exit 2
+    fi
+  else
+    echo -e "\033[1;31m  No running cloudflared tunnel found.  \033[0m"
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+    exit 0
+  fi
+fi
+
+# Start tunnel (normal run)
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Start cloudflared in background and save PID
+echo -e "\033[1;34m  Starting cloudflared tunnel with provided token...  \033[0m"
+cloudflared tunnel run --token "$cloudtoken" &>/dev/null &
+CF_PID=$!
+echo "$CF_PID" > "$PIDFILE" || true
+
+sleep 1
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo_msg "  Tunnels created successfully  "
+
+# Colored list of tunnels (one color per line)
+echo -e "\033[1;32m  http.4rji.com    ->  http://127.0.0.1:80  \033[0m"
+echo -e "\033[1;33m  nalaxps.4rji.com ->  http://localhost:3000  \033[0m"
+echo -e "\033[1;35m  xps8080.4rji.com ->  http://localhost:8080  \033[0m"
+echo -e "\033[1;36m  smb.4rji.com     ->  smb://127.0.0.1:445  \033[0m"
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# Show cloudflared PID and stop instructions (include flag note)
+echo -e "\033[1;37m  cloudflared PID:  $CF_PID  \033[0m"
+echo -e "\033[1;31m  To stop the tunnel:  kill $CF_PID  \033[0m"
+echo -e "\033[1;31m  Also: you can run this script with the -k flag to show status and kill the service.  \033[0m"
+
+echo ""
+echo "_________________________________________________________"
+echo ""

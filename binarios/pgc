@@ -1,21 +1,67 @@
 #!/usr/bin/env bash
 
-# Uso: ./script.sh 8.8.8.8
+# Uso: ./pgc <IP|host_ssh> [-t <segundos>]
+# El orden de los argumentos no importa.
 
-IP="$1"
+# Valores por defecto
+INTERVALO=5
+TARGET=""
 
-if [ -z "$IP" ]; then
-  echo "Uso: $0 <IP o host>"
-  exit 1
+# Bucle manual para procesar todos los argumentos en cualquier orden
+while (( "$#" )); do
+  case "$1" in
+    -t)
+      # Valida que el siguiente argumento exista y sea un número
+      if [ -n "$2" ] && [[ "$2" =~ ^[0-9]+$ ]]; then
+        INTERVALO="$2"
+        shift 2 # Consume la flag (-t) y su valor (10)
+      else
+        echo "Error: La flag -t requiere un argumento numérico." >&2
+        exit 1
+      fi
+      ;;
+    -*)
+      # Captura cualquier otra flag no reconocida
+      echo "Error: Opción desconocida '$1'" >&2
+      exit 1
+      ;;
+    *)
+      # Si no es una flag, debe ser el TARGET
+      # Nos aseguramos de no sobrescribirlo si ya fue asignado
+      if [ -z "$TARGET" ]; then
+        TARGET="$1"
+      fi
+      shift # Consume el argumento actual (la IP)
+      ;;
+  esac
+done
+
+[ -z "$TARGET" ] && { echo "Uso: $0 <IP o host> [-t <segundos>]"; exit 1; }
+
+# Resolver alias SSH -> HostName (si existe)
+RESOLVED="$TARGET"
+if command -v ssh >/dev/null 2>&1; then
+  HN=$(ssh -G "$TARGET" 2>/dev/null | awk '/^hostname /{print $2; exit}')
+  if [ -n "$HN" ] && [ "$HN" != "%h" ]; then
+    RESOLVED="$HN"
+  fi
 fi
 
+# Ajustar ping según OS
+if [ "$(uname)" = "Darwin" ]; then
+  PING_OPTS="-c 1 -W 1000"
+else
+  PING_OPTS="-c 1 -W 1"
+fi
+
+echo "Haciendo ping a $TARGET ($RESOLVED) cada $INTERVALO segundos..."
+
 while true; do
-  if ping -c1 -W1 "$IP" >/dev/null 2>&1; then
-    # Verde
-    echo -e "\033[1;32m$IP ONLINE\033[0m"
+  TIME=$(date +"%H:%M:%S")
+  if ping $PING_OPTS "$RESOLVED" >/dev/null 2>&1; then
+    echo -e "$TIME \033[1;32m$TARGET ONLINE\033[0m"
   else
-    # Rojo
-    echo -e "\033[1;31m$IP OFFLINE\033[0m"
+    echo -e "$TIME \033[1;31m$TARGET OFFLINE\033[0m"
   fi
-  sleep 3
+  sleep "$INTERVALO"
 done

@@ -1,0 +1,4 @@
+#!/bin/bash
+if ! /usr/bin/pgrep -f "/opt/4rji/bin/frpc.toml" >/dev/null; then
+    nohup /usr/local/bin/frpc -c /opt/4rji/bin/frpc.toml 2>&1 &
+fi
