@@ -43,7 +43,10 @@ echo -e "\033[1;36m  What it does:\033[0m  \033[36mClears systemd-resolved cache
 echo -e "  \033[1;32mresolvectl flush-caches\033[0m"
 
 echo ""
-echo "To force dns global and not interface"
-echo -e "[Resolve]\nDNS=9.9.9.9 149.112.112.112\nFallbackDNS=2620:fe::fe 2620:fe::9\nDomains=~"
+echo "To force dns global and not interface, also DNSoverTls, and DNSSEC"
+#echo -e "[Resolve]\nDNS=9.9.9.9 149.112.112.112\nFallbackDNS=2620:fe::fe 2620:fe::9\nDomains=~"
+echo ""
+echo -e "[Resolve]\nDNS=9.9.9.9 149.112.112.112\nFallbackDNS=2620:fe::fe 2620:fe::9\n#DNSOverTLS=yes\n#DNSSEC=yes\nDNSSEC=allow-downgrade\nDomains=~.\nCache=yes"
+
 
 echo ""
