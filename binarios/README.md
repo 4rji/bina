@@ -107,7 +107,6 @@ servidores          Inicia el programa servidores que es la webapp de flash para
 servidoresprogram   El codigo de servidores para proxmox servidores
 fwinst              Agrega servicios y puertos a firewall-cmd
 crontadd            Agrega tareas al cront para ejecutarse en tiempo
-resolvdinst         instala resolvd para linux debian, no servidor, solo dns
 batinst             Instala batcat en debian .deb -i dpkg
 lsdinst             Instala lsd en debian .deb -i dpkg
 transf              Enviar recibir archivos instrucciones
@@ -392,6 +391,7 @@ dnsquad             Verifica si quad9 se usa, consulta whois Ip propia y externa
 dnsleak             Consulta si el dns se esta saliendo
 dnscheck            Menu para ver dns, ruta, opciones, capturar trafico
 dnsserver           Muestra que servidor estamos usando en la maquina
+resolvedinst        Instala y configura resolved, con quad9 dns 
 ipt                 Para acceptar todo trafico o bloquear todo el trafico. 
 snifferip           Sniffer paquetes red que captura las cabeceras IP en dirección IP especifica.
 iarpon              Arpon para protejer de arp poising. arp sniff 
