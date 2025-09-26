@@ -391,6 +391,7 @@ virust              Usa la API de virustotal para ver ips.txt o IP su uso.
 dnsquad             Verifica si quad9 se usa, consulta whois Ip propia y externa de consultas
 dnsleak             Consulta si el dns se esta saliendo
 dnscheck            Menu para ver dns, ruta, opciones, capturar trafico
+dnsserver           Muestra que servidor estamos usando en la maquina
 ipt                 Para acceptar todo trafico o bloquear todo el trafico. 
 snifferip           Sniffer paquetes red que captura las cabeceras IP en dirección IP especifica.
 iarpon              Arpon para protejer de arp poising. arp sniff 
