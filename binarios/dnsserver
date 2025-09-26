@@ -1,0 +1,179 @@
+#!/usr/bin/env bash
+# dns-audit.sh — Verifica cómo tu Linux resuelve DNS (sin resolvectl).
+
+set -euo pipefail
+
+has() { command -v "$1" >/dev/null 2>&1; }
+print() { printf "%s\n" "$*"; }
+hr(){ print "------------------------------------------------------------"; }
+
+TITLE="DNS Resolver Audit"
+print "$TITLE"; hr
+
+# 1) /etc/resolv.conf origen (archivo real o symlink)
+print "[1] resolv.conf"
+if [ -L /etc/resolv.conf ]; then
+  TARGET="$(readlink -f /etc/resolv.conf || readlink /etc/resolv.conf || true)"
+  print "Type: symlink -> $TARGET"
+else
+  print "Type: regular file"
+fi
+hr
+
+# 2) Servidores y opciones de /etc/resolv.conf
+print "[2] Nameservers & options"
+NS_LIST="$(awk '/^nameserver/{print $2}' /etc/resolv.conf 2>/dev/null || true)"
+SEARCH_LINE="$(awk '/^search/{print substr($0,8)}' /etc/resolv.conf 2>/dev/null || true)"
+OPTIONS_LINE="$(awk '/^options/{print substr($0,9)}' /etc/resolv.conf 2>/dev/null || true)"
+if [ -n "$NS_LIST" ]; then
+  print "nameserver(s):"; print "$NS_LIST" | sed 's/^/  - /'
+else
+  print "nameserver(s): (none found)"
+fi
+[ -n "$SEARCH_LINE" ] && print "search: $SEARCH_LINE" || print "search: (none)"
+[ -n "$OPTIONS_LINE" ] && print "options: $OPTIONS_LINE" || print "options: (none)"
+# heurística: cache local
+CACHE_LOCAL="no"
+echo "$NS_LIST" | grep -Eq '^(127\.0\.0\.1|127\.0\.0\.53|::1)$' && CACHE_LOCAL="yes"
+print "local caching resolver (heuristic): $CACHE_LOCAL"
+hr
+
+# 3) NSS order (gethostbyname/gai)
+print "[3] NSS order (nsswitch.conf)"
+if [ -r /etc/nsswitch.conf ]; then
+  HOSTS_LINE="$(awk '/^hosts:/{ $1=""; sub(/^[[:space:]]+/,""); print }' /etc/nsswitch.conf)"
+  [ -n "$HOSTS_LINE" ] && print "hosts: $HOSTS_LINE" || print "hosts: (not found)"
+else
+  print "nsswitch.conf not readable"
+fi
+hr
+
+# 4) Servicios/procesos que podrían controlar DNS
+print "[4] DNS controllers (units/processes present/running)"
+list_unit(){ systemctl -q is-enabled "$1" 2>/dev/null && EN="enabled" || EN="disabled"; systemctl -q is-active "$1" 2>/dev/null && AC="active" || AC="inactive"; printf "  - %-22s : %s, %s\n" "$1" "$EN" "$AC"; }
+if has systemctl; then
+  list_unit systemd-resolved.service
+  list_unit NetworkManager.service
+  list_unit dnsmasq.service
+  list_unit unbound.service
+  list_unit named.service
+  list_unit resolvconf.service 2>/dev/null || true
+else
+  print "systemctl not found; checking processes"
+fi
+# procesos por si no hay systemd o para info adicional
+ps_check(){
+  pgrep -x "$1" >/dev/null 2>&1 && printf "  - proc %-18s : running (pid(s): %s)\n" "$1" "$(pgrep -x "$1" | tr '\n' ' ')" || printf "  - proc %-18s : not running\n" "$1"
+}
+ps_check "dnsmasq"
+ps_check "unbound"
+ps_check "named"
+ps_check "avahi-daemon"
+ps_check "dhclient"
+hr
+
+# 5) mDNS/LLMNR estado (mejor-esfuerzo)
+print "[5] mDNS / LLMNR"
+MDNS="unknown"; LLMNR="unknown"
+# nsswitch mDNS plugin
+if grep -qE '(^|\s)mdns(_(minimal|4|6))?(\s|$)' /etc/nsswitch.conf 2>/dev/null; then MDNS="enabled (nsswitch)"; fi
+# Avahi
+pgrep -x avahi-daemon >/dev/null 2>&1 && MDNS="${MDNS}; avahi running"
+# LLMNR (systemd-resolved config si existe)
+if [ -r /etc/systemd/resolved.conf ]; then
+  LLMNR_VAL="$(awk -F= '/^\s*LLMNR=/{print $2}' /etc/systemd/resolved.conf | tail -n1)"
+  [ -n "$LLMNR_VAL" ] && LLMNR="resolved.conf LLMNR=$LLMNR_VAL"
+fi
+print "mDNS: $MDNS"
+print "LLMNR: $LLMNR"
+hr
+
+# 6) Rutas de salida DNS (sockets/puertos 53)
+print "[6] DNS sockets (local listeners)"
+if has ss; then
+  ( ss -ltnp 2>/dev/null | awk 'NR==1 || /:53 /' ; ss -lunp 2>/dev/null | awk 'NR==1 || /:53 /' ) | sed 's/^/  /'
+elif has netstat; then
+  ( netstat -ltnp 2>/dev/null | awk 'NR==1 || /:53 /' ; netstat -lunp 2>/dev/null | awk 'NR==1 || /:53 /' ) | sed 's/^/  /'
+else
+  print "  (ss/netstat not available)"
+fi
+hr
+
+# 7) Split-DNS por interfaz (NetworkManager si está)
+print "[7] Split-DNS (per-interface hints)"
+if has nmcli; then
+  print "NetworkManager per-device DNS/domains:"
+  nmcli -t -f DEVICE,IP4.DNS,IP4.SEARCH,IP4.DOMAIN dev show 2>/dev/null | sed 's/^/  /'
+else
+  print "nmcli not found"
+fi
+hr
+
+# 8) IPv6 DNS
+print "[8] IPv6 DNS"
+if echo "$NS_LIST" | grep -q ':' ; then
+  print "IPv6 nameserver(s) present"
+else
+  print "No IPv6 nameserver detected"
+fi
+hr
+
+# 9) Pruebas de resolución (efectiva)
+print "[9] Resolution tests"
+TEST_DOMAIN="${1:-example.com}"
+
+# getent (glibc NSS)
+if has getent; then
+  print "getent hosts $TEST_DOMAIN:"
+  (getent ahosts "$TEST_DOMAIN" || true) | sed 's/^/  /'
+else
+  print "getent not available"
+fi
+
+# Herramienta de consulta directa: dig | drill | host (en ese orden)
+QUERY_TOOL=""
+if has dig; then QUERY_TOOL="dig"
+elif has drill; then QUERY_TOOL="drill"
+elif has host; then QUERY_TOOL="host"
+fi
+
+if [ -n "$QUERY_TOOL" ]; then
+  print "Direct queries to each nameserver in resolv.conf ($QUERY_TOOL):"
+  i=0
+  echo "$NS_LIST" | while read -r NS; do
+    [ -z "$NS" ] && continue
+    i=$((i+1))
+    print "  [$i] @$NS A $TEST_DOMAIN"
+    case "$QUERY_TOOL" in
+      dig)
+        dig @"$NS" +tries=1 +time=2 +nocmd +noall +answer "$TEST_DOMAIN" 2>/dev/null | sed 's/^/    /'
+        SRV="$(dig @"$NS" +tries=1 +time=2 +stats "$TEST_DOMAIN" 2>/dev/null | awk -F'SERVER: ' 'NF>1{print $2}' | awk -F',' 'NR==1{print $1}')"
+        [ -n "$SRV" ] && print "    server: $SRV"
+        ;;
+      drill)
+        drill @"$NS" "$TEST_DOMAIN" 2>/dev/null | awk 'NR<30' | sed 's/^/    /'
+        ;;
+      host)
+        host "$TEST_DOMAIN" "$NS" 2>/dev/null | sed 's/^/    /'
+        ;;
+    esac
+  done
+else
+  print "No dig/drill/host available for direct server tests."
+fi
+hr
+
+# 10) Resumen
+print "[10] Summary"
+if [ -n "$TARGET" ]; then
+  print "resolv.conf -> $TARGET"
+else
+  print "resolv.conf: regular file"
+fi
+COUNT_NS=$(printf "%s\n" "$NS_LIST" | grep -c '.\+' || true)
+print "nameservers: $COUNT_NS"
+print "NSS hosts order: ${HOSTS_LINE:-unknown}"
+print "local cache: $CACHE_LOCAL"
+print "IPv6 DNS: $(echo "$NS_LIST" | grep -q ':' && echo yes || echo no)"
+
+print "Done."
