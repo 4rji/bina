@@ -1,56 +1,94 @@
 #!/usr/bin/env bash
-# dns-audit.sh — Verifica cómo tu Linux resuelve DNS (sin resolvectl).
-
+# dns-audit.sh — Verify how your Linux resolves DNS without resolvectl.
 set -euo pipefail
 
+echo_msg() {
+  echo "=============================================="
+  echo "$1"
+  echo "=============================================="
+}
+
 has() { command -v "$1" >/dev/null 2>&1; }
-print() { printf "%s\n" "$*"; }
-hr(){ print "------------------------------------------------------------"; }
+hr(){ echo "------------------------------------------------------------"; }
 
-TITLE="DNS Resolver Audit"
-print "$TITLE"; hr
+echo ""
+echo "_________________________________________________________"
+echo ""
 
-# 1) /etc/resolv.conf origen (archivo real o symlink)
-print "[1] resolv.conf"
-if [ -L /etc/resolv.conf ]; then
-  TARGET="$(readlink -f /etc/resolv.conf || readlink /etc/resolv.conf || true)"
-  print "Type: symlink -> $TARGET"
-else
-  print "Type: regular file"
-fi
+echo -e "\033[1;36m  DNS Resolver Audit  \033[0m"
 hr
 
-# 2) Servidores y opciones de /etc/resolv.conf
-print "[2] Nameservers & options"
+# ---------- [0] Prep ----------
+#   Explanation: We’ll collect facts once and reuse them. No color variables, only raw ANSI.
+TARGET=""
+if [ -L /etc/resolv.conf ]; then
+  TARGET="$(readlink -f /etc/resolv.conf || readlink /etc/resolv.conf || true)"
+fi
 NS_LIST="$(awk '/^nameserver/{print $2}' /etc/resolv.conf 2>/dev/null || true)"
 SEARCH_LINE="$(awk '/^search/{print substr($0,8)}' /etc/resolv.conf 2>/dev/null || true)"
 OPTIONS_LINE="$(awk '/^options/{print substr($0,9)}' /etc/resolv.conf 2>/dev/null || true)"
-if [ -n "$NS_LIST" ]; then
-  print "nameserver(s):"; print "$NS_LIST" | sed 's/^/  - /'
-else
-  print "nameserver(s): (none found)"
-fi
-[ -n "$SEARCH_LINE" ] && print "search: $SEARCH_LINE" || print "search: (none)"
-[ -n "$OPTIONS_LINE" ] && print "options: $OPTIONS_LINE" || print "options: (none)"
-# heurística: cache local
 CACHE_LOCAL="no"
 echo "$NS_LIST" | grep -Eq '^(127\.0\.0\.1|127\.0\.0\.53|::1)$' && CACHE_LOCAL="yes"
-print "local caching resolver (heuristic): $CACHE_LOCAL"
-hr
 
-# 3) NSS order (gethostbyname/gai)
-print "[3] NSS order (nsswitch.conf)"
+HOSTS_LINE="unknown"
 if [ -r /etc/nsswitch.conf ]; then
   HOSTS_LINE="$(awk '/^hosts:/{ $1=""; sub(/^[[:space:]]+/,""); print }' /etc/nsswitch.conf)"
-  [ -n "$HOSTS_LINE" ] && print "hosts: $HOSTS_LINE" || print "hosts: (not found)"
+fi
+
+resolver_owner="regular-file"
+if [ -n "${TARGET:-}" ]; then
+  case "$TARGET" in
+    */systemd/resolve/*) resolver_owner="systemd-resolved";;
+    */NetworkManager/*)  resolver_owner="NetworkManager";;
+    */resolvconf/*|/run/resolvconf/*|/etc/resolvconf/*) resolver_owner="resolvconf";;
+    *) resolver_owner="symlink-other";;
+  esac
+fi
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+# ---------- [1] resolv.conf ----------
+echo_msg "$(echo -e "\033[1;35m  [1] /etc/resolv.conf (origin)  \033[0m")"
+echo -e "\033[36m  Explanation:\033[0m  \033[2mIf it's a symlink, another service is managing DNS config dynamically.\033[0m"
+if [ -L /etc/resolv.conf ]; then
+  echo -e "  Type: symlink -> \033[1;33m$TARGET\033[0m"
 else
-  print "nsswitch.conf not readable"
+  echo -e "  Type: \033[1;33mregular file\033[0m"
 fi
 hr
 
-# 4) Servicios/procesos que podrían controlar DNS
-print "[4] DNS controllers (units/processes present/running)"
-list_unit(){ systemctl -q is-enabled "$1" 2>/dev/null && EN="enabled" || EN="disabled"; systemctl -q is-active "$1" 2>/dev/null && AC="active" || AC="inactive"; printf "  - %-22s : %s, %s\n" "$1" "$EN" "$AC"; }
+# ---------- [2] Nameservers & options ----------
+echo_msg "$(echo -e "\033[1;35m  [2] Nameservers & options  \033[0m")"
+echo -e "\033[36m  Explanation:\033[0m  \033[2mThese are the upstream DNS servers and search/options used by libc.\033[0m"
+if [ -n "$NS_LIST" ]; then
+  echo -e "  nameserver(s):"
+  echo "$NS_LIST" | sed 's/^/    - /'
+else
+  echo -e "  nameserver(s): \033[1;31m(none found)\033[0m"
+fi
+[ -n "$SEARCH_LINE" ] && echo "  search: $SEARCH_LINE" || echo "  search: (none)"
+[ -n "$OPTIONS_LINE" ] && echo "  options: $OPTIONS_LINE" || echo "  options: (none)"
+echo -e "  local caching resolver (heuristic): \033[1;33m$CACHE_LOCAL\033[0m"
+hr
+
+# ---------- [3] NSS order ----------
+echo_msg "$(echo -e "\033[1;35m  [3] NSS order (nsswitch.conf)  \033[0m")"
+echo -e "\033[36m  Explanation:\033[0m  \033[2mDefines resolution order: files/mDNS/DNS, etc. Influences gethostbyname/getaddrinfo.\033[0m"
+echo -e "  hosts: \033[1;33m${HOSTS_LINE:-unknown}\033[0m"
+hr
+
+# ---------- [4] Controllers ----------
+echo_msg "$(echo -e "\033[1;35m  [4] DNS controllers (units/processes)  \033[0m")"
+echo -e "\033[36m  Explanation:\033[0m  \033[2mShows potential managers (systemd-resolved, NetworkManager, dnsmasq, unbound, named).\033[0m"
+list_unit(){
+  if has systemctl; then
+    systemctl -q is-enabled "$1" 2>/dev/null && EN="enabled" || EN="disabled"
+    systemctl -q is-active "$1" 2>/dev/null && AC="active" || AC="inactive"
+    printf "    - %-22s : %s, %s\n" "$1" "$EN" "$AC"
+  fi
+}
 if has systemctl; then
   list_unit systemd-resolved.service
   list_unit NetworkManager.service
@@ -59,11 +97,10 @@ if has systemctl; then
   list_unit named.service
   list_unit resolvconf.service 2>/dev/null || true
 else
-  print "systemctl not found; checking processes"
+  echo "    (systemctl not found)"
 fi
-# procesos por si no hay systemd o para info adicional
 ps_check(){
-  pgrep -x "$1" >/dev/null 2>&1 && printf "  - proc %-18s : running (pid(s): %s)\n" "$1" "$(pgrep -x "$1" | tr '\n' ' ')" || printf "  - proc %-18s : not running\n" "$1"
+  pgrep -x "$1" >/dev/null 2>&1 && printf "    - proc %-18s : running (pid(s): %s)\n" "$1" "$(pgrep -x "$1" | tr '\n' ' ')" || printf "    - proc %-18s : not running\n" "$1"
 }
 ps_check "dnsmasq"
 ps_check "unbound"
@@ -72,108 +109,130 @@ ps_check "avahi-daemon"
 ps_check "dhclient"
 hr
 
-# 5) mDNS/LLMNR estado (mejor-esfuerzo)
-print "[5] mDNS / LLMNR"
+# ---------- [5] mDNS / LLMNR ----------
+echo_msg "$(echo -e "\033[1;35m  [5] mDNS / LLMNR  \033[0m")"
+echo -e "\033[36m  Explanation:\033[0m  \033[2mAffects local names (e.g., .local). Not the same as classic unicast DNS.\033[0m"
 MDNS="unknown"; LLMNR="unknown"
-# nsswitch mDNS plugin
 if grep -qE '(^|\s)mdns(_(minimal|4|6))?(\s|$)' /etc/nsswitch.conf 2>/dev/null; then MDNS="enabled (nsswitch)"; fi
-# Avahi
 pgrep -x avahi-daemon >/dev/null 2>&1 && MDNS="${MDNS}; avahi running"
-# LLMNR (systemd-resolved config si existe)
 if [ -r /etc/systemd/resolved.conf ]; then
   LLMNR_VAL="$(awk -F= '/^\s*LLMNR=/{print $2}' /etc/systemd/resolved.conf | tail -n1)"
   [ -n "$LLMNR_VAL" ] && LLMNR="resolved.conf LLMNR=$LLMNR_VAL"
 fi
-print "mDNS: $MDNS"
-print "LLMNR: $LLMNR"
+echo "  mDNS: $MDNS"
+echo "  LLMNR: $LLMNR"
 hr
 
-# 6) Rutas de salida DNS (sockets/puertos 53)
-print "[6] DNS sockets (local listeners)"
+# ---------- [6] Local DNS sockets ----------
+echo_msg "$(echo -e "\033[1;35m  [6] DNS sockets (local listeners)  \033[0m")"
+echo -e "\033[36m  Explanation:\033[0m  \033[2mIf something listens on :53 locally, you likely have a local cache/forwarder.\033[0m"
 if has ss; then
-  ( ss -ltnp 2>/dev/null | awk 'NR==1 || /:53 /' ; ss -lunp 2>/dev/null | awk 'NR==1 || /:53 /' ) | sed 's/^/  /'
+  ( ss -ltnp 2>/dev/null | awk 'NR==1 || /:53 /' ; ss -lunp 2>/dev/null | awk 'NR==1 || /:53 /' ) | sed 's/^/    /'
 elif has netstat; then
-  ( netstat -ltnp 2>/dev/null | awk 'NR==1 || /:53 /' ; netstat -lunp 2>/dev/null | awk 'NR==1 || /:53 /' ) | sed 's/^/  /'
+  ( netstat -ltnp 2>/dev/null | awk 'NR==1 || /:53 /' ; netstat -lunp 2>/dev/null | awk 'NR==1 || /:53 /' ) | sed 's/^/    /'
 else
-  print "  (ss/netstat not available)"
+  echo "    (ss/netstat not available)"
 fi
 hr
 
-# 7) Split-DNS por interfaz (NetworkManager si está)
-print "[7] Split-DNS (per-interface hints)"
+# ---------- [7] Split-DNS ----------
+echo_msg "$(echo -e "\033[1;35m  [7] Split-DNS (per-interface hints)  \033[0m")"
+echo -e "\033[36m  Explanation:\033[0m  \033[2mSome managers assign DNS per interface or per domain (VPNs, NM profiles).\033[0m"
 if has nmcli; then
-  print "NetworkManager per-device DNS/domains:"
-  nmcli -t -f DEVICE,IP4.DNS,IP4.SEARCH,IP4.DOMAIN dev show 2>/dev/null | sed 's/^/  /'
+  echo "  NetworkManager per-device DNS/domains:"
+  nmcli -t -f DEVICE,IP4.DNS,IP4.SEARCH,IP4.DOMAIN dev show 2>/dev/null | sed 's/^/    /'
 else
-  print "nmcli not found"
+  echo "  nmcli not found"
 fi
 hr
 
-# 8) IPv6 DNS
-print "[8] IPv6 DNS"
+# ---------- [8] IPv6 ----------
+echo_msg "$(echo -e "\033[1;35m  [8] IPv6 DNS  \033[0m")"
+echo -e "\033[36m  Explanation:\033[0m  \033[2mChecks if IPv6 resolvers are configured (addresses containing ‘:’).\033[0m"
 if echo "$NS_LIST" | grep -q ':' ; then
-  print "IPv6 nameserver(s) present"
+  echo -e "  \033[1;32mIPv6 nameserver(s) present\033[0m"
 else
-  print "No IPv6 nameserver detected"
+  echo -e "  \033[1;33mNo IPv6 nameserver detected\033[0m"
 fi
 hr
 
-# 9) Pruebas de resolución (efectiva)
-print "[9] Resolution tests"
+# ---------- [9] Resolution tests ----------
+echo_msg "$(echo -e "\033[1;35m  [9] Resolution tests  \033[0m")"
+echo -e "\033[36m  Explanation:\033[0m  \033[2mCompare libc (getent) vs direct queries to each upstream DNS.\033[0m"
 TEST_DOMAIN="${1:-example.com}"
-
-# getent (glibc NSS)
 if has getent; then
-  print "getent hosts $TEST_DOMAIN:"
-  (getent ahosts "$TEST_DOMAIN" || true) | sed 's/^/  /'
+  echo -e "  \033[1;34mgetent hosts $TEST_DOMAIN:\033[0m"
+  (getent ahosts "$TEST_DOMAIN" || true) | sed 's/^/    /'
 else
-  print "getent not available"
+  echo "  getent not available"
 fi
-
-# Herramienta de consulta directa: dig | drill | host (en ese orden)
 QUERY_TOOL=""
 if has dig; then QUERY_TOOL="dig"
 elif has drill; then QUERY_TOOL="drill"
 elif has host; then QUERY_TOOL="host"
 fi
-
 if [ -n "$QUERY_TOOL" ]; then
-  print "Direct queries to each nameserver in resolv.conf ($QUERY_TOOL):"
+  echo -e "  \033[1;34mDirect queries to each nameserver in resolv.conf ($QUERY_TOOL):\033[0m"
   i=0
   echo "$NS_LIST" | while read -r NS; do
     [ -z "$NS" ] && continue
     i=$((i+1))
-    print "  [$i] @$NS A $TEST_DOMAIN"
+    echo -e "    [$i] @$NS A $TEST_DOMAIN"
     case "$QUERY_TOOL" in
       dig)
-        dig @"$NS" +tries=1 +time=2 +nocmd +noall +answer "$TEST_DOMAIN" 2>/dev/null | sed 's/^/    /'
+        dig @"$NS" +tries=1 +time=2 +nocmd +noall +answer "$TEST_DOMAIN" 2>/dev/null | sed 's/^/      /'
         SRV="$(dig @"$NS" +tries=1 +time=2 +stats "$TEST_DOMAIN" 2>/dev/null | awk -F'SERVER: ' 'NF>1{print $2}' | awk -F',' 'NR==1{print $1}')"
-        [ -n "$SRV" ] && print "    server: $SRV"
+        [ -n "$SRV" ] && echo "      server: $SRV"
         ;;
       drill)
-        drill @"$NS" "$TEST_DOMAIN" 2>/dev/null | awk 'NR<30' | sed 's/^/    /'
+        drill @"$NS" "$TEST_DOMAIN" 2>/dev/null | awk 'NR<30' | sed 's/^/      /'
         ;;
       host)
-        host "$TEST_DOMAIN" "$NS" 2>/dev/null | sed 's/^/    /'
+        host "$TEST_DOMAIN" "$NS" 2>/dev/null | sed 's/^/      /'
         ;;
     esac
   done
 else
-  print "No dig/drill/host available for direct server tests."
+  echo "  No dig/drill/host available for direct server tests."
 fi
 hr
 
-# 10) Resumen
-print "[10] Summary"
-if [ -n "$TARGET" ]; then
-  print "resolv.conf -> $TARGET"
+# ---------- [10] Summary ----------
+echo_msg "$(echo -e "\033[1;35m  [10] Summary  \033[0m")"
+echo -e "\033[36m  Explanation:\033[0m  \033[2mFinal snapshot: file ownership, upstreams, NSS order, cache, IPv6.\033[0m"
+if [ -n "${TARGET:-}" ]; then
+  echo "  resolv.conf -> $TARGET"
 else
-  print "resolv.conf: regular file"
+  echo "  resolv.conf: regular file"
 fi
 COUNT_NS=$(printf "%s\n" "$NS_LIST" | grep -c '.\+' || true)
-print "nameservers: $COUNT_NS"
-print "NSS hosts order: ${HOSTS_LINE:-unknown}"
-print "local cache: $CACHE_LOCAL"
-print "IPv6 DNS: $(echo "$NS_LIST" | grep -q ':' && echo yes || echo no)"
+echo "  nameservers: $COUNT_NS"
+echo "  NSS hosts order: ${HOSTS_LINE:-unknown}"
+echo "  local cache: $CACHE_LOCAL"
+echo "  IPv6 DNS: $(echo "$NS_LIST" | grep -q ':' && echo yes || echo no)"
 
-print "Done."
+# ---------- Final one-liner ----------
+echo ""
+echo "_________________________________________________________"
+echo ""
+ACTIVE_DNS_MSG="Unknown"
+case "$resolver_owner" in
+  systemd-resolved)
+    ACTIVE_DNS_MSG="systemd-resolved → $( [ -n "$NS_LIST" ] && echo "external servers [$(echo "$NS_LIST" | tr '\n' ' ')]" || echo "stub 127.0.0.53" )";;
+  NetworkManager)
+    ACTIVE_DNS_MSG="NetworkManager (managing resolv.conf) → external servers [$(echo "$NS_LIST" | tr '\n' ' ')]";;
+  resolvconf)
+    ACTIVE_DNS_MSG="resolvconf → external servers [$(echo "$NS_LIST" | tr '\n' ' ')]";;
+  symlink-other)
+    ACTIVE_DNS_MSG="symlinked resolv.conf (other manager) → servers [$(echo "$NS_LIST" | tr '\n' ' ')]";;
+  regular-file)
+    ACTIVE_DNS_MSG="static /etc/resolv.conf → servers [$(echo "$NS_LIST" | tr '\n' ' ')]";;
+esac
+
+echo_msg "$(echo -e "\033[1;32m  Active DNS resolver: $ACTIVE_DNS_MSG  \033[0m")"
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo -e "\033[1;36m  Done.  \033[0m"
