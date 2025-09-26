@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sudo apt install ntp -i
+sudo systemctl restart ntp 
