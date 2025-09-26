@@ -389,6 +389,7 @@ hashin              Muestra md5  y sha256sum hashes
 virust              Usa la API de virustotal para ver ips.txt o IP su uso. 
 dnsquad             Verifica si quad9 se usa, consulta whois Ip propia y externa de consultas
 dnsleak             Consulta si el dns se esta saliendo
+dnscom              Comandos de dns para cosas
 dnscheck            Menu para ver dns, ruta, opciones, capturar trafico
 dnsserver           Muestra que servidor estamos usando en la maquina
 resolvedinst        Instala y configura resolved, con quad9 dns 
