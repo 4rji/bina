@@ -9,6 +9,9 @@ echo ""
 # 1) Capture live DNS traffic
 echo -e "\033[1;36m  What it does:\033[0m  \033[36mShows any DNS packets on any interface in real time.\033[0m"
 echo -e "  \033[1;32msudo tcpdump -ni any port 53\033[0m"
+#echo "sudo tcpdump -ni any -nn -vvv -s0 -l \"(port 80 or port 853 or port 443 or port 53)\" 2>&1 | tee dump"
+echo -e "\033[1;32msudo tcpdump -ni any -nn -vvv -s0 -l \"(port 80 or port 853 or port 443 or port 53)\" 2>&1 | tee dump\033[0m"
+
 
 echo ""
 echo "_________________________________________________________"
