@@ -472,6 +472,7 @@ gatinesta           Verifica si una palabra esta en los diccionarios password co
 xxelab              xxe lab docker instala 
 wginst              Instala, y usa el archivo .conf para hacer la conexion. todo ahi wireguard vpn.
 wgc                 Script que controla la coneccion de wireguard
+wgcomm              Algunos comandos de wireguard
 
 #qemu
 qemuinsredh9        Instala qemu virt en redhat9

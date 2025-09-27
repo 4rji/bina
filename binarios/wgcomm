@@ -1,0 +1,9 @@
+#!/bin/bash
+
+
+echo "resolvectl status bb8 | sed -n '1,20p'"
+
+echo ""
+echo -e 'PostUp  = resolvectl dns %i 9.9.9.9 149.112.112.112; resolvectl domain %i "~."\nPreDown = resolvectl revert %i\n#on peer:\nPersistentKeepalive = 25'
+
+echo "AllowedIPs = 192.168.3.0/24,192.168.44.0/24,192.168.22.0/24,10.0.16.0/24,192.168.18.0/24,192.168.99.0/24,10.0.4.0/24,192.168.88.0/24,192.168.16.0/24"
