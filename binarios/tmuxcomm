@@ -1,0 +1,5 @@
+#!/bin/bash
+
+echo "tmux ls"
+echo "tmux new -s airsend"
+echo "tmux attach -t airsend"
