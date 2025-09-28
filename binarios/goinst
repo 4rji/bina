@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Minimal interactive installer menu (English)
+# Select an item to run its `go install ...@latest` command.
+
+OPTIONS=(
+  "LocIp — Locate IPs from the CLI: go install github.com/4rji/LocIp@latest"
+  "trafico — Configurable traffic simulator for a specific target: go install github.com/4rji/binarios-go/trafico/cmd/trafico@latest"
+  "traficoS — HTTPS simulator with predefined domains: go install github.com/4rji/binarios-go/trafico/cmd/traficoS@latest"
+  "sshc — Run same command across every host (uses GO111MODULE=on): GO111MODULE=on go install github.com/4rji/binarios-go/sshc@latest"
+  "Quit"
+)
+
+commands=(
+  "go install github.com/4rji/LocIp@latest"
+  "go install github.com/4rji/binarios-go/trafico/cmd/trafico@latest"
+  "go install github.com/4rji/binarios-go/trafico/cmd/traficoS@latest"
+  "GO111MODULE=on go install github.com/4rji/binarios-go/sshc@latest"
+)
+
+printf "\nAvailable installers:\n\n"
+for i in "${!OPTIONS[@]}"; do
+  num=$((i+1))
+  printf "  %d) %s\n" "$num" "${OPTIONS[i]}"
+done
+
+echo
+read -r -p "Choose installer number (1-${#OPTIONS[@]}) and press Enter: " choice
+
+# validate numeric
+if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
+  echo "Invalid selection"; exit 1
+fi
+
+if (( choice < 1 || choice > ${#OPTIONS[@]} )); then
+  echo "Selection out of range"; exit 1
+fi
+
+if (( choice == ${#OPTIONS[@]} )); then
+  echo "Quit selected"; exit 0
+fi
+
+idx=$((choice-1))
+cmd="${commands[idx]}"
+
+echo
+echo "Description:"
+case $idx in
+  0) echo "  Locate IPs from the CLI." ;;
+  1) echo "  Configurable traffic simulator for a specific target." ;;
+  2) echo "  HTTPS simulator with predefined domains." ;;
+  3) echo "  Small helper to run the same command across every host (module mode enabled)." ;;
+esac
+
+echo
+printf "Running: %s\n\n" "$cmd"
+
+# Execute the command in the current environment
+# (this will place the binary into $(go env GOPATH)/bin or $GOBIN according to your go config)
+eval "$cmd"
+
+echo
+echo "Done."
+
