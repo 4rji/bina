@@ -1,0 +1,60 @@
+#!/bin/bash
+
+echo "=============================================="
+echo "     Lsyncd Config Generator"
+echo "=============================================="
+echo ""
+
+read -p "Ruta carpeta SOURCE: " SRC
+read -p "Ruta carpeta DESTINO: " DST
+
+echo ""
+read -p "¿Quieres usar SSH? (s/n): " SSHOPT
+
+CONF="./lsyncd.lua"
+
+cat > "$CONF" <<EOF
+settings {
+    logfile    = "/tmp/lsyncd.log",
+    statusFile = "/tmp/lsyncd.status",
+    nodaemon   = true
+}
+EOF
+
+if [[ "$SSHOPT" =~ ^[sS]$ ]]; then
+    read -p "Usuario SSH: " USR
+    read -p "Host SSH: " HST
+
+    cat >> "$CONF" <<EOF
+
+sync {
+    default.rsyncssh,
+    source = "$SRC",
+    host   = "$USR@$HST",
+    targetdir = "$DST",
+    rsync = {
+        archive = true,
+        compress = false,
+        verbose = true
+    }
+}
+EOF
+else
+    cat >> "$CONF" <<EOF
+
+sync {
+    default.rsync,
+    source = "$SRC",
+    target = "$DST",
+    rsync = {
+        archive = true,
+        compress = false,
+        verbose = true
+    }
+}
+EOF
+fi
+
+echo ""
+echo "Archivo de configuración creado: $CONF"
+echo "Ejecuta con: lsyncd $CONF"
