@@ -12,9 +12,6 @@ if [ ! -f "$SCRIPT" ]; then
     exit 1
 fi
 
-# Asegura permisos
-chmod +x "$SCRIPT"
-echo "✅ Permisos ajustados para $SCRIPT"
 
 # Revisa si el binario wg-quick existe
 if [ ! -x "$WG_BIN" ]; then

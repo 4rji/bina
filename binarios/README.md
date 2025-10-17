@@ -472,6 +472,7 @@ instsurf            instala surfeando
 gatin               hashcat que usa todos los diccionarios en wordlists/4rji
 gatinesta           Verifica si una palabra esta en los diccionarios password contrasena 
 xxelab              xxe lab docker instala 
+reconnectbb8inst    Crea un crontab para que se reconecte cada 2 horas
 wginst              Instala, y usa el archivo .conf para hacer la conexion. todo ahi wireguard vpn.
 wgc                 Script que controla la coneccion de wireguard
 wgcomm              Algunos comandos de wireguard
