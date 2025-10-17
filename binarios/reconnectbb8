@@ -1,0 +1,4 @@
+#!/bin/bash
+wg-quick down bb8
+sleep 3
+wg-quick up bb8

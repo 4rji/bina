@@ -1,0 +1,34 @@
+#!/bin/bash
+# Auto setup for WireGuard reconnection every 2 hours
+# Creates cronjob and ensures permissions
+
+SCRIPT="/opt/4rji/bin/reconnectbb8"
+WG_BIN="/usr/bin/wg-quick"
+CRONLINE="0 */2 * * * /opt/4rji/bin/reconnectbb8 >/dev/null 2>&1"
+
+# Verifica que exista el script
+if [ ! -f "$SCRIPT" ]; then
+    echo "❌ No existe $SCRIPT"
+    exit 1
+fi
+
+# Asegura permisos
+chmod +x "$SCRIPT"
+echo "✅ Permisos ajustados para $SCRIPT"
+
+# Revisa si el binario wg-quick existe
+if [ ! -x "$WG_BIN" ]; then
+    echo "❌ No se encontró $WG_BIN"
+    exit 1
+fi
+
+# Añade la línea al crontab root si no existe
+if sudo crontab -l 2>/dev/null | grep -q "$SCRIPT"; then
+    echo "ℹ️  Ya existe la tarea en crontab"
+else
+    (sudo crontab -l 2>/dev/null; echo "$CRONLINE") | sudo crontab -
+    echo "✅ Tarea programada cada 2 horas en crontab root"
+fi
+
+# Muestra confirmación
+echo "Done. Verifica con: sudo crontab -l"
