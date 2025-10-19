@@ -11,6 +11,9 @@ netstat-cargo       netstat en formato normal cargo
 cleanips            Extrae ips, dominios y urls de archivos, limpia y cuenta sort uniq 
 
 
+#DNS
+ctfr                Enumera dominios, con -d starbucks.com por ejemplo o -o output
+
 
 #labs
 lab                 Ejecuta el servidor http 8000 en python para labs, creado ahora htb
@@ -219,7 +222,7 @@ ncdu                para ver los archivos grandes, liberar espacio disco tamano
 netevils            aun no se                                                                          
 fzf                 buscador bueno, solo tipiar fzf 
 procesos            Muestra los procesos de los usuarios sin PID, no PID
-proceso             Muestro los Procesos con PID 
+proceso             Investiga un proceso con varias opciones
 servicios           Encuentra servicios que no son del kernel linux corriendo.
 findinst             Busca si un programa esta instalado, en dpkg - apt - systemctl
 ctl {servicio}      Aplica un sudo systemctl a un servicio

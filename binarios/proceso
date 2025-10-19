@@ -1,76 +1,94 @@
 #!/usr/bin/env bash
+# proc-tools.sh - menú interactivo para inspeccionar un PID (sin pausas)
+# Uso: ./proc-tools.sh <PID>
 
-# Función para mostrar el mensaje de ayuda y preguntar si desea continuar
-show_help_and_confirm() {
-    echo
-    echo "El comando que este script ejecuta es:"
-    echo "ps -eo user,comm,pid "
-    echo
-    echo "Presione Enter para continuar o 'c' para salir."
+set -euo pipefail
 
-    # Preguntar al usuario si desea continuar
-    read -p "Deseas continuar [c/S] " response
+PID="${1:-}"
+if [[ -z "$PID" ]]; then echo "Uso: $0 <PID>"; exit 2; fi
 
-    # Convertir la respuesta a minúsculas
-    response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
+SUDO=""; [[ $EUID -ne 0 ]] && SUDO="sudo"
 
-    # Si la respuesta es 'c', salir del script
-    if [ "$response" == "c" ]; then
-        echo "Saliendo del script."
-        exit 0
-    fi
+# Nombre seguro para archivo de log
+PROC_NAME="$(cat /proc/"$PID"/comm 2>/dev/null || echo "$PID")"
+SAFE_NAME="$(printf '%s' "$PROC_NAME" | tr -cd 'A-Za-z0-9._-')"
+TS="$(date +%F_%H%M%S)"
+LOGFILE="${SAFE_NAME}_${PID}_${TS}.log"
+
+# Comandos (en orden)
+CMDS=(
+"$SUDO lsof -p $PID | grep -i deleted || true"
+"$SUDO ls -l /proc/$PID/fd | grep deleted || true"
+"tr '\\0' ' ' < /proc/$PID/cmdline; echo"
+"$SUDO grep -i deleted /proc/$PID/maps || true"
+"$SUDO stat /proc/$PID /proc/$PID/exe || true"
+"$SUDO nsenter -t $PID -m -- readlink /proc/$PID/exe 2>/dev/null || true"
+"$SUDO lsof | grep $PID | grep -i deleted || true"
+"$SUDO lsof -p $PID || true"
+"readlink /proc/$PID/exe 2>/dev/null || true"
+)
+
+sep() { echo "------------------------------------------------------------"; }
+
+run() {
+  local cmd="$1"
+  echo ">> Ejecutando: $cmd"
+  echo "$cmd"
+  sep
+  bash -lc "$cmd" 2>&1 | sed '/lsof: no pwd entry for UID/d'
+  sep
 }
 
-# Verificar si se pasó el argumento -h
-if [ "$1" == "-h" ]; then
-    show_help_and_confirm
-fi
-
-mostrar_procesos() {
-    ps_output=$(ps -eo user,comm,pid)
-    IFS=$'\n' read -r -d '' -a lines <<< "$ps_output"
-
-    for line in "${lines[@]:1}"; do
-        user=$(echo "$line" | awk '{print $1}')
-        process=$(echo "$line" | awk '{print $2}')
-        pid=$(echo "$line" | awk '{print $3}')
-        printf "%-15s %-20s %-6s\n" "$user" "$process" "$pid"
-    done
+run_log() {
+  local cmd="$1"
+  {
+    echo ">> Ejecutando: $cmd"
+    echo "$cmd"
+    sep
+    bash -lc "$cmd" 2>&1 | sed '/lsof: no pwd entry for UID/d'
+    sep
+  } | tee -a "$LOGFILE"
 }
 
-mostrar_procesos | sort | uniq
+menu() {
+  cat <<'EOF'
 
-echo ""
-echo "procesos | grep -v root" | xclip -selection clipboard
-echo ""
-echo "Fin del script."
-echo ""
-echo "Ejecuta este comando para que no muestre los procesos de root:"
-echo "procesos | grep -v root | sort | uniq "
-echo ""
-echo "También ese comando ya fue copiado al portapapeles."
-echo ""
-echo "Puedes usar:\nprocesos > procesos\n"
-echo "Esto para crear un archivo y buscar algún proceso en específico."
-echo ""
-echo "Ejemplos:\ncat procesos | sort | uniq | grep -v palabra1\n"
-#awk '{print $1 "   " $2}' procesos | uniq | sort | grep -v root
-echo "grep -i para incluir, grep -v para excluir root por ejemplo\n"
-echo ""
+Seleccione una opción:
+ 1) lsof -p <PID> | grep deleted
+ 2) ls -l /proc/<PID>/fd | grep deleted
+ 3) mostrar /proc/<PID>/cmdline
+ 4) grep -i deleted /proc/<PID>/maps
+ 5) stat /proc/<PID> y /proc/<PID>/exe
+ 6) nsenter -t <PID> -m -- readlink /proc/<PID>/exe
+ 7) lsof | grep <PID> | grep -i deleted
+ 8) lsof -p <PID> (salida completa)
+ 9) readlink /proc/<PID>/exe
+ A) Ejecutar todas y guardar log
+ Q) Salir
+EOF
+}
 
-# Nuevas funcionalidades agregadas aquí
-echo "¿Deseas crear un archivo llamado 'procesos'? (s/N):"
-read crearArchivo
+trap 'echo; exit 0' INT TERM
 
-if [[ $crearArchivo == 's' ]]; then
-    mostrar_procesos > procesos
-    echo "Archivo 'procesos' creado."
-    echo "¿Deseas buscar algo en el archivo 'procesos'? (s/N):"
-    read buscarEnArchivo
-
-    if [[ $buscarEnArchivo == 's' ]]; then
-        echo "Introduce la palabra a buscar:"
-        read palabra
-        cat procesos | sort | uniq | grep -i "$palabra"
-    fi
-fi
+while true; do
+  menu
+  read -r -p "Opción: " opt
+  case "${opt,,}" in
+    1) run "${CMDS[0]}" ;;
+    2) run "${CMDS[1]}" ;;
+    3) run "${CMDS[2]}" ;;
+    4) run "${CMDS[3]}" ;;
+    5) run "${CMDS[4]}" ;;
+    6) run "${CMDS[5]}" ;;
+    7) run "${CMDS[6]}" ;;
+    8) run "${CMDS[7]}" ;;
+    9) run "${CMDS[8]}" ;;
+    a)
+      : > "$LOGFILE"
+      for cmd in "${CMDS[@]}"; do run_log "$cmd"; done
+      echo ">> Log guardado en: $LOGFILE"
+      ;;
+    q|quit|exit) exit 0 ;;
+    *) echo "Opción inválida." ;;
+  esac
+done
