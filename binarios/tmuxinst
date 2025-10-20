@@ -75,6 +75,7 @@ rm .tmux.conf
 
 #new estofado
 wget https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/tmux.conf -O ~/.tmux.conf
+wget https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/nanorc -O ~/.nanorc
 #wget https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/tmux.conf
 #mv .tmux.conf ~/.tmux.conf
 

@@ -141,27 +141,33 @@ tempfile=$(mktemp) # Create a temporary file
 
 
 
-# Pings each IP in the subnet and displays the output
-for ip in $(seq 1 254); do
-    ping -c 1 "$subnet.$ip" | grep "64 bytes" | cut -d " " -f 4 | tr -d ":" | tee -a $tempfile >/dev/null &
-done
+# truncate tempfile
+: > "$tempfile"
 
 echo "Scanning ..."
-#wait # Wait for all background processes to finish
+# guardar comando ejecutado
+cmd="sudo nmap -sn -n -PR \"$subnet.0/24\" -oG - | awk '/Status: Up/{print \$2}' | sort -V | uniq | tee -a \"$tempfile\" >/dev/null"
+
+# ejecutar comando
+eval "$cmd"
 
 echo ""
 echo "Done."
 echo ""
 
-echo -e "\033[1;33mScan PING of IP addresses and corresponding host names if available:\033[0m"
-
+# mostrar comando ejecutado
+echo -e "\033[1;36mCommand executed:\033[0m"
+echo "$cmd"
 echo ""
+
+echo -e "\033[1;33mScan PING of IP addresses and corresponding host names if available:\033[0m"
+echo ""
+
 counter=1
-while read -r ip; do
+while IFS= read -r ip; do
     host_name=""
-    # Check if the ~/.ssh/config exists before trying to read from it
     if [ -f ~/.ssh/config ]; then
-        host_name=$(grep -B 1 "$ip" ~/.ssh/config | grep "Host " | awk '{print $2}')
+        host_name=$(grep -B1 "$ip" ~/.ssh/config 2>/dev/null | grep -m1 "Host " | awk '{print $2}')
     fi
 
     if [[ -n "$host_name" ]]; then
@@ -170,7 +176,7 @@ while read -r ip; do
         echo "$counter- $ip - Host name not found"
     fi
     ((counter++))
-done < $tempfile
+done < "$tempfile"
 
 
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
