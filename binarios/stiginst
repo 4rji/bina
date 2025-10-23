@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+echo ""
+echo "=============================================="
+echo "     Descargar y ejecutar docker-compose"
+echo "=============================================="
+echo ""
+
+# Descargar el archivo docker-compose.yml en la carpeta actual
+curl -fsSL -o docker-compose.yml https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/stig-navy/docker-compose.yml
+
+# Verificar si la descarga fue exitosa
+if [ $? -eq 0 ]; then
+    echo -e "\033[1;32mArchivo descargado correctamente.\033[0m"
+else
+    echo -e "\033[1;31mError al descargar el archivo.\033[0m"
+    exit 1
+fi
+
+echo ""
+echo "=============================================="
+echo "     Levantando contenedores con Docker..."
+echo "=============================================="
+echo ""
+
+# Ejecutar docker-compose
+docker-compose up -d && docker-compose logs -f
