@@ -1,14 +1,8 @@
 #!/usr/bin/env bash
 echo ""
-echo "buscar el secreto de amor de secreto"
 
+echo -e "\033[1;33mReminder: Keep track of both tokens for future use.\033[0m"
 echo ""
-
-  echo -e "\033[1;33mReminder: Keep track of both tokens for future use.\033[0m"
-        echo ""
-       # echo "_________________________________________________________"
-        #echo ""
-
 sleep 1
 
 # Function to install Tailscale automatically
@@ -21,30 +15,19 @@ function install_tailscale {
     echo "_________________________________________________________"
     echo ""
     
-    #curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up --auth-key=tskey-auth-kLLn5eTqP911CNTRL-yEXWEXNDfCHXwsZSSYAyBH1UHmYRFxxK
-    curl -fsSL https://tailscale.com/install.sh | sh && sudo tailscale up --auth-key=tskey-auth-kHgPWE5oNf11CNTRL-txtvEAMn16F2sPpyvZHD5FDScPYRwmPXR
+    curl -fsSL https://tailscale.com/install.sh | sh
 
-    if [ $? -eq 0 ]; then
-        echo ""
-        echo "_________________________________________________________"
-        echo ""
-        echo -e "\033[1;32mTailscale was successfully installed.\033[0m"
-        echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
-        echo "tailip"
-        echo ""
-
-        sudo tailscale status | grep -v offline
-        echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
-      
-    else
-        echo ""
-        echo "_________________________________________________________"
-        echo ""
-        echo -e "\033[1;31mThere was an issue during the Tailscale installation.\033[0m"
-        echo ""
-        echo "_________________________________________________________"
-        echo ""
-    fi
+    echo ""
+    echo "_________________________________________________________"
+    echo ""
+    echo -e "\033[1;36mInstallation complete.\033[0m"
+    echo ""
+    echo -e "\033[1;33mNow register your machine with your auth key:\033[0m"
+    echo ""
+    echo -e "\033[1;32msudo tailscale up --authkey \$tailsKey --hostname MachineName\033[0m"
+    echo ""
+    echo "___ tailip __________________________________________________"
+    echo ""
 }
 
 # Main execution
