@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# SFTP-only chroot setup for user "drop" on Debian
+set -euo pipefail
+
+USER="drop"
+ROOT_DIR="/srv/drop"
+INBOX_DIR="$ROOT_DIR/inbox"
+SSHD="/etc/ssh/sshd_config"
+BACKUP="/etc/ssh/sshd_config.$(date +%Y%m%d-%H%M%S).bak"
+
+#---- 0) Root check ------------------------------------------------------------
+if [[ $EUID -ne 0 ]]; then
+  echo "Ejecuta como root (sudo)." >&2
+  exit 1
+fi
+
+#---- 1) Limpia ---------------------------------------------------------------
+echo "[+] Parando ssh (si está corriendo) ..."
+systemctl stop ssh || true
+
+echo "[+] Matando sesión del usuario $USER (si existe) ..."
+pkill -u "$USER" 2>/dev/null || true
+
+echo "[+] Eliminando usuario/grupo $USER y home (si existen) ..."
+userdel -r "$USER" 2>/dev/null || true
+groupdel "$USER" 2>/dev/null || true
+
+echo "[+] Eliminando $ROOT_DIR ..."
+rm -rf "$ROOT_DIR"
+
+#---- 2) Usuario solo SFTP ----------------------------------------------------
+echo "[+] Creando usuario $USER sin shell ..."
+useradd -m -s /usr/sbin/nologin "$USER"
+
+echo -n "[?] Password para $USER: "
+read -r -s PASS
+echo
+echo "$USER:$PASS" | chpasswd
+
+#---- 3) Chroot correcto ------------------------------------------------------
+echo "[+] Creando chroot y permisos ..."
+install -d -o root -g root -m 755 "$ROOT_DIR"
+install -d -o "$USER" -g "$USER" -m 755 "$INBOX_DIR"
+
+#---- 4) Config SSH automática ------------------------------------------------
+echo "[+] Backup de $SSHD -> $BACKUP"
+cp -a "$SSHD" "$BACKUP"
+
+echo "[+] Limpiando bloques previos 'Match User drop' ..."
+awk '
+  BEGIN{skip=0}
+  /^Match[[:space:]]+User[[:space:]]+drop/ {skip=1; next}
+  skip==1 && /^Match[[:space:]]/ {skip=0}
+  skip==0 {print}
+' "$BACKUP" > "$SSHD".tmp
+
+echo "[+] Añadiendo bloque SFTP-only para $USER ..."
+cat >> "$SSHD".tmp <<'EOF'
+
+# --- SFTP-only chroot for user "drop" ---
+Match User drop
+    ChrootDirectory /srv/drop
+    ForceCommand internal-sftp -d /inbox -u 022
+    PasswordAuthentication yes
+    PubkeyAuthentication yes
+    X11Forwarding no
+    AllowTcpForwarding no
+# --- end block ---
+EOF
+
+mv "$SSHD".tmp "$SSHD"
+
+#---- 5) Reinicio ssh ---------------------------------------------------------
+echo "[+] Iniciando ssh ..."
+systemctl start ssh
+systemctl is-active --quiet ssh && echo "[OK] ssh activo."
+
+#---- 6) Mensaje final --------------------------------------------------------
+cat <<'EOT'
+
+=== Prueba desde el cliente ===
+sftp drop@<ip-o-host>
+sftp> pwd
+sftp> ls
+sftp> cd /inbox
+sftp> put archivo.txt
+
+=== Alternativa directa ===
+scp archivo.txt drop@<ip-o-host>:/inbox/
+
+EOT
