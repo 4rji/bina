@@ -52,6 +52,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###------utilidades 
+dropinst            sftp cliente para guardar archivos, transferir o extraer
 stiginst            Utilidad de verificacion windows por la navy
 lsync               Para syncronizar carpetas, usando archivo lua, rsync. 
 goinst              Instala con go install github, da listas de opciones para binarios
