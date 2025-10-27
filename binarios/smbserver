@@ -1,117 +1,247 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Config
-SHARE_NAME="smbFolder"
-SHARE_PATH="$(pwd)"
-SMBSERVER_PY_PATH="/usr/share/doc/python3-impacket/examples/smbserver.py"
-DOCKER_IMAGE="impacket:latest"
-DOCKER_CONTAINER="impacket-smb"
-GREEN="\033[32m"
-BLUE="\033[34m"
-YELLOW="\033[33m"
-RED="\033[31m"
-RESET="\033[0m"
+# ---- configuración de color ----
+RED='\033[31m'
+GREEN='\033[32m'
+BLUE='\033[34m'
+YELLOW='\033[33m'
+RESET='\033[0m'
 
-echo -e "${BLUE}Choose installation method:${RESET}"
-echo -e "  1) python3 -m pipx install impacket"
-echo -e "  2) docker build -t \"${DOCKER_IMAGE}\" ."
-read -rp "Select 1 or 2: " CHOICE
+# ---- flags ----
+AUTO_INSTALL=0
+FORCE_INSTALL=0
+INSTALL_ONLY=0
 
-start_smb_from_path() {
-  # Try to start impacket-smbserver from PATH, sudo if needed
+for arg in "$@"; do
+  case "$arg" in
+    --auto-install) AUTO_INSTALL=1 ;;
+    --force) FORCE_INSTALL=1 ;;
+    --install-only) INSTALL_ONLY=1 ;;
+    --help|-h)
+      cat <<EOF
+Usage: $(basename "$0") [--auto-install] [--force] [--install-only]
+  --auto-install   : try to install impacket automatically if missing (no prompt)
+  --force          : force reinstall / pipx --force (if using pipx/pip)
+  --install-only   : only run the installer phase, then exit
+EOF
+      exit 0
+      ;;
+    *)
+      # ignore unknown args
+      ;;
+  esac
+done
+
+WORKDIR="$(pwd)"
+SMB_SHARE_NAME="smbFolder"
+SMB_PORT=445
+
+# ---- mensajes iniciales (IMPORTANTE) ----
+echo -e "${RED}"
+echo "_________________________________________________________"
+echo -e "${RESET}"
+echo -e "${GREEN}INSTRUCCIONES IMPORTANTES PARA DESCARGAR/ACCEDER AL ARCHIVO${RESET}"
+echo
+echo -e "${BLUE}Desde Linux:${RESET}"
+echo -e "${YELLOW}1) Instala smbclient si no lo tienes:${RESET}"
+echo -e "${BLUE}   sudo apt-get install -y smbclient${RESET}"
+echo
+echo -e "${BLUE}2) Accede al recurso compartido:${RESET}"
+echo -e "${YELLOW}   smbclient //$(hostname -I | awk '{print $1}')/${SMB_SHARE_NAME}${RESET}"
+echo -e "${BLUE}   (presiona Enter cuando pida contraseña)${RESET}"
+echo
+echo -e "${BLUE}3) Desde otro equipo Linux/Windows puedes montar o usar cliente SMB/Samba.${RESET}"
+echo
+echo -e "${RED}_________________________________________________________${RESET}"
+echo
+
+# ---- utilidades ----
+is_root() {
+  [ "$(id -u)" -eq 0 ]
+}
+
+sudo_maybe() {
+  # usage: sudo_maybe <cmd...>
+  if is_root; then
+    "$@"
+  else
+    # preserve PATH for venv executables
+    sudo env "PATH=$PATH" "$@"
+  fi
+}
+
+check_impacket() {
   if command -v impacket-smbserver >/dev/null 2>&1; then
-    echo -e "${GREEN}Starting impacket-smbserver from PATH...${RESET}"
-    sudo env "PATH=$PATH" impacket-smbserver "${SHARE_NAME}" "${SHARE_PATH}" -smb2support &
+    echo "impacket-smbserver (bin) encontrado: $(command -v impacket-smbserver)"
     return 0
   fi
-
-  # Try pipx binary location (~/.local/bin)
-  if [ -x "${HOME}/.local/bin/impacket-smbserver" ]; then
-    echo -e "${GREEN}Starting impacket-smbserver from ~/.local/bin...${RESET}"
-    sudo env "PATH=$PATH" "${HOME}/.local/bin/impacket-smbserver" "${SHARE_NAME}" "${SHARE_PATH}" -smb2support &
+  if command -v smbserver.py >/dev/null 2>&1; then
+    echo "smbserver.py en PATH: $(command -v smbserver.py)"
     return 0
   fi
-
-  # Try installed examples script location
-  if [ -x "${SMBSERVER_PY_PATH}" ]; then
-    echo -e "${GREEN}Starting smbserver.py from system docs...${RESET}"
-    sudo python3 "${SMBSERVER_PY_PATH}" "${SHARE_NAME}" "${SHARE_PATH}" -smb2support &
+  if [ -x "${HOME}/.local/share/pipx/venvs/impacket/bin/smbserver.py" ] || [ -x "${HOME}/.local/share/pipx/venvs/impacket/bin/impacket-smbserver" ]; then
+    export PATH="${HOME}/.local/share/pipx/venvs/impacket/bin:${PATH}"
+    echo "impacket encontrado en pipx venv"
     return 0
   fi
-
-  # Try running directly from cloned repo if present
-  if [ -f "./impacket/examples/smbserver.py" ]; then
-    echo -e "${GREEN}Starting smbserver.py from ./impacket/examples...${RESET}"
-    sudo python3 ./impacket/examples/smbserver.py "${SHARE_NAME}" "${SHARE_PATH}" -smb2support &
+  if [ -x "/usr/share/doc/python3-impacket/examples/smbserver.py" ]; then
+    echo "ejemplo smbserver.py provisto por paquete python3-impacket"
     return 0
   fi
-
-  echo -e "${YELLOW}Could not find impacket-smbserver binary or smbserver.py. You may need to clone impacket or check PATH.${RESET}"
   return 1
 }
 
-case "$CHOICE" in
-  1)
-    echo -e "${BLUE}Installing via pipx...${RESET}"
-    # Ensure python3 and pip are present
-    command -v python3 >/dev/null 2>&1 || { echo -e "${RED}python3 not found.${RESET}"; exit 1; }
-    # Install pipx if missing
-    if ! command -v pipx >/dev/null 2>&1; then
-      echo -e "${YELLOW}pipx not found. Installing pipx (user) ...${RESET}"
-      python3 -m pip install --user pipx
-      python3 -m pipx ensurepath || true
-      export PATH="${HOME}/.local/bin:${PATH}"
-      echo -e "${GREEN}pipx installed.${RESET}"
+install_impacket() {
+  echo "Seleccionando método de instalación..."
+  if command -v pipx >/dev/null 2>&1 || python3 -m pip show pipx >/dev/null 2>&1; then
+    echo "Usando pipx..."
+    python3 -m pip install --user pipx >/dev/null 2>&1 || true
+    python3 -m pipx ensurepath >/dev/null 2>&1 || true
+    if [ "$FORCE_INSTALL" -eq 1 ]; then
+      pipx install --force impacket || pipx upgrade --force impacket || true
+    else
+      pipx install impacket || pipx upgrade impacket || true
     fi
+    return
+  fi
 
-    # Install impacket with pipx
-    python3 -m pipx install impacket || {
-      echo -e "${YELLOW}pipx install failed; falling back to pip install --user impacket...${RESET}"
-      python3 -m pip install --user impacket
-      export PATH="${HOME}/.local/bin:${PATH}"
-    }
-
-    # Try to start server
-    start_smb_from_path || { echo -e "${RED}Start failed. Try: git clone https://github.com/SecureAuthCorp/impacket.git && sudo python3 impacket/examples/smbserver.py ${SHARE_NAME} ${SHARE_PATH} -smb2support &${RESET}"; exit 1; }
-    ;;
-
-  2)
-    echo -e "${BLUE}Building Docker image ${DOCKER_IMAGE} ...${RESET}"
-    command -v docker >/dev/null 2>&1 || { echo -e "${RED}docker not found.${RESET}"; exit 1; }
-    docker build -t "${DOCKER_IMAGE}" .
-
-    echo -e "${BLUE}Stopping existing container if exists...${RESET}"
-    docker rm -f "${DOCKER_CONTAINER}" >/dev/null 2>&1 || true
-
-    # Run container mapping current dir into /smb and attempting to expose SMB ports.
-    echo -e "${BLUE}Running Docker container (may require root and available host ports 445/139)...${RESET}"
-    docker run -d --name "${DOCKER_CONTAINER}" \
-      --cap-add=NET_ADMIN --cap-add=NET_RAW \
-      -v "${SHARE_PATH}":/smb:ro \
-      -p 445:445 -p 139:139 \
-      "${DOCKER_IMAGE}" \
-      python3 /impacket/examples/smbserver.py "${SHARE_NAME}" /smb -smb2support
-
-    if [ $? -ne 0 ]; then
-      echo -e "${YELLOW}Docker run failed to bind ports (maybe in use or requires privileges). You can run without -p flags and test inside network namespace.${RESET}"
-      exit 1
+  if command -v pip3 >/dev/null 2>&1; then
+    echo "Usando pip3..."
+    if [ "$FORCE_INSTALL" -eq 1 ]; then
+      sudo python3 -m pip install --upgrade --force-reinstall impacket || true
+    else
+      sudo python3 -m pip install --upgrade impacket || true
     fi
-    ;;
+    return
+  fi
 
-  *)
-    echo -e "${RED}Invalid option.${RESET}"
+  if command -v apt-get >/dev/null 2>&1; then
+    echo "Usando apt-get (paquete python3-impacket si está disponible)..."
+    sudo apt-get update -y || true
+    sudo apt-get install -y python3-impacket || true
+    return
+  fi
+
+  echo "Intentando clonar repo impacket (último recurso)..."
+  TMPDIR="$(mktemp -d /tmp/impacket.XXXX)"
+  git clone https://github.com/SecureAuthCorp/impacket.git "$TMPDIR" || { echo "clone falló"; return 1; }
+  echo "Repositorio clonado en: $TMPDIR"
+  echo "Para iniciar ahora: sudo python3 \"$TMPDIR/examples/smbserver.py\" ${SMB_SHARE_NAME} \"${WORKDIR}\" -smb2support &"
+}
+
+start_smbserver() {
+  # prefer impacket-smbserver executable
+  if command -v impacket-smbserver >/dev/null 2>&1; then
+    echo "Iniciando impacket-smbserver (bin)..."
+    sudo_maybe impacket-smbserver "${SMB_SHARE_NAME}" "${WORKDIR}" -smb2support &
+    sleep 0.2
+    return 0
+  fi
+
+  SMB_PY_PATH="$(command -v smbserver.py 2>/dev/null || true)"
+  if [ -n "$SMB_PY_PATH" ]; then
+    echo "smbserver.py en PATH: $SMB_PY_PATH"
+    case "$SMB_PY_PATH" in
+      "$HOME/.local/share/pipx/venvs/impacket/"*)
+        VENV_BIN_DIR="$HOME/.local/share/pipx/venvs/impacket/bin"
+        PY_BIN="$VENV_BIN_DIR/python3"
+        if [ -x "$PY_BIN" ]; then
+          echo "Ejecutando con python del venv pipx: $PY_BIN (con sudo si es necesario)"
+          if is_root; then
+            "$PY_BIN" "$SMB_PY_PATH" "${SMB_SHARE_NAME}" "${WORKDIR}" -smb2support &
+          else
+            sudo env "PATH=$PATH" "$PY_BIN" "$SMB_PY_PATH" "${SMB_SHARE_NAME}" "${WORKDIR}" -smb2support &
+          fi
+          sleep 0.2
+          return 0
+        fi
+        ;;
+    esac
+
+    echo "Ejecutando smbserver.py con 'python3' (fallback, con sudo si es necesario)..."
+    if is_root; then
+      python3 "$SMB_PY_PATH" "${SMB_SHARE_NAME}" "${WORKDIR}" -smb2support &
+    else
+      sudo env "PATH=$PATH" python3 "$SMB_PY_PATH" "${SMB_SHARE_NAME}" "${WORKDIR}" -smb2support &
+    fi
+    sleep 0.2
+    return 0
+  fi
+
+  if [ -x "${HOME}/.local/share/pipx/venvs/impacket/bin/smbserver.py" ]; then
+    VENV_PY="${HOME}/.local/share/pipx/venvs/impacket/bin/python3"
+    if [ -x "$VENV_PY" ]; then
+      echo "Iniciando smbserver.py desde pipx venv con su python (con sudo si es necesario): $VENV_PY"
+      if is_root; then
+        "$VENV_PY" "${HOME}/.local/share/pipx/venvs/impacket/bin/smbserver.py" "${SMB_SHARE_NAME}" "${WORKDIR}" -smb2support &
+      else
+        sudo env "PATH=$PATH" "$VENV_PY" "${HOME}/.local/share/pipx/venvs/impacket/bin/smbserver.py" "${SMB_SHARE_NAME}" "${WORKDIR}" -smb2support &
+      fi
+      sleep 0.2
+      return 0
+    else
+      echo "smbserver.py encontrado en pipx venv pero no se encontró python en: ${HOME}/.local/share/pipx/venvs/impacket/bin"
+    fi
+  fi
+
+  if [ -f "/usr/share/doc/python3-impacket/examples/smbserver.py" ]; then
+    echo "Iniciando smbserver.py desde /usr/share/doc (usando sudo si es necesario)..."
+    if is_root; then
+      python3 "/usr/share/doc/python3-impacket/examples/smbserver.py" "${SMB_SHARE_NAME}" "${WORKDIR}" -smb2support &
+    else
+      sudo env "PATH=$PATH" python3 "/usr/share/doc/python3-impacket/examples/smbserver.py" "${SMB_SHARE_NAME}" "${WORKDIR}" -smb2support &
+    fi
+    sleep 0.2
+    return 0
+  fi
+
+  return 1
+}
+
+# ---- flujo principal ----
+if check_impacket; then
+  echo -e "${GREEN}impacket detectado.${RESET}"
+else
+  echo -e "${YELLOW}impacket no está instalado o no se detectó un smbserver utilizable.${RESET}"
+  if [ "$AUTO_INSTALL" -eq 1 ]; then
+    echo "Modo --auto-install activo: intentando instalar ahora..."
+    install_impacket
+  else
+    printf "¿Deseas intentar instalar impacket ahora? [Y/n]: "
+    read -r REPLY || REPLY="Y"
+    REPLY=${REPLY:-Y}
+    case "$REPLY" in
+      [Yy]* )
+        install_impacket
+        ;;
+      * )
+        echo "Instalación omitida por el usuario."
+        ;;
+    esac
+  fi
+fi
+
+if [ "$INSTALL_ONLY" -eq 1 ]; then
+  echo "Modo --install-only: saliendo."
+  exit 0
+fi
+
+if check_impacket; then
+  if start_smbserver; then
+    echo -e "${GREEN}SMB server iniciado correctamente.${RESET}"
+    echo -e "${BLUE}Compartido:${RESET} ${WORKDIR} -> \\\\$(hostname -I | awk '{print $1}')\\${SMB_SHARE_NAME}"
+    echo -e "${BLUE}Para detenerlo (busca proceso python o impacket-smbserver):${RESET}"
+    echo "  ps aux | grep -E 'smbserver.py|impacket-smbserver' | grep -v grep"
+    echo "  kill <PID>"
+    exit 0
+  else
+    echo -e "${RED}No se pudo iniciar el SMB server: binario o script no accesible.${RESET}"
+    echo "Si clonaste el repo (opción clone), lanza manualmente con:"
+    echo "  sudo python3 /ruta/al/repo/impacket/examples/smbserver.py ${SMB_SHARE_NAME} \"${WORKDIR}\" -smb2support &"
     exit 1
-    ;;
-esac
-
-sleep 1
-echo ""
-echo -e "${GREEN}Commands to access the share:${RESET}"
-echo -e "${BLUE}Linux:${RESET}"
-echo -e "  sudo apt-get install smbclient"
-echo -e "  smbclient //$(hostname -I | awk '{print $1}')/${SHARE_NAME}"
-echo -e "${BLUE}Windows:${RESET}"
-echo -e "  \\\\$(hostname -I | awk '{print $1}')\\${SHARE_NAME}"
-echo ""
-echo -e "${GREEN}If server is not running, try: sudo python3 impacket/examples/smbserver.py ${SHARE_NAME} ${SHARE_PATH} -smb2support &${RESET}"
+  fi
+else
+  echo -e "${RED}Aún no se detecta impacket. No se iniciará el SMB server.${RESET}"
+  exit 1
+fi
