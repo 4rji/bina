@@ -38,23 +38,43 @@ SMB_SHARE_NAME="smbFolder"
 SMB_PORT=445
 
 # ---- mensajes iniciales (IMPORTANTE) ----
-echo -e "${RED}"
+
+# Instructions with ANSI color codes
+echo -e "\033[31m"
+echo ""
 echo "_________________________________________________________"
-echo -e "${RESET}"
-echo -e "${GREEN}INSTRUCCIONES IMPORTANTES PARA DESCARGAR/ACCEDER AL ARCHIVO${RESET}"
-echo
-echo -e "${BLUE}Desde Linux:${RESET}"
-echo -e "${YELLOW}1) Instala smbclient si no lo tienes:${RESET}"
-echo -e "${BLUE}   sudo apt-get install -y smbclient${RESET}"
-echo
-echo -e "${BLUE}2) Accede al recurso compartido:${RESET}"
-echo -e "${YELLOW}   smbclient //$(hostname -I | awk '{print $1}')/${SMB_SHARE_NAME}${RESET}"
-echo -e "${BLUE}   (presiona Enter cuando pida contraseña)${RESET}"
-echo
-echo -e "${BLUE}3) Desde otro equipo Linux/Windows puedes montar o usar cliente SMB/Samba.${RESET}"
-echo
-echo -e "${RED}_________________________________________________________${RESET}"
-echo
+echo ""
+echo "Instructions for downloading the file:"
+echo ""
+echo -e "\033[32m"
+echo "From Linux:"
+echo -e "\033[34m"
+echo "1. Install smbclient if you don't have it already:"
+echo -e "\033[33m"
+echo "   sudo apt-get install smbclient"
+
+echo -e "\033[34m"
+echo "2. Access the shared folder:"
+echo -e "\033[33m"
+echo "   smbclient //$(hostname -I | awk '{print $1}')/smbFolder"
+echo " (not password just press enter)"
+echo -e "\033[34m"
+echo "3. Download the file:"
+echo -e "\033[33m"
+echo "   get <filename>"
+echo ""
+echo -e "\033[31m"
+echo "From Windows:"
+echo -e "\033[32m"
+echo "1. Press Win + R to open the Run dialog."
+echo -e "\033[34m"
+echo "2. Type '\\\\$(hostname -I | awk '{print $1}')\\smbFolder' and press Enter."
+echo -e "\033[33m"
+echo "3. Copy the file from the shared folder or try copy \\$ip\smbFolder\file namenewfile"
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo -e "\033[31m"
 
 # ---- utilidades ----
 is_root() {
