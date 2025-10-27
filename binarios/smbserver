@@ -1,45 +1,117 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-# Start the SMB server
-echo "sudo impacket-smbserver smbFolder $(pwd) -smb2support &"
-echo "sudo python3 /usr/share/doc/python3-impacket/examples/smbserver.py -smb2support SHARE Screenshots"
+# Config
+SHARE_NAME="smbFolder"
+SHARE_PATH="$(pwd)"
+SMBSERVER_PY_PATH="/usr/share/doc/python3-impacket/examples/smbserver.py"
+DOCKER_IMAGE="impacket:latest"
+DOCKER_CONTAINER="impacket-smb"
+GREEN="\033[32m"
+BLUE="\033[34m"
+YELLOW="\033[33m"
+RED="\033[31m"
+RESET="\033[0m"
 
-# Wait for a moment to ensure the server starts
+echo -e "${BLUE}Choose installation method:${RESET}"
+echo -e "  1) python3 -m pipx install impacket"
+echo -e "  2) docker build -t \"${DOCKER_IMAGE}\" ."
+read -rp "Select 1 or 2: " CHOICE
 
+start_smb_from_path() {
+  # Try to start impacket-smbserver from PATH, sudo if needed
+  if command -v impacket-smbserver >/dev/null 2>&1; then
+    echo -e "${GREEN}Starting impacket-smbserver from PATH...${RESET}"
+    sudo env "PATH=$PATH" impacket-smbserver "${SHARE_NAME}" "${SHARE_PATH}" -smb2support &
+    return 0
+  fi
 
-# Instructions with ANSI color codes
-echo -e "\033[31m"
-echo ""
-echo "_________________________________________________________"
-echo ""
-echo "Instructions for downloading the file:"
-echo ""
-echo -e "\033[32m"
-echo "From Linux:"
-echo -e "\033[34m"
-echo "1. Install smbclient if you don't have it already:"
-echo -e "\033[33m"
-echo "   sudo apt-get install smbclient"
+  # Try pipx binary location (~/.local/bin)
+  if [ -x "${HOME}/.local/bin/impacket-smbserver" ]; then
+    echo -e "${GREEN}Starting impacket-smbserver from ~/.local/bin...${RESET}"
+    sudo env "PATH=$PATH" "${HOME}/.local/bin/impacket-smbserver" "${SHARE_NAME}" "${SHARE_PATH}" -smb2support &
+    return 0
+  fi
 
-echo -e "\033[34m"
-echo "2. Access the shared folder:"
-echo -e "\033[33m"
-echo "   smbclient //$(hostname -I | awk '{print $1}')/smbFolder"
-echo " (not password just press enter)"
-echo -e "\033[34m"
-echo "3. Download the file:"
-echo -e "\033[33m"
-echo "   get <filename>"
+  # Try installed examples script location
+  if [ -x "${SMBSERVER_PY_PATH}" ]; then
+    echo -e "${GREEN}Starting smbserver.py from system docs...${RESET}"
+    sudo python3 "${SMBSERVER_PY_PATH}" "${SHARE_NAME}" "${SHARE_PATH}" -smb2support &
+    return 0
+  fi
+
+  # Try running directly from cloned repo if present
+  if [ -f "./impacket/examples/smbserver.py" ]; then
+    echo -e "${GREEN}Starting smbserver.py from ./impacket/examples...${RESET}"
+    sudo python3 ./impacket/examples/smbserver.py "${SHARE_NAME}" "${SHARE_PATH}" -smb2support &
+    return 0
+  fi
+
+  echo -e "${YELLOW}Could not find impacket-smbserver binary or smbserver.py. You may need to clone impacket or check PATH.${RESET}"
+  return 1
+}
+
+case "$CHOICE" in
+  1)
+    echo -e "${BLUE}Installing via pipx...${RESET}"
+    # Ensure python3 and pip are present
+    command -v python3 >/dev/null 2>&1 || { echo -e "${RED}python3 not found.${RESET}"; exit 1; }
+    # Install pipx if missing
+    if ! command -v pipx >/dev/null 2>&1; then
+      echo -e "${YELLOW}pipx not found. Installing pipx (user) ...${RESET}"
+      python3 -m pip install --user pipx
+      python3 -m pipx ensurepath || true
+      export PATH="${HOME}/.local/bin:${PATH}"
+      echo -e "${GREEN}pipx installed.${RESET}"
+    fi
+
+    # Install impacket with pipx
+    python3 -m pipx install impacket || {
+      echo -e "${YELLOW}pipx install failed; falling back to pip install --user impacket...${RESET}"
+      python3 -m pip install --user impacket
+      export PATH="${HOME}/.local/bin:${PATH}"
+    }
+
+    # Try to start server
+    start_smb_from_path || { echo -e "${RED}Start failed. Try: git clone https://github.com/SecureAuthCorp/impacket.git && sudo python3 impacket/examples/smbserver.py ${SHARE_NAME} ${SHARE_PATH} -smb2support &${RESET}"; exit 1; }
+    ;;
+
+  2)
+    echo -e "${BLUE}Building Docker image ${DOCKER_IMAGE} ...${RESET}"
+    command -v docker >/dev/null 2>&1 || { echo -e "${RED}docker not found.${RESET}"; exit 1; }
+    docker build -t "${DOCKER_IMAGE}" .
+
+    echo -e "${BLUE}Stopping existing container if exists...${RESET}"
+    docker rm -f "${DOCKER_CONTAINER}" >/dev/null 2>&1 || true
+
+    # Run container mapping current dir into /smb and attempting to expose SMB ports.
+    echo -e "${BLUE}Running Docker container (may require root and available host ports 445/139)...${RESET}"
+    docker run -d --name "${DOCKER_CONTAINER}" \
+      --cap-add=NET_ADMIN --cap-add=NET_RAW \
+      -v "${SHARE_PATH}":/smb:ro \
+      -p 445:445 -p 139:139 \
+      "${DOCKER_IMAGE}" \
+      python3 /impacket/examples/smbserver.py "${SHARE_NAME}" /smb -smb2support
+
+    if [ $? -ne 0 ]; then
+      echo -e "${YELLOW}Docker run failed to bind ports (maybe in use or requires privileges). You can run without -p flags and test inside network namespace.${RESET}"
+      exit 1
+    fi
+    ;;
+
+  *)
+    echo -e "${RED}Invalid option.${RESET}"
+    exit 1
+    ;;
+esac
+
+sleep 1
 echo ""
-echo -e "\033[31m"
-echo "From Windows:"
-echo -e "\033[32m"
-echo "1. Press Win + R to open the Run dialog."
-echo -e "\033[34m"
-echo "2. Type '\\\\$(hostname -I | awk '{print $1}')\\smbFolder' and press Enter."
-echo -e "\033[33m"
-echo "3. Copy the file from the shared folder or try copy \\$ip\smbFolder\file namenewfile"
+echo -e "${GREEN}Commands to access the share:${RESET}"
+echo -e "${BLUE}Linux:${RESET}"
+echo -e "  sudo apt-get install smbclient"
+echo -e "  smbclient //$(hostname -I | awk '{print $1}')/${SHARE_NAME}"
+echo -e "${BLUE}Windows:${RESET}"
+echo -e "  \\\\$(hostname -I | awk '{print $1}')\\${SHARE_NAME}"
 echo ""
-echo "_________________________________________________________"
-echo ""
-echo -e "\033[31m"
+echo -e "${GREEN}If server is not running, try: sudo python3 impacket/examples/smbserver.py ${SHARE_NAME} ${SHARE_PATH} -smb2support &${RESET}"
