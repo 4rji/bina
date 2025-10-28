@@ -27,6 +27,8 @@ function install_tailscale {
     echo -e "\033[1;32msudo tailscale up --authkey \$tailsKey --hostname MachineName\033[0m"
     echo ""
     echo "___ tailip = IPs. /   tails = status________________________________________"
+    echo "sudo tailscale set --accept-dns=false   "
+    
     echo ""
 }
 
