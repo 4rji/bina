@@ -37,6 +37,9 @@ WORKDIR="$(pwd)"
 SMB_SHARE_NAME="smbFolder"
 SMB_PORT=445
 
+# get a single primary IP (first address)
+IP="$(hostname -I 2>/dev/null | awk '{print $1}' || hostname -i 2>/dev/null || echo "127.0.0.1")"
+
 # ---- mensajes iniciales (IMPORTANTE) ----
 
 # Instructions with ANSI color codes
@@ -56,7 +59,7 @@ echo "   sudo apt-get install smbclient"
 echo -e "\033[34m"
 echo "2. Access the shared folder:"
 echo -e "\033[33m"
-echo "   smbclient //$(hostname -I | awk '{print $1}')/smbFolder"
+echo "   smbclient //${IP}/${SMB_SHARE_NAME}"
 echo " (not password just press enter)"
 echo -e "\033[34m"
 echo "3. Download the file:"
@@ -68,9 +71,9 @@ echo "From Windows:"
 echo -e "\033[32m"
 echo "1. Press Win + R to open the Run dialog."
 echo -e "\033[34m"
-echo "2. Type '\\\\$(hostname -I | awk '{print $1}')\\smbFolder' and press Enter."
+echo "2. Type '\\\\${IP}\\${SMB_SHARE_NAME}' and press Enter."
 echo -e "\033[33m"
-echo "3. Copy the file from the shared folder or try copy \\$ip\smbFolder\file namenewfile"
+echo "3. Copy the file from the shared folder or try copy \\\\${IP}\\${SMB_SHARE_NAME}\\<filename>"
 echo ""
 echo "_________________________________________________________"
 echo ""
@@ -250,7 +253,7 @@ fi
 if check_impacket; then
   if start_smbserver; then
     echo -e "${GREEN}SMB server iniciado correctamente.${RESET}"
-    echo -e "${BLUE}Compartido:${RESET} ${WORKDIR} -> \\\\$(hostname -I | awk '{print $1}')\\${SMB_SHARE_NAME}"
+    echo -e "${BLUE}Compartido:${RESET} ${WORKDIR} -> \\\\${IP}\\${SMB_SHARE_NAME}"
     echo -e "${BLUE}Para detenerlo (busca proceso python o impacket-smbserver):${RESET}"
     echo "  ps aux | grep -E 'smbserver.py|impacket-smbserver' | grep -v grep"
     echo "  kill <PID>"
