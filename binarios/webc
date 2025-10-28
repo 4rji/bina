@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+#brew install imagemagick webp 
+
+
 shopt -s nullglob nocaseglob
 
 if [[ -n "$1" && -d "$1" ]]; then

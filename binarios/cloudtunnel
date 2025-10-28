@@ -14,9 +14,10 @@ usage() {
     echo ""
     echo "_________________________________________________________"
     echo ""
-    echo -e "\033[1;37m  Usage: $0 [-k] [-h]  \033[0m"
+    echo -e "\033[1;37m  Usage: $0 [-k] [-h] [-s]  \033[0m"
     echo -e "\033[1;37m    -k    show status and kill running cloudflared tunnel if found  \033[0m"
     echo -e "\033[1;37m    -h    show tunnels created (and running status)  \033[0m"
+    echo -e "\033[1;37m    -s    show cloudflared running status (PID + command)  \033[0m"
     echo ""
     exit 1
 }
@@ -24,12 +25,14 @@ usage() {
 # parse flags
 KILL_FLAG=0
 HELP_FLAG=0
+STATUS_FLAG=0
 FLAG_COUNT=0
 
-while getopts ":kh" opt; do
+while getopts ":khs" opt; do
   case ${opt} in
     k ) KILL_FLAG=1; FLAG_COUNT=$((FLAG_COUNT+1)) ;;
     h ) HELP_FLAG=1; FLAG_COUNT=$((FLAG_COUNT+1)) ;;
+    s ) STATUS_FLAG=1; FLAG_COUNT=$((FLAG_COUNT+1)) ;;
     \? ) usage ;;
   esac
 done
@@ -40,7 +43,7 @@ if [ "$FLAG_COUNT" -eq 0 ]; then
   echo ""
   echo "_________________________________________________________"
   echo ""
-  echo -e "\033[1;33m  Available flags: -k (kill/status)  -h (show tunnels)  \033[0m"
+  echo -e "\033[1;33m  Available flags: -k (kill/status)  -h (show tunnels)  -s (status)  \033[0m"
   echo ""
 fi
 
@@ -67,8 +70,45 @@ find_cloudflared_pid() {
     echo "$pid"
     return 0
   fi
+  # another fallback: any cloudflared process
+  pid="$(pgrep -u "$(id -u)" -f "cloudflared" | head -n1 || true)"
+  if [ -n "$pid" ]; then
+    echo "$pid"
+    return 0
+  fi
   return 1
 }
+
+# If -s used: show basic running status then exit
+if [ "$STATUS_FLAG" -eq 1 ]; then
+  echo ""
+  echo "_________________________________________________________"
+  echo ""
+  pid="$(find_cloudflared_pid || true)"
+  if [ -n "$pid" ]; then
+    echo -e "\033[1;32m  cloudflared is running (PID: $pid)  \033[0m"
+    echo ""
+    # show command line for PID
+    if command -v ps >/dev/null 2>&1; then
+      echo -e "\033[1;37m  Command: \033[0m"
+      ps -o pid,cmd -p "$pid" --no-headers 2>/dev/null || ps -p "$pid" -o cmd --no-headers 2>/dev/null || true
+      echo ""
+    fi
+    # try to show tunnels (if cloudflared supports it)
+    if command -v cloudflared >/dev/null 2>&1; then
+      echo -e "\033[1;37m  cloudflared tunnel list (if available):\033[0m"
+      cloudflared tunnel list 2>/dev/null || true
+      echo ""
+    fi
+    echo -e "\033[1;31m  To stop: $0 -k  (or kill $pid)  \033[0m"
+  else
+    echo -e "\033[1;31m  cloudflared is not running  \033[0m"
+  fi
+  echo ""
+  echo "_________________________________________________________"
+  echo ""
+  exit 0
+fi
 
 # If -h used: show the tunnels created (and running status) then exit
 if [ "$HELP_FLAG" -eq 1 ]; then
@@ -80,6 +120,7 @@ if [ "$HELP_FLAG" -eq 1 ]; then
   echo -e "\033[1;33m  3000.4rji.com ->  http://localhost:3000  \033[0m"
   echo -e "\033[1;35m  8080.4rji.com ->  http://localhost:8080  \033[0m"
   echo -e "\033[1;36m  smb.4rji.com     ->  smb://127.0.0.1:445  \033[0m"
+  echo -e "\033[1;36m  sssh.4rji.com     ->  ssh  \033[0m"
   echo ""
   pid="$(find_cloudflared_pid || true)"
   if [ -n "$pid" ]; then
@@ -127,7 +168,7 @@ if [ "$KILL_FLAG" -eq 1 ]; then
   fi
 fi
 
-# Ensure cloudtoken is provided (unless using -k or -h)
+# Ensure cloudtoken is provided (unless using -k, -h, or -s)
 if [ -z "${cloudtoken:-}" ]; then
   echo ""
   echo "_________________________________________________________"
@@ -161,6 +202,7 @@ echo -e "\033[1;32m  http.4rji.com    ->  http://127.0.0.1:80  \033[0m"
 echo -e "\033[1;33m  3000.4rji.com ->  http://localhost:3000  \033[0m"
 echo -e "\033[1;35m  8080.4rji.com ->  http://localhost:8080  \033[0m"
 echo -e "\033[1;36m  smb.4rji.com     ->  smb://127.0.0.1:445  \033[0m"
+echo -e "\033[1;36m  sssh.4rji.com     ->  ssh  \033[0m"
 
 echo ""
 echo "_________________________________________________________"
@@ -169,7 +211,7 @@ echo ""
 # Show cloudflared PID and stop instructions (include flag note)
 echo -e "\033[1;37m  cloudflared PID:  $CF_PID  \033[0m"
 echo -e "\033[1;31m  To stop the tunnel:  kill $CF_PID  \033[0m"
-echo -e "\033[1;31m  Also: you can run this script with the -k flag to show status and kill the service, or -h to list tunnels.  \033[0m"
+echo -e "\033[1;31m  Also: you can run this script with the -k flag to show status and kill the service, -s to show running status, or -h to list tunnels.  \033[0m"
 
 echo ""
 echo "_________________________________________________________"
