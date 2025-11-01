@@ -184,6 +184,7 @@ servidorvideo       Crea en docker alpine como servidor, monta una carpeta para 
 
 
 #Util
+certgenerator       Crea certificados de cloudflare, para cert y cer key
 smbserverinst       Instala smb server en debian con usuario nalasmb o anonimo
 smbserver           smb termporar usando impact en python3
 https-bloq-boots    Detecta IPs al puerto 443 en ips.txt y las bloquea o ralentiza automáticamente vía firewall.

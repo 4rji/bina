@@ -2,10 +2,6 @@
 
 echo -e "\n\e[92mVerificando e instalando OpenSSH Server...\e[0m\n"
 
-
-
-
-
 # Lista de paquetes a instalar
 paquetes=( "openssh-server")
 
@@ -70,83 +66,192 @@ done
 
 
 
+# --- Vars ---
+USERNAME_DEFAULT="ccdc"
+PASSWORD_DEFAULT="itecitec"
+GROUP_NAME="sftp_users"
+# Detecta ruta válida de sshd_config y nologin
+SSH_CONFIG="/etc/ssh/sshd_config"; [[ -f /etc/ssh/sshd_config ]] || SSH_CONFIG="/etc/ssh/ssh_config"
+NOLOGIN_BIN="$(command -v /usr/sbin/nologin || command -v /sbin/nologin || command -v /bin/false)"
+CHROOT_BASE="/home"
 
-# Función para mostrar mensajes importantes
-echo_msg() {
-    echo -e "\n\e[95m==============================================\e[0m"
-    echo -e "  \e[93m$1\e[0m"
-    echo -e "\e[95m==============================================\e[0m\n"
+echo_msg(){ printf "\n\033[95m==============================================\033[0m\n\033[93m%s\033[0m\n\033[95m==============================================\033[0m\n" "$1"; }
+
+restart_ssh(){
+  if command -v systemctl >/dev/null 2>&1; then
+    sudo systemctl restart ssh 2>/dev/null || sudo systemctl restart sshd 2>/dev/null || true
+  else
+    sudo service ssh restart 2>/dev/null || sudo service sshd restart 2>/dev/null || true
+  fi
 }
 
-# Función para agregar un usuario SFTP adicional
-agregar_usuario_sftp() {
-    echo -e "\n\e[94mCreando usuario SFTP adicional...\e[0m\n"
-
-    echo -e "\e[94mIngrese el nombre de usuario:\e[0m"
-    read nuevo_usuario
-
-    echo -e "\n\e[94mIngrese la contraseña:\e[0m"
-    read nueva_contra
-
-    sudo useradd -g sftp_users -m -d /home/"$nuevo_usuario" -s /bin/false "$nuevo_usuario" 2>/dev/null
-    echo "${nuevo_usuario}:${nueva_contra}" | sudo chpasswd
-
-    sudo chown root:root /home/"$nuevo_usuario"
-    sudo chmod 755 /home/"$nuevo_usuario"
-    sudo mkdir -p /home/"$nuevo_usuario"/upload
-    sudo chown "$nuevo_usuario":sftp_users /home/"$nuevo_usuario"/upload
-    sudo chmod 755 /home/"$nuevo_usuario"/upload
-
-    sudo service ssh restart
-
-    echo -e "\n\e[92mUsuario SFTP $nuevo_usuario agregado con éxito.\e[0m\n"
-    exit 0
+# garantiza que el archivo exista para que grep no truene
+ensure_file(){
+  local f="$1"
+  sudo mkdir -p "$(dirname "$f")"
+  sudo touch "$f"
+  sudo chown root:root "$f"
+  sudo chmod 644 "$f"
 }
 
-# Si se ejecuta con el parámetro -a, agrega un usuario SFTP y sale
-if [[ "$1" == "-a" ]]; then
-    agregar_usuario_sftp
-fi
+ensure_line(){
+  local l="$1" f="$2"
+  ensure_file "$f"
+  grep -qF -- "$l" "$f" 2>/dev/null || echo "$l" | sudo tee -a "$f" >/dev/null
+}
 
+ensure_match_block(){
+  local f="$1" m="# SFTP GROUP BLOCK (autogen)"
+  ensure_file "$f"
+  grep -q "$m" "$f" 2>/dev/null || sudo tee -a "$f" >/dev/null <<'EOT'
 
-echo -e "\n\e[94mCreando grupo y usuario SFTP...\e[0m\n"
-
-sudo groupadd sftp_users 2>/dev/null
-sudo useradd -g sftp_users -m -d /home/sftp_ccdc -s /bin/false sftp_ccdc 2>/dev/null
-echo "sftp_ccdc:itecitec" | sudo chpasswd
-
-echo -e "\n\e[92mUsuario asignado:\e[0m sftp_ccdc"
-echo -e "\e[92mContraseña:\e[0m    itecitec"
-
-echo -e "\n\e[95mConfigurando permisos de chroot...\e[0m\n"
-
-sudo chown root:root /home/sftp_ccdc
-sudo chmod 755 /home/sftp_ccdc
-sudo mkdir -p /home/sftp_ccdc/upload
-sudo chown sftp_ccdc:sftp_users /home/sftp_ccdc/upload
-sudo chmod 755 /home/sftp_ccdc/upload
-
-echo -e "\n\e[91mVerificando subsistema SFTP...\e[0m\n"
-
-if ! grep -q "^Subsystem sftp" /etc/ssh/sshd_config; then
-    echo "Subsystem sftp internal-sftp" | sudo tee -a /etc/ssh/sshd_config
-fi
-
-echo -e "\n\e[93mAgregando configuración de bloqueo por grupo...\e[0m\n"
-
-sudo bash -c 'cat <<EOT >> /etc/ssh/sshd_config
-
+# SFTP GROUP BLOCK (autogen)
+Subsystem sftp internal-sftp
 Match Group sftp_users
-    ChrootDirectory %h
+    ChrootDirectory /home
     X11Forwarding no
     AllowTcpForwarding no
-    ForceCommand internal-sftp
-EOT'
+    ForceCommand internal-sftp -d /%u
+# END SFTP GROUP BLOCK
+EOT
+}
 
-echo -e "\n\e[94mReiniciando el servicio SSH...\e[0m\n"
+create_sftp_user(){
+  local user="$1" pass="$2"
+  sudo getent group "$GROUP_NAME" >/dev/null || sudo groupadd "$GROUP_NAME"
 
-sudo service ssh restart
+  if ! id -u "$user" >/dev/null 2>&1; then
+    sudo useradd -g "$GROUP_NAME" -m -d "/home/$user" -s "$NOLOGIN_BIN" "$user"
+  else
+    sudo usermod -g "$GROUP_NAME" -d "/home/$user" -s "$NOLOGIN_BIN" "$user"
+    sudo mkdir -p "/home/$user"
+  fi
+  echo "${user}:${pass}" | sudo chpasswd
 
-echo_msg "Servidor SFTP configurado exitosamente."
+  # permisos chroot/base
+  sudo chown root:root "$CHROOT_BASE"
+  sudo chmod 755 "$CHROOT_BASE"
 
-echo -e "\n\e[96mPara agregar usuario ejecutar ./script -a\e[0m\n"
+  # home del usuario (escribible por el usuario)
+  sudo chown "$user:$GROUP_NAME" "/home/$user"
+  sudo chmod 755 "/home/$user"
+}
+
+# -a agrega usuario y sale
+if [[ "${1:-}" == "-a" ]]; then
+  read -rp "Usuario: " NUEVO_USR
+  read -rsp "Contraseña: " NUEVA_PWD; echo
+  create_sftp_user "$NUEVO_USR" "$NUEVA_PWD"
+  ensure_line "Subsystem sftp internal-sftp" "$SSH_CONFIG"
+  ensure_match_block "$SSH_CONFIG"
+  restart_ssh
+  echo_msg "Usuario SFTP $NUEVO_USR creado."
+  echo -e "\033[96mRuta de subida:\033[0m /$NUEVO_USR\n"
+  exit 0
+fi
+
+# usuario principal
+create_sftp_user "$USERNAME_DEFAULT" "$PASSWORD_DEFAULT"
+ensure_line "Subsystem sftp internal-sftp" "$SSH_CONFIG"
+ensure_match_block "$SSH_CONFIG"
+restart_ssh
+
+echo_msg "SFTP listo."
+echo -e "\033[92mUsuario:\033[0m $USERNAME_DEFAULT"
+echo -e "\033[92mPassword:\033[0m $PASSWORD_DEFAULT"
+echo -e "\033[96mRuta de subida:\033[0m /$USERNAME_DEFAULT\n"
+# --- Vars ---
+USERNAME_DEFAULT="ccdc"
+PASSWORD_DEFAULT="itecitec"
+GROUP_NAME="sftp_users"
+# Detecta ruta válida de sshd_config y nologin
+SSH_CONFIG="/etc/ssh/sshd_config"; [[ -f /etc/ssh/sshd_config ]] || SSH_CONFIG="/etc/ssh/ssh_config"
+NOLOGIN_BIN="$(command -v /usr/sbin/nologin || command -v /sbin/nologin || command -v /bin/false)"
+CHROOT_BASE="/home"
+
+echo_msg(){ printf "\n\033[95m==============================================\033[0m\n\033[93m%s\033[0m\n\033[95m==============================================\033[0m\n" "$1"; }
+
+restart_ssh(){
+  if command -v systemctl >/dev/null 2>&1; then
+    sudo systemctl restart ssh 2>/dev/null || sudo systemctl restart sshd 2>/dev/null || true
+  else
+    sudo service ssh restart 2>/dev/null || sudo service sshd restart 2>/dev/null || true
+  fi
+}
+
+# garantiza que el archivo exista para que grep no truene
+ensure_file(){
+  local f="$1"
+  sudo mkdir -p "$(dirname "$f")"
+  sudo touch "$f"
+  sudo chown root:root "$f"
+  sudo chmod 644 "$f"
+}
+
+ensure_line(){
+  local l="$1" f="$2"
+  ensure_file "$f"
+  grep -qF -- "$l" "$f" 2>/dev/null || echo "$l" | sudo tee -a "$f" >/dev/null
+}
+
+ensure_match_block(){
+  local f="$1" m="# SFTP GROUP BLOCK (autogen)"
+  ensure_file "$f"
+  grep -q "$m" "$f" 2>/dev/null || sudo tee -a "$f" >/dev/null <<'EOT'
+
+# SFTP GROUP BLOCK (autogen)
+Subsystem sftp internal-sftp
+Match Group sftp_users
+    ChrootDirectory /home
+    X11Forwarding no
+    AllowTcpForwarding no
+    ForceCommand internal-sftp -d /%u
+# END SFTP GROUP BLOCK
+EOT
+}
+
+create_sftp_user(){
+  local user="$1" pass="$2"
+  sudo getent group "$GROUP_NAME" >/dev/null || sudo groupadd "$GROUP_NAME"
+
+  if ! id -u "$user" >/dev/null 2>&1; then
+    sudo useradd -g "$GROUP_NAME" -m -d "/home/$user" -s "$NOLOGIN_BIN" "$user"
+  else
+    sudo usermod -g "$GROUP_NAME" -d "/home/$user" -s "$NOLOGIN_BIN" "$user"
+    sudo mkdir -p "/home/$user"
+  fi
+  echo "${user}:${pass}" | sudo chpasswd
+
+  # permisos chroot/base
+  sudo chown root:root "$CHROOT_BASE"
+  sudo chmod 755 "$CHROOT_BASE"
+
+  # home del usuario (escribible por el usuario)
+  sudo chown "$user:$GROUP_NAME" "/home/$user"
+  sudo chmod 755 "/home/$user"
+}
+
+# -a agrega usuario y sale
+if [[ "${1:-}" == "-a" ]]; then
+  read -rp "Usuario: " NUEVO_USR
+  read -rsp "Contraseña: " NUEVA_PWD; echo
+  create_sftp_user "$NUEVO_USR" "$NUEVA_PWD"
+  ensure_line "Subsystem sftp internal-sftp" "$SSH_CONFIG"
+  ensure_match_block "$SSH_CONFIG"
+  restart_ssh
+  echo_msg "Usuario SFTP $NUEVO_USR creado."
+  echo -e "\033[96mRuta de subida:\033[0m /$NUEVO_USR\n"
+  exit 0
+fi
+
+# usuario principal
+create_sftp_user "$USERNAME_DEFAULT" "$PASSWORD_DEFAULT"
+ensure_line "Subsystem sftp internal-sftp" "$SSH_CONFIG"
+ensure_match_block "$SSH_CONFIG"
+restart_ssh
+
+echo_msg "SFTP listo."
+echo -e "\033[92mUsuario:\033[0m $USERNAME_DEFAULT"
+echo -e "\033[92mPassword:\033[0m $PASSWORD_DEFAULT"
+echo -e "\033[96mRuta de subida:\033[0m /$USERNAME_DEFAULT\n"
+
