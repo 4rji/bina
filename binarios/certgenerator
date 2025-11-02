@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# =========================================
+#  ACME.SH + CLOUDFLARE AUTOMATED ISSUANCE
+# =========================================
+
+DOMAIN="4rji.com"
+EMAIL="tu@email.com"
+CF_TOKEN="TU_API_TOKEN"
+CF_ACCOUNT_ID="TU_ACCOUNT_ID"   # opcional
+
+echo ">> Configurando variables de Cloudflare..."
+export CF_Token="$CF_TOKEN"
+export CF_Account_ID="$CF_ACCOUNT_ID"
+
+echo ">> Verificando instalación de acme.sh..."
+if ! command -v ~/.acme.sh/acme.sh &>/dev/null; then
+    echo "acme.sh no instalado. Instalando..."
+    curl https://get.acme.sh | sh
+    source ~/.bashrc
+fi
+
+echo ">> Registrando cuenta (si no existe)..."
+~/.acme.sh/acme.sh --register-account -m "$EMAIL" || true
+
+echo ">> Emisión de certificado para $DOMAIN y *.${DOMAIN}..."
+~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
+~/.acme.sh/acme.sh --issue --dns dns_cf -d "$DOMAIN" -d "*.$DOMAIN"
+
+echo ">> Instalando certificados en /etc/ssl/${DOMAIN}/"
+sudo mkdir -p /etc/ssl/${DOMAIN}
+sudo ~/.acme.sh/acme.sh --install-cert -d "$DOMAIN" \
+    --key-file       /etc/ssl/${DOMAIN}/${DOMAIN}.key \
+    --fullchain-file /etc/ssl/${DOMAIN}/${DOMAIN}.crt
+
+echo ">> Permisos finales..."
+sudo chmod 640 /etc/ssl/${DOMAIN}/*
+sudo chown root:root /etc/ssl/${DOMAIN}/*
+
+echo ">> Completado. Certificados ubicados en:"
+ls -l /etc/ssl/${DOMAIN}/
