@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-sudo apt install firewalld
+#sudo apt install firewalld
 
 # Limit SSH to the competition subnet
 sudo firewall-cmd --permanent --zone=public --remove-service=ssh
