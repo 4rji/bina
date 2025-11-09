@@ -1,19 +1,66 @@
-###------CCDC
+### CCDC Toolkit
 
-fwcom               firewall-cmd commands, comandos para manejar el firewall
+**fwcom**  
+Firewall-cmd helper commands for managing the firewall.
 
-
-backd-detect        Usa python para buscar backdoors, conexiones activas
-cdns                modificar el dns
-
+![fwcom](fwcom.png)
 
 
-ntpcon              Conecta el servicio ntp time
-chroncon            Conecta el servicio chrony time
-sudoup              Hace un update de sudo de la version 9.12 adelante.
-dnscheck		  Menu para ver dns, ruta, opciones, capturar trafico
+**backd-detect**  
+Uses Python to search for backdoors and active connections.
 
-blockicmp         bloquea en firewall cmd
-sshbanerlogin     Mensaje bienvenida de ssh ANTES de conectarse
-sshbanerwelcome   mensaje bienvenida de ssh DESPUES de conectarse
-sshhard           para ssh configuracion 
+![backd-detect](backd-detect.png)
+
+
+**cdns**  
+Modifies DNS settings as needed.
+
+![cdns](cdns.png)
+
+
+**ntpcon**  
+Connects and enables the NTP time service.
+
+![ntpcon](ntpcon.png)
+
+
+**chroncon**  
+Connects and enables the Chrony time service.
+
+![chroncon](chroncon.png)
+
+
+**sudoup**  
+Updates sudo from version 9.12 onward.
+
+![sudoup](sudoup.png)
+
+
+**dnscheck**  
+Provides a menu to inspect DNS, routes, options, and capture traffic.
+
+![dnscheck](dnscheck.png)
+
+
+**blockicmp**  
+Blocks ICMP through firewall-cmd.
+
+![blockicmp](blockicmp.png)
+
+
+**sshbanerlogin**  
+Displays an SSH welcome message before a user logs in.
+
+![sshbanerlogin](sshbanerlogin.png)
+
+
+**sshbanerwelcome**  
+Displays an SSH welcome message after a user logs in.
+
+![sshbanerwelcome](sshbanerwelcome.png)
+
+
+**sshhard**  
+Applies SSH hardening configuration.
+
+![sshhard](sshhard.png)
