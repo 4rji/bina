@@ -1,0 +1,21 @@
+#!/bin/bash
+set -euo pipefail
+
+echo -e "\033[36m🔎 Conexiones a/desde redes privadas (RFC1918) + UDP locales abiertos\033[0m"
+
+echo -e "\033[33m\n1️⃣ TCP ESTABLISHED hacia RFC1918:\033[0m"
+netstat -ant 2>/dev/null | awk '/ESTABLISHED/ && ($5 ~ /^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)/){print}'
+
+echo -e "\033[33m\n2️⃣ UDP 'conectados' (con peer) hacia RFC1918:\033[0m"
+netstat -anu 2>/dev/null | awk '($5 ~ /^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)/){print}'
+
+echo -e "\033[33m\n3️⃣ UDP locales abiertos SIN destino (incluye mosh, DNS, mDNS, etc.):\033[0m"
+lsof -nP -iUDP 2>/dev/null | awk '$9 ~ /^\*:/ || $9 ~ /^0\.0\.0\.0:/ || $9 ~ /^\[::\]:/'
+
+echo -e "\033[33m\n4️⃣ Procesos involucrados (TCP/UDP) en RFC1918 o sockets UDP sin destino:\033[0m"
+lsof -nP -i 2>/dev/null | egrep -E '10\.|192\.168|172\.(1[6-9]|2[0-9]|3[01])|\*:|0\.0\.0\.0:|\[::\]:'
+
+echo -e "\033[33m\n5️⃣ Captura breve (SRC/DST RFC1918) para ver intentos recientes (50 pkts):\033[0m"
+sudo tcpdump -n -i any \
+  '(dst net 10.0.0.0/8 or dst net 192.168.0.0/16 or dst net 172.16.0.0/12 or src net 10.0.0.0/8 or src net 192.168.0.0/16 or src net 172.16.0.0/12)' \
+  -c 50
