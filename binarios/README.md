@@ -52,6 +52,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###------utilidades 
+dhclientcomm        Comandos para dhclient y para dar de alta un ip en debian
 dropinst            sftp cliente para guardar archivos, transferir o extraer
 stiginst            Utilidad de verificacion windows por la navy
 lsync               Para syncronizar carpetas, usando archivo lua, rsync. 

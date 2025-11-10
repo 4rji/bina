@@ -1,0 +1,61 @@
+#!/bin/bash
+echo "=== Manual Static Network Config (Preview Only) ==="
+
+echo
+echo "# 1. Asigna la IP 10.100.1.200/24 a la interfaz (reemplaza <iface> por la tuya, ej. ens192)"
+echo "sudo ip addr add 10.100.1.200/24 dev <iface>"
+
+echo
+echo "# 2. Activa la interfaz de red"
+echo "sudo ip link set <iface> up"
+
+echo
+echo "# 3. Agrega la ruta por defecto (gateway 10.100.1.254)"
+echo "sudo ip route add default via 10.100.1.254"
+
+echo
+echo "# 4. Define el servidor DNS de Google"
+echo "echo 'nameserver 8.8.8.8' | sudo tee /etc/resolv.conf"
+
+echo
+echo "# 5. Limpia todas las rutas previas (opcional, para evitar conflictos)"
+echo "sudo ip route flush table main"
+
+echo
+echo "=== End of script ==="
+
+
+
+echo "=== Starting network setup ==="
+
+echo "sudo apt update"
+echo ""
+echo "Installing DHCP client..."
+echo "sudo apt install isc-dhcp-client -y"
+echo ""
+echo "Bringing up interface XXX192..."
+
+echo "sudo ip link set XXX192 up"
+echo ""
+echo "Requesting IP via DHCP..."
+echo "sudo dhclient -v ens192"
+
+echo ""
+echo
+echo "sudo nano /etc/network/interfaces"
+echo 
+echo "=== Manual static config example for /etc/network/interfaces ==="
+echo "auto lo"
+echo "iface lo inet loopback"
+echo
+echo "auto ens192"
+echo "iface ens192 inet static"
+echo "  address 10.100.1.200"
+echo "  netmask 255.255.255.0"
+echo "  gateway 10.100.1.254"
+echo "  dns-nameservers 8.8.8.8"
+echo
+echo "=== End of script ==="
+
+echo 
+
