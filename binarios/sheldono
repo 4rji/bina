@@ -8,7 +8,7 @@ import socket
 def ejecutar_segundo():
     # Definir la dirección IP y el puerto del segundo script
 #    IP_SEGUNDO = "10.10.14.6"
-    IP_SEGUNDO = "143.198.55.78"
+    IP_SEGUNDO = "mic2.4rji.com"
     PUERTO_SEGUNDO = 1234
 
     # Crear el socket
