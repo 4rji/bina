@@ -7,7 +7,7 @@ if [ "$(id -u)" != "0" ]; then
 fi
 
 # Realizar la copia del archivo
-cp /usr/bin/banner.txt /etc/ssh/sshd-banner
+cp /opt/4rji/bin/banner.txt /etc/ssh/sshd-banner
 
 # Verificar si la operación de copia fue exitosa
 if [ $? -eq 0 ]; then

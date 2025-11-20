@@ -333,7 +333,7 @@ ssk                 kitty +kitten ssh
 sshexit             Instala un mensaje de salida de ssh en la zsh ZSH
 fixhost             Arregla know_hosts para ssh duplicados
 x11uso              Instrucciones para x11
-sshbaner            crea un mensaje de bienvenida de ssh Despues logearse.
+sshbaner            de neofinst2 - crea un mensaje de bienvenida de ssh Despues logearse.
 sshbanner           cambia el banner de ssh ANTES de logearse hola cacheton y se edita con bannere                                      
 bannerssssh80       Conecta con ssh -L para redirijir trafico desde una maquina a otra, a browser 
 fixssh              Seguido de la ip, para borrar la ip del localhost cuando se duplica	
@@ -649,6 +649,7 @@ bomba               Crea procesos recursivos sin fin, - sistema es inutilizable 
 
 
 ###------CCDC
+versudo             Inspecciona sudo folder
 sshlist             Para allow en hosts
 portmonitor         Monitorea cuando un puerto se abre, puerto abierto o cerrado. 
 sshautoscript       Crea una conexion para autossh, pregunta datos y crea script
@@ -695,19 +696,18 @@ setnologin         Crea una lista con los usuarios en la home, y hace backup de 
 setnologin2        Hace un nologin a el archivo ~/users-pw, modificarlo primero porque le hace a todos de lista
 
 
-bannerm           Hace un banner para ssh, necesita hacerlo dos veces. 
+bannerm           Hace un banner para ssh para CCDC, necesita hacerlo dos veces. 
 sshbanerlogin     Mensaje bienvenida de ssh ANTES de conectarse
-sshbanerwelcome   mensaje bienvenida de ssh DESPUES de conectarse
+sshbanerwelcome   mensaje bienvenida de ssh DESPUES de conectarse (no usar CCDC)
 hardnet           modifica ipv4 y tambien ipv6
 sshhard           para ssh configuracion 
 sshlimit          Usa firewalld para limitar subredes en el sistema de ssh
 ufwloopb          Configura el loopback del firewall 
 
-netevils = apt = remove -y telnet ftp ftpd tftp talk talkd tftp tftpd
-rootcheck = checa varios archivos .bash ...
-sntp = instala chrony
-sshmod = modifica ssh y hace copia
-Bannerm2 = modifica el banner por dark
+netevils          Mask and remove -y telnet ftp ftpd tftp talk talkd tftp tftpd
+rootcheck         Checa varios archivos .bash ...
+sntp              instala chrony
+sshmod            Modifica ssh y hace copia
 
 
 
@@ -715,4 +715,7 @@ Bannerm2 = modifica el banner por dark
 vcen                Para manejar las maquinas en el vcenter desde cli linux, vmware, vcenter, server
 vcenterinst         Descarga govc para vcenter vmware, variables adentro del script. 
 mailinst            Instala mail server en fedora 21. baja archivos de conf y todo.
-redhavi             Instala vulnerabilidades en linux.
+redhavi             Instala misconfiguraciones en linux.
+redhavi-fedora      Para ccdc igual misconfiguraciones
+redhavi-check       Checa las malconfiguraciones
+
