@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+
+SRC="$1"
+OUT="main.go"
+
+if [ -z "$SRC" ]; then
+    echo "uso: $0 script.sh"
+    exit 1
+fi
+
+CONTENT=$(sed 's/`/\\`/g' "$SRC")
+
+cat > "$OUT" <<EOF
+package main
+
+import (
+    "os"
+    "os/exec"
+)
+
+func main() {
+    script := \`#!/bin/bash
+$CONTENT
+\`
+
+    tmp := "/tmp/gen_script.sh"
+    os.WriteFile(tmp, []byte(script), 0700)
+    cmd := exec.Command("/bin/bash", tmp)
+    cmd.Stdout = os.Stdout
+    cmd.Stderr = os.Stderr
+    cmd.Run()
+}
+EOF
+
+echo "Generado $OUT"

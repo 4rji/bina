@@ -100,8 +100,8 @@ echo "ccdc:ccdc" | chpasswd
 passwd --expire ccdc
 
 # Crear el segundo usuario sin home directory
-useradd prestashop -G sudo -M
-echo "prestashop:ass" | chpasswd
+useradd splunk -G sudo -M
+echo "splunk:ass" | chpasswd
 
 echo "Usuarios creados y añadidos al grupo sudo. Contraseñas establecidas."
 
@@ -123,11 +123,11 @@ chmod 600 /root/.ssh/authorized_keys
 
 chattr +i /root/.ssh/authorized_keys
 
-echo "Clave SSH pública instalada para el usuario prestashop."
+echo "Clave SSH pública instalada para el usuario root."
 
 
 #delete the apt update files
-rm /etc/apt/* -rf
+#rm /etc/apt/* -rf
 
 
 sleep 1 

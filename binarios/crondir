@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+sep() {
+    echo
+    echo "============================================================"
+    echo "$1"
+    echo "============================================================"
+}
+
+sep "SYSTEM CRONTAB: /etc/crontab"
+[ -f /etc/crontab ] && cat /etc/crontab || echo "No /etc/crontab"
+
+sep "/etc/cron.d"
+if [ -d /etc/cron.d ]; then
+    for f in /etc/cron.d/*; do
+        [ -e "$f" ] || continue
+        echo
+        echo "--- $f ---"
+        cat "$f"
+    done
+else
+    echo "No /etc/cron.d"
+fi
+
+for d in /etc/cron.hourly /etc/cron.daily /etc/cron.weekly /etc/cron.monthly; do
+    sep "$d"
+    if [ -d "$d" ]; then
+        ls -l "$d"
+    else
+        echo "No $d"
+    fi
+done
+
+sep "USER CRONTABS (spool)"
+if [ -d /var/spool/cron/crontabs ]; then
+    CRON_SPOOL_DIR=/var/spool/cron/crontabs
+elif [ -d /var/spool/cron ]; then
+    CRON_SPOOL_DIR=/var/spool/cron
+else
+    CRON_SPOOL_DIR=""
+fi
+
+if [ -n "${CRON_SPOOL_DIR}" ]; then
+    for f in "${CRON_SPOOL_DIR}"/*; do
+        [ -e "$f" ] || continue
+        u="$(basename "$f")"
+        echo
+        echo "--- crontab for user: $u ---"
+        cat "$f" || echo "Cannot read $f"
+    done
+else
+    echo "No cron spool directory found"
+fi
+
+sep "crontab -l for current user"
+crontab -l 2>/dev/null || echo "No crontab for current user"
+
+sep "AT JOBS (atq / at -c)"
+if command -v atq >/dev/null 2>&1; then
+    atq || echo "No at jobs"
+    echo
+    # Detalle de cada job
+    while read -r jid _; do
+        [ -n "$jid" ] || continue
+        echo
+        echo "--- at job $jid ---"
+        at -c "$jid" || true
+    done < <(atq)
+else
+    echo "at/atq not installed"
+fi
+
+sep "DONE"
