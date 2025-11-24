@@ -10,28 +10,59 @@ if [[ $EUID -ne 0 ]]; then
     exit 1
 fi
 
-echo -e "\033[36m🔎 Conexiones a/desde redes privadas (RFC1918) + UDP locales abiertos\033[0m"
+GREY="\033[90m"
+CYAN="\033[36m"
+YELLOW="\033[33m"
+RED="\033[31m"
+RESET="\033[0m"
 
-echo -e "\033[33m\n1️⃣ TCP ESTABLISHED hacia RFC1918:\033[0m"
+pause() {
+    read -rp "Press ENTER to continue..."
+}
+
+echo -e "${CYAN}🔎 RFC1918 Traffic & UDP Sockets Inspection${RESET}"
+
+# ----------- 1 -----------
+echo -e "${YELLOW}\n1️⃣ TCP ESTABLISHED toward RFC1918:${RESET}"
+CMD1="netstat -ant 2>/dev/null | awk '/ESTABLISHED/ && (\$5 ~ /^(10\\.|192\\.168\\.|172\\.(1[6-9]|2[0-9]|3[01])\\.)/){print}'"
+echo -e "${GREY}Command:${RESET} $CMD1"
 netstat -ant 2>/dev/null | awk '/ESTABLISHED/ && ($5 ~ /^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)/){print}'
+pause
 
-echo -e "\033[33m\n2️⃣ UDP connected (with peer) to RFC1918:\033[0m"
+# ----------- 2 -----------
+echo -e "${YELLOW}\n2️⃣ UDP connected (with peer) to RFC1918:${RESET}"
+CMD2="netstat -anu 2>/dev/null | awk '(\$5 ~ /^(10\\.|192\\.168\\.|172\\.(1[6-9]|2[0-9]|3[01])\\.)/){print}'"
+echo -e "${GREY}Command:${RESET} $CMD2"
 netstat -anu 2>/dev/null | awk '($5 ~ /^(10\.|192\.168\.|172\.(1[6-9]|2[0-9]|3[01])\.)/){print}'
+pause
 
-echo -e "\033[33m\n3️⃣ Local UDP sockets without peer (mosh, DNS, mDNS, etc.):\033[0m"
+# ----------- 3 -----------
+echo -e "${YELLOW}\n3️⃣ Local UDP sockets without peer (mosh, DNS, mDNS, etc.):${RESET}"
+CMD3="( lsof -nP -iUDP 2>/dev/null || true ) | awk '\$9 ~ /^\\*:/ || \$9 ~ /^0\\.0\\.0\\.0:/ || \$9 ~ /^\\[::\\]:/'"
+echo -e "${GREY}Command:${RESET} $CMD3"
 ( lsof -nP -iUDP 2>/dev/null || true ) | awk '$9 ~ /^\*:/ || $9 ~ /^0\.0\.0\.0:/ || $9 ~ /^\[::\]:/'
+pause
 
-echo -e "\033[33m\n4️⃣ Processes related to RFC1918 or UDP no-peer sockets:\033[0m"
-( lsof -nP -i 2>/dev/null || true ) | egrep -E '10\.|192\.168|172\.(1[6-9]|2[0-9]|3[01])|\*:|0\.0\.0\.0:|\[::\]:'
+# ----------- 4 -----------
+echo -e "${YELLOW}\n4️⃣ Processes related to RFC1918 or UDP no-peer sockets:${RESET}"
+CMD4="( lsof -nP -i 2>/dev/null || true ) | egrep -E '10\\.|192\\.168|172\\.(1[6-9]|2[0-9]|3[01])|\\*:|0\\.0\\.0\\.0:|\\[::\\]:' | less -R"
+echo -e "${GREY}Command:${RESET} $CMD4"
 
-echo -e "\033[33m\n5️⃣ Optional packet capture (50 packets, RFC1918 SRC/DST):\033[0m"
+( lsof -nP -i 2>/dev/null || true ) \
+  | egrep -E '10\.|192\.168|172\.(1[6-9]|2[0-9]|3[01])|\*:|0\.0\.0\.0:|\[::\]:' \
+  | less -R
+
+pause
+# ----------- 5 -----------
+echo -e "${YELLOW}\n5️⃣ Optional packet capture (50 packets, RFC1918 SRC/DST):${RESET}"
+CMD5="tcpdump -n -i any '(dst/src RFC1918)' -c 50"
+echo -e "${GREY}Command:${RESET} $CMD5"
 
 read -r -p "Do you want to run tcpdump? (y/N): " ans
-
 if [[ "$ans" == "y" || "$ans" == "Y" ]]; then
     tcpdump -n -i any \
       '(dst net 10.0.0.0/8 or dst net 192.168.0.0/16 or dst net 172.16.0.0/12 or src net 10.0.0.0/8 or src net 192.168.0.0/16 or src net 172.16.0.0/12)' \
       -c 50
 else
-    echo -e "\033[31mSkipping tcpdump.\033[0m"
+    echo -e "${RED}Skipping tcpdump.${RESET}"
 fi
