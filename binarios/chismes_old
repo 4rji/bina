@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+sudo apt install python3-scapy -y >/dev/null 2>&1
 echo ""
 echo "user con -r para solo ver los archivos"
 echo ""
