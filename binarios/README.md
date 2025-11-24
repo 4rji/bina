@@ -55,6 +55,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###------utilidades 
+wazuhinst           Instala wazuh. asistente. automatico
 passcheck           Verifica contrasenas en api.pwnedpasswords.com
 dhclientcomm        Comandos para dhclient y para dar de alta un ip en debian
 dropinst            sftp cliente para guardar archivos, transferir o extraer
