@@ -171,3 +171,5 @@ case "$opt" in
   *) echo "[!] Invalid option."; exit 1 ;;
 esac
 
+
+sudo tail /var/ossec/logs/ossec.log

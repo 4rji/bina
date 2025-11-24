@@ -1,5 +1,0 @@
-#!/bin/bash
-
-echo "sudo nmcli con add type ethernet ifname ens224 con-name ens224"
-echo "sudo nmcli con mod ens224 ipv4.method manual ipv4.address "172.20.242.20/24" ipv4.gateway "172.20.240.1" ipv4.dns "8.8.8.8""
-echo "sudo nmcli con up ens224"

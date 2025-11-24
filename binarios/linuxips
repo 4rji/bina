@@ -1,0 +1,28 @@
+#!/bin/bash
+echo ""
+echo ">>> For networkManager  <<<< centos, fedora, rocky/alma ubuntu, opensusu"
+
+echo ""
+echo "sudo nmcli con add type ethernet ifname ens224 con-name ens224"
+echo "sudo nmcli con mod ens224 ipv4.method manual ipv4.address \"172.20.242.20/24\" ipv4.gateway \"172.20.240.1\" ipv4.dns \"8.8.8.8\""
+echo "sudo nmcli con up ens224"
+
+echo
+echo "### NETPLAN CONFIG (Ubuntu) ###"
+echo "Archivo a editar: /etc/netplan/01-netcfg.yaml"
+echo
+echo "network:"
+echo "  version: 2"
+echo "  ethernets:"
+echo "    ens192:"
+echo "      dhcp4: true"
+echo
+echo "    ens224:"
+echo "      addresses:"
+echo "        - 10.100.1.178/24"
+echo "      gateway4: 10.100.1.254"
+echo "      nameservers:"
+echo "        addresses:"
+echo "          - 8.8.8.8"
+echo
+echo "sudo netplan apply"

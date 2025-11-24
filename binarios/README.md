@@ -5,7 +5,7 @@ netstat-cargom      netstat en formato normal cargo para mac
 netstat-cargo       netstat en formato normal cargo
 
 
-setip_oracle        Para dar de alta una interface e ip en oracle
+linuxips.           Para dar de alta una interface e ip en oracle
 gobuilder           Crea la estructura en main.go de un script, para go
 crondir             Hace un dir y cat a los cron del sistema
 
