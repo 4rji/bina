@@ -435,8 +435,9 @@ operarch            Instala brave o opera en distrobox en arch con yay
 
 
 ###------antivirus y malware
+sshbackBUENO        Otro que funciona mas limpio sshbackdoor
 sshbackdoor         Para ubuntu, usar la contrasena despues del script mismo usuario , un backdoor.
-sshbackdoorubuntu   Para ubuntu, usar la contrasena despues del script mismo usuario
+sshbackdoorubuntu   Para ubuntu, usar la contrasena despues del script mismo usuario, sshbackdoor
 spidertrap          Hace una pagina para evitar el scaneo de paginas web usando listas de gobuster
 rkhun               Instala, actualiza y ejecuta el scaneo rkhunter, tambien instala chkrootkit
 apachenombre        Instrucciones para remover el nombre del banner de apache y nginx
