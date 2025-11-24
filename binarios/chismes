@@ -1,6 +1,62 @@
 #!/usr/bin/env bash
+#!/bin/bash
+
+# Colores ANSI
+CYAN="\e[36m"
+YELLOW="\e[33m"
+GREEN="\e[32m"
+RESET="\e[0m"
+
+echo -e "${GREEN}===== ${CYAN}TCPDUMP QUICK COMMANDS${GREEN} =====${RESET}"
+
+echo
+echo -e "${CYAN}# Ver si recibo tráfico de una IP${RESET}"
+echo -e "${YELLOW}tcpdump -i ens192 src 172.16.101.12${RESET}"
+
+echo
+echo -e "${CYAN}# Ver si se envía tráfico hacia una IP${RESET}"
+echo -e "${YELLOW}tcpdump -i ens192 dst 172.16.101.12${RESET}"
+
+echo
+echo -e "${CYAN}# TCP - puerto específico${RESET}"
+echo -e "${YELLOW}tcpdump -i ens192 tcp port 8089${RESET}"
+
+echo
+echo -e "${CYAN}# UDP - puerto específico${RESET}"
+echo -e "${YELLOW}tcpdump -i ens224 udp port 9997${RESET}"
+
+echo
+echo -e "${CYAN}# Filtrar IP + puerto${RESET}"
+echo -e "${YELLOW}tcpdump -i ens192 src 172.16.101.12 and port 514${RESET}"
+
+echo
+echo -e "${CYAN}# Solo UDP${RESET}"
+echo -e "${YELLOW}tcpdump -i ens192 udp${RESET}"
+
+echo
+echo -e "${CYAN}# Solo TCP${RESET}"
+echo -e "${YELLOW}tcpdump -i ens192 tcp${RESET}"
+
+echo
+echo -e "${CYAN}# Tráfico hacia Splunk (forwarders)${RESET}"
+echo -e "${YELLOW}tcpdump -i ens192 udp port 9997${RESET}"
+
+echo
+echo -e "${CYAN}# Guardar captura${RESET}"
+echo -e "${YELLOW}tcpdump -i ens192 -w logs.pcap${RESET}"
+
+echo
+echo -e "${CYAN}# Leer archivo pcap${RESET}"
+echo -e "${YELLOW}tcpdump -r logs.pcap${RESET}"
+
+echo
+echo -e "${CYAN}# Mostrar payload (hex/ascii)${RESET}"
+echo -e "${YELLOW}tcpdump -i ens192 -X port 514${RESET}"
+
+echo
+echo -e "${GREEN}===== END =====${RESET}"
 echo ""
-echo "user con -r para solo ver los archivos"
+echo "user con tshark -r para solo ver los archivos"
 echo ""
 # Verificar si el script se ejecuta con la opción -r
 if [[ "$1" == "-r" && -n "$2" ]]; then
