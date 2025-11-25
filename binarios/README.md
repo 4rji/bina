@@ -598,6 +598,8 @@ sheldon             reverse shell easy, pide todos los datos preguntas
 sheldon1            reverse shell ,ejecuta sheldon1 $ip y listo, solo presiona enter
 sheldonf            nc usa sheldon para enviar un archivo, ejecutar sheldonf help
 sheldono            while loop con ip integrada a servidor nube
+sheldonol           Simple bash script para escuchar el sheldono, necesita arreglo pty.
+listener            Escucha sheldono, en go, ya tiene la tty tratada.
 sheldonos           Sin el loop, el mismo que arriba
 sheldonsafe         Otra version de sheldono, de el curso python
 nala                Esconde cualquier proceso, como sheldon
