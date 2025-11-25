@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
-echo "python3 -c 'import pty; pty.spawn("/bin/bash")'"
-echo "export TERM=xterm-256color"
+RED="\033[91m"; GRN="\033[92m"; YLW="\033[93m"; BLU="\033[94m"; MAG="\033[95m"; CYA="\033[96m"; RST="\033[0m"
 
+echo -e "${BLU}Ejecutar:${RST}\n"
+echo -e "${MAG}python3 -c 'import pty; pty.spawn(\"/bin/bash\")'${RST}"
+echo -e "${MAG}export TERM=xterm-256color${RST}\n"
 
-trap 'stty sane; echo; exit' INT TERM EXIT
-stty raw -echo
+trap 'stty sane; echo -e "\n${YLW}bye${RST}"; exit' INT TERM EXIT
+
 nc -nlvp 1234
