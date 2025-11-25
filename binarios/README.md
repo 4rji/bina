@@ -603,7 +603,8 @@ listener            Escucha sheldono, en go, ya tiene la tty tratada.
 sheldonos           Sin el loop, el mismo que arriba
 sheldonsafe         Otra version de sheldono, de el curso python
 nala                Esconde cualquier proceso, como sheldon
-simbo               Es el CTL Trabaja con sheldono, y nala para esconderme sheldongo
+simbo               Es el CTL Trabaja con sheldono, y nala para esconderme sheldongo- usar python3 en ask
+nalatodo            El mismo que nala, funciona mejor, usar simbo para esconder
 psss                Escanea por conexiones lsof netstat, mi bebe mibebe
 pssc                Mismo que psss pero este las cierra en 12 segundos automaticamente mibebe
 mapa                Busca un proceso despues del script y lo mata ps aux

