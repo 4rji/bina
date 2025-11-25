@@ -595,10 +595,13 @@ proxyagente         proxyloco ligolo Instala amd agente de proxyloco, lo descarg
 proxyserver         proxyloco ya descargado, como binario, solo ejecutarlo: proxyserver -selfcert
 torperlnipe         Script para mandar trafico por tor, no funciona aun.
 sheldon             reverse shell easy, pide todos los datos preguntas
+sheldon             Reverse shell easy, pide todos los datos preguntas
+sheldonb            Version en bash de sheldon, se ejecuta con $ip y ya 
 sheldon1            reverse shell ,ejecuta sheldon1 $ip y listo, solo presiona enter
 sheldonf            nc usa sheldon para enviar un archivo, ejecutar sheldonf help
 sheldono            while loop con ip integrada a servidor nube
 sheldonol           Simple bash script para escuchar el sheldono, necesita arreglo pty.
+listenerb           Simple bash script para escuchar el sheldono, necesita arreglo pty.
 listener            Escucha sheldono, en go, ya tiene la tty tratada.
 sheldonos           Sin el loop, el mismo que arriba
 sheldonsafe         Otra version de sheldono, de el curso python
