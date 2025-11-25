@@ -594,7 +594,6 @@ proxyagente         proxyloco ligolo Instala amd agente de proxyloco, lo descarg
 
 proxyserver         proxyloco ya descargado, como binario, solo ejecutarlo: proxyserver -selfcert
 torperlnipe         Script para mandar trafico por tor, no funciona aun.
-sheldon             reverse shell easy, pide todos los datos preguntas
 sheldon             Reverse shell easy, pide todos los datos preguntas
 sheldonb            Version en bash de sheldon, se ejecuta con $ip y ya 
 sheldon1            reverse shell ,ejecuta sheldon1 $ip y listo, solo presiona enter
