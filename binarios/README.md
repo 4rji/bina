@@ -247,6 +247,7 @@ contenedor          Instala paquetes basicos, util en contenedores docker
 
 
 ###------nmap scaners
+nmapfire            Crea un archivo xml para firefox
 ultrascan           varios escaneos, menu y todo
 nmap-full           Create a html file with full scan of network
 nmap-half           Same has full, just half of scann no vuln or smb

@@ -2,8 +2,8 @@
 
 # Menú de selección
 echo "Seleccione el tipo de escaneo:"
-echo "1) Escaneo básico (nmap -v --reason -sS)"
-echo "2) Escaneo avanzado (nmap -A -O -sV)"
+echo "1) Escaneo básico (sudo nmap -v --reason -sS)"
+echo "2) Escaneo avanzado (sudo nmap -A -O -sV)"
 read -p "Ingrese su opción (1 o 2): " opcion
 
 # Obtener IPs
@@ -24,10 +24,12 @@ fi
 # Ejecutar nmap
 if [ "$opcion" = "1" ]; then
     archivo="basico-${datos}.txt"
-    nmap -v -p- --reason -sS $datos | tee "$archivo"
+    sudo nmap -v -p- --reason -sS $datos | tee "$archivo"
+
 elif [ "$opcion" = "2" ]; then
     archivo="puertos-${datos}.xml"
     sudo nmap -p- -A -O -sV -oX "$archivo" --stylesheet="https://svn.nmap.org/nmap/docs/nmap.xsl" $datos
+
 else
     echo "Opción inválida. Saliendo..."
     exit 1
