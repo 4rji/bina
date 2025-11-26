@@ -1,0 +1,206 @@
+Te dejo **solo lo defensivo**, nada ofensivo.
+Esto es exactamente lo que el *Blue Team* debe revisar en CCDC para eliminar persistencia.
+
+---
+
+# 🔍 **PERSISTENCIA TÍPICA EN CCDC (DEFENSIVO)**
+
+Estas son **todas las ubicaciones y mecanismos legítimos del sistema** donde un proceso puede revivir después de matarlo, **sin necesidad de malware avanzado**.
+
+---
+
+## ✅ **1) systemd services (lo más común)**
+
+Incluso si limpiaste crontabs, si había algo como:
+
+* `/etc/systemd/system/*.service`
+* `/usr/lib/systemd/system/*.service`
+
+Con líneas como:
+
+```
+Restart=always
+RestartSec=5
+```
+
+Ese proceso jamás se muere.
+
+**Comandos defensivos:**
+
+```bash
+sudo systemctl list-units --type=service --all
+```
+
+```bash
+sudo systemctl cat nombre.service
+```
+
+Buscar servicios raros:
+
+```bash
+ls -l /etc/systemd/system/
+ls -l /usr/lib/systemd/system/
+```
+
+---
+
+## ✅ **2) systemd timers**
+
+Un **timer** puede relanzar cualquier script:
+
+```bash
+sudo systemctl list-timers --all
+```
+
+Revisar:
+
+```
+/etc/systemd/system/*.timer
+/usr/lib/systemd/system/*.timer
+```
+
+---
+
+## ✅ **3) cron avanzado (NO solo crontab -l)**
+
+Muchos hacen este error: **crontab -l NO es suficiente**.
+
+Debes revisar:
+
+```
+/etc/crontab
+/etc/cron.d/
+/etc/cron.daily/
+/etc/cron.hourly/
+/etc/cron.weekly/
+/var/spool/cron/*
+```
+
+Comandos:
+
+```bash
+cat /etc/crontab
+ls -l /etc/cron.d/
+ls -l /var/spool/cron/
+```
+
+---
+
+## ✅ **4) rc.local**
+
+Aunque ya casi no se usa, algunos Red Team lo ponen:
+
+```
+/etc/rc.local
+```
+
+Revisa si lo reactivaron:
+
+```bash
+systemctl status rc-local
+```
+
+---
+
+## ✅ **5) ~/.bashrc y ~/.profile**
+
+Colocan un comando que lanza algo cada vez que entras:
+
+Revisar:
+
+```
+/home/*/.bashrc
+/home/*/.profile
+/root/.bashrc
+/root/.profile
+```
+
+Buscar líneas raras:
+
+```bash
+grep -R "bash" /home/* -n
+```
+
+---
+
+## ✅ **6) Servicios ocultos en /etc/init.d/**
+
+Muy común en CCDC:
+
+```
+ls -l /etc/init.d/
+```
+
+Si ves algo extraño:
+
+```bash
+sudo update-rc.d -f nombre remove
+```
+
+---
+
+## ✅ **7) tmux o screen persistentes**
+
+Algunas veces usan esto para persistir shells:
+
+```bash
+tmux ls
+screen -ls
+```
+
+---
+
+## ✅ **8) procesos en loop**
+
+Algunos Red Team dejan un script así:
+
+```
+while true; do reverse shell... done
+```
+
+Pueden ponerlo en:
+
+```
+/usr/local/bin/
+/opt/
+/tmp/   <- muy común
+```
+
+Busca scripts activos:
+
+```bash
+ps aux | grep -vE 'root|systemd|sshd'
+```
+
+---
+
+## ✅ **9) SSH authorized_keys**
+
+Persistencia muy frecuente:
+
+```
+/home/*/.ssh/authorized_keys
+/root/.ssh/authorized_keys
+```
+
+---
+
+# 🎯 **¿Cuál de estas es la que revive procesos incluso tras kill -9?**
+
+### 🔥 **systemd con Restart=always**
+
+→ 100% comportamiento que describes.
+
+### 🔥 **timer re-ejecutando cada X minutos**
+
+→ vuelve después de un rato.
+
+### 🔥 **cron en /etc/cron.d/**
+
+→ fácil de olvidar y revive procesos.
+
+---
+
+# Si quieres, reviso contigo paso por paso lo que usaron en tu VM durante CCDC.
+
+Solo dime **qué sistema era (Ubuntu, Debian, Rocky, Windows)** y revisamos defensivamente.

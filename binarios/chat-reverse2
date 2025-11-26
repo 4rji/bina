@@ -1,0 +1,218 @@
+Te explico **cada una**, rápido y técnico, para que entiendas exactamente cómo reviven procesos incluso después de `kill -9`.
+
+---
+
+# ✅ **1) systemd timer que revive la shell (MUY común en CCDC)**
+
+Un `.timer` ejecuta un `.service` automáticamente cada X minutos.
+
+Ejemplo atacante:
+
+```
+/etc/systemd/system/updater.service
+/etc/systemd/system/updater.timer
+```
+
+**timer:**
+
+```ini
+[Timer]
+OnUnitActiveSec=1min
+```
+
+**service:**
+
+```ini
+[Service]
+ExecStart=/bin/bash -c 'reverse shell'
+```
+
+Si tú matas la reverse shell →
+el timer la vuelve a lanzar al minuto exacto.
+
+### Cómo detectarlo:
+
+```bash
+systemctl list-timers --all
+```
+
+Te mostrará:
+
+```
+updater.timer    updater.service    1min left
+```
+
+---
+
+# ✅ **2) cron oculto con @reboot o cada X minutos**
+
+Muchos Blue Teams solo ejecutan:
+
+```bash
+crontab -l
+```
+
+Pero los Red Teamers **NO** ponen persistencia ahí porque es lo primero que limpian.
+
+La persistencia real está en:
+
+### `/etc/crontab`
+
+```
+*/1 * * * * root /bin/bash /tmp/R
+```
+
+### `/etc/cron.d/`
+
+Ejemplo:
+
+```
+/etc/cron.d/apache-upd
+```
+
+```
+*/2 * * * * root /bin/bash /usr/lib/update.sh
+```
+
+Si matas la reverse shell →
+cron vuelve a lanzar el script al minuto siguiente.
+
+### cómo revisar:
+
+```bash
+cat /etc/crontab
+ls -l /etc/cron.d/
+```
+
+También:
+
+```
+ls -l /var/spool/cron/
+```
+
+---
+
+# ✅ **3) rc.local ejecutando respawn**
+
+A veces ponen:
+
+```
+/etc/rc.local
+```
+
+Con esto:
+
+```bash
+bash -c 'reverse shell &' 
+```
+
+Y systemd lo ejecuta cada vez que reinician el sistema.
+
+No revive automáticamente si matas el proceso,
+pero vuelve después de cada reboot.
+
+---
+
+# ✅ **4) init.d con symlink en runlevels**
+
+Este es clásico en CCDC.
+
+Un script en:
+
+```
+/etc/init.d/apache-update
+```
+
+Y symlinks en:
+
+```
+/etc/rc3.d/S99apache-update
+/etc/rc5.d/S99apache-update
+```
+
+systemd “emula” los runlevels antiguos.
+Si el script tenía un **while true**, revive infinito.
+
+---
+
+# ✅ **5) Script con while true (trampa clásica)**
+
+Ejemplo:
+
+```bash
+#!/bin/bash
+while true
+do
+    bash -c 'reverse shell'
+    sleep 5
+done
+```
+
+¿Le haces `kill -9`?
+→ Muere el hijo (reverse shell)
+→ Pero NO el padre (el script con el while)
+
+El padre vuelve a lanzar el hijo siempre.
+
+### Cómo detectarlo:
+
+```bash
+ps aux | grep -v systemd | grep bash
+```
+
+Si ves algo como:
+
+```
+/bin/bash /tmp/.update.sh
+```
+
+es eso.
+
+---
+
+# ✅ **6) Proceso huérfano adoptado por systemd**
+
+Esto pasa cuando:
+
+* Un proceso hijo muere
+* El padre también muere
+* systemd adopta el hijo
+
+Si el mecanismo padre era algo como:
+
+* systemd service
+* cron cada minuto
+* timer cada minuto
+* bucle infinito
+
+→ el proceso reaparece aunque lo mates.
+
+### Cómo saber si systemd es el padre:
+
+```bash
+ps -o ppid= -p PID
+```
+
+Si el PPID es **1** (systemd), el proceso está adoptado.
+
+---
+
+# 🎯 ¿Qué de todo esto coincide EXACTO con lo que dijiste?
+
+### ✔ Lo matabas con kill -9
+
+### ✔ Volvía después de unos minutos
+
+### ✔ No era crontab -l
+
+### ✔ Ocurre MUCHO en CCDC
+
+### ✔ No parece rootkit
+
+La respuesta más probable:
+
+# 👉 **systemd timer o cron en /etc/cron.d reiniciando la reverse shell**
+
+---
+
+Si quieres, dime qué OS usaban (Debian/Ubuntu/Rocky) y te doy una lista exacta de comandos defensivos **para revisarlo en 30–40 segundos en competencia**.
