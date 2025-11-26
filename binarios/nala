@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+sudo apt install make gcc -y >/dev/null 1&>2
+echo "need make gcc"
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
 
 # Function to create a new directory and change to it
