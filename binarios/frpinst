@@ -6,7 +6,7 @@ set -e
 
 wget -q -O frpc.toml "https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/frp/frpc.toml"
 wget -q -O frps.toml "https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/frp/frps.toml"
-
+wget -q -O frpc-receive.toml "https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/frp/frpc-receiver.toml"
 
 VER="0.62.1"
 PKG="frp_${VER}_linux_amd64"

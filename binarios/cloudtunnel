@@ -2,6 +2,7 @@
 set -euo pipefail
 
 PIDFILE="/tmp/cloudflared_tunnel.pid"
+LOGFILE="/tmp/cloudflared_tunnel.log"
 
 # URLs
 URL_DEB_AMD="https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb"
@@ -112,7 +113,19 @@ start_tunnel() {
   echo "_________________________________________________________"
   echo ""
   echo -e "\033[1;34m Starting cloudflared tunnel with provided token...\033[0m"
-  cloudflared tunnel run --token "$cloudtoken" &>/dev/null &
+
+  local start_cmd=("cloudflared" "tunnel" "run" "--token" "$cloudtoken")
+  if command -v setsid >/dev/null 2>&1; then
+    start_cmd=(setsid "${start_cmd[@]}")
+  fi
+
+  # Run detached so Ctrl+C or closing the menu does not kill the tunnel.
+  if command -v nohup >/dev/null 2>&1; then
+    nohup bash -c 'trap "" INT HUP; exec "$@"' _ "${start_cmd[@]}" >"$LOGFILE" 2>&1 </dev/null &
+  else
+    ( trap '' INT HUP; "${start_cmd[@]}" >"$LOGFILE" 2>&1 </dev/null ) &
+  fi
+
   CF_PID=$!
   echo "$CF_PID" > "$PIDFILE" || true
 
@@ -126,6 +139,7 @@ start_tunnel() {
 
   echo -e "\033[1;37m  cloudflared PID:  $CF_PID  \033[0m"
   echo -e "\033[1;31m  To stop the tunnel:  kill $CF_PID  \033[0m"
+  echo -e "\033[1;30m  Log file: $LOGFILE\033[0m"
   echo ""
   echo "_________________________________________________________"
   echo ""
@@ -183,7 +197,7 @@ status_and_tunnels() {
   fi
 
   if [ -n "${pid:-}" ]; then
-    echo -e "\033[1;31m To stop: choose option 3 (kill tunnel) or run: kill $pid\033[0m"
+    echo -e "\033[1;31m To stop: choose option 3 or k (kill tunnel) or run: kill $pid\033[0m"
   fi
 
   echo ""
@@ -194,10 +208,11 @@ status_and_tunnels() {
 menu() {
   echo ""
   echo -e "\033[1;36m================== cloudflared menu ==================\033[0m"
-  echo -e "\033[1;33m  1) Install cloudflared (wget)\033[0m"
-  echo -e "\033[1;32m  2) Start tunnel\033[0m"
-  echo -e "\033[1;31m  3) Kill tunnel\033[0m"
-  echo -e "\033[1;35m  4) Status + tunnels\033[0m"
+  echo -e "\033[1;32m  1) Start tunnel\033[0m"
+  echo -e "\033[1;33m  2) Install cloudflared (wget)\033[0m"
+  echo -e "\033[1;31m  3) Kill tunnel (alias: k)\033[0m"
+  echo -e "\033[1;35m  s) Status + tunnels\033[0m"
+  echo -e "\033[1;31m  k) Kill tunnel\033[0m"
   echo -e "\033[1;37m  q) Quit\033[0m"
   echo -e "\033[1;36m======================================================\033[0m"
   echo ""
@@ -214,10 +229,10 @@ while true; do
   read -n1 -rp "Option: " choice
   echo ""
   case "$choice" in
-    1) install_cloudflared ;;
-    2) start_tunnel ;;
-    3) kill_tunnel ;;
-    4) status_and_tunnels ;;
+    1) start_tunnel ;;
+    2) install_cloudflared ;;
+    3|k|K) kill_tunnel ;;
+    s|S|4) status_and_tunnels ;;
     q|Q)
        echo "Bye."
        exit 0
