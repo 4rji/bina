@@ -15,11 +15,26 @@ SUBNET="$1"
 
 clear
 echo -e "${GREEN}=== NETWORK SWEEP MENU ===${RESET}"
+
 echo -e "${CYAN}1) ARP pasivo con tcpdump${RESET}"
+echo -e "${YELLOW}   Comando:    tcpdump -n -i eth0 arp${RESET}"
+echo -e "${MAG}   Desc:       Escucha tráfico ARP sin enviar paquetes.${RESET}"
+
 echo -e "${CYAN}2) arp-scan silencioso${RESET}"
+echo -e "${YELLOW}   Comando:    arp-scan --interface=eth0 --retry=1 --backoff=1.5 \$SUBNET${RESET}"
+echo -e "${MAG}   Desc:       Envía ARP a la red con muy bajo ruido.${RESET}"
+
 echo -e "${CYAN}3) nmap ARP lento${RESET}"
+echo -e "${YELLOW}   Comando:    nmap -sn -PR --max-rate 2 \$SUBNET${RESET}"
+echo -e "${MAG}   Desc:       Descubrimiento de hosts usando ARP a velocidad reducida.${RESET}"
+
 echo -e "${CYAN}4) hping3 ICMP lento${RESET}"
+echo -e "${YELLOW}   Comando:    hping3 -1 --icmp \$BASE --scan 1-254 -i u900000${RESET}"
+echo -e "${MAG}   Desc:       Envía 1 ICMP por host de forma muy lenta y discreta.${RESET}"
+
 echo -e "${CYAN}5) fping silencioso${RESET}"
+echo -e "${YELLOW}   Comando:    fping -a -q -g \$SUBNET -r 0 -t 120 2>/dev/null${RESET}"
+echo -e "${MAG}   Desc:       Sweep ICMP sin reintentos y sin ruido en salida.${RESET}"
 echo ""
 read -p "Selecciona opción: " op
 
