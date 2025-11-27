@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+# Colors
+CYAN="\033[1;36m"
+YELLOW="\033[1;33m"
+GREEN="\033[1;32m"
+RESET="\033[0m"
+
+if [ -z "$1" ]; then
+    echo -e "${YELLOW}Uso: $0 192.168.1.0/24${RESET}"
+    exit 1
+fi
+
+SUBNET="$1"
+
+clear
+echo -e "${GREEN}=== NETWORK SWEEP MENU ===${RESET}"
+echo -e "${CYAN}1) ARP pasivo con tcpdump${RESET}"
+echo -e "${CYAN}2) arp-scan silencioso${RESET}"
+echo -e "${CYAN}3) nmap ARP lento${RESET}"
+echo -e "${CYAN}4) hping3 ICMP lento${RESET}"
+echo -e "${CYAN}5) fping silencioso${RESET}"
+echo ""
+read -p "Selecciona opción: " op
+
+case $op in
+    1)
+        echo -e "${GREEN}[tcpdump ARP pasivo]${RESET}"
+        echo -e "${YELLOW}Escucha ARP sin enviar paquetes.${RESET}"
+        echo ""
+        sudo tcpdump -n -i eth0 arp
+        ;;
+
+    2)
+        echo -e "${GREEN}[arp-scan silencioso]${RESET}"
+        echo -e "${YELLOW}Envía ARP con bajo ruido.${RESET}"
+        echo ""
+        sudo arp-scan --interface=eth0 --retry=1 --backoff=1.5 $SUBNET
+        ;;
+
+    3)
+        echo -e "${GREEN}[nmap ARP lento]${RESET}"
+        echo -e "${YELLOW}ARP discovery con max-rate bajo.${RESET}"
+        echo ""
+        sudo nmap -sn -PR --max-rate 2 $SUBNET
+        ;;
+
+    4)
+        echo -e "${GREEN}[hping3 ICMP lento]${RESET}"
+        echo -e "${YELLOW}1 paquete ICMP por host con baja frecuencia.${RESET}"
+        echo ""
+        sudo hping3 -1 --icmp $(echo $SUBNET | cut -d'/' -f1) --scan 1-254 -i u900000
+        ;;
+
+    5)
+        echo -e "${GREEN}[fping silencioso]${RESET}"
+        echo -e "${YELLOW}Ping sweep sin reintentos ni ruido.${RESET}"
+        echo ""
+        fping -a -q -g $SUBNET -r 0 -t 120 2>/dev/null
+        ;;
+
+    *)
+        echo -e "${YELLOW}Opción inválida.${RESET}"
+        ;;
+esac

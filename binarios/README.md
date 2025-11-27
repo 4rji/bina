@@ -172,7 +172,7 @@ verpw               Verifica los permisos de los archivos /etc/passwd u linux cl
 indexapp            in simple index que ve si la pagina web funciona mensaje app working
 
 4rji                el programa y busqueda de scripts
-mesloinst           Instala las fuentes meslo - font
+mesloinst           Instala las fuentes meslo - font meslo
 mesloinst2          Para instalar manualmente las fuentes (nixos) pero funciona otras - font
 bashfun             Agrega las funciones function a las bash zsh, en zshrc bashrc mktem
 whx                 hace un xargs cat a un binario y pregunta si deseo editarlo #ejemplo whx mired     
@@ -266,6 +266,7 @@ expo4               crea un archibo clip1 del portapapeles para expo5
 expo5               limpia el archivo targeted y muestra solo los servicios, crea resumen 
 sweepall            hace nmap xml para abrir con firefox, USA sweep, ips y puertos o puertos2
 sweepnet_{ip}	    Hace un sweep a toda la subnet, 10.0 o 192.168
+sweepcom            Comandos para hacer sweep a una subnet
 nbash               BASH escaneo de puertos de una maquina , no usa nmap, nbash 10.0.4.50
 pbash               /dev/tcp/[IP] BASH scaner puertos open (50 principales puertos only) en la red 10.0.4
 ncmap               Ocupa nc para escanear puertos, como nmap, escaneo
