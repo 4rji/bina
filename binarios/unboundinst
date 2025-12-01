@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Debe ejecutarse como root (o con sudo bash script.sh)
+if [[ $EUID -ne 0 ]]; then
+  echo "Ejecuta este script como root (sudo)." >&2
+  exit 1
+fi
+
+echo "[*] Instalando paquetes..."
+apt update
+apt install -y unbound unbound-anchor wget
+
+echo "[*] Creando directorios necesarios..."
+mkdir -p /var/lib/unbound
+mkdir -p /etc/unbound
+
+echo "[*] Descargando root.hints..."
+wget https://www.internic.net/domain/named.root -qO- \
+  | tee /var/lib/unbound/root.hints >/dev/null
+
+echo "[*] Inicializando/actualizando clave raíz (root.key)..."
+unbound-anchor -a "/var/lib/unbound/root.key" || true
+
+echo "[*] Respaldando configuración actual de Unbound (si existe)..."
+if [[ -f /etc/unbound/unbound.conf && ! -f /etc/unbound/unbound.conf.bak ]]; then
+  cp /etc/unbound/unbound.conf /etc/unbound/unbound.conf.bak
+fi
+
+echo "[*] Descargando unbound.conf personalizado..."
+wget https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/unbound.conf -qO /etc/unbound/unbound.conf
+
+echo "[*] Verificando sintaxis de configuración..."
+unbound-checkconf
+
+echo "[*] Reiniciando Unbound..."
+systemctl restart unbound
+
+echo "[*] Estado de Unbound:"
+systemctl status unbound --no-pager
+
+echo "[*] Configurando cron mensual para actualizar root.hints..."
+CRON_LINE='0 3 1 * * wget https://www.internic.net/domain/named.root -qO- | tee /var/lib/unbound/root.hints >/dev/null'
+
+# Evitar duplicados en crontab de root
+( crontab -l 2>/dev/null | grep -v 'internic.net/domain/named.root' ; echo "$CRON_LINE" ) | crontab -
+
+echo "[*] Listo. Cron instalado y Unbound configurado."
