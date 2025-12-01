@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+
+# Simple DNS traffic cheatsheet for Unbound + WireGuard
+# NO ejecuta nada, solo muestra comandos y explicaciones.
+
+CYAN="\033[1;36m"
+YELLOW="\033[1;33m"
+GREEN="\033[1;32m"
+MAGENTA="\033[1;35m"
+RESET="\033[0m"
+
+line() {
+    echo -e "${MAGENTA}------------------------------------------------------------${RESET}"
+}
+
+echo -e "${GREEN}DNS / Unbound / WireGuard traffic view helper${RESET}"
+line
+
+echo -e "${YELLOW}1) Ver TODO el tráfico DNS (UDP/TCP 53) en la máquina${RESET}"
+echo
+echo "Descripción:"
+echo "  - Muestra todas las consultas/respuestas DNS que pasan por cualquier interfaz."
+echo "  - Útil para ver qué se está resolviendo en tiempo real."
+echo
+echo -e "${CYAN}Comando sugerido:${RESET}"
+echo "  sudo tcpdump -n -i any port 53"
+line
+
+echo -e "${YELLOW}2) Ver SOLO consultas DNS salientes (cliente → Internet)${RESET}"
+echo
+echo "Descripción:"
+echo "  - Útil para ver qué está preguntando Unbound hacia afuera."
+echo "  - Filtra solo paquetes UDP de salida al puerto 53."
+echo
+echo -e "${CYAN}Comando sugerido:${RESET}"
+echo "  sudo tcpdump -n -i any udp dst port 53"
+line
+
+echo -e "${YELLOW}3) Ver SOLO respuestas DNS entrantes (Internet → Unbound)${RESET}"
+echo
+echo "Descripción:"
+echo "  - Útil para ver qué responden los servidores externos."
+echo "  - Filtra solo UDP con origen puerto 53."
+echo
+echo -e "${CYAN}Comando sugerido:${RESET}"
+echo "  sudo tcpdump -n -i any udp src port 53"
+line
+
+echo -e "${YELLOW}4) Ver tráfico DNS que viaja por un túnel WireGuard (ej. wg0)${RESET}"
+echo
+echo "Descripción:"
+echo "  - Muestra TODO lo que va dentro del túnel (cifrado)."
+echo "  - No verás el DNS en claro, solo que el tráfico pasa por wg0."
+echo
+echo -e "${CYAN}Comando sugerido:${RESET}"
+echo "  sudo tcpdump -n -i wg0"
+line
+
+echo -e "${YELLOW}5) Ver queries de Unbound vía logs (sin tcpdump)${RESET}"
+echo
+echo "Descripción:"
+echo "  - Usa los logs de systemd para ver qué está resolviendo Unbound."
+echo "  - Requiere que Unbound tenga verbosity razonable (1 o 2)."
+echo
+echo -e "${CYAN}Comandos sugeridos:${RESET}"
+echo "  sudo unbound-control verbosity 2      # aumenta verbosidad temporalmente"
+echo "  sudo journalctl -fu unbound           # seguir logs en tiempo real"
+echo "  sudo unbound-control verbosity 1      # volver a nivel normal"
+line
+
+echo -e "${YELLOW}6) Loguear cada query desde Unbound (modo más hablador)${RESET}"
+echo
+echo "Descripción:"
+echo "  - Necesita 'log-queries: yes' en unbound.conf."
+echo "  - Muestra cada consulta/respuesta vista por Unbound."
+echo
+echo -e "${CYAN}Snippet de config (no se aplica solo, es para tu unbound.conf):${RESET}"
+cat <<'EOF'
+server:
+    log-queries: yes
+EOF
+echo
+echo -e "${CYAN}Log en vivo:${RESET}"
+echo "  sudo journalctl -u unbound -f"
+line
+
+echo -e "${YELLOW}7) Ver estadísticas internas de Unbound${RESET}"
+echo
+echo "Descripción:"
+echo "  - Muestra cantidad de queries, hits de caché, fallos DNSSEC, etc."
+echo "  - Útil para ver comportamiento general sin sniffear tráfico."
+echo
+echo -e "${CYAN}Comando sugerido:${RESET}"
+echo "  sudo unbound-control stats_noreset"
+line
+
+echo -e "${GREEN}Fin. Copia/pega los comandos que quieras probar.${RESET}"
