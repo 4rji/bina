@@ -414,6 +414,7 @@ dnsleak             Consulta si el dns se esta saliendo
 dnscom              Comandos de dns para cosas
 dnscheck            Menu para ver dns, ruta, opciones, capturar trafico
 dnsserver           Muestra que servidor estamos usando en la maquina
+dnssec              Hace pruebas al servidor dns para ver si usa DNSSEC
 resolvedinst        Instala y configura resolved, con quad9 dns 
 ipt                 Para acceptar todo trafico o bloquear todo el trafico. 
 snifferip           Sniffer paquetes red que captura las cabeceras IP en dirección IP especifica.
