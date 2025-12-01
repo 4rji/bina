@@ -1,48 +1,44 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Debe ejecutarse como root (o con sudo bash script.sh)
-if [[ $EUID -ne 0 ]]; then
-  echo "Ejecuta este script como root (sudo)." >&2
-  exit 1
-fi
+# Must run as a normal user (script will handle sudo internally)
 
-echo "[*] Instalando paquetes..."
-apt update
-apt install -y unbound unbound-anchor wget
+echo "[*] Installing packages..."
+sudo apt update
+sudo apt install -y unbound unbound-anchor curl
 
-echo "[*] Creando directorios necesarios..."
-mkdir -p /var/lib/unbound
-mkdir -p /etc/unbound
+echo "[*] Creating required directories..."
+sudo mkdir -p /var/lib/unbound
+sudo mkdir -p /etc/unbound
 
-echo "[*] Descargando root.hints..."
-wget https://www.internic.net/domain/named.root -qO- \
-  | tee /var/lib/unbound/root.hints >/dev/null
+echo "[*] Downloading root.hints..."
+curl -s https://www.internic.net/domain/named.root \
+  | sudo tee /var/lib/unbound/root.hints >/dev/null
 
-echo "[*] Inicializando/actualizando clave raíz (root.key)..."
-unbound-anchor -a "/var/lib/unbound/root.key" || true
+echo "[*] Initializing/updating root.key..."
+sudo unbound-anchor -a "/var/lib/unbound/root.key" || true
 
-echo "[*] Respaldando configuración actual de Unbound (si existe)..."
+echo "[*] Backing up old Unbound config (if exists)..."
 if [[ -f /etc/unbound/unbound.conf && ! -f /etc/unbound/unbound.conf.bak ]]; then
-  cp /etc/unbound/unbound.conf /etc/unbound/unbound.conf.bak
+  sudo cp /etc/unbound/unbound.conf /etc/unbound/unbound.conf.bak
 fi
 
-echo "[*] Descargando unbound.conf personalizado..."
-wget https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/unbound.conf -qO /etc/unbound/unbound.conf
+echo "[*] Downloading custom unbound.conf..."
+sudo curl -s https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/unbound.conf \
+  -o /etc/unbound/unbound.conf
 
-echo "[*] Verificando sintaxis de configuración..."
-unbound-checkconf
+echo "[*] Checking config syntax..."
+sudo unbound-checkconf
 
-echo "[*] Reiniciando Unbound..."
-systemctl restart unbound
+echo "[*] Restarting Unbound..."
+sudo systemctl restart unbound
 
-echo "[*] Estado de Unbound:"
-systemctl status unbound --no-pager
+echo "[*] Unbound status:"
+sudo systemctl status unbound --no-pager
 
-echo "[*] Configurando cron mensual para actualizar root.hints..."
-CRON_LINE='0 3 1 * * wget https://www.internic.net/domain/named.root -qO- | tee /var/lib/unbound/root.hints >/dev/null'
+echo "[*] Installing monthly cron job for root.hints update..."
+CRON_LINE='0 3 1 * * curl -s https://www.internic.net/domain/named.root | tee /var/lib/unbound/root.hints >/dev/null'
 
-# Evitar duplicados en crontab de root
 ( crontab -l 2>/dev/null | grep -v 'internic.net/domain/named.root' ; echo "$CRON_LINE" ) | crontab -
 
-echo "[*] Listo. Cron instalado y Unbound configurado."
+echo "[*] Done. Unbound configured and cron installed."
