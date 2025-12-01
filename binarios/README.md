@@ -329,6 +329,7 @@ findme              Usa el comando find para buscar archivos
 
 
 ###------ssh
+sshp                ssh proxy D 1080 en background, completo, bashfun bash function
 pingt               Hace traceroute con ping
 pings               Hace un ping a todos los hosts dentro de archivo ssh/config
 pingsm              Version para mac

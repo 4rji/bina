@@ -80,13 +80,74 @@ function abrirapp {
 
 
 
-#ssh_fzf es un nuevo binario go, para mac compilarlo de nuevo
-fzf_ssh_go() {
-    /opt/4rji/bin/ssh_fzf </dev/tty >/dev/tty 2>&1
+
+
+# SSH ping con detalles extendidos
+function __fzf_ssh_host_search() {
+  local selected host hostname port
+
+  selected=$(
+    awk '
+      BEGIN { OFS=" - " }
+      tolower($1)=="host" {
+        if (host != "") { print host, hostname, port, user }
+        host=$2; hostname=""; port=""; user=""
+      }
+      tolower($1)=="hostname" && NF > 1 { hostname=$2 }
+      tolower($1)=="port" && NF > 1 { port=$2 }
+      tolower($1)=="user" && NF > 1 { user=$2 }
+      END { if (host != "") print host, hostname, port, user }
+    ' ~/.ssh/config | sort | \
+    fzf --tac +s --tiebreak=index --toggle-sort=ctrl-r \
+      --preview '
+        echo "Detalles del host:";
+        echo {};
+        echo;
+
+        host=$(echo {} | awk -F " - " "{print \$1}");
+
+        # Extraer hostname correctamente
+        hostname=$(awk -v host="$host" '"'"'
+          tolower($1) == "host" { in_block = ($2 == host) }
+          in_block && tolower($1) == "hostname" { print $2; exit }
+        '"'"' ~/.ssh/config);
+
+        # Extraer puerto correctamente
+        port=$(awk -v host="$host" '"'"'
+          tolower($1) == "host" { in_block = ($2 == host) }
+          in_block && tolower($1) == "port" { print $2; exit }
+        '"'"' ~/.ssh/config);
+
+        # Si no se encuentra el hostname, usar el mismo host
+        if [[ -z "$hostname" ]]; then hostname="$host"; fi
+
+        # Si no se encuentra el puerto, asumir 22
+        if [[ -z "$port" ]]; then port=22; fi
+
+        echo "Status:";
+        ping -c 1 -W 1 "$hostname" > /dev/null 2>&1 && echo -e "\e[32monline\e[0m" || echo -e "\e[31moffline\e[0m";
+        
+        echo;
+        echo "Status of port $port on $hostname:";
+
+        if nc -zv "$hostname" "$port" 2>&1 | grep -q "succeeded"; then
+          echo -e "\e[32mConnection to $hostname port $port succeeded!\e[0m"
+        else
+          echo -e "\e[31mConnection to $hostname port $port failed!\e[0m"
+        fi
+      '
+  )
+
+  if [[ -n $selected ]]; then
+    host=$(echo "$selected" | awk -F ' - ' '{print $1}')
+    ssh "$host" < /dev/tty
+  fi
 }
 
-zle -N fzf_ssh_go
-bindkey '^S' fzf_ssh_go
+# En Zsh, registra el widget y asigna la combinación de teclas
+zle -N __fzf_ssh_host_search
+bindkey '^S' __fzf_ssh_host_search
+
 
 
 
@@ -154,9 +215,25 @@ function fzf-lovely(){
     fi
 }
 
-function sshp() {
+function goo() {
+    google-chrome-stable "$1" & disown
+}
+
+function sshproxy() {
     ssh -D 1080 -C -q -N "$@" &
 }
+
+#descontinuado por grc
+#function T() {
+ #   local temp_file=$(mktemp)
+  #  "$@" | tee "$temp_file" | batcat -l rb
+#}
+
+
+nixs() {
+  nix-shell -p zsh "$@" --run "zsh -i"
+}
+
 
 
 
