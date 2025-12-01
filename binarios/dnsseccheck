@@ -1,0 +1,149 @@
+#!/usr/bin/env bash
+
+# Simple DNSSEC test script
+# Usage: ./dnssec_check.sh <DNS_SERVER_IP>
+# Example: ./dnssec_check.sh 192.168.3.5
+
+DNS_IP="$1"
+
+if [ -z "$DNS_IP" ]; then
+    echo "Usage: $0 <DNS_SERVER_IP>"
+    exit 1
+fi
+
+# Colors
+GREEN="\033[1;32m"
+RED="\033[1;31m"
+YELLOW="\033[1;33m"
+CYAN="\033[1;36m"
+RESET="\033[0m"
+
+dig_cmd() {
+    # Wrapper so all dig calls are consistent
+    dig @"$DNS_IP" "$@" +dnssec +multi +time=3 +tries=1
+}
+
+print_header() {
+    echo -e "\n${CYAN}==============================${RESET}"
+    echo -e "${CYAN}$1${RESET}"
+    echo -e "${CYAN}==============================${RESET}"
+}
+
+pass() {
+    echo -e "👉 ${GREEN}PASS${RESET} - $1"
+}
+
+fail() {
+    echo -e "👉 ${RED}FAIL${RESET} - $1"
+}
+
+# 1) Basic DNSSEC failure test (dnssec-failed.org)
+print_header "1. Fundamental DNSSEC test (dnssec-failed.org)"
+
+echo -e "${YELLOW}Expected:${RESET} status SERVFAIL (DNSSEC should reject bad signatures)"
+OUT_1=$(dig_cmd dnssec-failed.org 2>/dev/null)
+STATUS_1=$(echo "$OUT_1" | grep "status:" | head -n1 | sed 's/.*status: \([^,]*\).*/\1/')
+
+echo
+echo "---- dig output (header) ----"
+echo "$OUT_1" | grep "status:" | head -n1
+echo "-----------------------------"
+
+if [[ "$STATUS_1" == "SERVFAIL" ]]; then
+    pass "Resolver is validating DNSSEC (bad domain is rejected)."
+else
+    fail "Expected SERVFAIL but got: $STATUS_1"
+fi
+
+
+# 2) Domain with valid DNSSEC (cloudflare.com)
+print_header "2. Valid DNSSEC domain (cloudflare.com)"
+
+echo -e "${YELLOW}Expected:${RESET}"
+echo "  • status NOERROR"
+echo "  • RRSIG records present (signed answer)"
+
+OUT_2=$(dig_cmd cloudflare.com 2>/dev/null)
+STATUS_2=$(echo "$OUT_2" | grep "status:" | head -n1 | sed 's/.*status: \([^,]*\).*/\1/')
+HAS_RRSIG_2=$(echo "$OUT_2" | grep -w "RRSIG")
+
+echo
+echo "---- dig output (header) ----"
+echo "$OUT_2" | grep "status:" | head -n1
+echo "---- ANSWER SECTION (sample) ----"
+echo "$OUT_2" | awk '/^;; ANSWER SECTION:/{flag=1;next}/^;;/{flag=0}flag' | head -n5
+echo "---------------------------------"
+
+if [[ "$STATUS_2" == "NOERROR" ]] && [[ -n "$HAS_RRSIG_2" ]]; then
+    pass "DNSSEC working: NOERROR + RRSIG present."
+else
+    fail "Missing NOERROR and/or RRSIG. Status: $STATUS_2"
+fi
+
+
+# 3) Explicit validation check (AD flag) – google.com
+print_header "3. Validation flag AD (google.com)"
+
+echo -e "${YELLOW}Expected:${RESET}"
+echo "  • flags line contains 'ad' (Authenticated Data)"
+
+OUT_3=$(dig_cmd google.com 2>/dev/null)
+FLAGS_LINE_3=$(echo "$OUT_3" | grep "flags:" | head -n1)
+HAS_AD=$(echo "$FLAGS_LINE_3" | grep -w "ad")
+
+echo
+echo "---- dig flags line ----"
+echo "$FLAGS_LINE_3"
+echo "------------------------"
+
+if [[ -n "$HAS_AD" ]]; then
+    pass "AD flag present → DNSSEC validation OK."
+else
+    fail "AD flag not present in flags line."
+fi
+
+
+# 4) Insecure domain (no DNSSEC) – netflix.com
+print_header "4. Insecure domain (no DNSSEC) – netflix.com"
+
+echo -e "${YELLOW}Expected:${RESET}"
+echo "  • status NOERROR"
+echo "  • NO RRSIG records (unsigned zone)"
+
+OUT_4=$(dig_cmd netflix.com 2>/dev/null)
+STATUS_4=$(echo "$OUT_4" | grep "status:" | head -n1 | sed 's/.*status: \([^,]*\).*/\1/')
+HAS_RRSIG_4=$(echo "$OUT_4" | grep -w "RRSIG")
+
+echo
+echo "---- dig output (header) ----"
+echo "$OUT_4" | grep "status:" | head -n1
+echo "---- ANSWER SECTION (sample) ----"
+echo "$OUT_4" | awk '/^;; ANSWER SECTION:/{flag=1;next}/^;;/{flag=0}flag' | head -n5
+echo "---------------------------------"
+
+if [[ "$STATUS_4" == "NOERROR" ]] && [[ -z "$HAS_RRSIG_4" ]]; then
+    pass "Resolver distinguishes unsigned domain correctly (NOERROR, no RRSIG)."
+else
+    fail "Unexpected status or RRSIG present. Status: $STATUS_4"
+fi
+
+
+# 5) Official DNSSEC check – test.dnssec-or-not.net
+print_header "5. Official DNSSEC test (test.dnssec-or-not.net TXT)"
+
+echo -e "${YELLOW}Expected:${RESET} TXT record with something like: \"OK: DNSSEC is enabled\""
+
+OUT_5=$(dig @"$DNS_IP" test.dnssec-or-not.net TXT +short +time=3 +tries=1 2>/dev/null)
+echo
+echo "---- dig +short output ----"
+echo "$OUT_5"
+echo "---------------------------"
+
+if echo "$OUT_5" | grep -qi "OK: DNSSEC is enabled"; then
+    pass "Site confirms: DNSSEC is enabled on this resolver."
+else
+    fail "Did not see the expected 'OK: DNSSEC is enabled' message."
+fi
+
+echo -e "\n${CYAN}All tests completed against DNS server:${RESET} $DNS_IP"
+
