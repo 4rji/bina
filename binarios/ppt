@@ -1,118 +1,259 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-# Lista de paquetes a instalar
-paquetes=("lsof" "net-tools" "nmap" "procps" )
+# Captura lsof/netstat/nmap, guarda JSON y envía todo a la API de OpenAI para un resumen en inglés.
 
-# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
-paquete_instalado_apt() {  
-    dpkg -l "$1" | grep -q '^ii' >/dev/null
+OUTPUT_JSON="${OUTPUT_JSON:-scan_results.json}"
+OPENAI_MODEL="${OPENAI_MODEL:-gpt-4o-mini}"
+OPENAI_BASE_URL="${OPENAI_BASE_URL:-https://api.openai.com/v1/chat/completions}"
+OPENAI_VERBOSE="${OPENAI_VERBOSE:-0}"
+OPENAI_SAVE_RESPONSE="${OPENAI_SAVE_RESPONSE:-}"
+
+LSOF_OUTPUT=""
+NETSTAT_OUTPUT=""
+NMAP_OUTPUT=""
+SIMPLE_MODE=0
+
+COLOR_RESET="\033[0m"
+COLOR_BLUE="\033[34m"
+COLOR_CYAN="\033[36m"
+COLOR_GREEN="\033[32m"
+COLOR_MAGENTA="\033[35m"
+COLOR_RED="\033[31m"
+COLOR_YELLOW="\033[33m"
+
+mostrar_titulo() {
+    printf "\n%b\n\n" "${COLOR_CYAN}_________________________________________________________${COLOR_RESET}"
 }
 
-# Función para verificar si un paquete está instalado (CentOS/RHEL)
-paquete_instalado_yum() {
-    yum list installed "$1" >/dev/null
+preguntar_y_capturar() {
+    local var_name="$1"
+    local prompt="$2"
+    local command="$3"
+
+    mostrar_titulo
+    local prompt_text
+    prompt_text=$(printf '%b¿%s? [Enter/c]: %b' "$COLOR_YELLOW" "$prompt" "$COLOR_RESET")
+    read -n1 -p "$prompt_text" respuesta || true
+    echo ""
+    if [[ "${respuesta:-}" == "c" ]]; then
+        printf -v "$var_name" "Omitido por el usuario"
+        printf '%b\n' "${COLOR_MAGENTA}Omitido: $prompt${COLOR_RESET}"
+        return
+    fi
+
+    local output
+    if output=$(eval "$command" 2>&1); then
+        printf -v "$var_name" "%s" "$output"
+        printf '%b\n' "${COLOR_GREEN}Salida capturada para $prompt (no se muestra).${COLOR_RESET}"
+    else
+        printf -v "$var_name" "%s" "$output"
+        printf '%b\n' "${COLOR_RED}El comando para $prompt devolvió error; se capturó igualmente.${COLOR_RESET}"
+    fi
 }
 
-# Función para verificar si un paquete está instalado (Fedora)
-paquete_instalado_dnf() {
-    dnf list installed "$1" > /dev/null
+preguntar_y_ejecutar_lsof() {
+    preguntar_y_capturar LSOF_OUTPUT "Ejecutar lsof -i -P -n (also ss -lntp)" "sudo lsof -i -P -n"
 }
 
-# Función para verificar si un paquete está instalado (Arch Linux)
-paquete_instalado_pacman() {
-    pacman -Qi "$1" > /dev/null
+preguntar_y_ejecutar_netstat() {
+    preguntar_y_capturar NETSTAT_OUTPUT "Ejecutar netstat -tulpn" "netstat -tulpn"
 }
 
-# Detectar el sistema operativo
-if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    OS=$ID
-fi
+preguntar_y_ejecutar_nmap() {
+    printf '%b\n' "${COLOR_BLUE}Comando a ejecutar: sudo nmap -T4 -p- --min-rate 1000 -D RND:20 localhost (usa -f si quieres evadir detección)${COLOR_RESET}"
+    preguntar_y_capturar NMAP_OUTPUT "Ejecutar nmap -T4 -p- --min-rate 1000 -D RND:20 localhost" "sudo nmap -T4 -p- --min-rate 1000 -D RND:20 localhost"
+}
 
-# Instalar paquetes basados en el sistema operativo
-for paquete in "${paquetes[@]}"; do
-    case $OS in
-        "debian"|"ubuntu"|"kali")
-            if ! paquete_instalado_apt "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo apt-get install -y "$paquete" >/dev/null
-            fi
+guardar_json() {
+    env LSOF_OUTPUT="$LSOF_OUTPUT" NETSTAT_OUTPUT="$NETSTAT_OUTPUT" NMAP_OUTPUT="$NMAP_OUTPUT" OUTPUT_JSON="$OUTPUT_JSON" \
+        COLOR_GREEN="$COLOR_GREEN" COLOR_RESET="$COLOR_RESET" python3 - <<'PY'
+import datetime
+import json
+import os
+import platform
+from pathlib import Path
+
+path = Path(os.environ["OUTPUT_JSON"])
+payload = {
+    "generated_at_utc": datetime.datetime.now(datetime.timezone.utc).isoformat(),
+    "hostname": platform.node(),
+    "platform": platform.platform(),
+    "commands": {
+        "lsof": os.environ.get("LSOF_OUTPUT", ""),
+        "netstat": os.environ.get("NETSTAT_OUTPUT", ""),
+        "nmap": os.environ.get("NMAP_OUTPUT", ""),
+    },
+}
+path.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+green = os.environ.get("COLOR_GREEN", "")
+reset = os.environ.get("COLOR_RESET", "")
+print(f"{green}JSON guardado en {path}{reset}")
+PY
+}
+
+enviar_a_openai() {
+    if [[ -z "${OPENAI_API_KEY:-}" ]]; then
+        printf '%b\n' "${COLOR_RED}Falta OPENAI_API_KEY en el entorno; no se puede enviar el resumen.${COLOR_RESET}"
+        exit 1
+    fi
+
+    local payload
+    payload=$(env OUTPUT_JSON="$OUTPUT_JSON" OPENAI_MODEL="$OPENAI_MODEL" python3 - <<'PY'
+import json
+import os
+
+path = os.environ["OUTPUT_JSON"]
+model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+scan = open(path, "r", encoding="utf-8").read()
+messages = [
+    {
+        "role": "system",
+        "content": (
+            "You summarize local network posture in concise English. "
+            "Highlight listening ports/services/process names, note suspicious or unknown ports, "
+            "and mention if any data is missing."
+        ),
+    },
+    {
+        "role": "user",
+        "content": f"Here is JSON with lsof/netstat/nmap outputs:\n```\n{scan}\n```",
+    },
+]
+print(json.dumps({"model": model, "messages": messages, "temperature": 0.2}))
+PY
+)
+
+    local response
+    local tmp_err
+    tmp_err=$(mktemp)
+
+    printf '%b\n' "${COLOR_BLUE}Enviando a OpenAI ($OPENAI_BASE_URL) con modelo $OPENAI_MODEL...${COLOR_RESET}"
+    if [[ "$OPENAI_VERBOSE" == "1" ]]; then
+        local key_prefix="${OPENAI_API_KEY:0:8}"
+        printf '%b\n' "${COLOR_MAGENTA}OPENAI_API_KEY prefix: ${key_prefix}...${COLOR_RESET}"
+    fi
+
+    if ! response=$(printf '%s' "$payload" | curl -sS ${OPENAI_VERBOSE:+-v} --fail-with-body "$OPENAI_BASE_URL" \
+        -H "Content-Type: application/json" \
+        -H "Authorization: Bearer $OPENAI_API_KEY" \
+        --data-binary @- 2>"$tmp_err"); then
+        printf '%b\n' "${COLOR_RED}Falló la llamada a la API de OpenAI. Detalle de error:${COLOR_RESET}"
+        cat "$tmp_err"
+        if [[ -n "${response:-}" ]]; then
+            echo ""
+            printf '%b\n' "${COLOR_YELLOW}Respuesta HTTP (si la hubo):${COLOR_RESET}"
+            printf '%s\n' "$response"
+        fi
+        rm -f "$tmp_err"
+        exit 1
+    fi
+    rm -f "$tmp_err"
+
+    if [[ -n "$OPENAI_SAVE_RESPONSE" ]]; then
+        printf '%s' "$response" >"$OPENAI_SAVE_RESPONSE"
+        printf '%b\n' "${COLOR_GREEN}Respuesta completa guardada en $OPENAI_SAVE_RESPONSE${COLOR_RESET}"
+    fi
+
+    local summary
+    if ! summary=$(env OPENAI_RESPONSE="$response" COLOR_RED="$COLOR_RED" COLOR_YELLOW="$COLOR_YELLOW" COLOR_RESET="$COLOR_RESET" python3 - <<'PY'
+import json
+import os
+import sys
+
+def from_choices(data):
+    choices = data.get("choices")
+    if choices:
+        message = choices[0].get("message", {})
+        content = message.get("content", "")
+        if isinstance(content, list):  # responses that already chunk content
+            content = "".join(part.get("text", "") for part in content)
+        return content.strip()
+    return None
+
+def from_responses_api(data):
+    output = data.get("output")
+    if not output:
+        return None
+    first = output[0]
+    if isinstance(first, dict):
+        content = first.get("content") or []
+        if isinstance(content, list):
+            texts = [chunk.get("text", "") for chunk in content if isinstance(chunk, dict)]
+            return "".join(texts).strip()
+    return None
+
+raw = os.environ.get("OPENAI_RESPONSE", "")
+if not raw:
+    print("Respuesta vacía de la API", file=sys.stderr)
+    sys.exit(1)
+
+try:
+    data = json.loads(raw)
+except json.JSONDecodeError:
+    print("No fue posible decodificar JSON desde la API", file=sys.stderr)
+    sys.exit(1)
+
+text = from_choices(data) or from_responses_api(data) or data.get("text")
+if text:
+    print(text.strip())
+    sys.exit(0)
+
+error = data.get("error")
+if error:
+    if isinstance(error, dict):
+        message = error.get("message") or json.dumps(error)
+    else:
+        message = str(error)
+    red = os.environ.get("COLOR_RED", "")
+    reset = os.environ.get("COLOR_RESET", "")
+    print(f"{red}OpenAI devolvió un error: {message}{reset}", file=sys.stderr)
+else:
+    yellow = os.environ.get("COLOR_YELLOW", "")
+    reset = os.environ.get("COLOR_RESET", "")
+    print(f"{yellow}Respuesta de OpenAI no reconocida: claves={list(data.keys())}{reset}", file=sys.stderr)
+sys.exit(1)
+PY
+    ); then
+        printf '%b\n' "${COLOR_RED}No se pudo interpretar la respuesta HTTP completa; se imprime a continuación:${COLOR_RESET}" >&2
+        printf '%s\n' "$response" >&2
+        exit 1
+    fi
+
+    echo ""
+    printf '%b\n' "${COLOR_CYAN}Resumen en inglés (basado en la API de OpenAI):${COLOR_RESET}"
+    printf '%b\n' "${COLOR_GREEN}$summary${COLOR_RESET}"
+}
+
+main() {
+    printf '%b\n' "${COLOR_YELLOW}Tip: run ./ppt -s for a simple run (no JSON / OpenAI).${COLOR_RESET}"
+    if (( SIMPLE_MODE )); then
+        printf '%b\n' "${COLOR_MAGENTA}Simple mode: commands will run locally without saving JSON or contacting OpenAI.${COLOR_RESET}"
+    else
+        printf '%b\n' "${COLOR_CYAN}Recolección local; la salida cruda no se mostrará, solo el resumen en inglés.${COLOR_RESET}"
+    fi
+    preguntar_y_ejecutar_lsof
+    preguntar_y_ejecutar_netstat
+    preguntar_y_ejecutar_nmap
+    if (( SIMPLE_MODE )); then
+        printf '%b\n' "${COLOR_GREEN}Simple run complete. No JSON was saved and nothing was sent to OpenAI.${COLOR_RESET}"
+    else
+        guardar_json
+        enviar_a_openai
+    fi
+}
+
+while getopts ':s' opt; do
+    case $opt in
+        s)
+            SIMPLE_MODE=1
             ;;
-        "centos"|"rhel")
-            if ! paquete_instalado_yum "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo yum install -y "$paquete" >/dev/null
-            fi
-            ;;
-        "fedora")
-            if ! paquete_instalado_dnf "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo dnf install -y "$paquete" >/dev/null
-            fi
-            ;;
-        "arch")
-            if ! paquete_instalado_pacman "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo pacman -S --noconfirm "$paquete" >/dev/null
-            fi
-            ;;
-        *)
+        \?)
+            printf '%b\n' "${COLOR_RED}Unknown option: -$OPTARG${COLOR_RESET}"
+            exit 1
             ;;
     esac
 done
+shift $((OPTIND - 1))
 
-# Función para preguntar y ejecutar lsof
-preguntar_y_ejecutar_lsof() {
-    echo ""
-    echo "_________________________________________________________"
-    echo ""
-    echo -e "\033[34mComando a ejecutar: sudo lsof -i -P -n  (also ss -lntp)\033[0m"
-    read -n1 -p $'\033[33m¿Ejecutar lsof? [Enter/c]: \033[0m' respuesta
-    if [[ $respuesta != "c" ]]; then
-        sudo lsof -i -P -n
-    fi
-}
-
-# Función para preguntar y ejecutar netstat
-preguntar_y_ejecutar_netstat() {
-    echo ""
-    echo "_________________________________________________________"
-    echo ""
-    echo -e "\033[34mComando a ejecutar: netstat -tulpn\033[0m"
-    read -n1 -p $'\033[33m¿Ejecutar netstat? [Enter/c]: \033[0m' respuesta
-    if [[ $respuesta != "c" ]]; then
-        netstat -tulpn
-    fi
-}
-
-# Función para preguntar y ejecutar nmap en localhost
-preguntar_y_ejecutar_nmap() {
-    echo ""
-    echo "_________________________________________________________"
-    echo ""
-    echo -e "\033[34mComando a ejecutar: sudo nmap -T4 -p- --min-rate 1000 localhost\033[0m"
-    echo "con -f para enviar paquetes pequenos y evitar Detection"
-    read -n1 -p $'\033[33m¿Ejecutar nmap -T4 -p- --min-rate 1000 -D RND:20 localhost? [Enter/c]: \033[0m' respuesta
-    if [[ $respuesta != "c" ]]; then
-        sudo nmap -T4 -p- --min-rate 1000 -D RND:20 localhost
-    fi
-}
-
-# Función para preguntar y ejecutar ps
-preguntar_y_ejecutar_ps() {
-    echo ""
-    echo "_________________________________________________________"
-    echo ""
-    echo -e "\033[34mComando a ejecutar: ❯ ps -fae --forest \033[0m"
-    read -n1 -p $'\033[33m¿Ejecutar procesos? [Enter/c]: \033[0m' respuesta
-    if [[ $respuesta != "c" ]]; then
-        ps -fae --forest 
-	#ps -eo user,comm,pid
-    fi
-}
-
-# Llamadas a las funciones
-preguntar_y_ejecutar_lsof
-preguntar_y_ejecutar_netstat
-preguntar_y_ejecutar_nmap
-preguntar_y_ejecutar_ps
+main "$@"
