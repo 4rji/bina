@@ -4,6 +4,7 @@ set -euo pipefail
 # Captura lsof/netstat/nmap, guarda JSON y envía todo a la API de OpenAI para un resumen en inglés.
 
 OUTPUT_JSON="${OUTPUT_JSON:-scan_results.json}"
+SUMMARY_OUTPUT="${SUMMARY_OUTPUT:-scan_summary.txt}"
 OPENAI_MODEL="${OPENAI_MODEL:-gpt-4o-mini}"
 OPENAI_BASE_URL="${OPENAI_BASE_URL:-https://api.openai.com/v1/chat/completions}"
 OPENAI_VERBOSE="${OPENAI_VERBOSE:-0}"
@@ -12,7 +13,6 @@ OPENAI_SAVE_RESPONSE="${OPENAI_SAVE_RESPONSE:-}"
 LSOF_OUTPUT=""
 NETSTAT_OUTPUT=""
 NMAP_OUTPUT=""
-SIMPLE_MODE=0
 
 COLOR_RESET="\033[0m"
 COLOR_BLUE="\033[34m"
@@ -26,43 +26,149 @@ mostrar_titulo() {
     printf "\n%b\n\n" "${COLOR_CYAN}_________________________________________________________${COLOR_RESET}"
 }
 
-preguntar_y_capturar() {
+capturar_comando() {
     local var_name="$1"
-    local prompt="$2"
+    local descripcion="$2"
     local command="$3"
 
-    mostrar_titulo
-    local prompt_text
-    prompt_text=$(printf '%b¿%s? [Enter/c]: %b' "$COLOR_YELLOW" "$prompt" "$COLOR_RESET")
-    read -n1 -p "$prompt_text" respuesta || true
-    echo ""
-    if [[ "${respuesta:-}" == "c" ]]; then
-        printf -v "$var_name" "Omitido por el usuario"
-        printf '%b\n' "${COLOR_MAGENTA}Omitido: $prompt${COLOR_RESET}"
-        return
+    printf '%b%s%b\n' "$COLOR_YELLOW" "$descripcion" "$COLOR_RESET"
+    printf '%b$ %s%b\n' "$COLOR_BLUE" "$command" "$COLOR_RESET"
+
+    local tmp
+    tmp=$(mktemp)
+    if eval "$command" 2>&1 | tee "$tmp"; then
+        printf '%b\n' "${COLOR_GREEN}Comando completado.${COLOR_RESET}"
+    else
+        printf '%b\n' "${COLOR_RED}El comando terminó con error; la salida se registró igualmente.${COLOR_RESET}"
     fi
 
     local output
-    if output=$(eval "$command" 2>&1); then
-        printf -v "$var_name" "%s" "$output"
-        printf '%b\n' "${COLOR_GREEN}Salida capturada para $prompt (no se muestra).${COLOR_RESET}"
-    else
-        printf -v "$var_name" "%s" "$output"
-        printf '%b\n' "${COLOR_RED}El comando para $prompt devolvió error; se capturó igualmente.${COLOR_RESET}"
+    output=$(<"$tmp")
+    rm -f "$tmp"
+    printf -v "$var_name" '%s' "$output"
+
+    resaltar_salida "$descripcion" "$output"
+}
+
+resaltar_salida() {
+    local descripcion="$1"
+    local contenido="$2"
+
+    if [[ -z "$contenido" || "$contenido" == "Omitido por el usuario" ]]; then
+        return
     fi
+
+    printf '%b\nVista coloreada (%s):%b\n' "$COLOR_GREEN" "$descripcion" "$COLOR_RESET"
+    printf '%s' "$contenido" | env \
+        COLOR_PORT="$COLOR_MAGENTA" \
+        COLOR_NAME="$COLOR_CYAN" \
+        COLOR_PID="$COLOR_GREEN" \
+        COLOR_STATUS="$COLOR_YELLOW" \
+        COLOR_RESET="$COLOR_RESET" python3 - <<'PY'
+import os
+import re
+import sys
+
+port_color = os.environ['COLOR_PORT']
+name_color = os.environ['COLOR_NAME']
+pid_color = os.environ['COLOR_PID']
+status_color = os.environ['COLOR_STATUS']
+reset = os.environ['COLOR_RESET']
+
+raw = sys.stdin.read()
+if not raw.strip():
+    sys.exit(0)
+
+lines = raw.splitlines()
+port_re = re.compile(r':(\d{1,5})')
+pid_prog_re = re.compile(r'(\d+)/(\S+)')
+status_re = re.compile(r'\b(LISTEN|ESTABLISHED|CLOSE_WAIT|TIME_WAIT)\b', re.IGNORECASE)
+
+summary = []
+seen = set()
+
+def extract_entry(line):
+    match = pid_prog_re.search(line)
+    port = None
+    if match:
+        pid, prog = match.groups()
+        port_match = port_re.search(line)
+        port = port_match.group(1) if port_match else None
+        return pid, prog, port
+    cols = line.split()
+    if len(cols) >= 2:
+        prog = cols[0]
+        pid_candidate = cols[1]
+        if pid_candidate.isdigit():
+            port_match = port_re.search(line)
+            if port_match:
+                return pid_candidate, prog, port_match.group(1)
+    return None
+
+for line in lines:
+    colored = line
+    colored = pid_prog_re.sub(lambda m: f"{pid_color}{m.group(1)}{reset}/{name_color}{m.group(2)}{reset}", colored)
+    colored = port_re.sub(lambda m: f":{port_color}{m.group(1)}{reset}", colored)
+    colored = status_re.sub(lambda m: f"{status_color}{m.group(0)}{reset}", colored)
+    print(colored)
+
+    entry = extract_entry(line)
+    if entry:
+        pid, prog, port = entry
+        key = (pid, prog, port)
+        if key not in seen and port:
+            seen.add(key)
+            summary.append(key)
+
+if summary:
+    print("")
+    print(f"{status_color}Puertos detectados:{reset}")
+    for pid, prog, port in summary:
+        print(f"  Puerto {port_color}{port}{reset} -> {name_color}{prog}{reset} (PID {pid_color}{pid}{reset})")
+PY
 }
 
-preguntar_y_ejecutar_lsof() {
-    preguntar_y_capturar LSOF_OUTPUT "Ejecutar lsof -i -P -n (also ss -lntp)" "sudo lsof -i -P -n"
+preguntar_y_capturar() {
+    local var_name="$1"
+    local descripcion="$2"
+    local command="$3"
+
+    mostrar_titulo
+    printf '%b¿%s?%b\n' "$COLOR_YELLOW" "$descripcion" "$COLOR_RESET"
+    local prompt
+    prompt=$(printf '%b[Enter] ejecutar / [c] cancelar:%b ' "$COLOR_CYAN" "$COLOR_RESET")
+
+    local respuesta=""
+    if ! read -r -n1 -p "$prompt" respuesta; then
+        respuesta="c"
+    fi
+    echo ""
+
+    if [[ "$respuesta" == $'\n' ]]; then
+        respuesta=""
+    fi
+
+    local respuesta_lc="${respuesta,,}"
+    if [[ "$respuesta_lc" == "c" ]]; then
+        printf '%b\n' "${COLOR_MAGENTA}Omitido por el usuario.${COLOR_RESET}"
+        printf -v "$var_name" 'Omitido por el usuario'
+        return
+    fi
+
+    capturar_comando "$var_name" "$descripcion" "$command"
 }
 
-preguntar_y_ejecutar_netstat() {
-    preguntar_y_capturar NETSTAT_OUTPUT "Ejecutar netstat -tulpn" "netstat -tulpn"
+ejecutar_lsof() {
+    preguntar_y_capturar LSOF_OUTPUT "Recopilando conexiones abiertas (lsof -i -P -n)." "sudo lsof -i -P -n"
 }
 
-preguntar_y_ejecutar_nmap() {
-    printf '%b\n' "${COLOR_BLUE}Comando a ejecutar: sudo nmap -T4 -p- --min-rate 1000 -D RND:20 localhost (usa -f si quieres evadir detección)${COLOR_RESET}"
-    preguntar_y_capturar NMAP_OUTPUT "Ejecutar nmap -T4 -p- --min-rate 1000 -D RND:20 localhost" "sudo nmap -T4 -p- --min-rate 1000 -D RND:20 localhost"
+ejecutar_netstat() {
+    preguntar_y_capturar NETSTAT_OUTPUT "Mostrando sockets en escucha (netstat -tulpn)." "netstat -tulpn"
+}
+
+ejecutar_nmap() {
+    printf '%b\n' "${COLOR_BLUE}Comando sugerido: sudo nmap -T4 -p- --min-rate 1000 -D RND:20 localhost (-f opcional para evasión).${COLOR_RESET}"
+    preguntar_y_capturar NMAP_OUTPUT "Escaneando puertos locales con nmap." "sudo nmap -T4 -p- --min-rate 1000 -D RND:20 localhost"
 }
 
 guardar_json() {
@@ -223,37 +329,44 @@ PY
     echo ""
     printf '%b\n' "${COLOR_CYAN}Resumen en inglés (basado en la API de OpenAI):${COLOR_RESET}"
     printf '%b\n' "${COLOR_GREEN}$summary${COLOR_RESET}"
+
+    printf '%s\n' "$summary" >"$SUMMARY_OUTPUT"
+    printf '%bResumen guardado en %s%b\n' "$COLOR_GREEN" "$SUMMARY_OUTPUT" "$COLOR_RESET"
+    rm -f "$OUTPUT_JSON"
+}
+
+preguntar_envio() {
+    printf '\n%bEnviar resultados a OpenAI?%b\n' "$COLOR_CYAN" "$COLOR_RESET"
+    local prompt
+    prompt=$(printf '%b[Enter] enviar / [c] cancelar:%b ' "$COLOR_YELLOW" "$COLOR_RESET")
+
+    local respuesta=""
+    if ! read -r -n1 -p "$prompt" respuesta; then
+        respuesta="c"
+    fi
+    echo ""
+
+    if [[ "$respuesta" == $'\n' ]]; then
+        respuesta=""
+    fi
+
+    local respuesta_lc="${respuesta,,}"
+    if [[ "$respuesta_lc" == "c" || "$respuesta_lc" == "n" ]]; then
+        printf '%b\n' "${COLOR_MAGENTA}Cancelado por el usuario; se elimina ${OUTPUT_JSON}.${COLOR_RESET}"
+        rm -f "$OUTPUT_JSON"
+        return
+    fi
+
+    enviar_a_openai
 }
 
 main() {
-    printf '%b\n' "${COLOR_YELLOW}Tip: run ./ppt -s for a simple run (no JSON / OpenAI).${COLOR_RESET}"
-    if (( SIMPLE_MODE )); then
-        printf '%b\n' "${COLOR_MAGENTA}Simple mode: commands will run locally without saving JSON or contacting OpenAI.${COLOR_RESET}"
-    else
-        printf '%b\n' "${COLOR_CYAN}Recolección local; la salida cruda no se mostrará, solo el resumen en inglés.${COLOR_RESET}"
-    fi
-    preguntar_y_ejecutar_lsof
-    preguntar_y_ejecutar_netstat
-    preguntar_y_ejecutar_nmap
-    if (( SIMPLE_MODE )); then
-        printf '%b\n' "${COLOR_GREEN}Simple run complete. No JSON was saved and nothing was sent to OpenAI.${COLOR_RESET}"
-    else
-        guardar_json
-        enviar_a_openai
-    fi
+    printf '%b\n' "${COLOR_CYAN}Recolección local: se mostrará la salida de cada comando y se guardará un JSON.${COLOR_RESET}"
+    ejecutar_lsof
+    ejecutar_netstat
+    ejecutar_nmap
+    guardar_json
+    preguntar_envio
 }
-
-while getopts ':s' opt; do
-    case $opt in
-        s)
-            SIMPLE_MODE=1
-            ;;
-        \?)
-            printf '%b\n' "${COLOR_RED}Unknown option: -$OPTARG${COLOR_RESET}"
-            exit 1
-            ;;
-    esac
-done
-shift $((OPTIND - 1))
 
 main "$@"
