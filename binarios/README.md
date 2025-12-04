@@ -577,6 +577,7 @@ sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 search              Crea datos para la pagina web, para llenar la base de busqueda search
 
 #Redstuff
+bincrypter          encripta binarios, tambien hacer contrasenas, ofusca y ejecuta /dev/shm
 wifiaircrack        Aplica aircrack para redes wifi
 wifito              Para matar wifi, deadnet, conectar al wifi y ejecutar con la interface conectada
 redir               Redirige todo el trafico de la maquina por shadows info pagina web docs.4r
