@@ -617,10 +617,11 @@ listenerb           Simple bash script para escuchar el sheldono, necesita arreg
 listener            Escucha sheldono, en go, ya tiene la tty tratada.
 sheldonos           Sin el loop, el mismo que arriba
 sheldonsafe         Otra version de sheldono, de el curso python
-nala_old                Esconde cualquier proceso, como sheldon
+nala_old            Esconde cualquier proceso, como sheldon
 simbo               Es el CTL Trabaja con sheldono, y nala para esconderme sheldongo- usar python3 en ask
 simboc              En lugar de correr script corre la revershell bash, mas escondida
 nala                El mismo que nala, funciona mejor, usar simbo para esconder
+ezuri               en binarios_go, para cambiar el nombre del proceso. git clone solamente
 psss                Escanea por conexiones lsof netstat, mi bebe mibebe
 pssc                Mismo que psss pero este las cierra en 12 segundos automaticamente mibebe
 mapa                Busca un proceso despues del script y lo mata ps aux

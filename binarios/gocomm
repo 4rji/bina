@@ -25,3 +25,7 @@ echo -e "${BLUE}\n=== Step 4: Compress the binary===${NC}"
 echo -e "${GREEN}upx --best --lzma  --force-macos ${NC}"
 
 echo -e "${BLUE}\n=== Done ===${NC}"
+
+echo "Para compilar para ELF ezuri, no lo he probado"
+echo "GOOS=linux GOARCH=amd64 go build -o demon-go demon.go"
+echo ""
