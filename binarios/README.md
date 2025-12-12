@@ -302,7 +302,8 @@ fixethernet         Arregla la red del script ethernet_status para bspwx escrito
 artilleria          Instala el honeypot artilleria
 unbanar {IP}        Comenta la ip de banlist de artilleria, si no especifico IP me pregunta
 artires             Reinicia el servicio artilleria
-
+honeyport.sh        Listens on TCP port 8080 and temporarily blocks client IPs using iptables
+ 
 
 ###------portspoof
 portspoofinst       aplica las reglas para portspoof, IPTABLES, proteje puertos y redirecciona trafico

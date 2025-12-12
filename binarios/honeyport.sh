@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+
+#This script listens on TCP port 8080 and temporarily blocks connecting client IPs using iptables
+
 # Name of the file to save IPs
 output_file="block-ips.txt"
 
