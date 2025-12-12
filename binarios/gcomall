@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+set -e
+
+MSG="$*"
+[ -z "$MSG" ] && MSG="gcom"
+
+cd "$HOME/gitea"
+
+for d in */.git; do
+  REPO="${d%/.git}"
+  echo ">>> $REPO"
+
+  git -C "$REPO" add .
+
+  git -C "$REPO" commit -m "$MSG" 2>/dev/null || true
+
+  # Trae cambios y rebasea local encima (evita errores de divergencia)
+  git -C "$REPO" fetch origin
+  git -C "$REPO" rebase origin/main || true
+
+  git -C "$REPO" push origin main || true
+
+  # Solo empuja a backup si existe
+  if git -C "$REPO" remote | grep -qx backup; then
+    git -C "$REPO" push backup main || true
+  fi
+
+  echo
+done

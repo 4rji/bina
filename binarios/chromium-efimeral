@@ -1,0 +1,123 @@
+#!/usr/bin/env bash
+set -e
+
+# -------- URL y flags --------
+ADVANCED=0
+URL=""
+
+if [ "${1:-}" = "-a" ]; then
+  ADVANCED=1
+  URL="${2:-}"
+else
+  URL="${1:-}"
+fi
+
+# Solo usar portapapeles cuando NO está la flag -a
+if [ -z "$URL" ] && [ "$ADVANCED" -eq 0 ]; then
+  URL="$(pbpaste)"
+fi
+
+# ----------- red & SearXNG ------------
+NETWORK="searchnet"
+PORT=8080
+SEARX_CONTAINER="searxng"
+
+docker network inspect "$NETWORK" >/dev/null 2>&1 || docker network create "$NETWORK"
+docker image inspect searxng/searxng >/dev/null 2>&1 || docker pull searxng/searxng >/dev/null 2>&1
+
+CID=""
+if ! docker ps --format '{{.Names}}' | grep -qw "$SEARX_CONTAINER"; then
+  mkdir -p searxng
+  CID=$(
+    docker run -d --rm \
+      --name "$SEARX_CONTAINER" \
+      --network "$NETWORK" \
+      -p "${PORT}:8080" \
+      -v "${PWD}/searxng:/etc/searxng" \
+      -e "BASE_URL=http://${SEARX_CONTAINER}:${PORT}/" \
+      searxng/searxng
+  )
+fi
+
+# ----------- idioma -------------------
+LANG_CODES=( "en-US" "es-ES" "ja" "zh-CN" "ru" "fr-FR" "de-DE" "pt-BR" "it-IT" "ko" )
+LANG_NAMES=( "English" "Español" "日本語" "中文(简)" "Русский" "Français" "Deutsch" "Português(BR)" "Italiano" "한국어" )
+
+echo
+echo "flag -a abre las cuatro ventanas de check + (opcional) tu URL"
+echo "Selecciona idioma (Enter = English):"
+for i in "${!LANG_CODES[@]}"; do
+  printf "  %02d) %-12s - %s\n" $((i+1)) "${LANG_CODES[$i]}" "${LANG_NAMES[$i]}"
+done
+
+read -rp "Número: " num
+
+if [[ -z "$num" ]]; then
+  idx=0
+elif [[ "$num" =~ ^[0-9]+$ ]] && (( num >= 1 && num <= ${#LANG_CODES[@]} )); then
+  idx=$((num-1))
+else
+  idx=0
+fi
+
+LANG="${LANG_CODES[$idx]:-en-US}"
+
+# ----------- perfil efímero (Chromium) -----------
+PROFILE_BASE=$(mktemp -d /tmp/chromium-profile-XXXXXX)
+
+cleanup() {
+  [[ -n "$CID" ]] && docker stop "$CID" >/dev/null 2>&1 || true
+  rm -rf "$PROFILE_BASE"
+}
+trap cleanup EXIT
+
+# ----------- XQuartz / DISPLAY (host) -----------
+APP_DOMAIN="org.xquartz.X11"
+defaults write "$APP_DOMAIN" nolisten_tcp -bool false
+
+if ! pgrep -x "XQuartz" >/dev/null 2>&1; then
+  open -ga XQuartz
+  sleep 3
+fi
+
+DOCKER_DISPLAY="host.docker.internal:0.0"
+
+# ----------- URLs dinámicas -----------
+URLS=()
+
+if [ "$ADVANCED" -eq 1 ]; then
+  URLS+=("https://coveryourtracks.eff.org/")
+  URLS+=("https://mullvad.net/en/check/")
+  URLS+=("https://www.whatsmybrowser.org/")
+  URLS+=("http://${SEARX_CONTAINER}:${PORT}")
+else
+  URLS+=("https://mullvad.net/en/check/")
+fi
+
+if [ -n "$URL" ]; then
+  URLS+=("$URL")
+fi
+# ----------- RUN CHROMIUM -----------
+BROWSER_IMAGE="chromium-ephemeral"
+
+docker run --rm \
+  --network "$NETWORK" \
+  -e DISPLAY="$DOCKER_DISPLAY" \
+  -e DBUS_SESSION_BUS_ADDRESS=/dev/null \
+  -e NO_AT_BRIDGE=1 \
+  -v "$PROFILE_BASE":/data \
+  "$BROWSER_IMAGE" \
+    --user-data-dir=/data \
+    --no-sandbox \
+    --disable-gpu \
+    --disable-dev-shm-usage \
+    --disable-background-networking \
+    --disable-sync \
+    --metrics-recording-only \
+    --no-first-run \
+    --password-store=basic \
+    --use-mock-keychain \
+    --lang="$LANG" \
+    --window-size=1600,900 \
+    --new-window \
+    "${URLS[@]}"

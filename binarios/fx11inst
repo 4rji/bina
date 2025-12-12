@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+set -e
+
+URL="https://gitea.4rji.com/4rji/dotfiles/raw/branch/main/dockerfiles/dockerfile-mini-debian"
+IMAGE="firefox-rdp"
+CONTAINER="firefox-rdp"
+
+# bajar Dockerfile
+curl -fsSL "$URL" -o Dockerfile
+
+# build imagen
+docker build -t "$IMAGE" .
+
+# run en background
+docker run -d --rm --name "$CONTAINER" -p 3389:3389 "$IMAGE"
+
+echo ""
+echo "✅ Imagen y contenedor listos"
+echo ""
+echo "Usar el script: fx11"
+echo "  -s  start  → encender remotamente el contenedor"
+echo "  -o  stop   → apagar remotamente el contenedor"
+echo ""

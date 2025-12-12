@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+CARPETA="$1"
+
+git clone "https://gitea.4rji.com/4rji/${CARPETA}.git"
+cd "${CARPETA}" || exit
+
+git remote remove origin
+
+git remote add origin  "http://192.168.88.51:3000/4rji/${CARPETA}.git"
+git remote add backup  "http://192.168.3.5:3000/4rji/${CARPETA}.git"
+
+
+
+#save credencials
+#git config --global credential.helper store
+
+
+#git remote add backup "https://gitea.getnala.org/4rji/bina"
+#git remote add origin "https://gitea.4rji.com/4rji/bina"

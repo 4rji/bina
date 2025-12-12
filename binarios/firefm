@@ -1,0 +1,144 @@
+#!/usr/bin/env bash
+set -e
+
+# -------- URL y flags --------
+ADVANCED=0
+URL=""
+
+if [ "$1" = "-a" ]; then
+  ADVANCED=1
+  URL="$2"        # si no hay $2, se queda vacío y NO se usa pbpaste
+else
+  URL="$1"
+fi
+
+# Solo usar portapapeles cuando NO está la flag -a
+if [ -z "$URL" ] && [ "$ADVANCED" -eq 0 ]; then
+  URL="$(pbpaste)"
+fi
+
+# ----------- red & SearXNG ------------
+NETWORK="searchnet"
+PORT=8080
+CONTAINER="searxng"
+
+docker network inspect "$NETWORK" >/dev/null 2>&1 || docker network create "$NETWORK"
+docker image inspect searxng/searxng >/dev/null 2>&1 || docker pull searxng/searxng
+
+CID=""
+if ! docker ps --format '{{.Names}}' | grep -qw "$CONTAINER"; then
+  mkdir -p searxng
+  CID=$(docker run -d --rm \
+        --name "$CONTAINER" \
+        --network "$NETWORK" \
+        -p "${PORT}:8080" \
+        -v "${PWD}/searxng:/etc/searxng" \
+        -e "BASE_URL=http://${CONTAINER}:${PORT}/" \
+        searxng/searxng)
+fi
+
+# ----------- idioma -------------------
+LANG_CODES=( "en-US" "es-ES" "ja" "zh-CN" "ru" "fr-FR" "de-DE" "pt-BR" "it-IT" "ko" )
+LANG_NAMES=( "English" "Español" "日本語" "中文(简)" "Русский" "Français" "Deutsch" "Português(BR)" "Italiano" "한국어" )
+
+echo
+echo "flag -a abre las cuatro ventanas de check + (opcional) tu URL"
+echo "Selecciona idioma (Enter = English):"
+for i in "${!LANG_CODES[@]}"; do
+  printf "  %02d) %-10s - %s\n" $((i+1)) "${LANG_CODES[$i]}" "${LANG_NAMES[$i]}"
+done
+
+read -rp "Número: " num
+
+if [[ -z "$num" ]]; then
+  idx=0
+elif [[ "$num" =~ ^[0-9]+$ ]]; then
+  idx=$((num-1))
+else
+  idx=0
+fi
+
+LANG="${LANG_CODES[$idx]:-en-US}"
+[ -z "$LANG" ] && { [[ -n "$CID" ]] && docker stop "$CID" >/dev/null; exit 1; }
+
+# ----------- perfil efímero -----------
+PROFILE=$(mktemp -d /tmp/fx-profile-XXXXXX)
+trap '[[ -n "$CID" ]] && docker stop "$CID" >/dev/null; rm -rf "$PROFILE"' EXIT
+
+ARKENFOX_URL="https://raw.githubusercontent.com/arkenfox/user.js/master/user.js"
+CANVASBLOCKER_URL="https://addons.mozilla.org/firefox/downloads/file/4145310/canvasblocker-1.14.3-an+fx.xpi"
+
+curl -sSL "$ARKENFOX_URL" -o "$PROFILE/user.js"
+cat >> "$PROFILE/user.js" <<EOF
+user_pref("intl.accept_languages", "$LANG,en");
+user_pref("general.useragent.locale", "$LANG");
+user_pref("intl.locale.requested", "$LANG");
+user_pref("privacy.resistFingerprinting", true);
+user_pref("privacy.resistFingerprinting.randomization.enabled", true);
+user_pref("canvas.transferFromImageBitmap.enabled", false);
+user_pref("webgl.disabled", true);
+user_pref("webgl.enable-webgl2", false);
+user_pref("dom.maxHardwareConcurrency", 8);
+user_pref("general.userAgent.override", "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0");
+user_pref("general.oscpu.override", "Linux x86_64");
+
+# --- dark mode + about:blank + sin welcome ---
+user_pref("browser.startup.homepage", "about:blank");
+user_pref("browser.startup.page", 0);
+user_pref("browser.shell.checkDefaultBrowser", false);
+user_pref("browser.aboutwelcome.enabled", false);
+user_pref("ui.systemUsesDarkTheme", 1);
+user_pref("layout.css.prefers-color-scheme.content-override", 2);
+user_pref("browser.display.background_color", "#000000");
+user_pref("browser.display.foreground_color", "#FFFFFF");
+user_pref("browser.display.use_system_colors", false);
+user_pref("browser.display.use_document_colors", false);
+
+user_pref("startup.homepage_welcome_url", "");
+user_pref("startup.homepage_welcome_url.additional", "");
+user_pref("browser.startup.homepage_override.mstone", "ignore");
+user_pref("browser.rights.3.shown", true);
+user_pref("datareporting.policy.dataSubmissionPolicyBypassNotification", true);
+user_pref("toolkit.telemetry.reportingpolicy.firstRun", false);
+EOF
+
+mkdir -p "$PROFILE/extensions"
+curl -sSL "$CANVASBLOCKER_URL" -o "$PROFILE/extensions/canvasblocker@canvasblocker.xpi"
+
+# ----------- XQuartz -------------------
+APP_DOMAIN="org.xquartz.X11"
+defaults write "$APP_DOMAIN" nolisten_tcp -bool false
+open -ga XQuartz
+sleep 3
+
+export DISPLAY=:0
+/opt/X11/bin/xhost +127.0.0.1 >/dev/null 2>&1 || xhost +127.0.0.1 >/dev/null
+
+DOCKER_DISPLAY="host.docker.internal:0.0"
+
+# ----------- URLs dinámicas -----------
+URLS=()
+
+if [ "$ADVANCED" -eq 1 ]; then
+  URLS+=("https://coveryourtracks.eff.org/")
+  URLS+=("https://mullvad.net/en/check/")
+  URLS+=("https://www.whatsmybrowser.org/")
+  URLS+=("http://${CONTAINER}:${PORT}")
+else
+  URLS+=("https://mullvad.net/en/check/")
+fi
+
+# En modo -a sin URL, NO se usa portapapeles, así que solo se abren las fijas
+if [ -n "$URL" ]; then
+  URLS+=("$URL")
+fi
+
+# ----------- RUN FIREFOX -----------
+docker run --rm \
+  --network "$NETWORK" \
+  -e DISPLAY="$DOCKER_DISPLAY" \
+  -v "$PROFILE":/home/user/.mozilla/firefox/default-release \
+  firefox-ephemeral \
+  -width 1920 -height 1080 \
+  -profile /home/user/.mozilla/firefox/default-release \
+  "${URLS[@]}"

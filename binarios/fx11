@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+set -e
+
+# colores
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+HOST="$1"
+ACTION="$2"
+
+usage() {
+  echo -e "${BLUE}Firefox RDP Controller${NC}"
+  echo
+  echo -e "${YELLOW}Usage:${NC}"
+  echo -e "  fx11 <ssh_host> ${GREEN}-a${NC}      > flag to start firefox-rdp"
+  echo -e "  fx11 <ssh_host> ${RED}-t${NC}      > flag to stop  firefox-rdp"
+  echo
+  echo -e "${YELLOW}RDP Access:${NC}"
+  echo -e "  User: ${GREEN}nala${NC}"
+  echo -e "  Pass: ${GREEN}nala${NC}"
+  echo -e "  Port: ${GREEN}3389${NC}"
+  echo
+  exit 1
+}
+
+[ -z "$HOST" ] && usage
+[ -z "$ACTION" ] && usage
+
+case "$ACTION" in
+  -a)
+    echo -e "${BLUE}[+] Starting firefox-rdp on ${HOST}${NC}"
+    ssh "$HOST" '
+      CID=$(docker ps -q --filter "name=firefox-rdp")
+      if [ -z "$CID" ]; then
+        docker run -d --rm --name firefox-rdp -p 3389:3389 firefox-rdp
+      else
+        echo "firefox-rdp already running"
+      fi
+    '
+    ;;
+  -t)
+    echo -e "${RED}[-] Stopping firefox-rdp on ${HOST}${NC}"
+    ssh "$HOST" '
+      CID=$(docker ps -q --filter "name=firefox-rdp")
+      [ -n "$CID" ] && docker stop "$CID"
+    '
+    ;;
+  *)
+    usage
+    ;;
+esac
+

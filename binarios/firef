@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+set -e
+
+# ---------- flags & URL ----------
+ADVANCED=0
+URL=""
+PORT="${PORT:-3000}"
+
+if [ "${1:-}" = "-a" ]; then
+  ADVANCED=1
+  URL="${2:-}"
+elif [ -n "${1:-}" ]; then
+  URL="${1:-}"
+fi
+
+if [ -z "$URL" ] && [ "$ADVANCED" -eq 0 ]; then
+  if command -v xclip >/dev/null 2>&1; then
+    URL="$(xclip -o -selection clipboard 2>/dev/null || true)"
+  fi
+fi
+# --------------------------------
+
+# ---------- URLs dinámicas ----------
+declare -a URLS=()
+if [ "$ADVANCED" -eq 1 ]; then
+  URLS+=("https://coveryourtracks.eff.org/")
+  URLS+=("https://mullvad.net/en/check/")
+  URLS+=("https://www.whatsmybrowser.org/")
+  URLS+=("http://localhost:${PORT}")
+else
+  URLS+=("https://mullvad.net/en/check/")
+fi
+
+if [ -n "$URL" ]; then
+  URLS+=("$URL")
+fi
+# -----------------------------------
+
+BASE="$(mktemp -d /tmp/fx-x11docker-XXXXXX)"
+CONTAINER_PROFILE_NAME="default-release"
+PROFILE_RELATIVE=".mozilla/firefox/${CONTAINER_PROFILE_NAME}"
+FPROF="$BASE/${PROFILE_RELATIVE}"
+HOST_USER="$(id -un)"
+CONTAINER_HOME="/home/${HOST_USER}"
+CONTAINER_PROFILE_DIR="${CONTAINER_HOME}/${PROFILE_RELATIVE}"
+mkdir -p "$(dirname "$FPROF")"
+trap 'rm -rf "$BASE"' EXIT
+
+declare -a X11_ARGS=(
+  -I
+  --xephyr
+  --clipboard=text
+  --home="$BASE"
+)
+
+if [ ! -f "$FPROF/prefs.js" ]; then
+  rm -rf "$FPROF"
+  x11docker \
+    "${X11_ARGS[@]}" \
+    -- \
+    firefox-ephemeral \
+    -CreateProfile \
+    "$CONTAINER_PROFILE_NAME" \
+    "$CONTAINER_PROFILE_DIR"
+fi
+
+mkdir -p "$FPROF"
+
+curl -fsSL https://raw.githubusercontent.com/arkenfox/user.js/master/user.js \
+  -o "$FPROF/user.js"
+
+cat >> "$FPROF/user.js" <<'EOF_PREFS'
+user_pref("privacy.resistFingerprinting", true);
+user_pref("privacy.resistFingerprinting.randomization.enabled", true);
+user_pref("webgl.disabled", true);
+user_pref("webgl.enable-webgl2", false);
+user_pref("media.peerconnection.enabled", false);
+user_pref("media.navigator.enabled", false);
+user_pref("dom.webrtc.enabled", false);
+user_pref("media.eme.enabled", false);
+user_pref("geo.enabled", false);
+EOF_PREFS
+
+x11docker \
+  "${X11_ARGS[@]}" \
+  -- \
+  firefox-ephemeral \
+  -profile "$CONTAINER_PROFILE_DIR" \
+  "${URLS[@]}"

@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -e
+
+BASE="$HOME/gitea"
+MODE="safe"
+
+show_help() {
+  echo "Uso:"
+  echo "  ./fall        # modo seguro (sin borrar nada)"
+  echo "  ./fall -h     # modo hard (espejo exacto de origin/main)"
+  echo
+}
+
+# Help explícito
+if [[ "$1" == "--help" || "$1" == "-?" ]]; then
+  show_help
+  exit 0
+fi
+
+# Flag hard
+if [ "$1" = "-h" ]; then
+  MODE="hard"
+  shift
+fi
+
+show_help
+
+if [ "$MODE" = "hard" ]; then
+  echo "⚠️  HARD MODE: se sobrescriben cambios locales (reset --hard origin/main)"
+else
+  echo "✅ SAFE MODE: NO se borran cambios locales"
+fi
+
+echo
+
+for d in "$BASE"/*/.git; do
+  REPO="${d%/.git}"
+  echo "==> Sync $REPO"
+
+  git -C "$REPO" fetch origin --quiet
+
+  if [ "$MODE" = "hard" ]; then
+    git -C "$REPO" reset --hard origin/main --quiet
+  else
+    git -C "$REPO" merge --ff-only origin/main >/dev/null 2>&1 || \
+      echo "   ↳ skip (no fast-forward)"
+  fi
+done

@@ -1,0 +1,119 @@
+#!/usr/bin/env bash
+
+#!/usr/bin/env bash
+
+echo ""
+echo "=============================================================="
+echo "  SSH Reverse Tunnel Maintenance Script"
+echo "=============================================================="
+echo ""
+echo "  Este script crea y mantiene un túnel SSH reverso."
+echo ""
+echo "  ¿Qué hace?"
+echo "    - Abre un túnel reverso: el servidor remoto puede acceder"
+echo "      al SSH de esta máquina mediante el puerto 2222."
+echo "    - Si el túnel ya existe, no lo recrea."
+echo "    - Si no existe, lo inicia en background (-N -f)."
+echo ""
+echo "  ¿Cuándo usarlo?"
+echo "    - Cuando esta máquina está detrás de NAT / firewall y el"
+echo "      servidor remoto SÍ puede recibir conexiones."
+echo "    - Útil para acceso remoto, soporte o administración."
+echo "    - Se puede mantener activo vía crontab."
+echo ""
+echo "=============================================================="
+echo ""
+
+
+
+# Function to show messages
+echo_msg() {
+  echo ""
+  echo "=========================================================="
+  echo "$1"
+  echo "=========================================================="
+  echo ""
+}
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+read -p $'\033[36m  Enter the remote server IP: \033[0m' IP
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+read -p $'\033[35m  Enter the remote username: \033[0m' USER
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+read -p $'\033[32m  Enter the remote SSH port [default 22]: \033[0m' PORT
+
+if [ -z "$PORT" ]; then
+  PORT=22
+fi
+
+cat << EOF > connection.sh
+#!/usr/bin/env bash
+
+# Function to show messages
+echo_msg() {
+  echo ""
+  echo "=============================================="
+  echo -e "\$1"
+  echo "=============================================="
+  echo ""
+}
+
+IP="$IP"
+USER="$USER"
+PORT=$PORT
+
+if pgrep -f "ssh.*-R 2222:localhost:22.*\$USER@\$IP" > /dev/null 2>&1; then
+  echo_msg "\033[34m  SSH connection is already active.\033[0m"
+else
+  echo_msg "\033[31m  Connection not found. Starting...\033[0m"
+
+  SSH_CMD="ssh -N -f -R 2222:localhost:22 -p \$PORT \$USER@\$IP"
+
+  echo ""
+  echo "_________________________________________________________"
+  echo ""
+  echo -e "\033[33m  Executing: \$SSH_CMD\033[0m"
+  echo ""
+
+  \$SSH_CMD
+
+  echo_msg "\033[36m  SSH connection established.\033[0m"
+fi
+EOF
+
+chmod +x connection.sh
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+
+echo -e "\033[33m  The script 'connection.sh' has been created with the provided configuration.\033[0m"
+echo -e "\033[35m  You can add it to crontab to run every 5 minutes if desired.\033[0m"
+echo ""
+
+echo ""
+echo "_________________________________________________________"
+echo ""
+echo -e "\033[36m  To add the script to crontab, run:\033[0m"
+echo ""
+echo -e "\033[33m  crontab -e\033[0m"
+echo ""
+echo -e "\033[36m  Then add the following line at the end:\033[0m"
+echo ""
+echo -e "\033[32m  */5 * * * * /full/path/to/connection.sh > /dev/null 2>&1\033[0m"
+echo ""
+echo -e "\033[35m  This will check and maintain the SSH connection every 5 minutes.\033[0m"
+echo ""
+echo "_________________________________________________________"
+echo ""

@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# Mensaje del commit desde argumentos
+MSG="$*"
+
+# Si no hay mensaje, usa uno por defecto
+if [ -z "$MSG" ]; then
+    MSG="gcom"
+fi
+
+# Add
+git add .
+
+# Commit
+git commit -m "$MSG"
+
+# Push al origin
+git push origin main
+
+# Push al backup
+git push backup main
+
