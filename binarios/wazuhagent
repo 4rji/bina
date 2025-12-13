@@ -4,11 +4,7 @@ set -euo pipefail
 WAZUH_VER="4.13.1-1"
 GROUP="default"
 
-ask() {
-  local prompt="$1" var
-  read -r -p "$prompt" var
-  printf '%s' "$var"
-}
+ask() { local p="$1" v; read -r -p "$p" v; printf '%s' "$v"; }
 
 arch_norm() {
   case "$(uname -m)" in
@@ -19,10 +15,13 @@ arch_norm() {
 }
 
 need_cmd() {
-  command -v "$1" >/dev/null 2>&1 || {
-    echo "Missing required command: $1" >&2
-    exit 1
-  }
+  command -v "$1" >/dev/null 2>&1 || { echo "Missing required command: $1" >&2; exit 1; }
+}
+
+start_agent() {
+  sudo systemctl daemon-reload
+  sudo systemctl enable wazuh-agent
+  sudo systemctl start wazuh-agent
 }
 
 echo "=== Wazuh Agent (Linux) installer ==="
@@ -37,10 +36,7 @@ echo "  2) Fedora / Oracle (RPM x86_64 or aarch64)"
 DISTRO_CHOICE="$(ask "Choice [1-2]: ")"
 
 ARCH="$(arch_norm)"
-if [[ "$ARCH" == "unknown" ]]; then
-  echo "Unsupported architecture: $(uname -m)" >&2
-  exit 1
-fi
+[[ "$ARCH" == "unknown" ]] && { echo "Unsupported architecture: $(uname -m)" >&2; exit 1; }
 
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
@@ -49,9 +45,10 @@ case "$DISTRO_CHOICE" in
   1)
     need_cmd wget
     if [[ "$ARCH" != "x86_64" ]]; then
-      echo "This Ubuntu path is set for DEB amd64 only. Detected arch: $ARCH" >&2
+      echo "Ubuntu path is set for DEB amd64 only. Detected arch: $ARCH" >&2
       exit 1
     fi
+
     DEB="wazuh-agent_${WAZUH_VER}_amd64.deb"
     URL="https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/${DEB}"
 
@@ -61,11 +58,14 @@ case "$DISTRO_CHOICE" in
     echo "Installing .deb..."
     sudo WAZUH_MANAGER="$MANAGER_IP" WAZUH_AGENT_NAME="$AGENT_NAME" WAZUH_AGENT_GROUP="$GROUP" \
       dpkg -i "$tmpdir/$DEB"
+
+    start_agent
     ;;
 
   2)
     need_cmd curl
-    RPM_ARCH="$ARCH"   # x86_64 or aarch64
+
+    RPM_ARCH="$ARCH" # x86_64 or aarch64
     RPM="wazuh-agent-${WAZUH_VER}.${RPM_ARCH}.rpm"
     URL="https://packages.wazuh.com/4.x/yum/${RPM}"
 
@@ -75,6 +75,8 @@ case "$DISTRO_CHOICE" in
     echo "Installing .rpm..."
     sudo WAZUH_MANAGER="$MANAGER_IP" WAZUH_AGENT_NAME="$AGENT_NAME" WAZUH_AGENT_GROUP="$GROUP" \
       rpm -ihv "$tmpdir/$RPM"
+
+    start_agent
     ;;
 
   *)
@@ -84,5 +86,4 @@ case "$DISTRO_CHOICE" in
 esac
 
 echo
-echo "Done. Start/enable the agent if needed:"
-echo "  sudo systemctl enable --now wazuh-agent"
+echo "Done."
