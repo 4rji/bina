@@ -60,7 +60,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###------utilidades 
-wazuhagent          Instala el agente
+wazuhagent          Instala el agente en linux fedora/ubuntu
 wazuhinst           Instala wazuh. asistente. automatico
 passcheck           Verifica contrasenas en api.pwnedpasswords.com
 dhclientcomm        Comandos para dhclient y para dar de alta un ip en debian
