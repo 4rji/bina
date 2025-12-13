@@ -1,3 +1,50 @@
-#!/bin/bash
-curl -sO https://packages.wazuh.com/4.13/wazuh-install.sh && sudo bash ./wazuh-install.sh -a
+#!/usr/bin/env bash
+echo ""
+echo ""
+echo "flag -r to reinstall"
 
+
+echo ""
+echo ""
+sleep .5
+set -e
+
+INSTALLER_URL="https://packages.wazuh.com/4.13/wazuh-install.sh"
+INSTALLER="wazuh-install.sh"
+
+usage() {
+  echo "Usage:"
+  echo "  $0        -> install (all-in-one)"
+  echo "  $0 -r     -> reinstall (remove + install)"
+  exit 1
+}
+
+REINSTALL=0
+[[ "${1:-}" == "-r" ]] && REINSTALL=1
+[[ $# -gt 1 ]] && usage
+
+if [[ "$REINSTALL" -eq 1 ]]; then
+  echo "[*] Reinstall mode enabled"
+  echo "[*] Stopping services..."
+  sudo systemctl stop wazuh-manager wazuh-dashboard wazuh-indexer 2>/dev/null || true
+
+  echo "[*] Removing Wazuh packages..."
+  if command -v apt >/dev/null 2>&1; then
+    sudo apt purge -y wazuh-manager wazuh-dashboard wazuh-indexer
+    sudo apt autoremove -y
+  elif command -v dnf >/dev/null 2>&1 || command -v yum >/dev/null 2>&1; then
+    sudo dnf remove -y wazuh-manager wazuh-dashboard wazuh-indexer || \
+    sudo yum remove -y wazuh-manager wazuh-dashboard wazuh-indexer
+  fi
+
+  echo "[*] Removing leftover data..."
+  sudo rm -rf /var/ossec /var/lib/wazuh-indexer /usr/share/wazuh-dashboard
+fi
+
+echo "[*] Downloading installer..."
+curl -sO "$INSTALLER_URL"
+
+echo "[*] Running installer (all-in-one)..."
+sudo bash ./$INSTALLER -a
+
+echo "[✓] Done"

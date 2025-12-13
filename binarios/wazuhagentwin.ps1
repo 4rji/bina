@@ -1,5 +1,7 @@
 # Wazuh Agent install (Windows) - PowerShell
 # Run PowerShell as Administrator
+#https://documentation.wazuh.com/current/installation-guide/wazuh-agent/wazuh-agent-package-windows.html?utm_source=chatgpt.com
+
 
 $WazuhVer = "4.13.1-1"
 $Group    = "default"
