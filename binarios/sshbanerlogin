@@ -6,23 +6,16 @@ sudo sed -i '/^[[:space:]]*Banner[[:space:]]\+/d' /etc/ssh/sshd_config
 # Paso 2: Crear el archivo de banner en /etc/ssh/sshd-banner
 sudo tee /etc/ssh/sshd-banner > /dev/null << 'EOF'
 
-                              Rubber Ducks inc.
+ AUTHORIZED USE ONLY 
 
-**********************************************************************
+This system is the property of the organization and may be accessed only by authorized users. 
+By continuing to use this system, you acknowledge and consent to monitoring, recording, and 
+review of all activity for security and administrative purposes.
 
-UNAUTHORIZED ACCESS TO THIS DEVICE IS PROHIBITED
+There is no expectation of privacy. Unauthorized access or misuse is strictly prohibited and 
+may result in disciplinary action, civil penalties, and criminal prosecution.
 
-You must have explicit, authorized permission to access or configure this system.
-Unauthorized access is not tolerated under any circumstances.
-
-All network activity on this device is continuously monitored, logged, and analyzed.
-Any attempt to breach or misuse this system may result in severe civil and/or criminal penalties.
-
-Activity logs and other recorded information may be used to investigate, prosecute, and bring legal action against unauthorized users.
-
-**********************************************************************
-                             
-                             Rubber Ducks inc.
+If you are not an authorized user, disconnect immediately.
 
 EOF
 
