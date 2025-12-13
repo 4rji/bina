@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Define la URL de descarga
-URL="https://raw.githubusercontent.com/4rji/archivos-b/main/config"
+URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/config"
 
 # Obtén la fecha actual en formato año-mes-día
 DATE=$(date +%Y-%m-%d)
