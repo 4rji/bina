@@ -1,47 +1,106 @@
 #!/usr/bin/env bash
+set -e
 
-echo ""
-sudo /opt/splunk/bin/splunk version
+SPLUNK_BIN="/opt/splunk/bin/splunk"
+SPLUNK_DIR="/opt/splunk"
 
-sleep 3
+say() { echo -e "$*"; }
 
-sudo /opt/splunk/bin/splunk stop
+confirm_sn() {
+  local ans
+  read -r -p "$1 [s/N]: " ans || true
+  ans="${ans,,}"
+  case "$ans" in
+    s|si|sí|y|yes) return 0 ;;
+    *) return 1 ;;
+  esac
+}
 
-sudo cp -r /opt/splunk /opt/splunk_backup_$(date +%Y%m%d)
+say ""
 
+if [ -x "$SPLUNK_BIN" ]; then
+  say "Existing Splunk installation detected:"
+  sudo "$SPLUNK_BIN" version || true
+  say ""
 
+  if confirm_sn "Do you want to stop Splunk before upgrading?"; then
+    sudo "$SPLUNK_BIN" stop || true
+  else
+    say "Not stopping Splunk. Continuing..."
+  fi
+else
+  say "No existing Splunk installation detected. Proceeding with fresh install."
+fi
 
-#alias para iniciar
-echo "alias splunk='sudo /opt/splunk/bin/splunk start'"  >> ~/.zshrc
-echo "alias splunk='sudo /opt/splunk/bin/splunk start'"  >> ~/.bashrc
+# Aliases
+echo "alias splunkstart='sudo /opt/splunk/bin/splunk start'" >> ~/.bashrc
+echo "alias splunkstop='sudo /opt/splunk/bin/splunk stop'"  >> ~/.bashrc
+echo "alias splunkstart='sudo /opt/splunk/bin/splunk start'" >> ~/.zshrc
+echo "alias splunkstop='sudo /opt/splunk/bin/splunk stop'"  >> ~/.zshrc
 
-# Navegar al directorio /opt
-#cd /opt
+say ""
+say "Added aliases:"
+say "  splunkstart -> sudo /opt/splunk/bin/splunk start"
+say "  splunkstop  -> sudo /opt/splunk/bin/splunk stop"
+say ""
 
-# Descargar Splunk
-wget -O splunk-9.4.0-6b4ebe426ca6.x86_64.rpm "https://download.splunk.com/products/splunk/releases/9.4.0/linux/splunk-9.4.0-6b4ebe426ca6.x86_64.rpm"
-#
+say "Which Splunk version/package do you want to install?"
+say "1) 10.0.2 (DEB)"
+say "2) 10.0.2 (RPM)"
+say "3) 10.0.2 (TGZ)"
+say "4) 9.1.1 (DEB)"
+say "5) 9.1.1 (RPM)"
+say "6) 9.1.1 (TGZ)"
+read -rp "Select [1-6]: " CHOICE
 
-#sudo wget -O splunk-9.1.2-b6b9c8185839-Linux-x86_64.tgz "https://download.splunk.com/products/splunk/releases/9.1.2/linux/splunk-9.1.2-b6b9c8185839-Linux-x86_64.tgz"
+cd /tmp
 
-#rpm
-#wget -O splunk-9.4.0-6b4ebe426ca6.x86_64.rpm "https://download.splunk.com/products/splunk/releases/9.4.0/linux/splunk-9.4.0-6b4ebe426ca6.x86_64.rpm"
-#tgz
-#wget -O splunk-9.4.0-6b4ebe426ca6-linux-amd64.tgz "https://download.splunk.com/products/splunk/releases/9.4.0/linux/splunk-9.4.0-6b4ebe426ca6-linux-amd64.tgz"
-#deb
-#wget -O splunk-9.4.0-6b4ebe426ca6-linux-amd64.deb "https://download.splunk.com/products/splunk/releases/9.4.0/linux/splunk-9.4.0-6b4ebe426ca6-linux-amd64.deb"
+case "$CHOICE" in
+  1)
+    FILE="splunk-10.0.2-e2d18b4767e9-linux-amd64.deb"
+    URL="https://download.splunk.com/products/splunk/releases/10.0.2/linux/$FILE"
+    wget -O "$FILE" "$URL"
+    sudo dpkg -i "$FILE"
+    ;;
+  2)
+    FILE="splunk-10.0.2-e2d18b4767e9.x86_64.rpm"
+    URL="https://download.splunk.com/products/splunk/releases/10.0.2/linux/$FILE"
+    wget -O "$FILE" "$URL"
+    sudo rpm -Uvh "$FILE"
+    ;;
+  3)
+    FILE="splunk-10.0.2-e2d18b4767e9-linux-amd64.tgz"
+    URL="https://download.splunk.com/products/splunk/releases/10.0.2/linux/$FILE"
+    wget -O "$FILE" "$URL"
+    sudo tar -xvzf "$FILE" -C /opt
+    ;;
+  4)
+    FILE="splunk-9.1.1-64e843ea36b1-linux-2.6-amd64.deb"
+    URL="https://download.splunk.com/products/splunk/releases/9.1.1/linux/$FILE"
+    wget -O "$FILE" "$URL"
+    sudo dpkg -i "$FILE"
+    ;;
+  5)
+    FILE="splunk-9.1.1-64e843ea36b1.x86_64.rpm"
+    URL="https://download.splunk.com/products/splunk/releases/9.1.1/linux/$FILE"
+    wget -O "$FILE" "$URL"
+    sudo rpm -Uvh "$FILE"
+    ;;
+  6)
+    FILE="splunk-9.1.1-64e843ea36b1-Linux-x86_64.tgz"
+    URL="https://download.splunk.com/products/splunk/releases/9.1.1/linux/$FILE"
+    wget -O "$FILE" "$URL"
+    sudo tar -xvzf "$FILE" -C /opt
+    ;;
+  *)
+    say "Invalid option"
+    exit 1
+    ;;
+esac
 
-sudo rpm -Uvh splunk-9.4.0-6b4ebe426ca6.x86_64.rpm
-
-
-
-
-# Descomprimir el archivo tar
-#sudo tar xvzf splunk-9.1.2-b6b9c8185839-Linux-x86_64.tgz
-
-# Navegar al directorio de Splunk
-cd splunk/bin/
-
-# Iniciar Splunk
-sudo /opt/splunk/bin/splunk start
-
+if [ -x "$SPLUNK_BIN" ]; then
+  sudo "$SPLUNK_BIN" start
+else
+  say "Install finished, but Splunk binary not found at: $SPLUNK_BIN"
+  exit 1
+fi
