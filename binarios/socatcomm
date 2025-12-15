@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+B="\e[1m"
+G="\e[32m"
+C="\e[36m"
+Y="\e[33m"
+R="\e[31m"
+N="\e[0m"
+
+
+
+echo -e "${G}1) Exponer un servicio local (127.0.0.1) a toda la maquina:${N}"
+echo -e "${Y}   Permite acceso desde otras PCs a un servicio que solo escucha en localhost.${N}"
+echo -e "${C}   sudo socat TCP-LISTEN:8001,fork,bind=0.0.0.0 TCP:127.0.0.1:8000${N}\n"
+
+echo -e "${G}2) Redirigir trafico TCP hacia otra IP o servidor:${N}"
+echo -e "${Y}   Funciona como proxy TCP, reenviando conexiones a otro host.${N}"
+echo -e "${C}   socat -dd tcp4-listen:8001,fork,reuseaddr tcp4:IP:8000${N}\n"
+
+echo -e "${B}Nota:${N} El ${G}primer comando${N} es el mas usado para exponer servicios locales."
