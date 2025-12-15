@@ -60,6 +60,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###------utilidades 
+portopenfake        script basico para abrir puertos en linux, con -t para detener
 socatcomm           Comandos utiles de socat
 wazuhagent          Instala el agente en linux fedora/ubuntu
 wazuhinst           Instala wazuh. asistente. automatico

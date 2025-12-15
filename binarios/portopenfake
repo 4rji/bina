@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+set -e
+
+# -------- config --------
+BANNER="Authorized test service. Firewall rule validation in progress."
+RANGES=(
+  "0 100"
+  "500 520"
+  "1000 1020"
+  "2000 2020"
+  "2500 2520"
+  "3000 3020"
+  "3500 3520"
+  "4000 4020"
+  "4500 4520"
+  "5000 5020"
+  "5500 5520"
+  "6000 6020"
+  "6500 6520"
+  "7000 7020"
+  "7500 7520"
+  "8000 8020"
+)
+# ------------------------
+
+# stop flag
+if [ "$1" = "-t" ]; then
+  pkill nc || true
+  echo "[+] All nc listeners stopped"
+  exit 0
+fi
+
+# start listeners
+for r in "${RANGES[@]}"; do
+  read start end <<< "$r"
+  for p in $(seq "$start" "$end"); do
+    while true; do
+      echo -e "$BANNER\r\n" | nc -lp "$p" >/dev/null 2>&1
+    done &
+  done
+done
+
+echo "[+] Dummy services running with fake banner"
