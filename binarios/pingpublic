@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# --------- colors ----------
+C_RESET=$'\033[0m'
+C_GREEN=$'\033[32m'
+C_BLUE=$'\033[34m'
+C_DIM=$'\033[2m'
+C_RED=$'\033[31m'
+C_YELLOW=$'\033[33m'
+
+ok()   { echo -e "${C_GREEN}UP${C_RESET}"; }
+bad()  { echo -e "${C_RED}DOWN${C_RESET}"; }
+openp(){ echo -e "${C_GREEN}OPEN${C_RESET}"; }
+clsp() { echo -e "${C_YELLOW}CLOSED${C_RESET}"; }
+
+# --------- checks ----------
+ping_ok() { ping -c 1 -W 1 "$1" >/dev/null 2>&1; }
+
+ssh_open() {
+  local ip="$1"
+  if command -v nc >/dev/null 2>&1; then
+    nc -z -w 1 "$ip" 22 >/dev/null 2>&1
+  else
+    timeout 1 bash -lc ">/dev/tcp/$ip/22" >/dev/null 2>&1
+  fi
+}
+
+check_ip() {
+  local label="$1" ip="$2"
+  local p s
+  if ping_ok "$ip"; then p="$(ok)"; else p="$(bad)"; fi
+  if ssh_open "$ip"; then s="$(openp)"; else s="$(clsp)"; fi
+  printf "  %-6s %-15s  ping:%b  SSH:%b\n" "$label" "$ip" "$p" "$s"
+}
+
+# --------- inventory ----------
+# format: "Name|Color|LAN|PUBLIC"
+HOSTS=(
+  "Ecom Ubuntu 24|green|172.20.242.104|172.25.39.11"
+  "Webmail Fedora 42|green|172.20.242.101|172.25.39.39"
+  "Splunk|green|172.20.242.20|172.25.39.9"
+
+  "Wkst Windows 11|blue|172.20.240.100|172.25.39.144"
+  "FTP Server 2022|blue|172.20.240.104|172.25.39.162"
+  "AD / DNS Server 2019|blue|172.20.240.102|172.25.39.155"
+  "Web Server 2019|blue|172.20.240.101|172.25.39.140"
+)
+
+for h in "${HOSTS[@]}"; do
+  IFS='|' read -r name color lan pub <<<"$h"
+  if [[ "$color" == "green" ]]; then
+    echo -e "${C_GREEN}${name}${C_RESET}"
+  else
+    echo -e "${C_BLUE}${name}${C_RESET}"
+  fi
+  check_ip "LAN"    "$lan"
+  check_ip "PUBLIC" "$pub"
+  echo -e "${C_DIM}------------------------------${C_RESET}"
+done
