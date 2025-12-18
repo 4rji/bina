@@ -1,33 +1,105 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-echo ""
-echo "m_________________________________________________________m"
-echo ""
+sep() { echo ""; echo "m_________________________________________________________m"; echo ""; }
 
-echo "msudo apt install chromiumm"
-sudo apt install chromium -y
+need_root() {
+  if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
+    exec sudo -E "$0" "$@"
+  fi
+}
 
-echo ""
-echo "m_________________________________________________________m"
-echo ""
+detect_pm() {
+  if command -v apt-get >/dev/null 2>&1; then echo "apt"
+  elif command -v dnf >/dev/null 2>&1; then echo "dnf"
+  elif command -v yum >/dev/null 2>&1; then echo "yum"
+  elif command -v pacman >/dev/null 2>&1; then echo "pacman"
+  else
+    echo "No supported package manager found (apt/dnf/yum/pacman)." >&2
+    exit 1
+  fi
+}
 
-echo "msudo apt install xorgm"
-sudo apt install xorg -y
+pm_update() {
+  case "$PM" in
+    apt)    apt-get update -y ;;
+    dnf)    dnf -y makecache ;;
+    yum)    yum -y makecache ;;
+    pacman) pacman -Sy --noconfirm ;;
+  esac
+}
 
-echo ""
-echo "m_________________________________________________________m"
-echo ""
+pm_install() {
+  # Usage: pm_install "label" pkg1 pkg2 ...
+  local label="$1"; shift
+  echo "m$label"
+  case "$PM" in
+    apt)    apt-get install -y "$@" ;;
+    dnf)    dnf install -y "$@" ;;
+    yum)    yum install -y "$@" ;;
+    pacman) pacman -S --needed --noconfirm "$@" ;;
+  esac
+}
 
-echo "msudo apt install openboxm"
-sudo apt install openbox -y
+install_first_available() {
+  # Usage: install_first_available "label" pkgA pkgB pkgC ...
+  local label="$1"; shift
+  local pkgs=("$@")
 
-echo ""
-echo "m_________________________________________________________m"
-echo ""
+  for p in "${pkgs[@]}"; do
+    if pm_install "$label ($p)" "$p"; then
+      return 0
+    fi
+  done
 
-echo "mstartxm"
-startx
+  echo "Failed to install $label. Tried: ${pkgs[*]}" >&2
+  return 1
+}
 
-echo ""
-echo "m_________________________________________________________m"
-echo ""
+main() {
+  need_root "$@"
+  PM="$(detect_pm)"
+
+  sep
+  pm_update
+  sep
+
+  # Chromium
+  sep
+  install_first_available "install chromium" \
+    chromium chromium-browser
+
+  # Xorg + startx bits
+  sep
+  case "$PM" in
+    apt)
+      pm_install "install xorg" xorg xinit
+      ;;
+    dnf|yum)
+      # Fedora/Oracle/RHEL-family
+      pm_install "install xorg" xorg-x11-server-Xorg xorg-x11-xinit xorg-x11-xauth
+      ;;
+    pacman)
+      pm_install "install xorg" xorg-server xorg-xinit xorg-xauth
+      ;;
+  esac
+
+  # Openbox
+  sep
+  pm_install "install openbox" openbox
+
+  # .xinitrc
+  sep
+  echo "mconfigure ~/.xinitrc"
+  user_home="${SUDO_USER:+$(getent passwd "$SUDO_USER" | cut -d: -f6)}"
+  user_home="${user_home:-$HOME}"
+  install -d -m 0755 "$user_home"
+  echo "exec openbox-session" > "$user_home/.xinitrc"
+  chown "${SUDO_USER:-root}:${SUDO_USER:-root}" "$user_home/.xinitrc" || true
+
+  sep
+  echo "mstartx"
+  sep
+}
+
+main "$@"
