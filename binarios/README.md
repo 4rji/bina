@@ -60,6 +60,8 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###------utilidades 
+gcomall             Hacer commit a gitea 
+fall                Bajar todos los updates de gitea
 pingpublic          Hace ping a direcciones CCDC publicas y ssh
 portopenfake        script basico para abrir puertos en linux, con -t para detener
 socatcomm           Comandos utiles de socat
