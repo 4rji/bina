@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+#No configura automáticamente: solo instala, verifica y muestra info, todo interactivo.
 # Lista de paquetes a instalar
 paquetes=("chrony" )
 
