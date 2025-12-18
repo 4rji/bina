@@ -1,9 +1,27 @@
 #!/usr/bin/env bash
 
-#brew install imagemagick webp 
+# Requirements (macOS):
+#   brew install imagemagick webp
 
-
+set -e
 shopt -s nullglob nocaseglob
+
+need() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+missing=()
+need magick || missing+=("imagemagick")
+need cwebp  || missing+=("webp")
+
+if (( ${#missing[@]} )); then
+  echo "Missing tools:"
+  for m in "${missing[@]}"; do echo "  - $m"; done
+  echo
+  echo "Install on macOS:"
+  echo "  brew install ${missing[*]}"
+  exit 1
+fi
 
 if [[ -n "$1" && -d "$1" ]]; then
   imgs=("$1"/*.{heic,jpg,jpeg,png})
@@ -17,7 +35,7 @@ for img in "${imgs[@]}"; do
   [[ ! -r "$img" || ! -f "$img" ]] && continue
 
   ext="${img##*.}"
-  ext="$(echo "$ext" | tr '[:upper:]' '[:lower:]')"
+  ext="${ext,,}"
   base="${img%.*}"
   out="${base}.webp"
 
@@ -25,7 +43,9 @@ for img in "${imgs[@]}"; do
 
   if [[ "$ext" == "heic" ]]; then
     tmp="${base}_tmp.jpg"
-    magick "$img" "$tmp" && cwebp -q 80 "$tmp" -o "$out" && rm "$tmp"
+    magick "$img" "$tmp"
+    cwebp -q 80 "$tmp" -o "$out"
+    rm -f "$tmp"
   else
     cwebp -q 80 "$img" -o "$out"
   fi
