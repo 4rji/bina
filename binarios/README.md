@@ -692,7 +692,7 @@ dnsinst             Instala bind9 dns
 dnsblock            usa dns bind9 - Bloquea url, dominios o redirige dns trafico a localhost 
 dnsred              Cambia un dominio a un ip redireccionando trafico en bind9
 ntpcon              Conecta el servicio ntp time
-chroncon            Conecta el servicio chrony time
+chroninst           Instala chrony
 updatecentos7       Para actualizar centos7
 updatecentos7-2     otra version
 sudoup              Hace un update de sudo de la version 9.12 adelante.
@@ -737,7 +737,6 @@ ufwloopb          Configura el loopback del firewall
 
 netevils          Mask and remove -y telnet ftp ftpd tftp talk talkd tftp tftpd
 rootcheck         Checa varios archivos .bash ...
-sntp              instala chrony
 sshmod            Modifica ssh y hace copia
 
 
