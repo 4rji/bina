@@ -677,6 +677,7 @@ bomba               Crea procesos recursivos sin fin, - sistema es inutilizable 
 
 
 ###------CCDC
+bannerC             Banner de login consola y ssh
 versudo             Inspecciona sudo folder
 sshlist             Para allow en hosts
 portmonitor         Monitorea cuando un puerto se abre, puerto abierto o cerrado. 

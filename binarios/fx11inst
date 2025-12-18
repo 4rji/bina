@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-URL="https://gitea.4rji.com/4rji/dotfiles/raw/branch/main/dockerfiles/dockerfile-mini-debian"
+#URL="https://gitea.4rji.com/4rji/dotfiles/raw/branch/main/dockerfiles/dockerfile-mini-debian"
+URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/dockerfiles/dockerfile-mini-debian"
 IMAGE="firefox-rdp"
 CONTAINER="firefox-rdp"
 
