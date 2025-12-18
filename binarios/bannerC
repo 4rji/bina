@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BANNER_TEXT='
+ AUTHORIZED USE ONLY 
+
+This system is the property of the organization and may be accessed only by authorized users. 
+By continuing to use this system, you acknowledge and consent to monitoring, recording, and 
+review of all activity for security and administrative purposes.
+
+There is no expectation of privacy. Unauthorized access or misuse is strictly prohibited and 
+may result in disciplinary action, civil penalties, and criminal prosecution.
+
+If you are not an authorized user, disconnect immediately.
+'
+
+# ---------------- SSH PRE-LOGIN BANNER ----------------
+sudo sed -i '/^[[:space:]]*Banner[[:space:]]\+/d' /etc/ssh/sshd_config
+
+echo "$BANNER_TEXT" | sudo tee /etc/ssh/sshd-banner > /dev/null
+sudo chmod 644 /etc/ssh/sshd-banner
+
+echo "Banner /etc/ssh/sshd-banner" | sudo tee -a /etc/ssh/sshd_config > /dev/null
+
+# Reinicia el servicio correcto: sshd (Fedora/RHEL/Oracle) o ssh (Ubuntu/Debian)
+if systemctl list-unit-files --no-pager | awk '{print $1}' | grep -qx "sshd.service"; then
+  sudo systemctl restart sshd
+elif systemctl list-unit-files --no-pager | awk '{print $1}' | grep -qx "ssh.service"; then
+  sudo systemctl restart ssh
+else
+  echo "WARN: No encontre sshd.service ni ssh.service (revisa tu setup SSH)."
+fi
+
+# ---------------- TTY CONSOLE PRE-LOGIN BANNER ----------------
+echo "$BANNER_TEXT" | sudo tee /etc/issue > /dev/null
+sudo chmod 644 /etc/issue
+
+# Refresca consola: reinicia getty en las TTYs que existan
+# (esto hace que /etc/issue se vuelva a leer)
+for i in 1 2 3 4 5 6; do
+  if systemctl list-unit-files --no-pager | awk '{print $1}' | grep -qx "getty@tty${i}.service"; then
+    sudo systemctl restart "getty@tty${i}" || true
+  fi
+done
+
+# ---------------- ALIAS ----------------
+grep -q "alias bannere=" ~/.zshrc 2>/dev/null || echo "alias bannere='sudo nano /etc/ssh/sshd-banner'" >> ~/.zshrc
+grep -q "alias issuee=" ~/.zshrc 2>/dev/null || echo "alias issuee='sudo nano /etc/issue'" >> ~/.zshrc
+
+echo "Listo: banner SSH (pre-login) + banner TTY (pre-login) aplicados."
