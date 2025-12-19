@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+echo "After running this script, just execute: sshx"
+echo "It will print a link you can open in your browser."
+echo
+echo "Install options:"
+echo
+echo "Linux/macOS:"
+echo "  curl -sSf https://sshx.io/get | sh"
+echo
+echo "Windows:"
+echo "  https://sshx.s3.amazonaws.com/sshx-x86_64-pc-windows-msvc.zip"
+echo
+echo "Using Cargo:"
+echo "  cargo install sshx"

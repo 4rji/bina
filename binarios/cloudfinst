@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -e
+
+echo "Select OS to install Cloudflared:"
+echo "1) Debian/Ubuntu"
+echo "2) macOS (brew)"
+echo "3) Windows"
+echo "4) Docker"
+read -rp "Option: " opt
+
+case "$opt" in
+  1)
+    sudo mkdir -p --mode=0755 /usr/share/keyrings
+    curl -fsSL https://pkg.cloudflare.com/cloudflare-public-v2.gpg \
+      | sudo tee /usr/share/keyrings/cloudflare-public-v2.gpg >/dev/null
+
+    echo 'deb [signed-by=/usr/share/keyrings/cloudflare-public-v2.gpg] https://pkg.cloudflare.com/cloudflared any main' \
+      | sudo tee /etc/apt/sources.list.d/cloudflared.list
+
+    sudo apt-get update
+    sudo apt-get install -y cloudflared
+    ;;
+  2)
+    brew install cloudflared
+    ;;
+  3)
+    echo "Download:"
+    echo "https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-windows-amd64.msi"
+    echo "Then run (Admin CMD):"
+    echo "cloudflared.exe service install <TOKEN>"
+    ;;
+  4)
+    read -rp "Cloudflare Tunnel Token: " cloudtoken
+    docker run cloudflare/cloudflared:latest tunnel --no-autoupdate run --token "$cloudtoken"
+    ;;
+  *)
+    echo "Invalid option"
+    exit 1
+    ;;
+esac

@@ -60,6 +60,8 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###------utilidades 
+cloudfinst          Para instalar cloudflare para el tunel
+sshterminal         sshx para compartir una terminal en la pagina web, remota, remoto
 gcomall             Hacer commit a gitea 
 fall                Bajar todos los updates de gitea
 pingpublic          Hace ping a direcciones CCDC publicas y ssh
