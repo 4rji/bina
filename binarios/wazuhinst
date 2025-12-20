@@ -48,3 +48,8 @@ echo "[*] Running installer (all-in-one)..."
 sudo bash ./$INSTALLER -a
 
 echo "[✓] Done"
+
+
+sudo /usr/share/wazuh-indexer/plugins/opensearch-security/tools/wazuh-passwords-tool.sh -u admin -p M3tro123*.a
+
+sudo systemctl restart wazuh-indexer wazuh-dashboard
