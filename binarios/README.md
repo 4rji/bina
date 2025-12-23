@@ -60,6 +60,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###------utilidades 
+sshc                copia directorio o archivo por ssh, lo comprime y descomprime
 cloudfinst          Para instalar cloudflare para el tunel
 sshterminal         sshx para compartir una terminal en la pagina web, remota, remoto
 gcomall             Hacer commit a gitea 

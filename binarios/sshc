@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SRC="${1:?Uso: $0 <archivo|dir> <user@host>}"
+DEST="${2:?Uso: $0 <archivo|dir> <user@host>}"
+DST_PATH="~"
+
+# ¿remoto soporta zstd con tar?
+if ssh -o BatchMode=yes "$DEST" "tar --help 2>/dev/null | grep -q -- '--zstd'"; then
+  COMP="zstd"
+  REM_EXTRACT="tar --zstd -xf - -C $DST_PATH"
+  LOC_CREATE="COPYFILE_DISABLE=1 tar --no-xattrs --zstd -cf - \"$SRC\""
+else
+  COMP="gzip"
+  REM_EXTRACT="tar -xzf - -C $DST_PATH"
+  LOC_CREATE="COPYFILE_DISABLE=1 tar --no-xattrs -czf - \"$SRC\""
+fi
+
+CMD="$LOC_CREATE | ssh $DEST \"$REM_EXTRACT\""
+
+echo "Comando ejecutado ($COMP):"
+echo "$CMD"
+echo
+
+eval "$CMD"
+echo "✔ OK -> $DEST:$DST_PATH"
+
