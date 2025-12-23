@@ -23,4 +23,4 @@ nvim
 
 
 #tal vez dependencias que tal vez necesite
-
+echo "borrar la carpeta neovim"
