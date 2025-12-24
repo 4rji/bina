@@ -29,7 +29,7 @@ fi
 # --- Firefox ephemeral --------------------------------------------
 PROFILE_DIR="/tmp/fx-profile"
 USER_JS="$PROFILE_DIR/user.js"
-DOCKERFILE_URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/Dockerfile-universal-lenguages"
+DOCKERFILE_URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/dockerfiles/Dockerfile-universal-lenguages"
 DOCKERFILE_NAME="Dockerfile"
 
 mkdir -p "$PROFILE_DIR"
