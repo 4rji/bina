@@ -12,72 +12,58 @@ fi
 
 # Clone si no existe
 if [[ ! -d "$REPO_DIR/.git" ]]; then
-  echo "[*] Repo no existe en $REPO_DIR, clonando..."
-  rm -rf "$REPO_DIR"
+  echo "[*] Repo no existe, clonando..."
   git clone "$REPO_URL" "$REPO_DIR"
 fi
 
-# (Opcional) actualizar
-echo "[*] Actualizando repo..."
-git -C "$REPO_DIR" pull --ff-only >/dev/null || true
-
 BASE="$REPO_DIR/archstrike"
-if [[ ! -d "$BASE" ]]; then
-  echo "[-] No existe $BASE"
-  exit 2
-fi
 
 echo "[*] Buscando: $q"
-mapfile -t matches < <(find "$BASE" -maxdepth 2 -mindepth 1 -type d \
-  -iname "*$q*" -printf "%P\n" | sort)
+mapfile -t matches < <(
+  find "$BASE" -maxdepth 2 -mindepth 1 -type d -iname "*$q*" -printf "%P\n" | sort
+)
 
 if (( ${#matches[@]} == 0 )); then
-  echo "[-] No encontré folders que coincidan con: $q"
-  exit 3
+  echo "[-] No hay coincidencias"
+  exit 2
 fi
 
 echo
 echo "Resultados:"
 for i in "${!matches[@]}"; do
-  printf "  [%d] %s\n" "$((i+1))" "${matches[$i]}"
+  printf " [%d] %s\n" "$((i+1))" "${matches[$i]}"
 done
 echo
 
-read -r -p "Elige número para instalar (Enter = cancelar): " choice
-if [[ -z "${choice:-}" ]]; then
-  echo "[*] Cancelado."
-  exit 0
-fi
-
-if ! [[ "$choice" =~ ^[0-9]+$ ]]; then
-  echo "[-] Opción inválida."
-  exit 4
-fi
+read -r -p "Elige número (Enter = cancelar): " choice
+[[ -z "${choice:-}" ]] && exit 0
 
 idx=$((choice-1))
-if (( idx < 0 || idx >= ${#matches[@]} )); then
-  echo "[-] Opción fuera de rango."
-  exit 5
-fi
-
 target_rel="${matches[$idx]}"
 target="$BASE/$target_rel"
 
 if [[ ! -f "$target/PKGBUILD" ]]; then
-  echo "[-] Selección no parece paquete (no hay PKGBUILD): $target"
-  exit 6
+  echo "[-] No es un paquete válido (sin PKGBUILD)"
+  exit 3
+fi
+
+pkgname=$(source "$target/PKGBUILD"; echo "$pkgname")
+
+# 🔍 Verificar si ya está instalado
+if pacman -Qi "$pkgname" &>/dev/null; then
+  echo "[✓] '$pkgname' ya está instalado"
+  exit 0
 fi
 
 echo
-echo "[*] Seleccionado: $target_rel"
-read -r -p "¿Instalar con makepkg -si? [y/N]: " yn
+echo "[*] Paquete: $pkgname"
+read -r -p "¿Instalarlo? [y/N]: " yn
 case "${yn,,}" in
   y|yes)
     cd "$target"
     makepkg -si
     ;;
   *)
-    echo "[*] No instalado."
+    echo "[*] Cancelado"
     ;;
 esac
-
