@@ -1,0 +1,4 @@
+#!/bin/bash
+
+echo "sudo usermod -aG docker $USER"
+echo "newgrp docker"
