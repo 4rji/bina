@@ -32,6 +32,7 @@ lolcatinst          Instala gem, ruby y lolcat
 
 
 ###------Arch linux
+hyplinst            instala hyprland y descarga los dotfiles
 archstrikeinst      Github pentesting, instala herramientas manualmente
 instpkg             Instala un paquete en arch makepkg -si PKGBUILD
 instermius          Instala termius en arch con yay   
