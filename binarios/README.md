@@ -32,7 +32,7 @@ lolcatinst          Instala gem, ruby y lolcat
 
 
 ###------Arch linux
-archstrikeinst      Github pentesting, instala herramientas manualmente
+astrike             Github pentesting, instala herramientas manualmente para arch
 instpkg             Instala un paquete en arch makepkg -si PKGBUILD
 instermius          Instala termius en arch con yay   
 instparu            instala para y scrub para arch (debian no necesita)                            
