@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SSHA_ZIP_URL="https://raw.githubusercontent.com/4rji/dotfiles/1cf02aaf9bb1ad37117b42d2dff93edae55710a8/ssha.zip"
+
 echo_msg() {
   echo ""
   echo "=============================================="
@@ -12,18 +14,16 @@ echo_msg() {
 usage() {
   cat <<'EOF'
 
-Uso: shadows [opción] [argumentos]
+Usage: shadows [option] [args]
 
-Opciones:
-  -s              Instala y prepara el servidor Shadowsocks (Debian/Ubuntu).
-  -c [ips|file]   Genera configuraciones de cliente para Linux.
-  -m [ips|file]   Genera configuraciones de cliente para macOS.
-  -r              Ejecuta un cliente usando una configuración guardada.
-  -i              Instala el servicio systemd ss-server.
-  -r              Ejecuta otro script para redirigir todo el trafico CLI
-
-Tips: Puedes pasar IPs separadas por espacios/comas o un archivo con una IP por línea.
-      También puedes usar el archivo: /opt/4rji/bin/shadowips
+Options:
+  -s              Install and prepare the Shadowsocks server (Debian/Ubuntu).
+  -c [ips|file]   Generate client configs for Linux.
+  -m [ips|file]   Generate client configs for macOS.
+  -r              Run a client using a saved config.
+  -i              Install the systemd ss-server service.
+  -d              Download configuration files into ~/.ssha (from GitHub ZIP).
+  -h              Help.
 
 EOF
   exit 1
@@ -38,6 +38,43 @@ ensure_dir() {
 sanitize_ip() {
   local ip="$1"
   echo "${ip//./-}"
+}
+
+have_cmd() { command -v "$1" >/dev/null 2>&1; }
+
+download_configs() {
+  ensure_dir
+  echo_msg "DOWNLOAD CONFIGURATION FILES"
+
+  local tmpzip
+  tmpzip="$(mktemp -t ssha.XXXXXX.zip)"
+
+  if have_cmd curl; then
+    curl -fsSL "$SSHA_ZIP_URL" -o "$tmpzip"
+  elif have_cmd wget; then
+    wget -qO "$tmpzip" "$SSHA_ZIP_URL"
+  else
+    echo -e "\033[31mMissing downloader: install curl or wget.\033[0m"
+    exit 1
+  fi
+
+  if have_cmd unzip; then
+    unzip -o "$tmpzip" -d "$SSHA_DIR" >/dev/null
+  elif have_cmd bsdtar; then
+    bsdtar -xf "$tmpzip" -C "$SSHA_DIR"
+  else
+    echo -e "\033[31mMissing extractor: install unzip (recommended) or bsdtar.\033[0m"
+    echo -e "\033[33mArch:\033[0m sudo pacman -S unzip"
+    echo -e "\033[33mDebian/Ubuntu:\033[0m sudo apt install -y unzip"
+    exit 1
+  fi
+
+  rm -f "$tmpzip"
+
+  echo -e "\033[32mDownloaded and extracted into:\033[0m $SSHA_DIR"
+  echo -e "\033[36mContents:\033[0m"
+  ls -la "$SSHA_DIR"
+  echo ""
 }
 
 write_client_config() {
@@ -129,7 +166,7 @@ run_from_saved() {
 $(find "$SSHA_DIR" -maxdepth 1 -type f -name "*.json" | sort)
 EOF
   else
-    if command -v mapfile >/dev/null 2>&1; then
+    if have_cmd mapfile; then
       mapfile -t configs < <(find "$SSHA_DIR" -maxdepth 1 -type f -name "*.json" | sort)
     else
       while IFS= read -r f; do
@@ -159,15 +196,15 @@ EOF
   fi
   cfg_path="${configs[$((sel-1))]}"
 
-    echo_msg "VERIFY CONNECTIVITY (before running)"
-  echo -e "\033[33mIn another terminal, once started, you can verify with:\033[0m"
+  echo_msg "VERIFY CONNECTIVITY (before running)"
+  echo -e "\033[33mIn another terminal, once started, verify with:\033[0m"
   echo "curl --socks5 127.0.0.1:1080 https://ifconfig.me"
   echo ""
 
-    echo -e "\033[35mCurrent IP:\033[0m"
-  curl ifconfig.me
- echo ""
-
+  echo -e "\033[35mCurrent IP:\033[0m"
+  curl -fsSL ifconfig.me || true
+  echo ""
+  echo ""
 
   echo -e "\033[36mStarting client in foreground:\033[0m"
   echo "ss-local -c \"$cfg_path\" -v"
@@ -179,13 +216,14 @@ EOF
 [ $# -eq 0 ] && usage
 
 MODE=""
-while getopts ":scmrih" opt; do
+while getopts ":scmridh" opt; do
   case "$opt" in
     s) MODE="s" ;;
     c) MODE="c" ;;
     m) MODE="m" ;;
     r) MODE="r" ;;
     i) MODE="i" ;;
+    d) MODE="d" ;;
     h) usage ;;
     *) usage ;;
   esac
@@ -194,14 +232,19 @@ shift $((OPTIND-1))
 ARGS=("$@")
 
 case "$MODE" in
+  d)
+    download_configs
+    ;;
+
   s)
     echo_msg "SERVER INSTALL (Debian/Ubuntu)"
-    
+
     if ! dpkg -s shadowsocks-libev >/dev/null 2>&1; then
       sudo apt install -y shadowsocks-libev
     else
       echo -e "\033[33mshadowsocks-libev already installed, skipping apt install.\033[0m"
     fi
+
     sudo tee /etc/shadowsocks-libev/config.json >/dev/null <<'EOF'
 {
   "server": "0.0.0.0",
@@ -215,14 +258,14 @@ EOF
     sudo systemctl enable shadowsocks-libev
     sudo systemctl restart shadowsocks-libev
     echo ""
-    ss -tulpn | grep 8388
+    ss -tulpn | grep 8388 || true
     echo ""
     echo -e "\033[32mSERVER READY ON PORT 8388\033[0m"
     echo ""
     echo -e "\033[36mTo start server manually:\033[0m"
     echo "ss-server -c /etc/shadowsocks-libev/config.json -v"
     echo ""
-    echo "pidof ss-server and kill -9"
+    echo "Use: pidof ss-server && sudo kill -9 <pid>"
     ;;
 
   c)
@@ -238,7 +281,7 @@ EOF
   m)
     ensure_dir
     echo_msg "CLIENT CONFIGURATION (macOS)"
-    if ! command -v brew >/dev/null 2>&1; then
+    if ! have_cmd brew; then
       echo -e "\033[31mHomebrew not found. Install Homebrew first.\033[0m"
       exit 1
     fi
