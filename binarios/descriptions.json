@@ -573,11 +573,6 @@
           "short_desc": "Reverse SSH port forwarding over Paramiko.",
           "detailed_desc": "Creates a reverse SSH tunnel using Python and Paramiko. It connects to a remote SSH server and opens a remote port that forwards traffic back to a specified host:port accessible from the local machine. Equivalent to 'ssh -R', useful for exposing local services remotely. Supports password or key authentication and can be automated or integrated into other Python tools."
     },
-    "sshc": {
-      "name": "sshc",
-      "short_desc": "Parallel SSH command executor.",
-      "detailed_desc": "Executes any command concurrently on all hosts defined in ~/.ssh/config. Implemented in Go; connects using SSH keys or agent (no password prompts) and colors each host’s output line—green for success, red for offline. Usage: sshc <command> [args]."
-    },
     "deploy": {
         "name": "deploy",
         "short_desc": "Despliega una máquina vulnerable en Docker desde una imagen .tar.",
