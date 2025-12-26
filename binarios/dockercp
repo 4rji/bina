@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+
+# Colors
+GREEN='\033[0;32m'
+BLUE='\033[1;34m'
+YELLOW='\033[1;33m'
+CYAN='\033[1;36m'
+NC='\033[0m' # No Color
+
+echo -e "${CYAN}===========================================${NC}"
+echo -e "${CYAN}   DOCKER COMANDOS RÁPIDOS${NC}"
+echo -e "${CYAN}===========================================${NC}"
+
+echo -e "${YELLOW}\nLeyenda:${NC}"
+echo -e "  Usa ${GREEN}ID${NC} o ${GREEN}nombre_contenedor${NC} indistintamente"
+echo -e "  Ej: ${GREEN}838b908d7bef${NC}  |  ${GREEN}mycontainer${NC}"
+
+echo -e "${BLUE}\n=== Copiar archivos (docker cp) ===${NC}"
+echo -e "${GREEN}Host  -> Contenedor:${NC}"
+echo -e "${GREEN}docker cp /ruta/del/archivo.txt CONTENEDOR:/ruta/dentro/del/contenedor/${NC}"
+
+echo -e "${GREEN}\nContenedor -> Host:${NC}"
+echo -e "${GREEN}docker cp CONTENEDOR:/ruta/del/archivo.txt ./${NC}"
+
+echo -e "${BLUE}\n=== Listar archivos dentro del contenedor (ls) ===${NC}"
+echo -e "${GREEN}docker exec CONTENEDOR ls${NC}"
+echo -e "${GREEN}docker exec CONTENEDOR ls /root${NC}"
+echo -e "${GREEN}docker exec -it CONTENEDOR bash${NC}"
+
+echo -e "${BLUE}\n=== Ver contenedores ===${NC}"
+echo -e "${GREEN}docker ps${NC}"
+echo -e "${GREEN}docker ps -a${NC}"
+
+echo -e "${BLUE}\n=== Usar ID corto ===${NC}"
+echo -e "${GREEN}docker exec 838b908d7bef ls /root${NC}"
+echo -e "${GREEN}docker cp 838b908d7bef:/root/archivo.txt .${NC}"
