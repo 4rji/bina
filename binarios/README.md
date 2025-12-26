@@ -598,6 +598,7 @@ bincrypter          encripta binarios, tambien hacer contrasenas, ofusca y ejecu
 wifiaircrack        Aplica aircrack para redes wifi
 wifito              Para matar wifi, deadnet, conectar al wifi y ejecutar con la interface conectada
 redir               Redirige todo el trafico de la maquina por shadows info pagina web docs.4r
+redira              Version de arch de redir, ahora verifica estado del host
 shadows             Shadowsocks como tor socks tunnel tipo vpn cliente o servidor instala
 shadowsa            Version para arch, de shadows con sslocal, no ss-local
 bashrc-rvshell      reverse shell en la bashrc
