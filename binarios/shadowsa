@@ -17,6 +17,37 @@ ensure_dir() {
 
 have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
+extract_server_field() {
+  local cfg_path="$1"
+  local key="$2"
+  case "$key" in
+    server)
+      sed -n 's/.*"server"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$cfg_path" | head -n 1
+      ;;
+    server_port)
+      sed -n 's/.*"server_port"[[:space:]]*:[[:space:]]*\([0-9]\+\).*/\1/p' "$cfg_path" | head -n 1
+      ;;
+  esac
+}
+
+check_server() {
+  local server="$1"
+  local port="$2"
+
+  if have_cmd nc; then
+    nc -z -w 2 "$server" "$port" >/dev/null 2>&1
+    return $?
+  fi
+
+  if have_cmd timeout; then
+    timeout 2 bash -c "echo > /dev/tcp/$server/$port" >/dev/null 2>&1
+    return $?
+  fi
+
+  (echo >/dev/tcp/"$server"/"$port") >/dev/null 2>&1
+  return $?
+}
+
 run_from_saved() {
   ensure_dir
   echo_msg "RUN A SAVED CONFIG (Arch)"
@@ -45,7 +76,17 @@ EOF
   echo -e "\033[36mAvailable configs:\033[0m"
   for i in "${!configs[@]}"; do
     base="$(basename "${configs[$i]}")"
-    echo "[$((i+1))] $base"
+    server="$(extract_server_field "${configs[$i]}" "server")"
+    port="$(extract_server_field "${configs[$i]}" "server_port")"
+    if [ -n "${server:-}" ] && [ -n "${port:-}" ]; then
+      if check_server "$server" "$port"; then
+        echo -e "[$((i+1))] $base \033[34m(online)\033[0m"
+      else
+        echo -e "[$((i+1))] $base \033[31m(offline)\033[0m"
+      fi
+    else
+      echo "[$((i+1))] $base (unknown)"
+    fi
   done
   echo ""
 
@@ -55,6 +96,21 @@ EOF
     exit 1
   fi
   cfg_path="${configs[$((sel-1))]}"
+
+  server="$(extract_server_field "$cfg_path" "server")"
+  port="$(extract_server_field "$cfg_path" "server_port")"
+  if [ -n "${server:-}" ] && [ -n "${port:-}" ]; then
+    echo_msg "SERVER STATUS"
+    if check_server "$server" "$port"; then
+      echo -e "\033[34mOnline:\033[0m $server:$port"
+    else
+      echo -e "\033[31mOffline:\033[0m $server:$port"
+    fi
+    echo ""
+  else
+    echo -e "\033[31mCould not parse server/port from config.\033[0m"
+    echo ""
+  fi
 
   echo_msg "VERIFY CONNECTIVITY (before running)"
   echo -e "\033[33mIn another terminal, once started, verify with:\033[0m"

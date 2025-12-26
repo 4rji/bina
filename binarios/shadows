@@ -12,9 +12,9 @@ echo_msg() {
 }
 
 usage() {
-  cat <<'EOF'
-
+  printf '%b' "
 Usage: shadows [option] [args]
+Use the redir script to redirect all machine traffic on Linux: \033[31mredir\033[0m.
 
 Options:
   -s              Install and prepare the Shadowsocks server (Debian/Ubuntu).
@@ -24,12 +24,9 @@ Options:
   -r              Run a client using a saved config.
   -i              Install the systemd ss-server service.
   -d              Download configuration files into ~/.ssha (from GitHub ZIP).
-
-Notes:
   -cf             Install client + generate configs (Linux).
-  Use the redir script to redirect all machine traffic on Linux.
 
-EOF
+"
   exit 1
 }
 
@@ -45,6 +42,37 @@ sanitize_ip() {
 }
 
 have_cmd() { command -v "$1" >/dev/null 2>&1; }
+
+extract_server_field() {
+  local cfg_path="$1"
+  local key="$2"
+  case "$key" in
+    server)
+      sed -n 's/.*"server"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$cfg_path" | head -n 1
+      ;;
+    server_port)
+      sed -n 's/.*"server_port"[[:space:]]*:[[:space:]]*\([0-9]\+\).*/\1/p' "$cfg_path" | head -n 1
+      ;;
+  esac
+}
+
+check_server() {
+  local server="$1"
+  local port="$2"
+
+  if have_cmd nc; then
+    nc -z -w 2 "$server" "$port" >/dev/null 2>&1
+    return $?
+  fi
+
+  if have_cmd timeout; then
+    timeout 2 bash -c "echo > /dev/tcp/$server/$port" >/dev/null 2>&1
+    return $?
+  fi
+
+  (echo >/dev/tcp/"$server"/"$port") >/dev/null 2>&1
+  return $?
+}
 
 download_configs() {
   ensure_dir
@@ -189,7 +217,17 @@ EOF
   echo -e "\033[36mAvailable configs:\033[0m"
   for i in "${!configs[@]}"; do
     base="$(basename "${configs[$i]}")"
-    echo "[$((i+1))] $base"
+    server="$(extract_server_field "${configs[$i]}" "server")"
+    port="$(extract_server_field "${configs[$i]}" "server_port")"
+    if [ -n "${server:-}" ] && [ -n "${port:-}" ]; then
+      if check_server "$server" "$port"; then
+        echo -e "[$((i+1))] $base \033[34m(online)\033[0m"
+      else
+        echo -e "[$((i+1))] $base \033[31m(offline)\033[0m"
+      fi
+    else
+      echo "[$((i+1))] $base (unknown)"
+    fi
   done
   echo ""
 
