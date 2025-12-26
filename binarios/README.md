@@ -599,6 +599,7 @@ wifiaircrack        Aplica aircrack para redes wifi
 wifito              Para matar wifi, deadnet, conectar al wifi y ejecutar con la interface conectada
 redir               Redirige todo el trafico de la maquina por shadows info pagina web docs.4r
 shadows             Shadowsocks como tor socks tunnel tipo vpn cliente o servidor instala
+shadowsa            Version para arch, de shadows con sslocal, no ss-local
 bashrc-rvshell      reverse shell en la bashrc
 iodine-connect      Script que conecta iodine a mi c2. automatizado
 scanbl              Scanea dispositivos bluetooth

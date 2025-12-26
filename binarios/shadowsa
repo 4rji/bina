@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo_msg() {
+  echo ""
+  echo "=============================================="
+  echo "$1"
+  echo "=============================================="
+  echo ""
+}
+
+ensure_dir() {
+  SSHA_DIR="$HOME/.ssha"
+  mkdir -p "$SSHA_DIR"
+  chmod 700 "$SSHA_DIR"
+}
+
+have_cmd() { command -v "$1" >/dev/null 2>&1; }
+
+run_from_saved() {
+  ensure_dir
+  echo_msg "RUN A SAVED CONFIG (Arch)"
+
+  if ! have_cmd sslocal; then
+    echo -e "\033[31msslocal not found. Install shadowsocks-rust first.\033[0m"
+    exit 1
+  fi
+
+  configs=()
+  if have_cmd mapfile; then
+    mapfile -t configs < <(find "$SSHA_DIR" -maxdepth 1 -type f -name "*.json" | sort)
+  else
+    while IFS= read -r f; do
+      [ -n "$f" ] && configs+=("$f")
+    done <<EOF
+$(find "$SSHA_DIR" -maxdepth 1 -type f -name "*.json" | sort)
+EOF
+  fi
+
+  if [ ${#configs[@]} -eq 0 ]; then
+    echo -e "\033[31mNo configs found in $SSHA_DIR.\033[0m"
+    exit 1
+  fi
+
+  echo -e "\033[36mAvailable configs:\033[0m"
+  for i in "${!configs[@]}"; do
+    base="$(basename "${configs[$i]}")"
+    echo "[$((i+1))] $base"
+  done
+  echo ""
+
+  read -p $'\033[33mSelect a number:\033[0m ' sel
+  if ! [[ "$sel" =~ ^[0-9]+$ ]] || [ "$sel" -lt 1 ] || [ "$sel" -gt "${#configs[@]}" ]; then
+    echo -e "\033[31mInvalid selection.\033[0m"
+    exit 1
+  fi
+  cfg_path="${configs[$((sel-1))]}"
+
+  echo_msg "VERIFY CONNECTIVITY (before running)"
+  echo -e "\033[33mIn another terminal, once started, verify with:\033[0m"
+  echo "curl --socks5 127.0.0.1:1080 https://ifconfig.me"
+  echo ""
+
+  echo -e "\033[36mStarting client in foreground:\033[0m"
+  echo "sslocal -c \"$cfg_path\" -v"
+  echo ""
+  exec sslocal -c "$cfg_path" -v
+}
+
+if [ $# -ne 0 ]; then
+  echo "Usage: shadowsa"
+  exit 1
+fi
+
+run_from_saved
