@@ -60,6 +60,12 @@ nixclean            Arregla la shell de nixos para los scripts 4rji
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
+###-----Detecciones
+decloaktools        Post-detection investigation checklist for decloak analysis
+decloak.py          File decloaking tool to identify possible rootkit-based content hiding
+processdecloak      Busca procesos ocultos en linux
+
+
 
 ###------utilidades 
 sshc                copia directorio o archivo por ssh, lo comprime y descomprime
