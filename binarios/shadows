@@ -18,12 +18,16 @@ Usage: shadows [option] [args]
 
 Options:
   -s              Install and prepare the Shadowsocks server (Debian/Ubuntu).
-  -c [ips|file]   Generate client configs for Linux.
+  -c              Install the Shadowsocks client (Debian/Arch).
+  -f [ips|file]   Generate client configs for Linux.
   -m [ips|file]   Generate client configs for macOS.
   -r              Run a client using a saved config.
   -i              Install the systemd ss-server service.
   -d              Download configuration files into ~/.ssha (from GitHub ZIP).
-  -h              Help.
+
+Notes:
+  -cf             Install client + generate configs (Linux).
+  Use the redir script to redirect all machine traffic on Linux.
 
 EOF
   exit 1
@@ -59,9 +63,9 @@ download_configs() {
   fi
 
   if have_cmd unzip; then
-    unzip -o "$tmpzip" -d "$SSHA_DIR" >/dev/null
+    unzip -o "$tmpzip" -d "$HOME" >/dev/null
   elif have_cmd bsdtar; then
-    bsdtar -xf "$tmpzip" -C "$SSHA_DIR"
+    bsdtar -xf "$tmpzip" -C "$HOME"
   else
     echo -e "\033[31mMissing extractor: install unzip (recommended) or bsdtar.\033[0m"
     echo -e "\033[33mArch:\033[0m sudo pacman -S unzip"
@@ -212,24 +216,111 @@ EOF
   exec ss-local -c "$cfg_path" -v
 }
 
+# --- Client install (Debian/Arch) ---
+install_client_linux() {
+  echo_msg "CLIENT INSTALL (Debian/Arch)"
+
+  if have_cmd ss-local; then
+    echo -e "\033[33mClient already installed (ss-local), skipping install.\033[0m"
+    return
+  fi
+
+  if have_cmd sslocal; then
+    echo -e "\033[33mClient already installed (sslocal from shadowsocks-rust), skipping install.\033[0m"
+    echo -e "\033[36mshadowsocks-rust binaries:\033[0m"
+    echo "sslocal / ssserver"
+    return
+  fi
+
+  local os_id os_like
+  os_id=""
+  os_like=""
+  if [ -r /etc/os-release ]; then
+    # shellcheck disable=SC1091
+    . /etc/os-release
+    os_id="${ID:-}"
+    os_like="${ID_LIKE:-}"
+  fi
+
+  if [[ "$os_id" =~ ^(debian|ubuntu|linuxmint|pop|kali)$ ]] || [[ "$os_like" == *debian* ]]; then
+    if ! dpkg -s shadowsocks-libev >/dev/null 2>&1; then
+      sudo apt install -y shadowsocks-libev
+    else
+      echo -e "\033[33mshadowsocks-libev already installed, skipping apt install.\033[0m"
+    fi
+    return
+  fi
+
+  if [[ "$os_id" =~ ^(arch|manjaro|endeavouros)$ ]] || [[ "$os_like" == *arch* ]]; then
+    if pacman -Qi shadowsocks-libev >/dev/null 2>&1; then
+      echo -e "\033[33mshadowsocks-libev already installed, skipping pacman install.\033[0m"
+      return
+    fi
+
+    if pacman -Si shadowsocks-libev >/dev/null 2>&1; then
+      sudo pacman -S --noconfirm shadowsocks-libev
+      return
+    fi
+
+    if pacman -Si shadowsocks-rust >/dev/null 2>&1; then
+      sudo pacman -S --noconfirm shadowsocks-rust
+      echo -e "\033[36mshadowsocks-rust installed. Binaries:\033[0m"
+      echo "sslocal / ssserver"
+      return
+    fi
+
+    if have_cmd yay; then
+      yay -S --noconfirm shadowsocks-libev
+      return
+    fi
+
+    if have_cmd paru; then
+      paru -S --noconfirm shadowsocks-libev
+      return
+    fi
+
+    echo -e "\033[31mPackage not found in pacman repos.\033[0m"
+    echo -e "\033[33mInstall from AUR with yay/paru:\033[0m"
+    echo "yay -S shadowsocks-libev"
+    echo "paru -S shadowsocks-libev"
+    echo -e "\033[33mOr install shadowsocks-rust if available:\033[0m"
+    echo "sudo pacman -S shadowsocks-rust"
+    exit 1
+  fi
+
+  echo -e "\033[31mUnsupported Linux distro for client install.\033[0m"
+  echo -e "\033[33mInstall shadowsocks-libev manually and retry.\033[0m"
+  exit 1
+}
+
 # --- Parse options ---
 [ $# -eq 0 ] && usage
 
 MODE=""
-while getopts ":scmridh" opt; do
+DO_CLIENT_INSTALL=false
+DO_CLIENT_CONFIG=false
+while getopts ":scfmrid" opt; do
   case "$opt" in
     s) MODE="s" ;;
-    c) MODE="c" ;;
+    c) DO_CLIENT_INSTALL=true ;;
+    f) DO_CLIENT_CONFIG=true ;;
     m) MODE="m" ;;
     r) MODE="r" ;;
     i) MODE="i" ;;
     d) MODE="d" ;;
-    h) usage ;;
     *) usage ;;
   esac
 done
 shift $((OPTIND-1))
 ARGS=("$@")
+
+if [ -n "$MODE" ] && { [ "$DO_CLIENT_INSTALL" = true ] || [ "$DO_CLIENT_CONFIG" = true ]; }; then
+  usage
+fi
+
+if [ -z "$MODE" ] && [ "$DO_CLIENT_INSTALL" = false ] && [ "$DO_CLIENT_CONFIG" = false ]; then
+  usage
+fi
 
 case "$MODE" in
   d)
@@ -266,16 +357,6 @@ EOF
     echo "ss-server -c /etc/shadowsocks-libev/config.json -v"
     echo ""
     echo "Use: pidof ss-server && sudo kill -9 <pid>"
-    ;;
-
-  c)
-    ensure_dir
-    echo_msg "CLIENT CONFIGURATION (Linux)"
-    sudo apt install -y shadowsocks-libev
-    parse_ips_input "${ARGS[@]}"
-    for ip in "${IP_LIST[@]}"; do
-      write_client_config "$ip" "linux"
-    done
     ;;
 
   m)
@@ -323,6 +404,17 @@ EOF
     ;;
 
   *)
-    usage
+    if [ "$DO_CLIENT_INSTALL" = true ]; then
+      install_client_linux
+    fi
+
+    if [ "$DO_CLIENT_CONFIG" = true ]; then
+      ensure_dir
+      echo_msg "CLIENT CONFIGURATION (Linux)"
+      parse_ips_input "${ARGS[@]}"
+      for ip in "${IP_LIST[@]}"; do
+        write_client_config "$ip" "linux"
+      done
+    fi
     ;;
 esac
