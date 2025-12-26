@@ -445,6 +445,7 @@ ataquehttp          HTTP DoS Test Tool de goldeneye, descomprime en tmp y de ahi
 inundacion          hping3 un ataque de inundacion flood para pruebas de carga, pregunta por dos ataques
 metas               Script que inicia metasploit con base de datos
 ataquepython        (DoS) enviando múltiples solicitudes HTTP a una dirección IP del tipo GET
+encrypt             Go, para encriptar archivos con pass o key, misma funcion que encryptar
 encryptar           encrypta archivos con python, cambiar la ruta dentro del script para que funcione
 encryptar1          el original de encryptar 
 logt                crea un log.txt de un binario en un bucle while true
