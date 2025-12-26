@@ -1,0 +1,120 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SSHA_DIR="${SSHA_DIR:-$HOME/.ssha}"
+PORT_BASE="${PORT_BASE:-12345}"
+OWNER_UID="${SUDO_UID:-$UID}"
+
+SS_PID=""
+RULE_ADDED=0
+PORT=""
+CFG=""
+
+die(){ echo "[-] $*" >&2; exit 1; }
+info(){ echo "[*] $*"; }
+ok(){ echo "[+] $*"; }
+
+extract_json() {
+  local cfg="$1" key="$2"
+  case "$key" in
+    server)       sed -n 's/.*"server"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$cfg" | head -n1 ;;
+    server_port)  sed -n 's/.*"server_port"[[:space:]]*:[[:space:]]*\([0-9]\+\).*/\1/p' "$cfg" | head -n1 ;;
+  esac
+}
+
+check_server() {
+  local host="$1" port="$2"
+  command -v nc >/dev/null 2>&1 && nc -z -w 2 "$host" "$port" >/dev/null 2>&1 && return 0
+  command -v timeout >/dev/null 2>&1 && timeout 2 bash -c "echo > /dev/tcp/$host/$port" >/dev/null 2>&1 && return 0
+  (echo >/dev/tcp/"$host"/"$port") >/dev/null 2>&1
+}
+
+port_in_use() {
+  local port="$1"
+  ss -H -lnt "sport = :$port" 2>/dev/null | grep -q .
+}
+
+cleanup() {
+  if (( RULE_ADDED )); then
+    sudo iptables -t nat -D OUTPUT -p tcp --dport 443 -m owner --uid-owner "$OWNER_UID" -j REDIRECT --to-ports "$PORT" 2>/dev/null || true
+  fi
+  if [[ -n "${SS_PID:-}" ]]; then
+    kill "$SS_PID" 2>/dev/null || true
+    wait "$SS_PID" 2>/dev/null || true
+  fi
+}
+trap 'cleanup; exit 130' INT
+trap 'cleanup' EXIT TERM
+
+command -v ss >/dev/null 2>&1 || die "Falta ss (iproute2)."
+command -v iptables >/dev/null 2>&1 || die "Falta iptables (en Arch suele ser iptables-nft)."
+
+# sslocal / ss-local
+SSLOCAL_BIN=""
+for b in sslocal ss-local; do
+  if command -v "$b" >/dev/null 2>&1; then SSLOCAL_BIN="$b"; break; fi
+done
+[[ -n "$SSLOCAL_BIN" ]] || die "No encuentro sslocal/ss-local. Instala shadowsocks-rust."
+
+# require redir support
+"$SSLOCAL_BIN" -h 2>&1 | grep -qi "redir" || die "$SSLOCAL_BIN no soporta redir (actualiza shadowsocks-rust)."
+
+[[ -d "$SSHA_DIR" ]] || die "No existe $SSHA_DIR"
+mapfile -t files < <(find "$SSHA_DIR" -maxdepth 1 -type f -name '*.json' -printf '%f\n' 2>/dev/null | sort)
+(( ${#files[@]} )) || die "No hay archivos .json en $SSHA_DIR"
+
+echo "Elige una conexión:"
+for i in "${!files[@]}"; do
+  p="$SSHA_DIR/${files[i]}"
+  s="$(extract_json "$p" server)"
+  sp="$(extract_json "$p" server_port)"
+  st="(unknown)"
+  if [[ -n "${s:-}" && -n "${sp:-}" ]]; then
+    if check_server "$s" "$sp"; then st="(online)"; else st="(offline)"; fi
+  fi
+  printf "%2d) %s %s\n" $((i+1)) "${files[i]}" "$st"
+done
+
+while true; do
+  read -rp "Número (1-${#files[@]}): " sel || exit 130
+  [[ "$sel" =~ ^[0-9]+$ ]] && (( sel>=1 && sel<=${#files[@]} )) && { CFG="$SSHA_DIR/${files[sel-1]}"; break; }
+  echo "Selección inválida."
+done
+
+# ALWAYS bind loopback for OUTPUT redirect
+LOCAL_BIND="127.0.0.1"
+
+# find free port
+PORT="$PORT_BASE"
+if port_in_use "$PORT"; then
+  info "Port $PORT en uso, buscando otro..."
+  for p in $(seq "$PORT_BASE" $((PORT_BASE+150))); do
+    if ! port_in_use "$p"; then PORT="$p"; break; fi
+  done
+  port_in_use "$PORT" && die "No hay puertos libres en rango $PORT_BASE-$((PORT_BASE+150))."
+fi
+ok "Usando $LOCAL_BIND:$PORT"
+
+# kill leftovers to avoid AddrInUse
+pkill -f 'ss-local|sslocal|shadowsocks' 2>/dev/null || true
+
+# iptables OUTPUT redirect: https(443) -> local redir port
+info "iptables: uid=$OWNER_UID TCP 443 -> $PORT"
+sudo iptables -t nat -I OUTPUT -p tcp --dport 443 -m owner --uid-owner "$OWNER_UID" -j REDIRECT --to-ports "$PORT"
+RULE_ADDED=1
+
+# launch sslocal in redir mode
+info "Iniciando $SSLOCAL_BIN (redir) ..."
+# Prefer -b if available, else --local-addr (compat)
+if "$SSLOCAL_BIN" -h 2>&1 | grep -qE '(^|[[:space:]])-b[[:space:]]'; then
+  "$SSLOCAL_BIN" -c "$CFG" -b "$LOCAL_BIND:$PORT" -v --protocol redir --tcp-redir redirect &
+else
+  "$SSLOCAL_BIN" -c "$CFG" -v --protocol redir --tcp-redir redirect --local-addr "$LOCAL_BIND:$PORT" &
+fi
+SS_PID=$!
+
+sleep 0.2
+ss -lntp "sport = :$PORT" || true
+ok "Listo. CTRL+C para salir (limpia la regla)."
+
+wait "$SS_PID"
