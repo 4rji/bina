@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HOST="thp-debian-250G"
+DIR="~/archivebox"
+
+PW="${pwarchibox:-${PWARCHIVEBOX:-}}"
+[[ -z "$PW" ]] && { echo "PW no seteado"; exit 1; }
+
+INPUT="$1"; shift
+DEPTH="0"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -0) DEPTH=0 ;;
+    -1) DEPTH=1 ;;
+    -d) DEPTH="$2"; shift ;;
+    *) echo "flag invalida"; exit 1 ;;
+  esac
+  shift
+done
+
+URL="$INPUT"
+[[ ! "$URL" =~ ^https?:// ]] && URL="https://$URL"
+
+ssh "$HOST" "
+  cd $DIR &&
+  printf '%s\n' '$PW' |
+  docker-compose run --rm archivebox add --depth=$DEPTH '$URL'
+"
+

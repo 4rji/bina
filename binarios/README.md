@@ -658,6 +658,7 @@ pentestfm           Pentester framework con dockers
 4rjiincl            Listo de vulnerabilities con IPs, file inclusion.
 nc64d               Descarga nc64.exe para windows
 archivebox          Archivebox web archive para guardar paginas web, ejecutar con -i para instalar
+archivar            Enviar por ssh una pagina web al servidor archivebox.
 archissh            Manda una pagina al servidor archivebox por ssh
 spiderfoot          Inicia spiderfoot, para instalar -i, funciona en Docker
 javainject          Python que injecta comandos java ascii por terminal, modifica IP en script web busqueda
