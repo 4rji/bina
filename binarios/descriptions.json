@@ -622,7 +622,11 @@
     "name": "logloop",
     "short_desc": "Ejecuta un binario en bucle infinito con reinicio automático.",
     "detailed_desc": "Este script ejecuta un binario proporcionado como argumento dentro de un bucle infinito usando 'nohup' para que continúe ejecutándose tras cerrar la terminal. El binario se reinicia cada 2 segundos después de finalizar. Toda la salida estándar y de error se redirige al archivo 'log.txt'. Uso: ./kigt <ruta_al_binario>."
+    },
+    "encryp": {
+    "name": "encryp",
+    "short_desc": "script; encryp",
+    "detailed_desc": "Usage:\n  encryp -e FileOrDirectory [-p password | -k keyfile]\n  encryp -d FileOrDirectory [-p password | -k keyfile]\n\nFlags:\n  -e           Encrypt mode (required with -d false)\n  -d           Decrypt mode (required with -e false)\n  -p [pass]    Password to derive encryption key (prompts if omitted)\n  -k <keyfile> Key file path for AES-256 key (default: encryption_key.key)\n\nExamples:\n  encryp -e /tmp/data\n  encryp -d /tmp/data -k encryption_key.key\n  encryp -e /tmp/data -p\n  encryp -e /tmp/data -p mypass\n  encryp -d /tmp/data -p"
     }
 
 }
-
