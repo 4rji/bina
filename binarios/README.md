@@ -212,6 +212,7 @@ servidorvideo       Crea en docker alpine como servidor, monta una carpeta para 
 
 
 #Util
+calibresend         Envia por ssh archivos a calibre
 certgenerator       Crea certificados de cloudflare, para cert y cer key
 smbserverinst       Instala smb server en debian con usuario nalasmb o anonimo
 smbserver           smb termporar usando impact en python3

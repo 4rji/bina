@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-HOST="thp-debian-250G"
+HOST="archivebox"
 DIR="~/archivebox"
 DEBUG="${DEBUG:-0}"
 

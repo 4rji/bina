@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DEST_HOST="archivebox"
+DEST_PATH="/home/nala/calibre/ingest"
+
+if [ "$#" -lt 1 ]; then
+  echo "Uso: $0 file [file2 ...]" >&2
+  exit 1
+fi
+
+for f in "$@"; do
+  if [ ! -e "$f" ]; then
+    echo "No existe: $f" >&2
+    exit 1
+  fi
+done
+
+scp -r "$@" "${DEST_HOST}:${DEST_PATH}/"
