@@ -51,5 +51,7 @@ echo "To force dns global and not interface, also DNSoverTls, and DNSSEC"
 echo ""
 echo -e "[Resolve]\nDNS=9.9.9.9 149.112.112.112\nFallbackDNS=2620:fe::fe 2620:fe::9\n#DNSOverTLS=yes\n#DNSSEC=yes\nDNSSEC=allow-downgrade\nDomains=~.\nCache=yes"
 
+echo "Ver LOS DNS request dominios solamente"
+echo "sudo tshark -i any -f "udp port 53" -T fields -e frame.number -e dns.qry.name"
 
 echo ""
