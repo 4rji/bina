@@ -212,6 +212,7 @@ servidorvideo       Crea en docker alpine como servidor, monta una carpeta para 
 
 
 #Util
+calibresend         Envia por ssh archivos a calibre
 certgenerator       Crea certificados de cloudflare, para cert y cer key
 smbserverinst       Instala smb server en debian con usuario nalasmb o anonimo
 smbserver           smb termporar usando impact en python3
@@ -658,6 +659,7 @@ pentestfm           Pentester framework con dockers
 4rjiincl            Listo de vulnerabilities con IPs, file inclusion.
 nc64d               Descarga nc64.exe para windows
 archivebox          Archivebox web archive para guardar paginas web, ejecutar con -i para instalar
+archivar            Enviar por ssh una pagina web al servidor archivebox.
 archissh            Manda una pagina al servidor archivebox por ssh
 spiderfoot          Inicia spiderfoot, para instalar -i, funciona en Docker
 javainject          Python que injecta comandos java ascii por terminal, modifica IP en script web busqueda
@@ -762,4 +764,13 @@ mailinst            Instala mail server en fedora 21. baja archivos de conf y to
 redhavi             Instala misconfiguraciones en linux.
 redhavi-fedora      Para ccdc igual misconfiguraciones
 redhavi-check       Checa las malconfiguraciones
+
+
+
+#otros
+redhavi-check       Checa las malconfiguraciones
+cht                 Pone chattr +i a los binarios de opt
+chtt                chattr -i, quita a los binarios de opt 
+chtm                Pone chattr +i a los binarios de opt/ MAC
+chttm               Pone chattr +i a los binarios de opt para MAC
 

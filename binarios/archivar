@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+HOST="archivebox"
+DIR="~/archivebox"
+DEBUG="${DEBUG:-0}"
+
+log()  { echo "[*] $*" >&2; }
+err()  { echo "[!] ERROR: $*" >&2; }
+die()  { err "$*"; exit 1; }
+
+trap 'die "falló en línea $LINENO"' ERR
+
+# password
+PW="${pwarchibox:-${PWARCHIVEBOX:-}}"
+[[ -z "$PW" ]] && die "PW no seteado (pwarchibox o PWARCHIVEBOX)"
+
+[[ $# -lt 1 ]] && die "Uso: $0 <url|domain> [-0|-1|-d N]"
+
+INPUT="$1"; shift
+DEPTH="0"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -0) DEPTH=0 ;;
+    -1) DEPTH=1 ;;
+    -d) DEPTH="${2:-}"; shift || die "-d requiere valor" ;;
+    *) die "flag inválida: $1" ;;
+  esac
+  shift
+done
+
+URL="$INPUT"
+[[ ! "$URL" =~ ^https?:// ]] && URL="https://$URL"
+
+log "host=$HOST depth=$DEPTH url=$URL"
+
+SSH_CMD="
+cd $DIR &&
+printf '%s\n' '$PW' |
+docker-compose run --rm archivebox add --depth=$DEPTH '$URL'
+"
+
+[[ "$DEBUG" == "1" ]] && log "SSH CMD: $SSH_CMD"
+
+ssh "$HOST" "$SSH_CMD" || die "ssh/docker-compose falló"
