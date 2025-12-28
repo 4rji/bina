@@ -54,6 +54,11 @@ user_pref("webgl.enable-webgl2", false);
 user_pref("dom.maxHardwareConcurrency", 8);
 user_pref("general.userAgent.override", "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0");
 user_pref("general.oscpu.override", "Linux x86_64");
+user_pref("ui.systemUsesDarkTheme", 1);
+user_pref("layout.css.prefers-color-scheme.content-override", 2);
+user_pref("browser.theme.content-theme", 2);
+user_pref("browser.theme.toolbar-theme", 2);
+user_pref("extensions.activeThemeID", "firefox-compact-dark@mozilla.org");
 EOF
 
 # CanvasBlocker
