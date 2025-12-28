@@ -35,7 +35,7 @@ for img in "${imgs[@]}"; do
   [[ ! -r "$img" || ! -f "$img" ]] && continue
 
   ext="${img##*.}"
-  ext="${ext,,}"
+  ext="$(printf '%s' "$ext" | tr '[:upper:]' '[:lower:]')"
   base="${img%.*}"
   out="${base}.webp"
 
