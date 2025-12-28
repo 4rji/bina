@@ -699,7 +699,6 @@ versudo             Inspecciona sudo folder
 sshlist             Para allow en hosts
 portmonitor         Monitorea cuando un puerto se abre, puerto abierto o cerrado. 
 sshautoscript       Crea una conexion para autossh, pregunta datos y crea script
-hashf               crea script para monitorear carpetas, manda alertas wall y logs a /root/
 mapa                Busca un proceso despues del script y lo mata ps aux
 backd               Usa python para buscar backdoors, conexiones activas
 ntpinst             Instala ntp en debian10 
