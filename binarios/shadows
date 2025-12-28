@@ -191,7 +191,7 @@ parse_ips_input() {
 
 run_from_saved() {
   ensure_dir
-  echo_msg "RUN A SAVED CONFIG"
+  echo_msg "to connect to proxies (use shadowsa for ARCH linux)"
 
   configs=()
   if [ "$(uname -s)" = "Darwin" ]; then
