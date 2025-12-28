@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Function to display messages
 echo_msg() {
     echo "=============================================="
     echo "$1"
@@ -13,23 +12,24 @@ OPTIONS=(
   "trafico — Configurable traffic simulator for a specific target"
   "traficoS — HTTPS simulator with predefined domains"
   "sshc — Run same command across every host (module mode enabled)"
+  "ssh_fzf — SSH selector using fzf"
   "Quit"
 )
 
-# full install commands (kept separate so we don't print paths)
 commands=(
   "go install github.com/4rji/LocIp@latest"
   "go install github.com/4rji/binarios-go/trafico/cmd/trafico@latest"
   "go install github.com/4rji/binarios-go/trafico/cmd/traficoS@latest"
   "GO111MODULE=on go install github.com/4rji/binarios-go/sshc@latest"
+  "go install github.com/4rji/binarios-go/ssh_fzf@latest"
 )
 
-# short binary names to display only
 bins=(
   "LocIp"
   "trafico"
   "traficoS"
   "sshc"
+  "ssh_fzf"
 )
 
 echo ""
@@ -78,6 +78,7 @@ case $idx in
   1) echo -e "  \033[36mConfigurable traffic simulator for a specific target.\033[0m" ;;
   2) echo -e "  \033[36mHTTPS simulator with predefined domains.\033[0m" ;;
   3) echo -e "  \033[36mHelper to run the same command across every host (module mode enabled).\033[0m" ;;
+  4) echo -e "  \033[36mInteractive SSH host selector using fzf.\033[0m" ;;
 esac
 
 echo ""
@@ -85,10 +86,8 @@ echo "_________________________________________________________"
 echo ""
 
 echo_msg "$(printf '\033[1;35m%s\033[0m' 'Running')"
-# show only the binary name (no full go path)
 printf "  \033[32mInstalling: %s\033[0m\n\n" "$bin"
 
-# execute the real install command
 eval "$cmd"
 
 echo ""
