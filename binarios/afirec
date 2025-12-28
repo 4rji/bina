@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+
+#requiere el
+# descargar y nombrar Docker : Dockerfile-firefox-completo-afirec
+#   ❯  docker build -t firefox-completo .
+# firefox-completo:latest    e1c848fa25f5        1.4GB          366MB
+
+
 set -e
 
 # ---------- config ----------
