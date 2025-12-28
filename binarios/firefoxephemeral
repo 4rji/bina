@@ -79,7 +79,7 @@ echo "    docker build -t firefox-ephemeral ."
 echo -e "\n\033[36m08) 📄 Contenido de ${USER_JS}:\033[0m"
 cat "$USER_JS"
 
-echo -e "\n\033[32m09) ✅ Ejecuta 'abrirfire' (o 'abrirfirem' en macOS)\033[0m"
+echo -e "\n\033[32m09) ✅ Ejecuta 'firef' (o 'firefm' en macOS)\033[0m"
 
 echo -e "\n\033[33m10) ⚠️ Si hay error:\033[0m"
 echo -e "\033[36m    echo \$DISPLAY   # suele ser :0\033[0m"
