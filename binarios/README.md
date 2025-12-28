@@ -124,7 +124,7 @@ whereismy           Para cambiar el fondo de whereismy en sddm
 targetip            para poner el target en la waybar ./script Palabra
 zshconf             Configuraciones de la zsh, aun no en script, para copiar y pegar
 fastinst            Instala fastfetch, fastconf y fastconfmac para solo el archivo conf.
-comprimidos         Descarga los comprimidos
+binariosgo          Descarga los binarios go, que estan comprimidos (antes comprimidos)
 linuxappinst        Instala app image en linux para que se vean en el inicio
 chr                 aplica chttr +i  a binarios - script binario
 chrr                quita chttr -i a binarios script binario
