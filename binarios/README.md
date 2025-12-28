@@ -192,7 +192,6 @@ nmclihelp           Varios comandos para conectar wifi
 verpw               Verifica los permisos de los archivos /etc/passwd u linux claves
 indexapp            in simple index que ve si la pagina web funciona mensaje app working
 
-4rji                el programa y busqueda de scripts
 mesloinst           Instala las fuentes meslo - font meslo
 mesloinst2          Para instalar manualmente las fuentes (nixos) pero funciona otras - font
 bashfun             Agrega las funciones function a las bash zsh, en zshrc bashrc mktem
