@@ -118,8 +118,9 @@ apagarlcd           Apaga la pantalla de la laptop desde grub, para servidores
 codexx              Muestra los modelos disponibles de codex
 firefoxephemeral    Cambia idioma, Crea dockerfile, y tambien el contenedor para firefox
 abrireph-ext-file   Extrae un archivo bajado en el docker container, hace toddo el proceso
-abrirfire           Script para linux para abrir ephemeral firefox
-abrirfirem          Este es para abrir el firefox ephemeral. tambien puede ser una app en automator 
+afire               Script para linux para abrir ephemeral firefox cambia idioma
+afirec              Script para linux para abrir ephemeral firefox, no idiomas, webrtc proteccion
+afirem              Este es para abrir el firefox ephemeral. tambien puede ser una app en automator 
 whereismy           Para cambiar el fondo de whereismy en sddm
 targetip            para poner el target en la waybar ./script Palabra
 zshconf             Configuraciones de la zsh, aun no en script, para copiar y pegar
