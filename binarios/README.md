@@ -765,3 +765,12 @@ redhavi             Instala misconfiguraciones en linux.
 redhavi-fedora      Para ccdc igual misconfiguraciones
 redhavi-check       Checa las malconfiguraciones
 
+
+
+#otros
+redhavi-check       Checa las malconfiguraciones
+cht                 Pone chattr +i a los binarios de opt
+chtt                chattr -i, quita a los binarios de opt 
+chtm                Pone chattr +i a los binarios de opt/ MAC
+chttm               Pone chattr +i a los binarios de opt para MAC
+
