@@ -46,12 +46,15 @@ have_cmd() { command -v "$1" >/dev/null 2>&1; }
 extract_server_field() {
   local cfg_path="$1"
   local key="$2"
+
   case "$key" in
     server)
-      sed -n 's/.*"server"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$cfg_path" | head -n 1
+      # server: "1.2.3.4"
+      sed -nE 's/.*"server"[[:space:]]*:[[:space:]]*"([^"]+)".*/\1/p' "$cfg_path" | head -n 1
       ;;
     server_port)
-      sed -n 's/.*"server_port"[[:space:]]*:[[:space:]]*\([0-9]\+\).*/\1/p' "$cfg_path" | head -n 1
+      # server_port: 8388  OR  "8388"
+      sed -nE 's/.*"server_port"[[:space:]]*:[[:space:]]*"?([0-9]+)"?.*/\1/p' "$cfg_path" | head -n 1
       ;;
   esac
 }
