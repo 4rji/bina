@@ -18,7 +18,7 @@ case $eleccion in
         ;;
     2)
         echo "Instalando en Arch..."
-        sudo pacman -Syu --noconfirm qemu virt-manager spice-vdagent dnsmasq vde2 bridge-utils openbsd-netcat libvirt
+        sudo pacman -Syu --noconfirm virt-manager spice-vdagent qemu-full dnsmasq vde2 bridge-utils openbsd-netcat libvirt
         sudo systemctl enable --now libvirtd
         # spice-vdagent no se maneja vía systemd en Arch por defecto
         sudo usermod -aG libvirt $(whoami)
