@@ -48,6 +48,7 @@ aprender            Lista de lo que tengo que aprender.
 
 
 ###------hardware stuff
+
 bateriamonitor      Muestra los watts y el estado de carga en kali
 bateria             new script con bateria en lugar de alias
 tempe               or tempe -f temperatura de arch linux y -f crea un archivo con los datos  
@@ -61,6 +62,7 @@ nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 
 
 ###-----Detecciones
+tmpnoexec           Cambia a noexec /tmp modificando el fstab
 decloaktools        Post-detection investigation checklist for decloak analysis
 decloak.py          File decloaking tool to identify possible rootkit-based content hiding
 processdecloak      Busca procesos ocultos en linux
