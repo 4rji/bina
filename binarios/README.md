@@ -177,7 +177,7 @@ x11inst             Instala x11 u otros desktops kali y sddm por default
 batfzf              Instala el theme night tokio para batcat, tambien fzf 
 tiles               Instala la configuracion de tiles sdd manager krohn y da instruciones de descarga
 nvidiapromox        instala nvidia passtrhought 3070, en promox
-nv-agent            Agente de nvidia para gpu monitor
+nv-agent            binario en comprimidos, el agente de nvidia para gpu monitor
 nvidiakali          Instala nvidia en kali, baja el driver  
 limpiarherrabin     Limpia los binarios de /usr/bin/ 
 shm                 Aumenta la memoria de tmp de la /dev/shm, y la limpia con -c
@@ -220,6 +220,8 @@ smbserverinst       Instala smb server en debian con usuario nalasmb o anonimo
 smbserver           smb termporar usando impact en python3
 https-bloq-boots    Detecta IPs al puerto 443 en ips.txt y las bloquea o ralentiza automáticamente vía firewall.
 backd-detect        detecta conexiones sospechosas hacia rangos RFC1918 e identifica procesos asociados
+backde              para detectar conexions, es un binario go
+backd               Muestra conexiones actuales con sus datos detallados, binario go 
 bloquearip          Bloquea IPs (./scrt IP o de ips.txt) agregando a un set ipset y aplicando una regla iptables
 rango-ip            Crea una lista de ips X.X.X y crea una lista de ips 255 con esa subnet
 msmb                monta un smb o samba
@@ -378,7 +380,7 @@ sshlist             Modifica la lista de /etc/hosts allow deny para asegurar la 
 sshhuesped          Huespedes de mi configuracion
 sship               ippsec sshpass el para pasar iniciar ssh sin mensajes ni autorizacion Ippsec
 sshmont             Monta una carpeta usando sshh           Edita el banner de inicio de session de ssh, cuando se loguea
-
+sshc                Binario en comprimidos, que enviar un comando a los host ssh, tipo ansible
 
 #monitor conexiones
 sshc                envia comando a todos los hosts por medio de ssh, tipo ansible
@@ -716,6 +718,7 @@ ftpinst             Instala ftp
 sftpinst            Para sftp instalador de ssh, servidor
 blockicmp           bloquea en firewall cmd
 
+
 fishells             busca procesos, muestra puerto, para shells, usa ps y ss
 kshells             Mata shells en el sistema
 newprocess          Nuevos procesos en linux
@@ -773,4 +776,7 @@ cht                 Pone chattr +i a los binarios de opt
 chtt                chattr -i, quita a los binarios de opt 
 chtm                Pone chattr +i a los binarios de opt/ MAC
 chttm               Pone chattr +i a los binarios de opt para MAC
-
+dominf              Para investigar un dominio dns, real IP, banner, scan, port open, PTR, subdomain
+wifi-radar          En comprimidos, muestra la calidad de la senal wifi en un webserver, necesitas wifi
+wifi-radar-finder   en comprimidos, muestra las redes wifi con su intensidad para buscarlas
+deploy              * -Despliega una máquina vulnerable en Dockerlabs desde una imagen .tar.
