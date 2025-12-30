@@ -779,3 +779,4 @@ chttm               Pone chattr +i a los binarios de opt para MAC
 dominf              Para investigar un dominio dns, real IP, banner, scan, port open, PTR, subdomain
 wifi-radar          En comprimidos, muestra la calidad de la senal wifi en un webserver, necesitas wifi
 wifi-radar-finder   en comprimidos, muestra las redes wifi con su intensidad para buscarlas
+deploy              * -Despliega una máquina vulnerable en Dockerlabs desde una imagen .tar.
