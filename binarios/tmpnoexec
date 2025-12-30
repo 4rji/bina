@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Harden /tmp as tmpfs with mode=1777,nosuid,nodev,noexec (persistent + enforced now)
+# - Updates /etc/fstab without duplicates
+# - Ensures /tmp mount options are applied via explicit remount (no reboot needed)
+
+fstab="/etc/fstab"
+stamp="$(date +%Y%m%d-%H%M%S)"
+entry_re='^[[:space:]]*tmpfs[[:space:]]+/tmp[[:space:]]+tmpfs[[:space:]]+'
+entry="tmpfs  /tmp  tmpfs  mode=1777,nosuid,nodev,noexec  0  0"
+
+need_root() {
+  if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
+    exec sudo -E bash "$0" "$@"
+  fi
+}
+need_root "$@"
+
+echo "[*] Ensuring /tmp exists + perms"
+mkdir -p /tmp
+chmod 1777 /tmp
+
+echo "[*] Backing up fstab"
+cp -a "$fstab" "${fstab}.bak.${stamp}"
+
+echo "[*] Updating $fstab (no duplicates)"
+if grep -Eq "$entry_re" "$fstab"; then
+  tmp="$(mktemp)"
+  awk -v repl="$entry" '
+    BEGIN{done=0}
+    $0 ~ /^[[:space:]]*tmpfs[[:space:]]+\/tmp[[:space:]]+tmpfs[[:space:]]+/ {
+      if (!done) { print repl; done=1; next }
+    }
+    { print }
+  ' "$fstab" > "$tmp"
+  cat "$tmp" > "$fstab"
+  rm -f "$tmp"
+  echo "    Replaced existing tmpfs /tmp entry."
+else
+  echo "$entry" >> "$fstab"
+  echo "    Added new tmpfs /tmp entry."
+fi
+
+echo "[*] Reloading systemd (fstab changed)"
+systemctl daemon-reload || true
+
+echo "[*] Ensuring /tmp is mounted as tmpfs"
+if findmnt -n /tmp >/dev/null 2>&1; then
+  fstype="$(findmnt -n -o FSTYPE /tmp)"
+  if [[ "$fstype" != "tmpfs" ]]; then
+    echo "[!] /tmp is mounted but not tmpfs (fstype=$fstype). Not touching."
+    echo "    You may need to unmount /tmp first or fix your layout."
+    exit 1
+  fi
+else
+  mount /tmp || mount -a
+fi
+
+echo "[*] Applying options now (explicit remount)"
+mount -o remount,mode=1777,nosuid,nodev,noexec /tmp
+
+echo "[*] Verifying /tmp options"
+opts="$(findmnt -n -o OPTIONS /tmp || true)"
+echo "    OPTIONS: $opts"
+
+for x in nosuid nodev noexec; do
+  if ! grep -qw "$x" <<<"$opts"; then
+    echo "[!] Missing option: $x"
+    exit 1
+  fi
+done
+
+echo "[+] Done: /tmp hardened + persistent."
