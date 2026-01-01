@@ -13,6 +13,15 @@ setopt ignoreeof
 #nets para script nets 
 export AllowedIPs=192.168.44.0/24,192.168.222.0/24,192.168.18.0/24,10.0.16.0/24,192.168.99.0/24,192.168.88.0/24,10.0.4.0/24,192.168.8.0/24,192.168.55.0/24,192.168.3.0/24,192.168.5.0/24
 
+#Bindkeys
+#este acompleta cualquier comando con apretar espacio como: sudo !! - !102 - !?docker? 
+bindkey ' ' magic-space
+
+#Para abrir con el editor predeterminado
+#alias -s go='$EDITOR'   (se ejecuta main.go  y abre el archivo con el editor predeterminado sin poner nano o lo que sea)
+#alias -s json='sublime_text'
+#alias -s yaml='sublime_text'
+#alias -s png="open"
 
 
 #alias para neovim chat, para nixos, primero instalar nix-shell -p   neovim y luego clonar   ❯ git clone https://github.com/NvChad/starter ~/.config/nvim
