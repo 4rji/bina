@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# wifi-info-mini: parses `sudo wdutil info` and prints a small summary
+# Usage: sudo ./wifi-info-mini
+
+need_cmd() { command -v "$1" >/dev/null 2>&1 || { echo "missing: $1" >&2; exit 1; }; }
+
+need_cmd wdutil
+need_cmd awk
+
+out="$(wdutil info 2>/dev/null || true)"
+[[ -n "$out" ]] || { echo "wdutil returned no output (try: sudo wdutil info)" >&2; exit 1; }
+
+echo "$out" | awk -F'[: ]+' '
+function trim(s){gsub(/^[ \t]+|[ \t]+$/, "", s); return s}
+BEGIN{
+  dns=""; rssi=""; noise=""; tx=""; cc=""; ip=""; gw=""
+}
+$0 ~ /^[[:space:]]*DNS[[:space:]]/ && $0 ~ /Addresses/ {
+  # line like: "DNS                  : 10.0.4.1" or "DNS Addresses        : 10.0.4.83"
+  sub(/.*:/,"",$0); dns=trim($0)
+}
+$0 ~ /^[[:space:]]*RSSI[[:space:]]*:/        { sub(/.*:/,"",$0); rssi=trim($0) }
+$0 ~ /^[[:space:]]*Noise[[:space:]]*:/       { sub(/.*:/,"",$0); noise=trim($0) }
+$0 ~ /^[[:space:]]*Tx[[:space:]]+Rate[[:space:]]*:/ { sub(/.*:/,"",$0); tx=trim($0) }
+$0 ~ /^[[:space:]]*Country[[:space:]]+Code[[:space:]]*:/ { sub(/.*:/,"",$0); cc=trim($0) }
+$0 ~ /^[[:space:]]*IPv4[[:space:]]+Address[[:space:]]*:/ { sub(/.*:/,"",$0); ip=trim($0) }
+$0 ~ /^[[:space:]]*IPv4[[:space:]]+Router[[:space:]]*:/  { sub(/.*:/,"",$0); gw=trim($0) }
+
+END{
+  if(dns!="")  print "DNS Addresses        : " dns
+  if(rssi!="") print "RSSI                 : " rssi
+  if(noise!="")print "Noise                : " noise
+  if(tx!="")   print "Tx Rate              : " tx
+  if(cc!="")   print "Country Code         : " cc
+  if(ip!="")   print "IPv4 Address         : " ip
+  if(gw!="")   print "IPv4 Router          : " gw
+}
+'
