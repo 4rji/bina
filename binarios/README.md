@@ -3,64 +3,6 @@ sudo nano /etc/sddm.conf.d/virtualkbd.conf
 InputMethod=
 
 
-Github              Binarios
-netstat-cargo-jsonm netstat en formato json para mac
-netstat-cargo-json  netstat en formato json
-netstat-cargom      netstat en formato normal cargo para mac
-netstat-cargo       netstat en formato normal cargo
-
-
-linuxips.           Para dar de alta una interface e ip en oracle
-gobuilder           Crea la estructura en main.go de un script, para go
-crondir             Hace un dir y cat a los cron del sistema
-
-#dominios o ips 
-
-cleanips            Extrae ips, dominios y urls de archivos, limpia y cuenta sort uniq 
-
-
-#DNS
-ctfr                Enumera dominios, con -d starbucks.com por ejemplo o -o output
-
-
-#labs
-lab                 Ejecuta el servidor http 8000 en python para labs, creado ahora htb
-
-#redhat
-dnfrepos            Actualiza unos repos EPEL, y otros, tambien qemu se habilita.
-lolcatinst          Instala gem, ruby y lolcat
-
-
-###------Arch linux
-astrike             Github pentesting, instala herramientas manualmente para arch
-hyplinst            instala hyprland y descarga los dotfiles
-instpkg             Instala un paquete en arch makepkg -si PKGBUILD
-instermius          Instala termius en arch con yay   
-instparu            instala para y scrub para arch (debian no necesita)                            
-ssa_arch            ssa para arch linux
-mackarch            Cambia la MAC de arch linux
-aliasarch           Arregla los alias en arch
-rx6800              Instala el archivo de configuracion en Arch para que funcione la GPU
-
-
-#starlink
-aprender            Lista de lo que tengo que aprender.
-
-
-###------hardware stuff
-
-bateriamonitor      Muestra los watts y el estado de carga en kali
-bateria             new script con bateria en lugar de alias
-tempe               or tempe -f temperatura de arch linux y -f crea un archivo con los datos  
-
-#Nixos
-nixbus              Para buscar programas en linea de comando y tambien corregir bash
-nixclean            Arregla la shell de nixos para los scripts 4rji
-
-#lab
-nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
-
-
 ###-----Detecciones
 tmpnoexec           Cambia a noexec /tmp modificando el fstab
 decloaktools        Post-detection investigation checklist for decloak analysis
@@ -69,32 +11,78 @@ processdecloak      Busca procesos ocultos en linux
 
 
 
-###------utilidades 
-sshc                copia directorio o archivo por ssh, lo comprime y descomprime
-cloudfinst          Para instalar cloudflare para el tunel
-sshterminal         sshx para compartir una terminal en la pagina web, remota, remoto
-gcomall             Hacer commit a gitea 
-fall                Bajar todos los updates de gitea
-pingpublic          Hace ping a direcciones CCDC publicas y ssh
-portopenfake        script basico para abrir puertos en linux, con -t para detener
-socatcomm           Comandos utiles de socat
+#CCDC
 wazuhagent          Instala el agente en linux fedora/ubuntu
 wazuhinst           Instala wazuh. asistente. automatico
-passcheck           Verifica contrasenas en api.pwnedpasswords.com
-dhclientcomm        Comandos para dhclient y para dar de alta un ip en debian
+nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
+crondir             Hace un dir y cat a los cron del sistema
+pingpublic          Hace ping a direcciones CCDC publicas y ssh
+portopenfake        script basico para abrir puertos en linux, con -t para detener
+frpinst             Instala frp y descarga dotfiles
+frpstart            Agregar a crontab para que frp inicio automaticamente. 
+
+
+#linux
+interfacess         imprime ejemplos y comandos de configuración de red, dhcp, 
+
+socatcomm           Comandos utiles de socat
+
+
+###------Arch linux
+astrike             Github pentesting, instala herramientas manualmente para arch
+instpkg             Instala un paquete en arch makepkg -si PKGBUILD
+instparu            instala paru y scrub para arch (debian no necesita)                            
+mackarch            Cambia la MAC de arch linux
+rx6800              Instala el archivo de configuracion en Arch para que funcione la GPU
+
+
+#redhat
+dnfrepos            Actualiza unos repos EPEL, y otros, tambien qemu se habilita.
+lolcatinst          Instala gem, ruby y lolcat
+
+
+
+#instaladores
+hyplinst            instala hyprland y descarga los dotfiles
+lab                 Ejecuta el servidor http 8000 en python para labs, creado ahora htb
+cloudfinst          Para instalar cloudflare para el tunel
 dropinst            sftp cliente para guardar archivos, transferir o extraer
+nodeinst            Instala node en linux debian using nvm with npm
+
+
+#DNS o ips 
+cleanips            Extrae ips, dominios y urls de archivos, limpia y cuenta sort uniq 
+ctfr                Enumera dominios, con -d starbucks.com por ejemplo o -o output
+
+
+#starlink
+aprender            Lista de lo que tengo que aprender.
+
+
+###------hardware stuff
+bateriamonitor      Muestra los watts y el estado de carga en kali
+bateria             new script con bateria en lugar de alias
+tempe               or tempe -f temperatura de arch linux y -f crea un archivo con los datos  
+
+#Nixos
+nixbus              Para buscar programas en linea de comando y tambien corregir bash
+
+
+fall                Bajar todos los updates de gitea
+
+
+###------utilidades 
+sshterminal         sshx para compartir una terminal en la pagina web, remota, remoto
+passcheck           Verifica contrasenas en api.pwnedpasswords.com
 stiginst            Utilidad de verificacion windows por la navy
 lsync               Para syncronizar carpetas, usando archivo lua, rsync. 
 goinst              Instala con go install github, da listas de opciones para binarios
-frpinst             Instala frp y descarga dotfiles
-frpstart            Agregar a crontab para que frp inicio automaticamente. 
 ipsdown             Baja una base de datos de abuseIP para ips maliciosas
 remotehealthinst    Instala el remotehealth como systectl servicio
 remotehealth        Script que expone los servicios con node zeek suric elastic filebeat
 mcptest             Prueba el mcp con la API base 64 de elasticsearch
-nodeinst            Instala node en linux debian using nvm with npm
 testapisearch       Para probar si la API es lectura escritura en elasticsearch
-nalaservicio        Crea un systemctl servicio para la app nala electron.
+
 liberarIP           Cambia la MAC de debian para liberar una IP duplicada, usa dhclient
 zeektest            Prueba filebeat zeek
 zeekmodules         Instala los modules de zeek para filebeat
@@ -351,6 +339,7 @@ findme              Usa el comando find para buscar archivos
 
 
 ###------ssh
+sshc                copia directorio o archivo por ssh, lo comprime y descomprime
 sshp                ssh proxy D 1080 en background, completo, bashfun bash function
 pingt               Hace traceroute con ping
 pings               Hace un ping a todos los hosts dentro de archivo ssh/config
@@ -360,7 +349,6 @@ pssh1               Hace un ping a un servidor y luego se conecta
 sships              Agrega Ips o subnets a allow or deny hosts
 sshsync             Sincroniza el archivo ssh con los nuevos de github. no borra nada
 sshdown             Descarga .ssh/config y crea copia
-ssa                 Busca un host en ssh
 ssk                 kitty +kitten ssh 
 sshexit             Instala un mensaje de salida de ssh en la zsh ZSH
 fixhost             Arregla know_hosts para ssh duplicados
@@ -600,6 +588,7 @@ sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 search              Crea datos para la pagina web, para llenar la base de busqueda search
 
 #Redstuff
+nalaservicio        Crea un systemctl servicio para la app nala electron.
 bincrypter          encripta binarios, tambien hacer contrasenas, ofusca y ejecuta /dev/shm
 wifiaircrack        Aplica aircrack para redes wifi
 wifito              Para matar wifi, deadnet, conectar al wifi y ejecutar con la interface conectada
@@ -780,3 +769,19 @@ dominf              Para investigar un dominio dns, real IP, banner, scan, port 
 wifi-radar          En comprimidos, muestra la calidad de la senal wifi en un webserver, necesitas wifi
 wifi-radar-finder   en comprimidos, muestra las redes wifi con su intensidad para buscarlas
 deploy              * -Despliega una máquina vulnerable en Dockerlabs desde una imagen .tar.
+
+
+Github              Binarios
+netstat-cargo-jsonm netstat en formato json para mac
+netstat-cargo-json  netstat en formato json
+netstat-cargom      netstat en formato normal cargo para mac
+netstat-cargo       netstat en formato normal cargo
+
+gcomall             Hacer commit a gitea 
+
+#descontinuados
+gobuilder           Crea la estructura en main.go de un script, para go
+termiusins          Instala termius en arch con yay   
+nixclean            Arregla la shell de nixos para los scripts 4rji
+ssa                 Busca un host en ssh
+dhclientcomm        Comandos para dhclient y para dar de alta un ip en debian
