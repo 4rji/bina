@@ -1,0 +1,106 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Elige una opción:"
+echo "1) Manual Static Network Config (Preview Only)"
+echo "2) DHCP setup (isc-dhcp-client + dhclient)"
+echo "3) /etc/network/interfaces ejemplo (static)"
+echo "4) NetworkManager (nmcli) + Netplan (Ubuntu) ejemplos"
+echo
+
+read -rp "Opción [1-4]: " opt
+echo
+
+case "${opt}" in
+  1)
+    echo "=== Manual Static Network Config (Preview Only) ==="
+
+    echo
+    echo "# 1. Asigna la IP 10.100.1.200/24 a la interfaz (reemplaza <iface> por la tuya, ej. ens192)"
+    echo "sudo ip addr add 10.100.1.200/24 dev <iface>"
+
+    echo
+    echo "# 2. Activa la interfaz de red"
+    echo "sudo ip link set <iface> up"
+
+    echo
+    echo "# 3. Agrega la ruta por defecto (gateway 10.100.1.254)"
+    echo "sudo ip route add default via 10.100.1.254"
+
+    echo
+    echo "# 4. Define el servidor DNS de Google"
+    echo "echo 'nameserver 8.8.8.8' | sudo tee /etc/resolv.conf"
+
+    echo
+    echo "# 5. Limpia todas las rutas previas (opcional, para evitar conflictos)"
+    echo "sudo ip route flush table main"
+
+    echo
+    echo "=== End of script ==="
+    ;;
+  2)
+    echo "=== Starting network setup ==="
+
+    echo "sudo apt update"
+    echo ""
+    echo "Installing DHCP client..."
+    echo "sudo apt install isc-dhcp-client -y"
+    echo ""
+    echo "Bringing up interface XXX192..."
+
+    echo "sudo ip link set XXX192 up"
+    echo ""
+    echo "Requesting IP via DHCP..."
+    echo "sudo dhclient -v ens192"
+    ;;
+  3)
+    echo ""
+    echo "sudo nano /etc/network/interfaces"
+    echo
+    echo "=== Manual static config example for /etc/network/interfaces ==="
+    echo "auto lo"
+    echo "iface lo inet loopback"
+    echo
+    echo "auto ens192"
+    echo "iface ens192 inet static"
+    echo "  address 10.100.1.200"
+    echo "  netmask 255.255.255.0"
+    echo "  gateway 10.100.1.254"
+    echo "  dns-nameservers 8.8.8.8"
+    echo
+    echo "=== End of script ==="
+    ;;
+  4)
+    echo ""
+    echo ">>> For NetworkManager (nmcli) <<< CentOS, Fedora, Rocky/Alma, Ubuntu, openSUSE"
+
+    echo ""
+    echo "sudo nmcli con add type ethernet ifname ens224 con-name ens224"
+    echo "sudo nmcli con mod ens224 ipv4.method manual ipv4.address \"172.20.242.20/24\" ipv4.gateway \"172.20.240.1\" ipv4.dns \"8.8.8.8\""
+    echo "sudo nmcli con up ens224"
+
+    echo
+    echo "### NETPLAN CONFIG (Ubuntu) ###"
+    echo "Archivo a editar: /etc/netplan/01-netcfg.yaml"
+    echo
+    echo "network:"
+    echo "  version: 2"
+    echo "  ethernets:"
+    echo "    ens192:"
+    echo "      dhcp4: true"
+    echo
+    echo "    ens224:"
+    echo "      addresses:"
+    echo "        - 10.100.1.178/24"
+    echo "      gateway4: 10.100.1.254"
+    echo "      nameservers:"
+    echo "        addresses:"
+    echo "          - 8.8.8.8"
+    echo
+    echo "sudo netplan apply"
+    ;;
+  *)
+    echo "Opción inválida: ${opt}. Usa 1, 2, 3, o 4."
+    exit 1
+    ;;
+esac
