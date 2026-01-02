@@ -1,40 +1,65 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# wifi-info-mini: parses `sudo wdutil info` and prints a small summary
-# Usage: sudo ./wifi-info-mini
+# wifi-mini (macOS): shows key fields from `wdutil info` with color
 
-need_cmd() { command -v "$1" >/dev/null 2>&1 || { echo "missing: $1" >&2; exit 1; }; }
+# ---- colors ----
+if [[ -t 1 ]]; then
+  RED=$'\033[31m'; GRN=$'\033[32m'; YEL=$'\033[33m'; BLU=$'\033[34m'
+  CYA=$'\033[36m'; DIM=$'\033[2m'; RST=$'\033[0m'; BLD=$'\033[1m'
+else
+  RED=""; GRN=""; YEL=""; BLU=""; CYA=""; DIM=""; RST=""; BLD=""
+fi
 
-need_cmd wdutil
-need_cmd awk
+need() { command -v "$1" >/dev/null 2>&1 || { echo "${RED}missing:${RST} $1" >&2; exit 1; }; }
+need wdutil
+need awk
+
+# ---- ensure sudo ----
+if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
+  sudo -v
+  exec sudo -E "$0" "$@"
+fi
 
 out="$(wdutil info 2>/dev/null || true)"
-[[ -n "$out" ]] || { echo "wdutil returned no output (try: sudo wdutil info)" >&2; exit 1; }
+[[ -n "$out" ]] || { echo "${RED}error:${RST} wdutil returned no output" >&2; exit 1; }
 
-echo "$out" | awk -F'[: ]+' '
-function trim(s){gsub(/^[ \t]+|[ \t]+$/, "", s); return s}
-BEGIN{
-  dns=""; rssi=""; noise=""; tx=""; cc=""; ip=""; gw=""
-}
-$0 ~ /^[[:space:]]*DNS[[:space:]]/ && $0 ~ /Addresses/ {
-  # line like: "DNS                  : 10.0.4.1" or "DNS Addresses        : 10.0.4.83"
-  sub(/.*:/,"",$0); dns=trim($0)
-}
-$0 ~ /^[[:space:]]*RSSI[[:space:]]*:/        { sub(/.*:/,"",$0); rssi=trim($0) }
-$0 ~ /^[[:space:]]*Noise[[:space:]]*:/       { sub(/.*:/,"",$0); noise=trim($0) }
-$0 ~ /^[[:space:]]*Tx[[:space:]]+Rate[[:space:]]*:/ { sub(/.*:/,"",$0); tx=trim($0) }
-$0 ~ /^[[:space:]]*Country[[:space:]]+Code[[:space:]]*:/ { sub(/.*:/,"",$0); cc=trim($0) }
-$0 ~ /^[[:space:]]*IPv4[[:space:]]+Address[[:space:]]*:/ { sub(/.*:/,"",$0); ip=trim($0) }
-$0 ~ /^[[:space:]]*IPv4[[:space:]]+Router[[:space:]]*:/  { sub(/.*:/,"",$0); gw=trim($0) }
+# Parse to key=value lines
+kv="$(
+  echo "$out" | awk '
+  function trim(s){gsub(/^[ \t]+|[ \t]+$/, "", s); return s}
+  /^[ \t]*DNS[ \t]/ && /Addresses/ { sub(/.*:/,""); print "DNS=" trim($0) }
+  /^[ \t]*DNS[ \t]*:/              { sub(/.*:/,""); print "DNS=" trim($0) }
+  /^[ \t]*RSSI[ \t]*:/             { sub(/.*:/,""); print "RSSI=" trim($0) }
+  /^[ \t]*Noise[ \t]*:/            { sub(/.*:/,""); print "NOISE=" trim($0) }
+  /^[ \t]*Tx[ \t]+Rate[ \t]*:/      { sub(/.*:/,""); print "TX=" trim($0) }
+  /^[ \t]*Country[ \t]+Code[ \t]*:/ { sub(/.*:/,""); print "CC=" trim($0) }
+  /^[ \t]*IPv4[ \t]+Address[ \t]*:/ { sub(/.*:/,""); print "IP=" trim($0) }
+  /^[ \t]*IPv4[ \t]+Router[ \t]*:/  { sub(/.*:/,""); print "GW=" trim($0) }
+  '
+)"
 
-END{
-  if(dns!="")  print "DNS Addresses        : " dns
-  if(rssi!="") print "RSSI                 : " rssi
-  if(noise!="")print "Noise                : " noise
-  if(tx!="")   print "Tx Rate              : " tx
-  if(cc!="")   print "Country Code         : " cc
-  if(ip!="")   print "IPv4 Address         : " ip
-  if(gw!="")   print "IPv4 Router          : " gw
-}
-'
+# Load vars safely
+DNS=""; RSSI=""; NOISE=""; TX=""; CC=""; IP=""; GW=""
+while IFS='=' read -r k v; do
+  case "$k" in
+    DNS)   DNS="$v" ;;
+    RSSI)  RSSI="$v" ;;
+    NOISE) NOISE="$v" ;;
+    TX)    TX="$v" ;;
+    CC)    CC="$v" ;;
+    IP)    IP="$v" ;;
+    GW)    GW="$v" ;;
+  esac
+done <<< "$kv"
+
+# Pretty output
+echo "${BLD}${CYA}WIFI${RST}"
+echo "${DIM}----------------------------------------${RST}"
+[[ -n "$DNS"   ]] && printf "%sDNS Addresses%s        : %s%s%s\n" "$BLU" "$RST" "$GRN" "$DNS" "$RST"
+[[ -n "$RSSI"  ]] && printf "%sRSSI%s                 : %s%s%s\n" "$BLU" "$RST" "$YEL" "$RSSI" "$RST"
+[[ -n "$NOISE" ]] && printf "%sNoise%s                : %s%s%s\n" "$BLU" "$RST" "$YEL" "$NOISE" "$RST"
+[[ -n "$TX"    ]] && printf "%sTx Rate%s              : %s%s%s\n" "$BLU" "$RST" "$GRN" "$TX" "$RST"
+[[ -n "$CC"    ]] && printf "%sCountry Code%s         : %s%s%s\n" "$BLU" "$RST" "$GRN" "$CC" "$RST"
+[[ -n "$IP"    ]] && printf "%sIPv4 Address%s         : %s%s%s\n" "$BLU" "$RST" "$GRN" "$IP" "$RST"
+[[ -n "$GW"    ]] && printf "%sIPv4 Router%s          : %s%s%s\n" "$BLU" "$RST" "$GRN" "$GW" "$RST"

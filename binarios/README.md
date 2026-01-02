@@ -260,6 +260,10 @@ fixkalirepos	    Borra todo los archivos en /etc/apt/ y luego reinstala y descar
 contenedor          Instala paquetes basicos, util en contenedores docker
 
 
+
+##---- MAC apple
+macinfo             Para ver informacion de mac de wdutil info
+
 ###------nmap scaners
 nmapfire            Crea un archivo xml para firefox
 ultrascan           varios escaneos, menu y todo
