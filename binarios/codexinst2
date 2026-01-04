@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SRC="/opt/4rji/bin/codexinst3.enc"
+DST="./codexinst3.enc"
+
+cp "$SRC" "$DST"
+encryp -d "$DST" -p
