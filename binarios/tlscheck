@@ -1,4 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+# certpin-lite.sh
+# -d : create baseline pins.json
+# -c : check against pins.json
+
+PINS_FILE="pins.json"
 
 DOMAINS=(
   github.com
@@ -10,22 +17,115 @@ DOMAINS=(
   archive.ubuntu.com
 )
 
-for TARGET in "${DOMAINS[@]}"; do
-    echo -e "\n==> Conectando a $TARGET:443"
+usage() {
+  cat <<EOF
+Usage:
+  $0 -d    Create baseline pins.json from embedded domains
+  $0 -c    Check current certificates against pins.json
 
-    OUTPUT=$(echo | timeout 5 openssl s_client -servername "$TARGET" -connect "$TARGET:443" -showcerts 2>/dev/null)
+Description:
+  Lightweight TLS certificate pinning check using SHA256 fingerprints.
+  Useful for detecting TLS interception / MITM.
 
-    if [ $? -ne 0 ]; then
-        echo "❌ Fallo en conexión TLS (timeout o rechazo)"
-        continue
+Exit codes (check mode):
+  0  OK
+  1  Certificate changed (possible rotation)
+  2  Certificate changed + corporate issuer detected
+EOF
+  exit 1
+}
+
+ensure_tools() {
+  command -v openssl >/dev/null || exit 2
+  command -v timeout >/dev/null || exit 2
+}
+
+fetch_cert() {
+  local d="$1"
+  echo | timeout 8 openssl s_client -servername "$d" -connect "$d:443" 2>/dev/null \
+  | openssl x509 -noout -fingerprint -sha256 -issuer -enddate 2>/dev/null
+}
+
+issuer_looks_corp() {
+  echo "$1" | grep -Eqi 'zscaler|bluecoat|palo alto|netskope|forcepoint|symantec|corp|proxy|inspection|gateway|firewall'
+}
+
+create_baseline() {
+  ensure_tools
+  echo "[*] Creating baseline pins.json"
+
+  {
+    echo "{"
+    echo '  "generated_at": "'"$(date -u +"%Y-%m-%dT%H:%M:%SZ")"'",'
+    echo '  "domains": {'
+  } > "$PINS_FILE"
+
+  first=1
+  for d in "${DOMAINS[@]}"; do
+    echo "[*] $d"
+    out="$(fetch_cert "$d")" || continue
+
+    fp="$(echo "$out" | sed -n 's/^sha256 Fingerprint=//p')"
+    issuer="$(echo "$out" | sed -n 's/^issuer=//p')"
+    na="$(echo "$out" | sed -n 's/^notAfter=//p')"
+
+    [ -n "$fp" ] || continue
+    [ $first -eq 1 ] || echo "    ," >> "$PINS_FILE"
+    first=0
+
+    cat >> "$PINS_FILE" <<EOF
+    "$d": {
+      "allowed_sha256": ["$fp"],
+      "last_seen": {
+        "sha256": "$fp",
+        "issuer": "$issuer",
+        "not_after": "$na"
+      }
+    }
+EOF
+  done
+
+  echo "  }" >> "$PINS_FILE"
+  echo "}" >> "$PINS_FILE"
+
+  echo "[+] Baseline saved to pins.json"
+}
+
+check_pins() {
+  ensure_tools
+  [ -f "$PINS_FILE" ] || { echo "pins.json not found"; exit 2; }
+
+  rc=0
+  for d in "${DOMAINS[@]}"; do
+    echo -e "\n==> $d"
+    out="$(fetch_cert "$d")" || { echo "FAIL"; rc=1; continue; }
+
+    fp="$(echo "$out" | sed -n 's/^sha256 Fingerprint=//p')"
+    issuer="$(echo "$out" | sed -n 's/^issuer=//p')"
+
+    echo "SHA256: $fp"
+    echo "Issuer: $issuer"
+
+    if grep -q "$fp" "$PINS_FILE"; then
+      echo "OK"
+    else
+      echo "CHANGED"
+      if issuer_looks_corp "$issuer"; then
+        echo "CORPORATE / TLS INSPECTION SUSPECTED"
+        rc=2
+      else
+        rc=1
+      fi
     fi
+  done
 
-    CN=$(echo "$OUTPUT" | openssl x509 -noout -subject 2>/dev/null | sed -n 's/.*CN *= *//p')
-    PROTO=$(echo "$OUTPUT" | grep -i "Protocol" | head -n1)
-    CIPHER=$(echo "$OUTPUT" | grep -i "Cipher" | head -n1)
+  exit "$rc"
+}
 
-    echo "✅ TLS OK"
-    echo "CN: $CN"
-    echo "$PROTO"
-    echo "$CIPHER"
-done
+[ $# -eq 1 ] || usage
+
+case "$1" in
+  -d) create_baseline ;;
+  -c) check_pins ;;
+  *) usage ;;
+esac

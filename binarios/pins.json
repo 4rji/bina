@@ -1,0 +1,58 @@
+{
+  "generated_at": "2026-01-04T17:36:11Z",
+  "domains": {
+    "github.com": {
+      "allowed_sha256": ["B8:BB:81:87:68:33:87:39:42:04:5A:8D:F8:F0:62:19:E0:06:02:EB:CB:43:84:C7:AB:C2:4F:18:37:9C:87:F5"],
+      "last_seen": {
+        "sha256": "B8:BB:81:87:68:33:87:39:42:04:5A:8D:F8:F0:62:19:E0:06:02:EB:CB:43:84:C7:AB:C2:4F:18:37:9C:87:F5",
+        "issuer": "C=GB, ST=Greater Manchester, L=Salford, O=Sectigo Limited, CN=Sectigo ECC Domain Validation Secure Server CA",
+        "not_after": "Feb  5 23:59:59 2026 GMT"
+      }
+    }
+    ,
+    "deb.debian.org": {
+      "allowed_sha256": ["96:A3:BB:88:4E:1B:76:B0:E9:A0:CA:DE:F5:3C:65:F7:31:DC:70:4D:03:0C:8F:7A:D7:55:2E:A2:BA:EF:33:69"],
+      "last_seen": {
+        "sha256": "96:A3:BB:88:4E:1B:76:B0:E9:A0:CA:DE:F5:3C:65:F7:31:DC:70:4D:03:0C:8F:7A:D7:55:2E:A2:BA:EF:33:69",
+        "issuer": "C=US, O=Let's Encrypt, CN=R12",
+        "not_after": "Apr  1 01:02:29 2026 GMT"
+      }
+    }
+    ,
+    "security.debian.org": {
+      "allowed_sha256": ["6C:2D:40:19:1E:4A:E4:45:22:88:AA:4E:08:6A:DE:01:EB:D4:89:5F:61:11:84:E0:9E:8D:DE:EB:DB:9D:0F:C6"],
+      "last_seen": {
+        "sha256": "6C:2D:40:19:1E:4A:E4:45:22:88:AA:4E:08:6A:DE:01:EB:D4:89:5F:61:11:84:E0:9E:8D:DE:EB:DB:9D:0F:C6",
+        "issuer": "C=US, O=Let's Encrypt, CN=R12",
+        "not_after": "Apr  1 01:08:10 2026 GMT"
+      }
+    }
+    ,
+    "www.chatgpt.com": {
+      "allowed_sha256": ["2E:5D:79:92:33:36:BE:0A:B3:C8:84:4B:68:B2:2A:5B:19:54:C7:F3:F6:2C:70:42:D6:BA:84:46:37:95:D3:F9"],
+      "last_seen": {
+        "sha256": "2E:5D:79:92:33:36:BE:0A:B3:C8:84:4B:68:B2:2A:5B:19:54:C7:F3:F6:2C:70:42:D6:BA:84:46:37:95:D3:F9",
+        "issuer": "C=US, O=Google Trust Services, CN=WE1",
+        "not_after": "Feb 23 02:55:47 2026 GMT"
+      }
+    }
+    ,
+    "docker.io": {
+      "allowed_sha256": ["A0:AD:EC:90:E6:AA:87:87:1B:F6:E0:73:FD:47:71:60:07:2E:73:84:D6:84:8A:7A:EF:7B:49:00:AE:66:88:F3"],
+      "last_seen": {
+        "sha256": "A0:AD:EC:90:E6:AA:87:87:1B:F6:E0:73:FD:47:71:60:07:2E:73:84:D6:84:8A:7A:EF:7B:49:00:AE:66:88:F3",
+        "issuer": "C=US, O=Amazon, CN=Amazon RSA 2048 M03",
+        "not_after": "Apr  3 23:59:59 2026 GMT"
+      }
+    }
+    ,
+    "archive.ubuntu.com": {
+      "allowed_sha256": ["2A:EA:77:E7:5F:85:34:69:F6:3B:18:36:52:44:CF:A6:85:73:75:94:36:7C:99:AC:C1:F4:F6:97:3E:B0:0F:45"],
+      "last_seen": {
+        "sha256": "2A:EA:77:E7:5F:85:34:69:F6:3B:18:36:52:44:CF:A6:85:73:75:94:36:7C:99:AC:C1:F4:F6:97:3E:B0:0F:45",
+        "issuer": "C=US, O=Let's Encrypt, CN=R12",
+        "not_after": "Mar 13 05:15:33 2026 GMT"
+      }
+    }
+  }
+}
