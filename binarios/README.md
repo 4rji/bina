@@ -1,8 +1,3 @@
-sudo nano /etc/sddm.conf.d/virtualkbd.conf
- /etc/sddm.conf.d/virtualkbd.conf                                         
-InputMethod=
-
-
 ###-----Detecciones
 tmpnoexec           Cambia a noexec /tmp modificando el fstab
 decloaktools        Post-detection investigation checklist for decloak analysis
@@ -11,7 +6,8 @@ processdecloak      Busca procesos ocultos en linux
 
 
 
-#CCDC
+
+###------CCDC
 wazuhagent          Instala el agente en linux fedora/ubuntu
 wazuhinst           Instala wazuh. asistente. automatico
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
@@ -22,9 +18,10 @@ frpinst             Instala frp y descarga dotfiles
 frpstart            Agregar a crontab para que frp inicio automaticamente. 
 
 
-#linux
-interfacess         imprime ejemplos y comandos de configuración de red, dhcp, 
 
+###------linux
+interfacess         imprime ejemplos y comandos de configuración de red, dhcp, 
+liberarIP           Cambia la MAC de debian para liberar una IP duplicada, usa dhclient
 socatcomm           Comandos utiles de socat
 
 
@@ -36,18 +33,26 @@ mackarch            Cambia la MAC de arch linux
 rx6800              Instala el archivo de configuracion en Arch para que funcione la GPU
 
 
-#redhat
+
+###------redhat
 dnfrepos            Actualiza unos repos EPEL, y otros, tambien qemu se habilita.
 lolcatinst          Instala gem, ruby y lolcat
 
 
 
-#instaladores
+
+###------instaladores
 hyplinst            instala hyprland y descarga los dotfiles
 lab                 Ejecuta el servidor http 8000 en python para labs, creado ahora htb
 cloudfinst          Para instalar cloudflare para el tunel
 dropinst            sftp cliente para guardar archivos, transferir o extraer
 nodeinst            Instala node en linux debian using nvm with npm
+elast-fileb-inst    Instala y configura elasticsearch, filebeat y envio suricata logs
+zeekinst            Zeek para debian 12 y 13
+oniuxinst           Instala cargo, oniux y curl ip
+fastinst            Instala fastfetch, fastconf y fastconfmac para solo el archivo conf.
+searchinst          Instala searxng que es como google pero privado.
+lazydinst           Instala lazydocker con go. instala go tambien
 
 
 #DNS o ips 
@@ -68,8 +73,6 @@ tempe               or tempe -f temperatura de arch linux y -f crea un archivo c
 nixbus              Para buscar programas en linea de comando y tambien corregir bash
 
 
-fall                Bajar todos los updates de gitea
-
 
 ###------utilidades 
 sshterminal         sshx para compartir una terminal en la pagina web, remota, remoto
@@ -82,50 +85,41 @@ remotehealthinst    Instala el remotehealth como systectl servicio
 remotehealth        Script que expone los servicios con node zeek suric elastic filebeat
 mcptest             Prueba el mcp con la API base 64 de elasticsearch
 testapisearch       Para probar si la API es lectura escritura en elasticsearch
-
-liberarIP           Cambia la MAC de debian para liberar una IP duplicada, usa dhclient
 zeektest            Prueba filebeat zeek
 zeekmodules         Instala los modules de zeek para filebeat
-elast-fileb-inst    Instala y configura elasticsearch, filebeat y envio suricata logs
 suricatatest        Test que prueba conectividad de filebeat con suricata y elasticsearch
-zeekinst            Zeek para debian 12 y 13
 zeeklogs            Muestra los logs de spool (live) y los muestra tambien
 audiodown           Baja sonidos de archivos de cualquier pagina, usa node y puppeteer
 tlscheck            Prueba TLS a múltiples dominios,y detecta bloqueos o fallos de handshake.
 ddtest              probar rendimiento de escritura en disco (benchmark de I/O).
 cleandefaulroute    elimina rutas default creadas por interfaces veth* (docker kasm error)
 linux-shortcut      Pasos para crear un shortcut en linux 
-mac-route           Prioritizar wifi sobre ethernet en mac
+mac-route           Prioritizar wifi sobre ethernet en mac (discontinued)
+codexx              Muestra los modelos disponibles de codex (discondinued)
+zshconf             Configuraciones de la zsh, aun no en script, para copiar y pegar (discontinued)
+
 zipcheck            Muestra zip de 10 ciudades top y permite consultar zipcodes
 urlextract          Extrae url de dominios
-oniuxinst           Instala cargo, oniux y curl ip
 pgaa                pega y ejecuta scripts -g go -b para bash para mac
 pga                 pega y ejecuta scripts -g go -b para bash para Arch
 enviarnc            Envia archivos con bash puro, NO NC, hace sha256sum
 recibenc            recibe archivos con nc, usando enviarnc hace sha256sum  
-descrip             Formato para hacer AI que haga una description para todo
 apagarlcd           Apaga la pantalla de la laptop desde grub, para servidores
-codexx              Muestra los modelos disponibles de codex
 firefoxephemeral    Cambia idioma, Crea dockerfile, y tambien el contenedor para firefox
 abrireph-ext-file   Extrae un archivo bajado en el docker container, hace toddo el proceso
 afire               Script para linux para abrir ephemeral firefox cambia idioma
 afirec              Script para linux para abrir ephemeral firefox, no idiomas, webrtc proteccion
 afirem              Este es para abrir el firefox ephemeral. tambien puede ser una app en automator 
-whereismy           Para cambiar el fondo de whereismy en sddm
+whereismyfondo      Para cambiar el fondo de whereismy en sddm
 targetip            para poner el target en la waybar ./script Palabra
-zshconf             Configuraciones de la zsh, aun no en script, para copiar y pegar
-fastinst            Instala fastfetch, fastconf y fastconfmac para solo el archivo conf.
 binariosgo          Descarga los binarios go, que estan comprimidos (antes comprimidos)
 linuxappinst        Instala app image en linux para que se vean en el inicio
-chr                 aplica chttr +i  a binarios - script binario
-chrr                quita chttr -i a binarios script binario
-cpng                Convierte png a webp en mac usango magik
 webc                Convierte todas las imagens png a webp en mac
 gocomm              compila un binario en go, muestra como hacerlo tambien
 nets                Comprueba el acceso a subnets en la variable allowips como wireguard.
 qemuagent           Habilita en proxmox los qemu agentes a todas las VMs
-searchinst          Instala searxng que es como google pero privado.
-lazydinst           Instala lazydocker con go. instala go tambien
+
+
 miniserver          Abre un mini server http para subir o descargar, con authenticacion
 webmonitor          Website que monitorea hping3 y inundaciones, apache, test, ddos
 kasm                Abre una pagina en kasm  kasm google.com ejemplo
@@ -780,7 +774,7 @@ netstat-cargo-jsonm netstat en formato json para mac
 netstat-cargo-json  netstat en formato json
 netstat-cargom      netstat en formato normal cargo para mac
 netstat-cargo       netstat en formato normal cargo
-
+fall                Bajar todos los updates de gitea
 gcomall             Hacer commit a gitea 
 
 #descontinuados
