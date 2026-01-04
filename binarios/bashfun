@@ -99,6 +99,13 @@ bindkey '^S' fzf_ssh_go
 
 
 
+#todo
+todo_todo() {
+        /opt/4rji/bin/todo </dev/tty >/dev/tty 2>&1
+}
+zle -N todo_todo 
+bindkey '^T' todo_todo
+
 
 
 function mktem() {
