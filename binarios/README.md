@@ -3,7 +3,7 @@ tmpnoexec           Cambia a noexec /tmp modificando el fstab
 decloaktools        Post-detection investigation checklist for decloak analysis
 decloak.py          File decloaking tool to identify possible rootkit-based content hiding
 processdecloak      Busca procesos ocultos en linux
-
+tlscheck            TLS cert check using SHA256 Useful for detecting TLS interception - MITM.
 
 ptysnoop.bt         Hace snoop in tty, sudo bpftrace -Bnone ptysnoop.bt 99999
 
@@ -18,13 +18,22 @@ pingpublic          Hace ping a direcciones CCDC publicas y ssh
 portopenfake        script basico para abrir puertos en linux, con -t para detener
 frpinst             Instala frp y descarga dotfiles
 frpstart            Agregar a crontab para que frp inicio automaticamente. 
-
+ptysnoop
+fwinst              Agrega servicios y puertos a firewall-cmd
+ttyinicio           Crea mensaje de inicio de tty para ver la ip del servidor debian
 
 
 ###------linux
 interfacess         imprime ejemplos y comandos de configuración de red, dhcp, 
 liberarIP           Cambia la MAC de debian para liberar una IP duplicada, usa dhclient
 socatcomm           Comandos utiles de socat
+linuxappinst        Instala app image en linux para que se vean en el inicio
+whereismysddm       Para cambiar el fondo de whereismy en sddm
+targetip            para poner el target en la waybar ./script Palabra
+ddtest              probar rendimiento de escritura en disco (benchmark de I/O).
+cleandefaulroute    elimina rutas default creadas por interfaces veth* (docker kasm error)
+linux-shortcut      Pasos para crear un shortcut en linux 
+apagarlcd           Apaga la pantalla de la laptop desde grub, para servidores
 
 
 ###------Arch linux
@@ -92,42 +101,26 @@ zeekmodules         Instala los modules de zeek para filebeat
 suricatatest        Test que prueba conectividad de filebeat con suricata y elasticsearch
 zeeklogs            Muestra los logs de spool (live) y los muestra tambien
 audiodown           Baja sonidos de archivos de cualquier pagina, usa node y puppeteer
-tlscheck            Prueba TLS a múltiples dominios,y detecta bloqueos o fallos de handshake.
-ddtest              probar rendimiento de escritura en disco (benchmark de I/O).
-cleandefaulroute    elimina rutas default creadas por interfaces veth* (docker kasm error)
-linux-shortcut      Pasos para crear un shortcut en linux 
-mac-route           Prioritizar wifi sobre ethernet en mac (discontinued)
-codexx              Muestra los modelos disponibles de codex (discondinued)
-zshconf             Configuraciones de la zsh, aun no en script, para copiar y pegar (discontinued)
+
 
 zipcheck            Muestra zip de 10 ciudades top y permite consultar zipcodes
 urlextract          Extrae url de dominios
 pgaa                pega y ejecuta scripts -g go -b para bash para mac
 pga                 pega y ejecuta scripts -g go -b para bash para Arch
-enviarnc            Envia archivos con bash puro, NO NC, hace sha256sum
-recibenc            recibe archivos con nc, usando enviarnc hace sha256sum  
-apagarlcd           Apaga la pantalla de la laptop desde grub, para servidores
 firefoxephemeral    Cambia idioma, Crea dockerfile, y tambien el contenedor para firefox
 abrireph-ext-file   Extrae un archivo bajado en el docker container, hace toddo el proceso
 afire               Script para linux para abrir ephemeral firefox cambia idioma
 afirec              Script para linux para abrir ephemeral firefox, no idiomas, webrtc proteccion
 afirem              Este es para abrir el firefox ephemeral. tambien puede ser una app en automator 
-whereismysddm       Para cambiar el fondo de whereismy en sddm
-targetip            para poner el target en la waybar ./script Palabra
 binariosgo          Descarga los binarios go, que estan comprimidos (antes comprimidos)
-linuxappinst        Instala app image en linux para que se vean en el inicio
 webc                Convierte todas las imagens png a webp en mac
 gocomm              compila un binario en go, muestra como hacerlo tambien
 nets                Comprueba el acceso a subnets en la variable allowips como wireguard.
 qemuagent           Habilita en proxmox los qemu agentes a todas las VMs
-
-
 miniserver          Abre un mini server http para subir o descargar, con authenticacion
 webmonitor          Website que monitorea hping3 y inundaciones, apache, test, ddos
 kasm                Abre una pagina en kasm  kasm google.com ejemplo
-servidores          Inicia el programa servidores que es la webapp de flash para proxmox
-servidoresprogram   El codigo de servidores para proxmox servidores
-fwinst              Agrega servicios y puertos a firewall-cmd
+
 crontadd            Agrega tareas al cront para ejecutarse en tiempo
 batinst             Instala batcat en debian .deb -i dpkg
 lsdinst             Instala lsd en debian .deb -i dpkg
@@ -145,7 +138,8 @@ yazi                Como ranger para ver fotos, esta en comprimidos.
 fire                Abre firefox con distrobox, -g para google, -d duckducl. sin - para los dos
 nviminst            Instala neovim, nvchad, 
 fkinst              Instala fk para corregir comando en terminal con pip python
-ttyinicio           Crea mensaje de inicio de tty para ver la ip del servidor debian
+
+
 wwinst              Crea el script ww que es la presentacion de colores del host
 barrierinst         Instala barrier debian flatpat, crea alias barrier
 coll                Muestra comandos con colores con batcat y un tmp archivo
@@ -588,6 +582,8 @@ sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 search              Crea datos para la pagina web, para llenar la base de busqueda search
 
 #Redstuff
+enviarnc            Envia archivos con bash puro, NO NC, hace sha256sum
+recibenc            recibe archivos con nc, usando enviarnc hace sha256sum  
 nalaservicio        Crea un systemctl servicio para la app nala electron.
 bincrypter          encripta binarios, tambien hacer contrasenas, ofusca y ejecuta /dev/shm
 wifiaircrack        Aplica aircrack para redes wifi
@@ -663,6 +659,7 @@ privado             Instrucciones para dirtpipe, tienes que tener gcc, para root
 4rjivuln            comprueba simple file inclusion
 pspy64              procesos servicios newprocess pspy 
 shells              Copia al portapapeles varias tipo de shells, pregunta IP y general el comando
+
 
 #HTB shorcuts
 htbinst             Algunas instrucciones, hacer un whx a ese binario 
@@ -785,3 +782,8 @@ termiusins          Instala termius en arch con yay
 nixclean            Arregla la shell de nixos para los scripts 4rji
 ssa                 Busca un host en ssh
 dhclientcomm        Comandos para dhclient y para dar de alta un ip en debian
+mac-route           Prioritizar wifi sobre ethernet en mac (discontinued)
+codexx              Muestra los modelos disponibles de codex (discondinued)
+zshconf             Configuraciones de la zsh, aun no en script, para copiar y pegar (discontinued)
+servidores          Inicia el programa servidores que es la webapp de flash para proxmox
+servidoresprogram   El codigo de servidores para proxmox servidores

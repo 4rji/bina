@@ -647,6 +647,11 @@
     "name": "encryp",
     "short_desc": "script; encryp",
     "detailed_desc": "Usage:\n  encryp -e FileOrDirectory [-p password | -k keyfile]\n  encryp -d FileOrDirectory [-p password | -k keyfile]\n\nFlags:\n  -e           Encrypt mode (required with -d false)\n  -d           Decrypt mode (required with -e false)\n  -p [pass]    Password to derive encryption key (prompts if omitted)\n  -k <keyfile> Key file path for AES-256 key (default: encryption_key.key)\n\nExamples:\n  encryp -e /tmp/data\n  encryp -d /tmp/data -k encryption_key.key\n  encryp -e /tmp/data -p\n  encryp -e /tmp/data -p mypass\n  encryp -d /tmp/data -p"
+    },
+    "tlscheck": {
+        "name": "tlscheck",
+        "short_desc": "Lightweight TLS certificate pinning check using SHA256 fingerprints.",
+        "detailed_desc": "Lightweight TLS certificate pinning check using SHA256 fingerprints.\nUseful for detecting TLS interception / MITM.\n\nExit codes (check mode):\n  0  OK\n  1  Certificate changed (possible rotation)\n  2  Certificate changed + corporate issuer detected"
     }
 
 }
