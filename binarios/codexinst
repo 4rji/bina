@@ -46,6 +46,7 @@ install_and_try() {
   echo_msg "$(echo -e "\033[1;36m  Installing $PKG  \033[0m")"
   echo ""
   echo -e "\033[1;33m  Running: sudo npm install -g $PKG  \033[0m"
+  echo -e "\033[1;33m  Get the key with codexinst2.enc \033[0m"
   sudo npm install -g "$PKG"
   echo ""
   echo -e "\033[1;32m  $PKG installed.  \033[0m"
@@ -53,6 +54,7 @@ install_and_try() {
   if command -v "$CMD" >/dev/null 2>&1; then
     echo ""
     echo_msg "$(echo -e "\033[1;36m  Executing: $CMD $VERFLAG  \033[0m")"
+    echo_msg "$(echo -e "\033[1;36m  Get the key for codex with codexinst2.enc  \033[0m")"
     echo ""
     "$CMD" $VERFLAG || true
   else

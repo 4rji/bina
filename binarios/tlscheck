@@ -5,7 +5,7 @@ set -euo pipefail
 # -d : create baseline pins.json from embedded domains
 # -c : check against pins.json
 
-PINS_FILE="pins.json"
+PINS_FILE="/opt/4rji/bin/pins.json"
 
 DOMAINS=(
   github.com
