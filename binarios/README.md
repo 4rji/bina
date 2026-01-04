@@ -5,6 +5,8 @@ decloak.py          File decloaking tool to identify possible rootkit-based cont
 processdecloak      Busca procesos ocultos en linux
 
 
+ptysnoop.bt         Hace snoop in tty, sudo bpftrace -Bnone ptysnoop.bt 99999
+
 
 
 ###------CCDC
