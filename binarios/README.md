@@ -110,7 +110,7 @@ abrireph-ext-file   Extrae un archivo bajado en el docker container, hace toddo 
 afire               Script para linux para abrir ephemeral firefox cambia idioma
 afirec              Script para linux para abrir ephemeral firefox, no idiomas, webrtc proteccion
 afirem              Este es para abrir el firefox ephemeral. tambien puede ser una app en automator 
-whereismyfondo      Para cambiar el fondo de whereismy en sddm
+whereismysddm       Para cambiar el fondo de whereismy en sddm
 targetip            para poner el target en la waybar ./script Palabra
 binariosgo          Descarga los binarios go, que estan comprimidos (antes comprimidos)
 linuxappinst        Instala app image en linux para que se vean en el inicio
