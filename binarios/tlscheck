@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # certpin-lite.sh
-# -d : create baseline pins.json
+# -d : create baseline pins.json from embedded domains
 # -c : check against pins.json
 
 PINS_FILE="pins.json"
@@ -13,9 +13,16 @@ DOMAINS=(
   security.debian.org
   www.google.com
   www.chatgpt.com
-  docker.io
+  www.cloudflare.com
   archive.ubuntu.com
 )
+
+# --- colors ---
+RED="\033[31m"; GRN="\033[32m"; YLW="\033[33m"; BLU="\033[34m"; CYN="\033[36m"; RST="\033[0m"
+ok()    { echo -e "${GRN}$*${RST}"; }
+warn()  { echo -e "${YLW}$*${RST}"; }
+bad()   { echo -e "${RED}$*${RST}"; }
+info()  { echo -e "${CYN}$*${RST}"; }
 
 usage() {
   cat <<EOF
@@ -29,30 +36,32 @@ Description:
 
 Exit codes (check mode):
   0  OK
-  1  Certificate changed (possible rotation)
-  2  Certificate changed + corporate issuer detected
+  1  Certificate changed (possible rotation/CDN)
+  2  MITM suspected (corporate/inspection issuer)
 EOF
   exit 1
 }
 
 ensure_tools() {
-  command -v openssl >/dev/null || exit 2
-  command -v timeout >/dev/null || exit 2
+  command -v openssl >/dev/null || { bad "Missing: openssl"; exit 2; }
+  command -v timeout >/dev/null || { bad "Missing: timeout (coreutils)"; exit 2; }
 }
 
 fetch_cert() {
   local d="$1"
   echo | timeout 8 openssl s_client -servername "$d" -connect "$d:443" 2>/dev/null \
-  | openssl x509 -noout -fingerprint -sha256 -issuer -enddate 2>/dev/null
+  | openssl x509 -noout -fingerprint -sha256 -issuer -subject -enddate 2>/dev/null
 }
 
 issuer_looks_corp() {
-  echo "$1" | grep -Eqi 'zscaler|bluecoat|palo alto|netskope|forcepoint|symantec|corp|proxy|inspection|gateway|firewall'
+  # add/remove keywords based on what you see in your environment
+  echo "$1" | grep -Eqi \
+    'zscaler|bluecoat|broadcom|palo alto|netskope|forcepoint|symantec|checkpoint|fortinet|sophos|cisco|umbrella|proxy|inspection|decrypt|gateway|firewall|corp|corporate'
 }
 
 create_baseline() {
   ensure_tools
-  echo "[*] Creating baseline pins.json"
+  info "[*] Creating baseline pins.json"
 
   {
     echo "{"
@@ -62,14 +71,16 @@ create_baseline() {
 
   first=1
   for d in "${DOMAINS[@]}"; do
-    echo "[*] $d"
-    out="$(fetch_cert "$d")" || continue
+    info "[*] $d"
+    out="$(fetch_cert "$d")" || { warn "[!] fail $d (skip)"; continue; }
 
     fp="$(echo "$out" | sed -n 's/^sha256 Fingerprint=//p')"
     issuer="$(echo "$out" | sed -n 's/^issuer=//p')"
+    subj="$(echo "$out" | sed -n 's/^subject=//p')"
     na="$(echo "$out" | sed -n 's/^notAfter=//p')"
 
-    [ -n "$fp" ] || continue
+    [ -n "$fp" ] || { warn "[!] no fp $d (skip)"; continue; }
+
     [ $first -eq 1 ] || echo "    ," >> "$PINS_FILE"
     first=0
 
@@ -79,6 +90,7 @@ create_baseline() {
       "last_seen": {
         "sha256": "$fp",
         "issuer": "$issuer",
+        "subject": "$subj",
         "not_after": "$na"
       }
     }
@@ -88,34 +100,40 @@ EOF
   echo "  }" >> "$PINS_FILE"
   echo "}" >> "$PINS_FILE"
 
-  echo "[+] Baseline saved to pins.json"
+  ok "[+] Baseline saved to $PINS_FILE"
 }
 
 check_pins() {
   ensure_tools
-  [ -f "$PINS_FILE" ] || { echo "pins.json not found"; exit 2; }
+  [ -f "$PINS_FILE" ] || { bad "pins.json not found (run $0 -d first)"; exit 2; }
 
   rc=0
+
   for d in "${DOMAINS[@]}"; do
-    echo -e "\n==> $d"
-    out="$(fetch_cert "$d")" || { echo "FAIL"; rc=1; continue; }
+    echo -e "\n${BLU}==> $d${RST}"
+    out="$(fetch_cert "$d")" || { bad "❌ FAIL (timeout/blocked)"; rc=$((rc==2?2:1)); continue; }
 
     fp="$(echo "$out" | sed -n 's/^sha256 Fingerprint=//p')"
     issuer="$(echo "$out" | sed -n 's/^issuer=//p')"
+    na="$(echo "$out" | sed -n 's/^notAfter=//p')"
 
     echo "SHA256: $fp"
     echo "Issuer: $issuer"
+    echo "NotAfter: $na"
 
-    if grep -q "$fp" "$PINS_FILE"; then
-      echo "OK"
+    if grep -qF "$fp" "$PINS_FILE"; then
+      ok "✅ OK (matches baseline)"
+      continue
+    fi
+
+    # Changed fingerprint
+    if issuer_looks_corp "$issuer"; then
+      bad "🚨 MITM SUSPECTED (corporate/TLS inspection issuer)"
+      bad "    -> Action: compare from a different network, or inspect system trust store / proxy settings."
+      rc=2
     else
-      echo "CHANGED"
-      if issuer_looks_corp "$issuer"; then
-        echo "CORPORATE / TLS INSPECTION SUSPECTED"
-        rc=2
-      else
-        rc=1
-      fi
+      warn "⚠️  CHANGED (likely rotation/CDN). If expected, add this fp to allowed_sha256."
+      rc=$((rc==2?2:1))
     fi
   done
 
@@ -123,7 +141,6 @@ check_pins() {
 }
 
 [ $# -eq 1 ] || usage
-
 case "$1" in
   -d) create_baseline ;;
   -c) check_pins ;;
