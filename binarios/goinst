@@ -12,6 +12,7 @@ OPTIONS=(
   "trafico — Configurable traffic simulator for a specific target"
   "traficoS — HTTPS simulator with predefined domains"
   "sshc — Run same command across every host (module mode enabled)"
+  "vulnx — Map CVEs to affected products and versions"
   "ssh_fzf — SSH selector using fzf"
   "Quit"
 )
@@ -21,6 +22,7 @@ commands=(
   "go install github.com/4rji/binarios-go/trafico/cmd/trafico@latest"
   "go install github.com/4rji/binarios-go/trafico/cmd/traficoS@latest"
   "GO111MODULE=on go install github.com/4rji/binarios-go/sshc@latest"
+  "go install github.com/projectdiscovery/cvemap/cmd/vulnx@latest"
   "go install github.com/4rji/binarios-go/ssh_fzf@latest"
 )
 
@@ -29,6 +31,7 @@ bins=(
   "trafico"
   "traficoS"
   "sshc"
+  "vulnx"
   "ssh_fzf"
 )
 
@@ -77,8 +80,9 @@ case $idx in
   0) echo -e "  \033[36mLocate IPs from the CLI.\033[0m" ;;
   1) echo -e "  \033[36mConfigurable traffic simulator for a specific target.\033[0m" ;;
   2) echo -e "  \033[36mHTTPS simulator with predefined domains.\033[0m" ;;
-  3) echo -e "  \033[36mHelper to run the same command across every host (module mode enabled).\033[0m" ;;
-  4) echo -e "  \033[36mInteractive SSH host selector using fzf.\033[0m" ;;
+  3) echo -e "  \033[36mRun the same command across multiple hosts.\033[0m" ;;
+  4) echo -e "  \033[36mMap CVEs to affected products and versions.\033[0m" ;;
+  5) echo -e "  \033[36mInteractive SSH host selector using fzf.\033[0m" ;;
 esac
 
 echo ""
