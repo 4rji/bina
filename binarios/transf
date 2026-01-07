@@ -29,6 +29,7 @@ echo ""
 echo $'\e[1;33mEn la máquina que envía:\e[0m'
 echo $'\e[1;36msheldonf -ip- 1234 file\e[0m'
 echo ""
+echo "RECEIVER tambien es binario go"
 echo "_________________________________________________________"
 echo ""
 
