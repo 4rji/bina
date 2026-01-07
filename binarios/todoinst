@@ -25,5 +25,6 @@ git clone https://github.com/4rji/todo
 # Copiar imágenes de img-bin/binarios al directorio destino
 cd todo/binarios || exit
 sudo cp -r * /opt/4rji/img-bin
-
+wget https://raw.githubusercontent.com/4rji/bina/refs/heads/main/binarios/descriptions.json
+sudo mv descriptions.json /opt/4rji/bin
 echo "Proceso completado."
