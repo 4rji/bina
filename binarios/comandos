@@ -1,61 +1,100 @@
 #!/usr/bin/env bash
-echo -e "\033[0;32m#----------------------------------#\033[0m"
-echo "# IP Route Deletion"
-echo "sudo ip route del default via 192.168.88.1 dev wlp0s20f3"
+set -euo pipefail
 
-echo -e "\033[0;32m#----------------------------------#\033[0m"
-echo "# Nmap Commands"
-echo "nmap -sL (hostnames)"
-echo "nmap --script vuln IP"
-echo "nmap --script malware IP"
-echo "nmap --source-port 53 IP/24"
-echo "nmap -D RND:10 IP/24"
+# interactive-cheats.sh
+# Requiere: bash
+# Opcional: fzf (mejor UX), wl-copy/xclip/pbcopy para clipboard
 
-echo -e "\033[0;32m#----------------------------------#\033[0m"
-echo "# Nvidia Driver Installation"
-echo "sudo apt install linux-headers-$(uname -r)"
+GREEN=$'\033[0;32m'; NC=$'\033[0m'
+CMD_COLOR=$'\033[0;36m'
 
-echo -e "\033[0;32m#----------------------------------#\033[0m"
-echo "# NSE Script Search"
-echo "locate .nse | xargs grep 'categories' | grep -oP '\".*?\"' | sort -u"
+have() { command -v "$1" >/dev/null 2>&1; }
 
-echo -e "\033[0;32m#----------------------------------#\033[0m"
-echo "# Masscan Usage Examples"
-echo "sudo masscan -p22,80,445,8080,443 192.168.142.156/26 --rate=10000"
-echo "sudo masscan -p1-65535 10.0.4.0/24 --top-ports 100 --rate=10000 -i wlan0"
+copy_clipboard() {
+  local s="$1"
+  if have wl-copy; then printf "%s" "$s" | wl-copy
+  elif have pbcopy; then printf "%s" "$s" | pbcopy
+  elif have xclip; then printf "%s" "$s" | xclip -selection clipboard
+  else return 1
+  fi
+}
 
-echo -e "\033[0;32m#----------------------------------#\033[0m"
-echo "# Nmap for Vulnerability and Safety"
-echo "nmap -p[puerto] 192.10.0.88 --script='vuln and safe' -sV"
+# === DATA ===
+# Formato: "SECCION<TAB>DESCRIPCION<TAB>COMANDO"
+mapfile -t ITEMS <<'EOF'
+IP Route Deletion	Delete default route	sudo ip route del default via 192.168.88.1 dev wlp0s20f3
+Nmap Commands	List hostnames	nmap -sL (hostnames)
+Nmap Commands	Vuln scripts	nmap --script vuln IP
+Nmap Commands	Malware scripts	nmap --script malware IP
+Nmap Commands	Source port 53	nmap --source-port 53 IP/24
+Nmap Commands	Decoys	nmap -D RND:10 IP/24
+Nvidia Driver Installation	Install headers	sudo apt install linux-headers-$(uname -r)
+NSE Script Search	List NSE categories	locate .nse | xargs grep 'categories' | grep -oP '\".*?\"' | sort -u
+Masscan Usage Examples	Scan common ports	sudo masscan -p22,80,445,8080,443 192.168.142.156/26 --rate=10000
+Masscan Usage Examples	Top ports 100	sudo masscan -p1-65535 10.0.4.0/24 --top-ports 100 --rate=10000 -i wlan0
+Nmap for Vulnerability and Safety	Vuln and safe	nmap -p[puerto] 192.10.0.88 --script='vuln and safe' -sV
+Process and Port Investigation	lsof by port	lsof -i:puerto
+Process and Port Investigation	pwdx by PID	pwdx PID
+Network Capturing Tools	tcpdump capture	tcpdump -i interfase -w captura.cap -v
+Network Capturing Tools	tshark read	tshark -r captura.cap 2>/dev/null
+Network Scanning	arp-scan range	sudo arp-scan -I wlan0 10.0.4.1-10.0.4.254
+Network Scanning	netdiscover	sudo netdiscover -i wlan0
+SSH Connection Keep-Alive	Keepalive flags	ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=3 usuario@servidor
+Moving Files Example	Move py files up	find . -mindepth 2 -type f -name '*.py' -exec mv {} . \;
+Hydra Usage Example	SSH brute force (authorized)	hydra -L users -P passwords ssh://$ip
+FTP Payload Inspection with Tshark	Extract payload	tshark -r 0.pcap -Y 'ftp' -Tfields -e tcp.payload 2>/dev/null | xxd -ps -r
+EOF
 
-echo -e "\033[0;32m#----------------------------------#\033[0m"
-echo "# Process and Port Investigation"
-echo "lsof -i:puerto"
-echo "pwdx PID"
+extract_cmd() {
+  local line="$1"
+  awk -F'\t' '{print $2}' <<<"$line"
+}
 
-echo -e "\033[0;32m#----------------------------------#\033[0m"
-echo "# Network Capturing Tools"
-echo "tcpdump -i interfase -w captura.cap -v"
-echo "tshark -r captura.cap 2>/dev/null"
+header() {
+  echo -e "${GREEN}#----------------------------------#${NC}"
+}
 
-echo -e "\033[0;32m#----------------------------------#\033[0m"
-echo "# Network Scanning"
-echo "sudo arp-scan -I wlan0 10.0.4.1-10.0.4.254"
-echo "netdiscover -i wlan0"
+pick_with_fzf() {
+  local prompt="$1"; shift
+  printf "%s\0" "$@" | fzf \
+    --read0 \
+    --ansi \
+    --exact \
+    --prompt="$prompt> " \
+    --height=80% \
+    --layout=reverse \
+    --border \
+    --delimiter=$'\t' \
+    --with-nth=1
+}
 
-echo -e "\033[0;32m#----------------------------------#\033[0m"
-echo "# SSH Connection Keep-Alive"
-echo "ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=3 usuario@servidor"
+main() {
+  if ! have fzf; then
+    echo "Instala fzf para filtrar mientras escribes."
+    printf "%s\n" "${ITEMS[@]}" | awk -F'\t' '{printf "- %s — %s\n", $2, $3}'
+    exit 1
+  fi
 
-echo -e "\033[0;32m#----------------------------------#\033[0m"
-echo "# Moving Files Example"
-echo "find . -mindepth 2 -type f -name '*.py' -exec mv {} . \;"
+  local display=()
+  for l in "${ITEMS[@]}"; do
+    local sec desc cmd item
+    IFS=$'\t' read -r sec desc cmd <<<"$l"
+    item="${sec} | ${desc}"$'\n'"  ${CMD_COLOR}${cmd}${NC}"$'\t'"${cmd}"
+    display+=("$item")
+  done
 
-echo -e "\033[0;32m#----------------------------------#\033[0m"
-echo "# Hydra Usage Example"
-echo "hydra -L users -P passwords ssh://$ip"
+  header
+  echo "# Cheats interactivo"
+  echo "# Escribe para filtrar • ENTER para seleccionar"
+  echo
 
-echo -e "\033[0;32m#----------------------------------#\033[0m"
-echo "# FTP Payload Inspection with Tshark"
-echo "tshark -r 0.pcap -Y 'ftp' -Tfields -e tcp.payload 2>/dev/null | xxd -ps -r"
-echo -e "\033[0;32m#----------------------------------#\033[0m"
+  local choice cmd
+  choice="$(pick_with_fzf "Comando" "${display[@]}")" || exit 0
+  [[ -z "${choice:-}" ]] && exit 0
+
+  cmd="$(extract_cmd "$choice")"
+  printf "%s\n" "$cmd"
+  copy_clipboard "$cmd" >/dev/null 2>&1 || true
+}
+
+main "$@"
