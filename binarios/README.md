@@ -64,6 +64,21 @@ oniuxinst           Instala cargo, oniux y curl ip
 fastinst            Instala fastfetch, fastconf y fastconfmac para solo el archivo conf.
 searchinst          Instala searxng que es como google pero privado.
 lazydinst           Instala lazydocker con go. instala go tambien
+instpowershell      Descarga nishang powershell modules
+amigo2inst          Instala ollama para linux, y descarga un modelo deepseek-coder-v2
+openboxinst         Instala openbox que es un escritorio ligero, tambien instala chromium
+nviminst            Instala neovim, nvchad, 
+fkinst              Instala fk para corregir comando en terminal con pip python
+xrdpinst            Instala xrdp, inicia el servicio y copia la configuracion para plasma #vnc
+lxdeinst            Remueve xrpd e instala lxde que usa Lightweight X11 para equipos lentos #vnc
+vnckali             (USAR xrdp) x11vnc, si no funciona install Xvfb and posiblemente install full kde. 
+x11inst             Instala x11 u otros desktops kali y sddm por default
+batfzf              Instala el theme night tokio para batcat, tambien fzf 
+tiles               Instala la configuracion de tiles sdd manager krohn y da instruciones de descarga
+nvidiapromox        instala nvidia passtrhought 3070, en promox
+nv-agent            binario en comprimidos, el agente de nvidia para gpu monitor
+nvidiakali          Instala nvidia en kali, baja el driver  
+
 
 
 #DNS o ips 
@@ -120,38 +135,22 @@ webmonitor          Website que monitorea hping3 y inundaciones, apache, test, d
 kasm                Abre una pagina en kasm  kasm google.com ejemplo
 crontadd            Agrega tareas al cront para ejecutarse en tiempo
 transf              Enviar recibir archivos instrucciones
-rutaadd             Agrega dev, ruta a ip r, no funciona aun.
-loop and loopp      While true; function and script, loop is the function.
-instpowershell      Descarga nishang powershell modules
+rutaadd             Agrega dev, ruta a ip r, no funciona aun. route
 colores             Colores en hexadecimal
-amigo2inst          Instala ollama para linux, y descarga un modelo deepseek-coder-v2
 amigo               chatbot para openai, requiere API, se instala con amigoinst y amigoinst2
 apache9000          Modifica la configuracion de apache para correr en el puerto 80 y otro puerto
-openboxinst         Instala openbox que es un escritorio ligero, tambien instala chromium
 pwdc                Copia el directorio actual con pwd y xclip
 yazi                Como ranger para ver fotos, esta en comprimidos.
 fire                Abre firefox con distrobox, -g para google, -d duckducl. sin - para los dos
-nviminst            Instala neovim, nvchad, 
-fkinst              Instala fk para corregir comando en terminal con pip python
-
-
-wwinst              Crea el script ww que es la presentacion de colores del host
-barrierinst         Instala barrier debian flatpat, crea alias barrier
 coll                Muestra comandos con colores con batcat y un tmp archivo
 wgett               Descarga archivos con wget, carpeta completa reescribiendo o no
-xrdpinst            Instala xrdp, inicia el servicio y copia la configuracion para plasma #vnc
-lxdeinst            Remueve xrpd e instala lxde que usa Lightweight X11 para equipos lentos #vnc
-vnckali             (USAR xrdp) x11vnc, si no funciona install Xvfb and posiblemente install full kde. 
 rutainter           Definir la via ruta de internet cuando hay 2 interfaces internet
 veloint             iperf3 para medir la velocidad de ethernet o conexion, instrucciones e instala
 velodisk            mide la velocidad de lectura y escritura disco con dd y fio.
 grepfind            incorpora grep y find en un script para buscar palabras en archivos
-x11inst             Instala x11 u otros desktops kali y sddm por default
-batfzf              Instala el theme night tokio para batcat, tambien fzf 
-tiles               Instala la configuracion de tiles sdd manager krohn y da instruciones de descarga
-nvidiapromox        instala nvidia passtrhought 3070, en promox
-nv-agent            binario en comprimidos, el agente de nvidia para gpu monitor
-nvidiakali          Instala nvidia en kali, baja el driver  
+
+
+
 limpiarherrabin     Limpia los binarios de /usr/bin/ 
 shm                 Aumenta la memoria de tmp de la /dev/shm, y la limpia con -c
 verlos              fzf alias a preview de archivos con cat,  nvim $verlos
@@ -783,3 +782,7 @@ codexx              Muestra los modelos disponibles de codex (discondinued)
 zshconf             Configuraciones de la zsh, aun no en script, para copiar y pegar (discontinued)
 servidores          Inicia el programa servidores que es la webapp de flash para proxmox
 servidoresprogram   El codigo de servidores para proxmox servidores
+loopp               While true; function and script, loop is the function.
+wwinst              Crea el script ww que es la presentacion de colores del host
+barrierinst         Instala barrier debian flatpat, crea alias barrier
+
