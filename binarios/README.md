@@ -34,6 +34,18 @@ ddtest              probar rendimiento de escritura en disco (benchmark de I/O).
 cleandefaulroute    elimina rutas default creadas por interfaces veth* (docker kasm error)
 linux-shortcut      Pasos para crear un shortcut en linux 
 apagarlcd           Apaga la pantalla de la laptop desde grub, para servidores
+shm                 Aumenta la memoria de tmp de la /dev/shm, y la limpia con -c
+yazi                Como ranger para ver fotos, esta en comprimidos.
+fire                Abre firefox con distrobox, -g para google, -d duckducl. sin - para los dos
+rutainter           Definir la via ruta de internet cuando hay 2 interfaces internet
+wgett               Descarga archivos con wget, carpeta completa reescribiendo o no
+veloint             iperf3 para medir la velocidad de ethernet o conexion, instrucciones e instala
+velodisk            mide la velocidad de lectura y escritura disco con dd y fio.
+coll                Muestra comandos con colores con batcat y un tmp archivo
+apache9000          Modifica la configuracion de apache para correr en el puerto 80 y otro puerto
+pwdc                Copia el directorio actual con pwd y xclip
+
+
 
 
 ###------Arch linux
@@ -42,6 +54,12 @@ instpkg             Instala un paquete en arch makepkg -si PKGBUILD
 instparu            instala paru y scrub para arch (debian no necesita)                            
 mackarch            Cambia la MAC de arch linux
 rx6800              Instala el archivo de configuracion en Arch para que funcione la GPU
+wifiinterfaces      Arregla wifi en kali, terminal grafica texto, debian wifi GUI gui
+wifikali            Crea wifi redes para kali nuevos system-connections
+wifiraspi           agrega una red wifi en raspberry zero probada
+refresh_wifi.sh     script para reiniciar wifi en raspberry 
+nmcliwifi           Instrucciones para guardar wifi con nmcli
+nmclihelp           Varios comandos para conectar wifi
 
 
 
@@ -65,7 +83,6 @@ fastinst            Instala fastfetch, fastconf y fastconfmac para solo el archi
 searchinst          Instala searxng que es como google pero privado.
 lazydinst           Instala lazydocker con go. instala go tambien
 instpowershell      Descarga nishang powershell modules
-amigo2inst          Instala ollama para linux, y descarga un modelo deepseek-coder-v2
 openboxinst         Instala openbox que es un escritorio ligero, tambien instala chromium
 nviminst            Instala neovim, nvchad, 
 fkinst              Instala fk para corregir comando en terminal con pip python
@@ -78,7 +95,11 @@ tiles               Instala la configuracion de tiles sdd manager krohn y da ins
 nvidiapromox        instala nvidia passtrhought 3070, en promox
 nv-agent            binario en comprimidos, el agente de nvidia para gpu monitor
 nvidiakali          Instala nvidia en kali, baja el driver  
-
+mesloinst           Instala las fuentes meslo - font meslo
+mesloinst2          Para instalar manualmente las fuentes (nixos) pero funciona otras - font
+servidorvideo       Crea en docker alpine como servidor, monta una carpeta para ver videos que hay en ella.                                     
+smbserverinst       Instala smb server en debian con usuario nalasmb o anonimo
+smbserver           smb termporar usando impact en python3
 
 
 #DNS o ips 
@@ -137,95 +158,39 @@ crontadd            Agrega tareas al cront para ejecutarse en tiempo
 transf              Enviar recibir archivos instrucciones
 rutaadd             Agrega dev, ruta a ip r, no funciona aun. route
 colores             Colores en hexadecimal
-amigo               chatbot para openai, requiere API, se instala con amigoinst y amigoinst2
-apache9000          Modifica la configuracion de apache para correr en el puerto 80 y otro puerto
-pwdc                Copia el directorio actual con pwd y xclip
-yazi                Como ranger para ver fotos, esta en comprimidos.
-fire                Abre firefox con distrobox, -g para google, -d duckducl. sin - para los dos
-coll                Muestra comandos con colores con batcat y un tmp archivo
-wgett               Descarga archivos con wget, carpeta completa reescribiendo o no
-rutainter           Definir la via ruta de internet cuando hay 2 interfaces internet
-veloint             iperf3 para medir la velocidad de ethernet o conexion, instrucciones e instala
-velodisk            mide la velocidad de lectura y escritura disco con dd y fio.
 grepfind            incorpora grep y find en un script para buscar palabras en archivos
-
-
-
-limpiarherrabin     Limpia los binarios de /usr/bin/ 
-shm                 Aumenta la memoria de tmp de la /dev/shm, y la limpia con -c
-verlos              fzf alias a preview de archivos con cat,  nvim $verlos
 todos               Hace un fzf a el directorio 4rj, con cat -l rb, para abrir usar nvim $(todos)
-ayudabinario        Aplica -h mensaje para mostrar al inicio de un script
-s4vit               Muestra varios comandos aprendidos s4vi
-usuario             Crea un usuario en bash, automatico.
-wifiinterfaces      Arregla wifi en kali, terminal grafica texto, debian wifi GUI gui
-wifikali            Crea wifi redes para kali nuevos system-connections
-wifiraspi           agrega una red wifi en raspberry zero probada
-refresh_wifi.sh     script para reiniciar wifi en raspberry 
-nmcliwifi           Instrucciones para guardar wifi con nmcli
-nmclihelp           Varios comandos para conectar wifi
-verpw               Verifica los permisos de los archivos /etc/passwd u linux claves
-indexapp            in simple index que ve si la pagina web funciona mensaje app working
-
-mesloinst           Instala las fuentes meslo - font meslo
-mesloinst2          Para instalar manualmente las fuentes (nixos) pero funciona otras - font
+ayudah              Aplica -h mensaje para mostrar al inicio de un script
+comandos            Muestra varios comandos en lista. util
 bashfun             Agrega las funciones function a las bash zsh, en zshrc bashrc mktem
 whx                 hace un xargs cat a un binario y pregunta si deseo editarlo #ejemplo whx mired     
 whr                 hace un nano a un binario    
-restaurando         Restaura "" y limpia mas bien mi sistema, -t programar
 cxx                 chmod +x y luego ./ ejecuta el script
 cx                  chmod +x sin ejecutarlonetw
 timeout_2h          Para ejecutar comandos por un tiempo determinado timeout 4 (4 segundos y cierra)
-ruta_archivo        copia la ruta del archivo en el portapapeles                                       
-clipc               Copia el ultimo comando escrito en la terminal
+ruta                Copia la ruta del archivo en el portapapeles                                       
+lastc               ALIAS - Copia el ultimo comando escrito en la terminal
 clipa_archivo       copia el contenido del archivo al portapapeles                                     
 pas                 Copia el contenido del portapapeles en la variable $htcon
-jfirefox            firejail a firefox             
-lid                 cambia el comportamiento de lid laptop         
-servidorvideo       Crea en docker alpine como servidor, monta una carpeta para ver videos que hay en ella.                                     
-
-
-#Util
 calibresend         Envia por ssh archivos a calibre
 certgenerator       Crea certificados de cloudflare, para cert y cer key
-smbserverinst       Instala smb server en debian con usuario nalasmb o anonimo
-smbserver           smb termporar usando impact en python3
 https-bloq-boots    Detecta IPs al puerto 443 en ips.txt y las bloquea o ralentiza automáticamente vía firewall.
-backd-detect        detecta conexiones sospechosas hacia rangos RFC1918 e identifica procesos asociados
-backde              para detectar conexions, es un binario go
-backd               Muestra conexiones actuales con sus datos detallados, binario go 
-bloquearip          Bloquea IPs (./scrt IP o de ips.txt) agregando a un set ipset y aplicando una regla iptables
-rango-ip            Crea una lista de ips X.X.X y crea una lista de ips 255 con esa subnet
-msmb                monta un smb o samba
-smbcomm             Explota samba, arregla s tty, consola interactiva, control c     
-servidor            Inicia y detiene un servidor apache en 8080                                                         
 adio                borra un archivo con scrub                                                         
 adios               borra toda una carpeta con scrub                                                   
 herrabin            actualiza los binarios, funciones, alias y 2-4rji.sh,   -o para omitir binarios 
 herrabinp           para pacman, existe para yum, y para dnf, y apt es la normal de arriba herrabin
 herralias           Actualiza los binarios descargando solo alias
-worms               Comprime una carpeta y la manda por worms, se ejecuta: worms ruta_carpeta          
+zipsend             Comprime y envia una carpeta por airsend -f
+zipsendm            Comprime y envia una carpeta por airsend -f
 cscp                copiar archivos en scp en lugar de sftp    
 csftp               copia un archivo por sftp hubicado en home, pregunta la IP y usuario y archivo     
 weather             Muestra el clima geolocalizacion usar
-depurar             para depurar un script y ver su ejecusion: ❯  bash -x ./script
-lfcd                para moverme con cd  #copiar el plugin a zsh
 mdcolors            Genera colores para archivos md 
 maquinasova         Convierte maquinas ova para qemu
-limpiartest         Genera archivos de varios tamanos para probar
-limpiar             Limpia el home con shred y scrub (solo home del usuario actual)
-cortes              Muestra cortes archivos con awk cut (no grep or find)
 genarc              genera archivos conjuntos de 100 MB
-ddf                 hace un diff archivo vs archivo.backup                                             
-copycar	            Copia una carpeta folder por medio de ssh scp
-copyrsyn            Usa hosts ansible y copia un archivo con rsync y clave privada
-copyrrs             Copia archivo por rsync preguntado hosts y puerto
-copyrs              Copia archivo o carpeta por rsync usando sshconf
-copyrsm             Copia archivo o carpeta por rsync usando sshconf
-copyrs-old          Copia archivo por rsync usando sshconf 
-copyrsr             Recibe un archivo por medio de rsync
-shtb                Syncroniza carpetas con rsync entre servidores, para htb vmqemu
-mackali	            Cambia la MAC de kali
+
+
+
 ncdu                para ver los archivos grandes, liberar espacio disco tamano
 netevils            aun no se                                                                          
 fzf                 buscador bueno, solo tipiar fzf 
@@ -786,4 +751,21 @@ servidoresprogram   El codigo de servidores para proxmox servidores
 loopp               While true; function and script, loop is the function.
 wwinst              Crea el script ww que es la presentacion de colores del host
 barrierinst         Instala barrier debian flatpat, crea alias barrier
+amigo               chatbot para openai, requiere API, se instala con amigoinst y amigoinst2
+amigo2inst          Instala ollama para linux, y descarga un modelo deepseek-coder-v2
+limpiarherrabin     Limpia los binarios de /usr/bin/ 
+verlos              Alias fzf  a preview de archivos con cat,  nvim $verlos
+indexapp            in simple index que ve si la pagina web funciona mensaje app working
+jfirefox            Alias firejail a firefox             
+worms               Comprime una carpeta y la manda por worms, se ejecuta: worms ruta_carpeta          
+limpiar             NO USAR  Limpia el home con shred y scrub (solo home del usuario actual)
+limpiartest         Genera archivos de varios tamanos para probar
+cortes              Muestra cortes archivos con awk cut (no grep or find)
+ddf                 hace un diff archivo vs archivo.backup                                             
+copyrrs             Copia archivo por rsync preguntado hosts y puerto
+copyrs              Copia archivo o carpeta por rsync usando sshconf
+copyrs-old          Copia archivo por rsync usando sshconf 
+copyrsr             Recibe un archivo por medio de rsync
+copyrsyn            Usa hosts ansible y copia un archivo con rsync y clave privada
+copycar	            Copia una carpeta folder por medio de ssh scp
 
