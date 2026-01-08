@@ -652,6 +652,11 @@
         "name": "tlscheck",
         "short_desc": "Lightweight TLS certificate pinning check using SHA256 fingerprints.",
         "detailed_desc": "Lightweight TLS certificate pinning check using SHA256 fingerprints.\nUseful for detecting TLS interception / MITM.\n\nExit codes (check mode):\n  0  OK\n  1  Certificate changed (possible rotation)\n  2  Certificate changed + corporate issuer detected"
+    },
+    "receiver": {
+        "name": "receiver",
+        "short_desc": "Escucha en 0.0.0.0:1235 para recibir archivos via netcat.",
+        "detailed_desc": "Este binario inicia un listener en 0.0.0.0:1235 y muestra las interfaces IPv4 disponibles. Indica como enviar un archivo desde otro host con: nc -q 0 <listener-ip> 1235 < archivo. Util para recibir archivos rapidamente con netcat hasta que el usuario presione Ctrl+C."
     }
 
 }

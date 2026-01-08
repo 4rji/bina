@@ -101,8 +101,6 @@ zeekmodules         Instala los modules de zeek para filebeat
 suricatatest        Test que prueba conectividad de filebeat con suricata y elasticsearch
 zeeklogs            Muestra los logs de spool (live) y los muestra tambien
 audiodown           Baja sonidos de archivos de cualquier pagina, usa node y puppeteer
-
-
 zipcheck            Muestra zip de 10 ciudades top y permite consultar zipcodes
 urlextract          Extrae url de dominios
 pgaa                pega y ejecuta scripts -g go -b para bash para mac
@@ -120,10 +118,7 @@ qemuagent           Habilita en proxmox los qemu agentes a todas las VMs
 miniserver          Abre un mini server http para subir o descargar, con authenticacion
 webmonitor          Website que monitorea hping3 y inundaciones, apache, test, ddos
 kasm                Abre una pagina en kasm  kasm google.com ejemplo
-
 crontadd            Agrega tareas al cront para ejecutarse en tiempo
-batinst             Instala batcat en debian .deb -i dpkg
-lsdinst             Instala lsd en debian .deb -i dpkg
 transf              Enviar recibir archivos instrucciones
 rutaadd             Agrega dev, ruta a ip r, no funciona aun.
 loop and loopp      While true; function and script, loop is the function.
@@ -584,6 +579,7 @@ search              Crea datos para la pagina web, para llenar la base de busque
 #Redstuff
 enviarnc            Envia archivos con bash puro, NO NC, hace sha256sum
 recibenc            recibe archivos con nc, usando enviarnc hace sha256sum  
+receiver            Recibidor de go para recibir archivos por nc
 nalaservicio        Crea un systemctl servicio para la app nala electron.
 bincrypter          encripta binarios, tambien hacer contrasenas, ofusca y ejecuta /dev/shm
 wifiaircrack        Aplica aircrack para redes wifi
