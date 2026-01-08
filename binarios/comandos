@@ -39,6 +39,9 @@ Network Capturing Tools	tcpdump capture	tcpdump -i interfase -w captura.cap -v
 Network Capturing Tools	tshark read	tshark -r captura.cap 2>/dev/null
 Network Scanning	arp-scan range	sudo arp-scan -I wlan0 10.0.4.1-10.0.4.254
 Network Scanning	netdiscover	sudo netdiscover -i wlan0
+Rsync Usage	Pull home (default ssh)	rsync -avz --progress a user@host:~/
+Rsync Usage	Pull home (ssh port 2244)	rsync -avz --progress -e "ssh -p 2244" a user@host:~/
+Rsync Usage	Pull home (ssh identity)	rsync -avz --progress -e "ssh -i ~/.ssh/id_ed25519" a user@host:~/
 SSH Connection Keep-Alive	Keepalive flags	ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=3 usuario@servidor
 Moving Files Example	Move py files up	find . -mindepth 2 -type f -name '*.py' -exec mv {} . \;
 Hydra Usage Example	SSH brute force (authorized)	hydra -L users -P passwords ssh://$ip
