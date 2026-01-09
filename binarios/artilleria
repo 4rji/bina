@@ -75,11 +75,6 @@ done
 # Clone the Artillery repository
 git clone https://github.com/BinaryDefense/artillery.git
 
-#Download from my repo
-#git clone https://github.com/4rji/4rji.git
-#unzip artillery.zip
-# Change to the artillery directory
-#cd artillery/
 cd artillery
 # Run the setup script
 sudo python3 setup.py
