@@ -1,25 +1,24 @@
 #!/usr/bin/env bash
-echo ""
-# Ubicación del archivo de inventario de Ansible
-#ARCHIVO_INVENTARIO="ansible_hosts"
-echo "Asegúrate de que ansible_hosts esté en la carpeta ~/.ssh"
 
-echo ""
-# Pedir al usuario el comando a ejecutar
-echo -n "Ingresa el comando que deseas ejecutar en los hosts: "
-read COMANDO
+# Location of the Ansible inventory file
+INVENTORY_FILE="ansible_hosts"
 
-# Mostrar el comando de Ansible que se ejecutará
-echo "El comando a ejecutar es: "
-echo "ansible all -i $HOME/.ssh/ansible_hosts -m shell -a '$COMANDO' "
-echo ""
-# Pedir confirmación al usuario
-echo -n "¿Quieres enviar la orden? (s/n): "
-read CONFIRMACION
+# Prompt the user for the command to execute
+echo -n "Enter the command you want to run on the hosts: "
+read COMMAND
 
-if [ "$CONFIRMACION" = "s" ]; then
-  # Ejecutar el comando de Ansible
-  ansible all -i $HOME/.ssh/ansible_hosts -m shell -a "$COMANDO" 
+# Display the Ansible command that will be executed
+echo "The command to be executed is: "
+echo "ansible all -i $INVENTORY_FILE -m shell -a '$COMMAND' "
+echo ""
+
+# Ask for user confirmation
+echo -n "Do you want to send the command? (y/n): "
+read CONFIRMATION
+
+if [ "$CONFIRMATION" = "y" ]; then
+  # Execute the Ansible command
+  ansible all -i $INVENTORY_FILE -m shell -a "$COMMAND" 
 else
-  echo "Operación cancelada."
+  echo "Operation canceled."
 fi

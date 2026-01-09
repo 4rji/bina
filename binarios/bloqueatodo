@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+# Show current rules
+sudo iptables -L
+
+echo "^^^^ Select an option ^^^^"
+echo "1. Enable firewall (DROP all by default)"
+echo "2. Disable firewall (ACCEPT all, flush rules)"
+read -r option
+
+case "$option" in
+    1)
+        echo "Enabling firewall (default DROP)..."
+        sudo iptables -P INPUT DROP
+        sudo iptables -P FORWARD DROP
+        sudo iptables -P OUTPUT DROP
+        ;;
+    2)
+        echo "Disabling firewall (default ACCEPT)..."
+        sudo iptables -F
+        sudo iptables -P INPUT ACCEPT
+        sudo iptables -P FORWARD ACCEPT
+        sudo iptables -P OUTPUT ACCEPT
+        ;;
+    *)
+        echo "Invalid option. Exiting."
+        exit 1
+        ;;
+esac
+
+echo "Current iptables rules:"
+sudo iptables -L
