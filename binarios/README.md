@@ -18,7 +18,7 @@ pingpublic          Hace ping a direcciones CCDC publicas y ssh
 portopenfake        script basico para abrir puertos en linux, con -t para detener
 frpinst             Instala frp y descarga dotfiles
 frpstart            Agregar a crontab para que frp inicio automaticamente. 
-ptysnoop
+
 fwinst              Agrega servicios y puertos a firewall-cmd
 ttyinicio           Crea mensaje de inicio de tty para ver la ip del servidor debian
 
@@ -188,19 +188,10 @@ weather             Muestra el clima geolocalizacion usar
 mdcolors            Genera colores para archivos md 
 maquinasova         Convierte maquinas ova para qemu
 genarc              genera archivos conjuntos de 100 MB
-
-
-
 ncdu                para ver los archivos grandes, liberar espacio disco tamano
-netevils            aun no se                                                                          
-fzf                 buscador bueno, solo tipiar fzf 
-procesos            Muestra los procesos de los usuarios sin PID, no PID
-proceso             Investiga un proceso con varias opciones
-servicios           Encuentra servicios que no son del kernel linux corriendo.
-findinst             Busca si un programa esta instalado, en dpkg - apt - systemctl
 ctl {servicio}      Aplica un sudo systemctl a un servicio
-findpak             Busca paquetes y servicios que esten instalados en varias distros
 logilogsclean       Limpia archivos de una carpeta de logitech en mac, para evitar datos en disco
+
 
 ###------Repositorios
 fixme               corre fix-4rji para solucionar repositorios despuies de la instalacion             
@@ -209,16 +200,16 @@ fixkalirepos	    Borra todo los archivos en /etc/apt/ y luego reinstala y descar
 contenedor          Instala paquetes basicos, util en contenedores docker
 
 
-
 ##---- MAC apple
 macinfo             Para ver informacion de mac de wdutil info
 
+
 ###------nmap scaners
 nmapfire            Crea un archivo xml para firefox
-ultrascan           varios escaneos, menu y todo
+ultrascan           varios escaneos, menu y todoq
 nmap-full           Create a html file with full scan of network
 nmap-half           Same has full, just half of scann no vuln or smb
-nmap-html           nmap A -O -sV  nmap -A -O -sV -oX puerto.xml --stylesheet=https://svn.nmap.org/nmap/docs/nmap.xsl (probar varios firefox)
+nmap-html           nmap A -O -sV  nmap -A -O -sV -oX puerto.xml --stylesheet=https:... (firefox)
 ips                 hace un nmap simple a un archivo llamado ips.txt
 nombre_{IP}         Da el nombre de la maquina si es linux o windows                                   
 scanporty           python3 program que hace un escaneo y pregunta el numero de puertos.usa socket               
@@ -271,7 +262,6 @@ honeyport.sh        Listens on TCP port 8080 and temporarily blocks client IPs u
 portspoofinst       aplica las reglas para portspoof, IPTABLES, proteje puertos y redirecciona trafico
 portspoofinst2           Instala portspoof emula servicios para nmap, instala todo
 portspoofi               alias para iniciar el portspoof, despues de instalarlo
-
                                
  
 
