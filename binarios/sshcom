@@ -4,7 +4,7 @@
 show_help_and_confirm() {
     echo
     echo "El comando que este script ejecuta es:"
-    echo "scp /usr/bin/[nombre_del_binario] [usuario@ip]:/tmp/"
+    echo "scp /opt/4rji/bin/[nombre_del_binario] [usuario@ip]:/tmp/"
     echo
     echo "Presione Enter para continuar o 'c' para salir."
 
@@ -36,7 +36,7 @@ fi
 binario=$1
 
 # Ruta completa del binario en la máquina local
-ruta_binario_local="/usr/bin/$binario"
+ruta_binario_local="/opt/4rji/bin/$binario"
 
 # Verifica si el binario existe en /usr/bin en la máquina local
 if [ ! -f "$ruta_binario_local" ]; then

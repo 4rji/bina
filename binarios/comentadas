@@ -13,7 +13,8 @@ echo_msg() {
 
 # Show usage and exit
 mostrar_uso() {
-    echo -e "\e[96mUsage: $0 [-v] [-c] [-b] file\e[0m"
+    echo -e "\e[96mUsage: comentadas -FLAG file\e[0m"
+    echo ""
     echo -e "\e[96m  -v: Print results to terminal without comments or blank lines\e[0m"
     echo -e "\e[96m  -c: Generate clean.conf with lines without comments or blanks\e[0m"
     echo -e "\e[96m  -b: Enter interactive file modification mode\e[0m"
