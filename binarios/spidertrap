@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 
 echo ""
-echo "This script is a simple Python web server designed to create a  by generating web pages with random or predefined links. It includes configurable parameters such as the number of links per page, the length of each link, the server port, and a delay before serving each page. The server can use a provided file of webpage names or generate random links if no file is specified."
+echo "This script is a simple Python web server designed to create a  by generating web pages with random or predefined links."
+echo "It includes configurable parameters such as the number of links per page, the length of each link, the server port, and "
+echo "a delay before serving each page. The server can use a provided file of webpage names or generate random links if no file is specified."
 echo ""
 
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
@@ -18,7 +20,7 @@ echo ""
 echo "_________________________________________________________"
 echo ""
 
-# Preguntar al usuario cuál archivo de la lista quiere usar con el comando spider
+# Preguntar al usuario cuál archivo de /usr/share/dirbuster/wordlists/ quiere usar con el comando spider
 read -p "$(echo -e '\033[1;34mSeleccione el número del archivo que desea usar con spider: \033[0m')" selection
 
 echo ""

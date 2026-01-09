@@ -60,7 +60,7 @@ wifiraspi           agrega una red wifi en raspberry zero probada
 refresh_wifi.sh     script para reiniciar wifi en raspberry 
 nmcliwifi           Instrucciones para guardar wifi con nmcli
 nmclihelp           Varios comandos para conectar wifi
-
+operarch            Instala brave o opera en arch con yay
 
 
 ###------redhat
@@ -101,11 +101,51 @@ servidorvideo       Crea en docker alpine como servidor, monta una carpeta para 
 smbserverinst       Instala smb server en debian con usuario nalasmb o anonimo
 smbserver           smb termporar usando impact en python3
 googlessh           Instala la authenticacion de google para ssh                                               
+unboundinst         Instala unbound debian dns server
+resolvedinst        Instala y configura resolved, con quad9 dns 
+suricatainst        Instala suricata, largo proceso
+hyperinst           Instala hyperland con waybar y wofi en arch
+todoinst            instala todo, descarga imagenes tambien.
+lazyvpn             Script que instala openvpn server en debian, facil y rapido, lazy openvpn vpn
+joplininst          Trabaja con joplininst2 para instalarlo, se usan los dos. 
+joplininst2         Descarga la base de datos, detecta si ya esta instalado 
+kasminst            instala Kasm, no compatible con kali, probado debian 12
+squidinst           Instala y activa squid en puerto 3128
+protoninst          Instala protonvpn en kali o debian
+fixprotonvpns       Baja los archivos de proton.
+grafanainst         Instala grafana y prometheus 
+instpalabras        El diccionario para crear palabras o al revez nwiz se llama, cewl para website diccionario
+tailsinst           El que mas he usado, con yx y la inicial de yoyou... perro mayuscula
+zerotierinst        Zerotier scrip like tailscale yo uso tailscale 
+nerdfonts           Instala nerdfonts comando fuentes sudo pacman -S nerd-fonts  
+ufwinst             instala ufw y crea regla para puerto ssh                                           
+xxelab              xxe lab docker instala 
+wginst              Instala, y usa el archivo .conf para hacer la conexion. todo ahi wireguard vpn.
+cowrie              Instala docker cowrie y  detiene con -t todos los contenedores, ssh honeypot
+instgithub          Instala github desktop en kali
+pythonscritps       instala requerimientos y baje scritps del curso de python
+obsidianinst        Instala obsidian en deb, baja paquete e instala notas 
+zeroinst            Script para zero raspberry
+zshinstc            Instala y compila zsh 5.9, para centos 7
+zshinst             Instala la zsh h-my-zsh powerlevel10k
+zshinst2            Instala la configuracion de barra terminal .p10k.zsh, 
+tmuxinst            Archivos para la configuracion de tmux, lo instala. con B
+neofetchinst        Instala y personaliza neofetch para ppg1
+kittyinst           Instala kitty y baja su configuracion
+ovpninst            Instala OpenvpnServer para webadmin, 4rjiDocs
+
 
 
 #DNS o ips 
 cleanips            Extrae ips, dominios y urls de archivos, limpia y cuenta sort uniq 
 ctfr                Enumera dominios, con -d starbucks.com por ejemplo o -o output
+dnsquad             Verifica si quad9 se usa, consulta whois Ip propia y externa de consultas
+dnsleak             Consulta si el dns se esta saliendo
+dnscom              Comandos de dns para cosas
+dnscheck            Menu para ver dns, ruta, opciones, capturar trafico
+dnsserver           Muestra que servidor estamos usando en la maquina
+dnssec              Hace pruebas al servidor dns para ver si usa DNSSEC
+dnsdump             Comandos de tcpdump y unbound para capturar trafico dns
 
 
 #starlink
@@ -192,6 +232,21 @@ genarc              genera archivos conjuntos de 100 MB
 ncdu                para ver los archivos grandes, liberar espacio disco tamano
 ctl {servicio}      Aplica un sudo systemctl a un servicio
 logilogsclean       Limpia archivos de una carpeta de logitech en mac, para evitar datos en disco
+bucle               Ejecute un while true; do en bucle, pregunta tiempo y comando, loop
+tmuxtabs            Script usado para abrir ventanas en tmux antes
+pvpnt               Inicia pvpn en una sesion de tmux
+torrelay            Instala tor relay, probado en debian
+torweb              Crea una pagina .onion para tor, index en /tmp/torweb
+prandom             Cambia de VPN cada 5 min 
+emailscraper        ejecuta una herramienta de un curso para buscar emails                             
+crackmapexec	    Ejecutaria crackmapexec smb {ip} para active directory
+impacksmb           https://github.com/fortra/impacket
+gatin               hashcat que usa todos los diccionarios en wordlists/4rji
+passwdcheck         Verifica si una palabra esta en los diccionarios password contrasena 
+reconnectbb8inst    Crea un crontab para que se reconecte cada 2 horas
+wgc                 Script que controla la coneccion de wireguard
+wgcomm              Algunos comandos de wireguard
+pingtime            Ping para verificar si host esta online o no cada 5 segundos o -t #
 
 
 ###------Repositorios
@@ -295,10 +350,7 @@ itcpd               Enmascara ssh o cualquier puerto con tcpd, version ssh nmap 
 
 
 ###------Network
-
-
 wificonect          Usa el comando nmcli para conectar una red wifi en kali
-minet               Alias de ifconfig | grep "inet " | grep -v 127.0.0.1
 mine                Solo muesta las Ips y su nombre de la interface
 conexiones          Muestra nmcli conexiones nmcli -p device show y show --active red ethernet speed
 minet               Alias de ifconfig | grep "inet " | grep -v 127.0.0.1
@@ -308,18 +360,6 @@ cdns	            Cambia el DNS comentando lineas y tambien quita banderas chattr
 ppt                 Checa lsof netstat nmap y puertos que estan escuchando en el sistema nmap RND:20
 newprocess          Servicios - encuentra nuevos procesos en pantalla para ver que se ejecuta 
 
-#Ansible
-ansiconf            Crea host para ansible con alias y crea el archivo ansible_hosts
-ansicc              Este da la opcion de elegir un solo host o todos. ansible
-ansibleplay         Crea archivos ejemplos de ansible play para ejecutar, se necesitan modificar
-ansip               Alias ping a todos los hosts ansible, -a para todos
-ansipp              Ping a un solo hosts, muestra la lista ansible
-ansipl              Alias ansible playbook 
-sshansi_nonames     Conecta los hosts de ansible con ssh cuando no tienen nombre
-sshansi             Conecta por ssh hosts con nombre al inicio ansible
-ansihost            Cat a los hosts y pregunta si quiero editarlo ansible
-
-
 
 
 
@@ -327,31 +367,16 @@ ansihost            Cat a los hosts y pregunta si quiero editarlo ansible
 littlearp           Version de python de arp, no detecta tan bien como arp-scan
 hashin              Muestra md5  y sha256sum hashes
 virust              Usa la API de virustotal para ver ips.txt o IP su uso. 
-dnsquad             Verifica si quad9 se usa, consulta whois Ip propia y externa de consultas
-dnsleak             Consulta si el dns se esta saliendo
-dnscom              Comandos de dns para cosas
-dnscheck            Menu para ver dns, ruta, opciones, capturar trafico
-dnsserver           Muestra que servidor estamos usando en la maquina
-dnssec              Hace pruebas al servidor dns para ver si usa DNSSEC
-dnsdump             Comandos de tcpdump y unbound para capturar trafico dns
-unboundinst         Instala unbound debian dns server
-resolvedinst        Instala y configura resolved, con quad9 dns 
-ipt                 Para acceptar todo trafico o bloquear todo el trafico. 
-snifferip           Sniffer paquetes red que captura las cabeceras IP en dirección IP especifica.
-iarpon              Arpon para protejer de arp poising. arp sniff 
-iicmp               para protejer de ataques icmp, solo cambia el 0 a 1 este script
-bucle               Ejecute un while true; do en bucle, pregunta tiempo y comando, loop
+snifferip           Sniffer paquetes red que captura las cabeceras IP en dirección IP especifica (windows).
 ataquehttp          HTTP DoS Test Tool de goldeneye, descomprime en tmp y de ahi dice como ejecutarlo.
 inundacion          hping3 un ataque de inundacion flood para pruebas de carga, pregunta por dos ataques
 metas               Script que inicia metasploit con base de datos
 ataquepython        (DoS) enviando múltiples solicitudes HTTP a una dirección IP del tipo GET
 encrypt             Go, para encriptar archivos con pass o key, misma funcion que encryptar
-encryptar           encrypta archivos con python, cambiar la ruta dentro del script para que funcione
-encryptar1          el original de encryptar 
-logt                crea un log.txt de un binario en un bucle while true
-pythonenvpath       cambia el python env a .amigo para crear acceso director de binarios a el virtualenv
 
-###------distrobox
+
+
+###------distrobox - docker
 dockercp            Alias que muestra el formato para copiar archivos en docker
 dockernet           Crea una red para rotar ips en docker y muestra comando para ejecutar
 dcc                 Crea un archivo, muestra y ejecuta random ips docker, dockernet
@@ -362,7 +387,7 @@ kaliefi             Crea un kali efimero en distrobox
 disl                Distrobox list script que corre y muestra lista de distros 
 disefimero          Crea un distrobox efimero
 disapp              Ejecuta una aplicacion en un contenedor determinador despues del script 
-operarch            Instala brave o opera en distrobox en arch con yay
+
 
 
 ###------antivirus y malware
@@ -370,57 +395,14 @@ sshbackBUENO        Otro que funciona mas limpio sshbackdoor
 sshbackdoor         Para ubuntu, usar la contrasena despues del script mismo usuario , un backdoor.
 sshbackdoorubuntu   Para ubuntu, usar la contrasena despues del script mismo usuario, sshbackdoor
 spidertrap          Hace una pagina para evitar el scaneo de paginas web usando listas de gobuster
-rkhun               Instala, actualiza y ejecuta el scaneo rkhunter, tambien instala chkrootkit
 apachenombre        Instrucciones para remover el nombre del banner de apache y nginx
-clamavinst          instala antivirus e inicia un scaneo solo ingresando la ruta, y se actualiza tambien 
-splunkinst          instala Splunk y crea un alias para uniciar en zsh
-splunkuninstall     Desinstala splunky
-splunkforw          Splunk universal forwarder, instala .deb automaticamente. Win-Linux-Mac-freebsd 
-splunkforw2         Instala splunk forwarder, el primero lo descarga version 9.4
-splunk998           Para servidor, crea el archivo inputs para recibir conexiones
-splunktestport      ejecuta un tcpdump para ver si recibe datos el puerto 998
-
-suricatainst        Instala suricata, largo proceso
 suricatalog         tail -f /var/log/suricata/fast.log
 
-###------utilidades instalaciones
-tmuxtabs            Script usado para abrir ventanas en tmux antes
-hyperinst           Instala hyperland con waybar y wofi en arch
-todoinst            instala todo, descarga imagenes tambien.
-lazyvpn             Script que instala openvpn en debian, facil y rapido, lazy openvpn vpn
-impactoinst         instala impacket smb server para montar con impacto
-flatpakinst         Instala flatpak en debian, no probado pero los pasos estan ahi.
-joplininst          Trabaja con joplininst2 para instalarlo, se usan los dos. 
-joplininst2         Descarga la base de datos, detecta si ya esta instalado 
-kasminst            instala Kasm, no compatible con kali, probado debian 12
-pvpnt               Inicia pvpn en una sesion de tmux
-squidinst           Instala y activa squid en puerto 3128
-tinyurl             Muestra los alias creados en tinyurl, se descarga como tinyurl.com/herratodo
-torrelay            Instala tor relay, probado en debian
-torweb              Crea una pagina .onion para tor, index en /tmp/torweb
-protoninst          Instala protonvpn en kali o debian
-prandom             Cambia de VPN cada 5 min 
-fixprotonvpns       Baja los archivos de proton.
-grafanainst         Instala grafana y prometheus 
-instpalabras        El diccionario para crear palabras o al revez nwiz se llama, cewl para website diccionario
-tailsinst           El que mas he usado, con yx y la inicial de yoyou... perro mayuscula
-zerotierinst        Zerotier scrip like tailscale yo uso tailscale 
-emailscraper        ejecuta una herramienta de un curso para buscar emails                             
-crackmapexec	    Ejecutaria crackmapexec smb {ip} para active directory
-impacksmb           https://github.com/fortra/impacket
-nerdfonts           Instala nerdfonts comando fuentes sudo pacman -S nerd-fonts  
-ufwinst             instala ufw y crea regla para puerto ssh                                           
-instdebian          basic debian apps for clean debian12
-instsurf            instala surfeando
-gatin               hashcat que usa todos los diccionarios en wordlists/4rji
-gatinesta           Verifica si una palabra esta en los diccionarios password contrasena 
-xxelab              xxe lab docker instala 
-reconnectbb8inst    Crea un crontab para que se reconecte cada 2 horas
-wginst              Instala, y usa el archivo .conf para hacer la conexion. todo ahi wireguard vpn.
-wgc                 Script que controla la coneccion de wireguard
-wgcomm              Algunos comandos de wireguard
 
-#qemu
+
+
+
+###------ Qemu
 qemuinsredh9        Instala qemu virt en redhat9
 qemuins             Instala qemu y virtual en debian o arch
 qemuvm              Inicia la maquina virtual de qemu, desde cli y desde iso.
@@ -430,24 +412,16 @@ qemucomm            Comandos de qemu virsh
 qemudebian          Descarga ISO, agrega e inicia instalador debian :)
 qemuq2              Descarga linux VM qcow2, agrega e inicia una maquina debian/kali opciones
 
-#Instalaciones         
-cowrie              Instala docker cowrie y  detiene con -t todos los contenedores, ssh honeypot                                                     
-lockfancyinst       Bloquear fancy para pantalla, alias lockf
-instsublime         Instala sublime en kali
-instgithub          Instala github desktop en kali
-pythonscritps       instala requerimientos y baje scritps del curso de python
-obsidianinst        Instala obsidian en deb, baja paquete e instala notas 
-zeroinst            Script para zero raspberry
-zshinstc            Instala y compila zsh 5.9, para centos 7
-zshinst             Instala la zsh h-my-zsh powerlevel10k
-zshinst2            Instala la configuracion de barra terminal .p10k.zsh, 
-tmuxinst            Archivos para la configuracion de tmux, lo instala. con B
-neofetchinst        Instala y personaliza neofetch para ppg1
-pgc                 Ping para verificar si host esta online o no cada 3 segundos. 
-kittyinst           Instala kitty y baja su configuracion
-ovpninst            Instala OpenvpnServer para webadmin, 4rjiDocs
 
-#python herramientas
+
+
+
+
+
+
+
+
+###--Python tools
 nointer             bloquear internet con arp y python3 scapy, en cli- arp spoofing
 nointergui          Scapy con arp, para bloquear internet maquina, necesita GUI
 mitnickAttack       Usa Scapy para realizar un SYN Flood y establecer una conexión TCP falsificada
@@ -480,10 +454,8 @@ tunelhttp           Envia mensaje por medio de http para c2, camuflaje por http
 tunelhttpser        Servidor de tunelhttp, recibe el mensaje por tunnel camuflaje http
 secreto             Encripta y desencripta archivos con python y se asigna contrasena
 luks                Crea un contenedor para luks, hace todo montar y desmontar
-
 pythonnc            Crea un servidor nc escucha, ejem. pythonnc -t IPserver -p 55551 -l -c
 pythonnc            como cliente: pythonnc -t IPServer -p 55551 (control+d) para tener shell
-
 sshforward          similar to the openssh -R option.
 
 arper               arp poisonig scapy, crea un archivo y ejecuta arpers, no funciona con unifi Firewall
@@ -491,10 +463,21 @@ bruto               brute forcing directorios, lista all.txt se descarga web hac
 contrawp            Fuerza bruta a wordpress joomla, descarga cain.txt diccionario
 sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 
-#website
-search              Crea datos para la pagina web, para llenar la base de busqueda search
 
-#Redstuff
+
+###----- Redteam 
+bloqueatodo         Para acceptar todo trafico o bloquear todo el trafico. 
+servidor            Inicia y detiene un servidor apache en 8080                                                         
+shtb                Syncroniza carpetas con rsync entre servidores, para htb vmqemu
+mackali	            Cambia la MAC de kali
+ctfr                Enumera dominios, con -d starbucks.com por ejemplo o -o output
+ultrascan           varios escaneos, menu y todo
+nmap-full           Create a html file with full scan of network
+sship               ippsec sshpass el para pasar iniciar ssh sin mensajes ni autorizacion Ippsec
+sshcom              Copia y ejecuta un script en una maquina ssh remota en /tmp
+impactoinst         instala impacket smb server para montar con impacto
+msmb                monta un smb o samba
+smbcomm             Explota samba, arregla s tty, consola interactiva, control c    
 enviarnc            Envia archivos con bash puro, NO NC, hace sha256sum
 recibenc            recibe archivos con nc, usando enviarnc hace sha256sum  
 receiver            Recibidor de go para recibir archivos por nc
@@ -575,9 +558,9 @@ pspy64              procesos servicios newprocess pspy
 shells              Copia al portapapeles varias tipo de shells, pregunta IP y general el comando
 
 
-#HTB shorcuts
+###- HTB shorcuts
 htbinst             Algunas instrucciones, hacer un whx a ese binario 
-iniciar1          Primero target1 y luego este: que genera las variables, ips y zsh cosas
+iniciar1            Primero target1 y luego este: que genera las variables, ips y zsh cosas
 iniciar2            Function crea carpetas, variables $ip $htcon $htf, se debe de ejecutar manualmente los echos
 enum                guarda whichsys, nmap, se ejecuta desde nmap folder
 contra              Copia una contrasena del portapapales a content/passwords
@@ -597,7 +580,44 @@ bomba               Crea procesos recursivos sin fin, - sistema es inutilizable 
 
 
 
-###------CCDC
+###------ Splunk
+splunkinst          instala Splunk y crea un alias para uniciar en zsh
+splunkuninstall     Desinstala splunky
+splunkforw          Splunk universal forwarder, instala .deb automaticamente. Win-Linux-Mac-freebsd 
+splunkforw2         Instala splunk forwarder, el primero lo descarga version 9.4
+splunk998           Para servidor, crea el archivo inputs para recibir conexiones
+splunktestport      ejecuta un tcpdump para ver si recibe datos el puerto 998
+
+
+###------ CCDC
+usuario             Crea un usuario en bash, automatico.
+verpw               Verifica los permisos de los archivos /etc/passwd u linux claves
+backd-detect        detecta conexiones sospechosas hacia rangos RFC1918 e identifica procesos asociados
+backde              para detectar conexions, es un binario go
+backd               Muestra conexiones actuales con sus datos detallados, binario go 
+bloquearip          Bloquea IPs (./scrt IP o de ips.txt) agregando a un set ipset y aplicando una regla iptables
+rango-ip            Crea una lista de ips X.X.X y crea una lista de ips 255 con esa subnet
+netevils            aun no se    
+procesos            Muestra los procesos de los usuarios sin PID, no PID
+proceso             Investiga un proceso con varias opciones
+servicios           Encuentra servicios que no son del kernel linux corriendo.
+findinst            Busca si un programa esta instalado, en dpkg - apt - systemctl
+findpak             Busca paquetes y servicios que esten instalados en varias distros
+sships              Agrega Ips o subnets a allow or deny hosts
+sshbaner            de neofinst2 - crea un mensaje de bienvenida de ssh Despues logearse.
+sshbanner           cambia el banner de ssh ANTES de logearse hola cacheton y se edita con bannere                                      
+bannerssssh80       Conecta con ssh -L para redirijir trafico desde una maquina a otra, a browser 
+sshlist             Modifica la lista de /etc/hosts allow deny para asegurar la red ssh
+sshmoni             sshmoni loop para correr el sshmoni while loop detecta conexiones
+mibebe              escanea las dos sshmoni lsofmoni
+mibebemata          Mi bebe mata solo. lol
+sshmoni             Este busca conexiones activas ssh, muestra procesos PID y luego ejecuta killsshmanual
+iarpon              Arpon para protejer de arp poising. arp sniff 
+iicmp               para protejer de ataques icmp, solo cambia el 0 a 1 este script
+rkhun               Instala, actualiza y ejecuta el scaneo rkhunter, tambien instala chkrootkit
+clamavinst          instala antivirus e inicia un scaneo solo ingresando la ruta, y se actualiza tambien 
+
+
 bannerC             Banner de login consola y ssh
 versudo             Inspecciona sudo folder
 sshlist             Para allow en hosts
@@ -619,6 +639,10 @@ sftpinst            Para sftp instalador de ssh, servidor
 blockicmp           bloquea en firewall cmd
 
 
+
+
+
+###------ 
 fishells             busca procesos, muestra puerto, para shells, usa ps y ss
 kshells             Mata shells en el sistema
 newprocess          Nuevos procesos en linux
@@ -670,7 +694,7 @@ redhavi-check       Checa las malconfiguraciones
 
 
 
-#otros
+###------ otros
 redhavi-check       Checa las malconfiguraciones
 cht                 Pone chattr +i a los binarios de opt
 chtt                chattr -i, quita a los binarios de opt 
@@ -682,7 +706,7 @@ wifi-radar-finder   en comprimidos, muestra las redes wifi con su intensidad par
 deploy              * -Despliega una máquina vulnerable en Dockerlabs desde una imagen .tar.
 
 
-Github              Binarios
+###------ Github 
 netstat-cargo-jsonm netstat en formato json para mac
 netstat-cargo-json  netstat en formato json
 netstat-cargom      netstat en formato normal cargo para mac
@@ -690,7 +714,8 @@ netstat-cargo       netstat en formato normal cargo
 fall                Bajar todos los updates de gitea
 gcomall             Hacer commit a gitea 
 
-#descontinuados
+
+###-Descontinuados
 gobuilder           Crea la estructura en main.go de un script, para go
 termiusins          Instala termius en arch con yay   
 nixclean            Arregla la shell de nixos para los scripts 4rji
@@ -736,3 +761,22 @@ sshmonitorsc        Script que checa conexiones ssh activas (reemplazado por ssh
 killsshauto         Cierra automaticamente todos los PID de ssh que encuentro con sshmoni
 killsshmanual       Pregunta su quiero hacer sudo kill a los PID de ssh de sshmoni
 fixwifibspwm        Arregla el wifi de bspwm cuando no funciona, instala y agrega una linea 
+minet               Alias de ifconfig | grep "inet " | grep -v 127.0.0.1
+ansiconf            Crea host para ansible con alias y crea el archivo ansible_hosts
+ansicc              Este da la opcion de elegir un solo host o todos. ansible
+ansibleplay         Crea archivos ejemplos de ansible play para ejecutar, se necesitan modificar
+ansip               Alias ping a todos los hosts ansible, -a para todos
+ansipp              Ping a un solo hosts, muestra la lista ansible
+ansipl              Alias ansible playbook 
+sshansi_nonames     Conecta los hosts de ansible con ssh cuando no tienen nombre
+sshansi             Conecta por ssh hosts con nombre al inicio ansible
+ansihost            Cat a los hosts y pregunta si quiero editarlo ansible
+encryptar           encrypta archivos con python, cambiar la ruta dentro del script para que funcione
+encryptar1          el original de encryptar 
+pythonenvpath       cambia el python env a .amigo para crear acceso director de binarios a el virtualenv
+flatpakinst         Instala flatpak en debian, no probado pero los pasos estan ahi.
+instdebian          basic debian apps for clean debian12
+instsurf            instala surfeando
+lockfancyinst       Bloquear fancy para pantalla, alias lockf
+instsublime         Instala sublime en kali
+search              Crea datos para la pagina web, para llenar la base de busqueda search
