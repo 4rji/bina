@@ -100,6 +100,7 @@ mesloinst2          Para instalar manualmente las fuentes (nixos) pero funciona 
 servidorvideo       Crea en docker alpine como servidor, monta una carpeta para ver videos que hay en ella.                                     
 smbserverinst       Instala smb server en debian con usuario nalasmb o anonimo
 smbserver           smb termporar usando impact en python3
+googlessh           Instala la authenticacion de google para ssh                                               
 
 
 #DNS o ips 
@@ -238,11 +239,9 @@ nessus_-s           para nessus
 nessusinst          instalar nessus   
 
 
-
 ###------fail2ban
 f2binst             instala debian fail2ban f2b
 f2c                 fail2ban comandos 
-
 
 
 ###------para bspwx
@@ -256,29 +255,21 @@ artilleria          Instala el honeypot artilleria
 unbanar {IP}        Comenta la ip de banlist de artilleria, si no especifico IP me pregunta
 artires             Reinicia el servicio artilleria
 honeyport.sh        Listens on TCP port 8080 and temporarily blocks client IPs using iptables
+
  
 
 ###------portspoof
 portspoofinst       aplica las reglas para portspoof, IPTABLES, proteje puertos y redirecciona trafico
-portspoofinst2           Instala portspoof emula servicios para nmap, instala todo
-portspoofi               alias para iniciar el portspoof, despues de instalarlo
-                               
+portspoofinst2      Instala portspoof emula servicios para nmap, instala todo
+portfake            Alias para iniciar el portspoof, despues de instalarlo
+honeygo             Honeypot en go, no probado                      
  
 
 ###------buscar cosas en linux
 todoo               Busca en el readme unicamente nombre y descripcion. Basico
 todooo              Busca en dentro de los scripts palabras que cohincidan, mas completo
 buspal              Buscador de palabras en un directorio, con grep -q buspal {directorio}
-comentada {file}    Busca en un archivo una linea, la comenta y agrega abajo de esa linea la nueva linea
 comentadas 			Copia al portapapales las lineas no comentadas, -c para solo verlas sin copiar
-limpiarf            Limpiar un archivo buscando, awk grep palabra.
-buscando            Comandos para usar grep awk, # ls -l email* para buscar archivos empiezan email
-grephn              Hace una busqueda de una palabra especifica en un directorio grep -Hn
-mirar	            Hace un watch -n 1 comando, como netstat, o reglas.
-rempal              Reemplaza una palabra dentro de un archivo
-surempal            Reemplaza una palabra con sudo dentro de un archivo
-buspal              Buscador de palabras en un directorio, con grep -q buspal {directorio}
-comentada {file}    Busca en un archivo una linea, la comenta y agrega abajo de esa linea la nueva linea
 findme              Usa el comando find para buscar archivos
 
 
@@ -286,54 +277,26 @@ findme              Usa el comando find para buscar archivos
 sshc                copia directorio o archivo por ssh, lo comprime y descomprime
 sshp                ssh proxy D 1080 en background, completo, bashfun bash function
 pingt               Hace traceroute con ping
-pings               Hace un ping a todos los hosts dentro de archivo ssh/config
-pingsm              Version para mac
 pingz               misma que pings pero usa nc para ver status del puerto ssh en el .config
-pssh1               Hace un ping a un servidor y luego se conecta
-sships              Agrega Ips o subnets a allow or deny hosts
 sshsync             Sincroniza el archivo ssh con los nuevos de github. no borra nada
 sshdown             Descarga .ssh/config y crea copia
-ssk                 kitty +kitten ssh 
+sshk                kitty +kitten ssh 
 sshexit             Instala un mensaje de salida de ssh en la zsh ZSH
-fixhost             Arregla know_hosts para ssh duplicados
 x11uso              Instrucciones para x11
-sshbaner            de neofinst2 - crea un mensaje de bienvenida de ssh Despues logearse.
-sshbanner           cambia el banner de ssh ANTES de logearse hola cacheton y se edita con bannere                                      
-bannerssssh80       Conecta con ssh -L para redirijir trafico desde una maquina a otra, a browser 
 fixssh              Seguido de la ip, para borrar la ip del localhost cuando se duplica	
 cssh                copia mui clave a una maquina remota
 ccssh               Version para M1 mac de cssh
-googlessh           Instala la authenticacion de google para ssh                                               
 sshconf             Hace un archivo .ssh/config para conectarse por medio de jump ejemplo: ssh maquina-final
-sshhostt            Lista los hosts del archivo sshconf, para conectarse
-sshhost             Lista igual pero en go. binario. 
-sshjump             Configura los jumps infinitamente.
-sshlist             Modifica la lista de /etc/hosts allow deny para asegurar la red ssh
-sshhuesped          Huespedes de mi configuracion
-sship               ippsec sshpass el para pasar iniciar ssh sin mensajes ni autorizacion Ippsec
 sshmont             Monta una carpeta usando sshh           Edita el banner de inicio de session de ssh, cuando se loguea
 sshc                Binario en comprimidos, que enviar un comando a los host ssh, tipo ansible
-
-#monitor conexiones
-sshc                envia comando a todos los hosts por medio de ssh, tipo ansible
 sshcm               Mac version: envia comando a todos los hosts por medio de ssh, tipo ansible
-sshcom              Copia y ejecuta un script en una maquina ssh remota en /tmp
-sshmoni             sshmoni loop para correr el sshmoni while loop
-lsofmoni            Lo mismo que ssh pero escanea conexiones con lsof, detecta backdoors 
-mibebe              escanea las dos sshmoni lsofmoni
-mibebemata          Mi bebe mata solo. lol
-plisten             Muestra y mata las conexiones que estan en LISTEN con lsof
-sshmonitorsc        Script que checa conexiones ssh activas (reemplazado por sshmoni
-killsshauto         Cierra automaticamente todos los PID de ssh que encuentro con sshmoni
-killsshmanual       Pregunta su quiero hacer sudo kill a los PID de ssh de sshmoni
 sshmoni             Este busca conexiones activas ssh, muestra procesos PID y luego ejecuta killsshmanual
 itcpd               Enmascara ssh o cualquier puerto con tcpd, version ssh nmap -sV -sC
 
 
-
-
 ###------Network
-fixwifibspwm        Arregla el wifi de bspwm cuando no funciona, instala y agrega una linea 
+
+
 wificonect          Usa el comando nmcli para conectar una red wifi en kali
 minet               Alias de ifconfig | grep "inet " | grep -v 127.0.0.1
 mine                Solo muesta las Ips y su nombre de la interface
@@ -758,4 +721,18 @@ copyrs-old          Copia archivo por rsync usando sshconf
 copyrsr             Recibe un archivo por medio de rsync
 copyrsyn            Usa hosts ansible y copia un archivo con rsync y clave privada
 copycar	            Copia una carpeta folder por medio de ssh scp
-
+limpiarf            Limpiar un archivo buscando, awk grep palabra.
+pings               Hace un ping a todos los hosts dentro de archivo ssh/config
+pingsm              Version para mac
+pssh1               Hace un ping a un servidor y luego se conecta
+fixhost             Arregla know_hosts para ssh duplicados
+sshhostt            Lista los hosts del archivo sshconf, para conectarse
+sshhost             Lista igual pero en go. binario. 
+sshjump             Configura los jumps infinitamente.
+sshhuesped          Huespedes de mi configuracion
+lsofmoni            Lo mismo que ssh pero escanea conexiones con lsof, detecta backdoors 
+plisten             selector de comandos que hacen listen
+sshmonitorsc        Script que checa conexiones ssh activas (reemplazado por sshmoni
+killsshauto         Cierra automaticamente todos los PID de ssh que encuentro con sshmoni
+killsshmanual       Pregunta su quiero hacer sudo kill a los PID de ssh de sshmoni
+fixwifibspwm        Arregla el wifi de bspwm cuando no funciona, instala y agrega una linea 
