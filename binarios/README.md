@@ -590,18 +590,22 @@ splunktestport      ejecuta un tcpdump para ver si recibe datos el puerto 998
 
 
 ###------ CCDC
-bannerC             Banner for login and ssh
 usuario             Crea un usuario en bash, automatico.
+
+bannerC             Banner for login and ssh
 verpw               Verifica los permisos de los archivos /etc/passwd u linux claves
 backd-detect        detecta conexiones sospechosas hacia rangos RFC1918 e identifica procesos asociados
 backde              para detectar conexions, es un binario go
 backd               Muestra conexiones actuales con sus datos detallados, binario go 
-bloquearip          Bloquea IPs (./scrt IP o de ips.txt) agregando a un set ipset y aplicando una regla iptables
-rango-ip            Crea una lista de ips X.X.X y crea una lista de ips 255 con esa subnet
+bloquearip          Bloquea IPs agregando a un set ipset y aplicando una regla iptables
+services            Encuentra servicios que no son del kernel linux corriendo.
+
+
 netevils            aun no se    
 procesos            Muestra los procesos de los usuarios sin PID, no PID
 proceso             Investiga un proceso con varias opciones
-servicios           Encuentra servicios que no son del kernel linux corriendo.
+
+
 findinst            Busca si un programa esta instalado, en dpkg - apt - systemctl
 findpak             Busca paquetes y servicios que esten instalados en varias distros
 sships              Agrega Ips o subnets a allow or deny hosts
@@ -781,3 +785,4 @@ instsurf            instala surfeando
 lockfancyinst       Bloquear fancy para pantalla, alias lockf
 instsublime         Instala sublime en kali
 search              Crea datos para la pagina web, para llenar la base de busqueda search
+rango-ip            Crea una lista de ips X.X.X y crea una lista de ips 255 con esa subnet
