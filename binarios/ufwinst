@@ -1,74 +1,74 @@
 #!/usr/bin/env bash
 
 echo -e "\n\033[1;34m_________________________________________________________\033[0m\n"
-echo "Configuración de UFW en curso..."
+echo "UFW configuration in progress..."
 echo ""
 
-# Lista de paquetes a instalar
-paquetes=("ufw")
+# List of packages to install
+packages=("ufw")
 
-# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
-paquete_instalado_apt() {
+# Function to check if a package is installed (Debian/Ubuntu/Kali)
+is_package_installed_apt() {
     dpkg -l "$1" | grep -q '^ii'
 }
 
-# Función para verificar si un paquete está instalado (Red Hat/CentOS/Fedora)
-paquete_instalado_yum_dnf() {
+# Function to check if a package is installed (Red Hat/CentOS/Fedora)
+is_package_installed_yum_dnf() {
     yum list installed "$1" &>/dev/null || dnf list installed "$1" &>/dev/null
 }
 
-# Detectar el sistema operativo
+# Detect operating system
 if [ -f /etc/os-release ]; then
     . /etc/os-release
     OS=$ID
 fi
 
-# Instalar UFW según el sistema operativo
-for paquete in "${paquetes[@]}"; do
+# Install UFW depending on the operating system
+for package in "${packages[@]}"; do
     case $OS in
         "debian"|"ubuntu"|"kali")
-            if ! paquete_instalado_apt "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo apt-get update && sudo apt-get install -y "$paquete"
+            if ! is_package_installed_apt "$package"; then
+                echo "Installing package $package..."
+                sudo apt-get update && sudo apt-get install -y "$package"
             fi
             ;;
         "centos"|"rhel"|"fedora")
-            if ! paquete_instalado_yum_dnf "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo yum install -y "$paquete" || sudo dnf install -y "$paquete"
+            if ! is_package_installed_yum_dnf "$package"; then
+                echo "Installing package $package..."
+                sudo yum install -y "$package" || sudo dnf install -y "$package"
             fi
             ;;
         *)
-            echo "Sistema operativo no soportado."
+            echo "Unsupported operating system."
             exit 1
             ;;
     esac
 done
 
-# Habilitar logging y configurar reglas de firewall
-echo -e "\n\033[1;34mHabilitando UFW y configurando reglas básicas...\033[0m\n"
+# Enable logging and configure basic firewall rules
+echo -e "\n\033[1;34mEnabling UFW and configuring basic rules...\033[0m\n"
 sudo ufw logging high
 sudo ufw allow 22/tcp
-echo "El puerto 22/tcp (SSH) está permitido por defecto."
+echo "Port 22/tcp (SSH) is allowed by default."
 
-# Solicitar puertos adicionales al usuario
-echo -e "\n\033[1;36mIngresa los puertos adicionales que deseas permitir (separados por espacio):\033[0m"
+# Ask user for additional ports
+echo -e "\n\033[1;36mEnter additional ports you want to allow (space-separated):\033[0m"
 read -r additional_ports
 
-# Agregar reglas para puertos adicionales
+# Add rules for additional ports
 if [ -n "$additional_ports" ]; then
     for port in $additional_ports; do
         sudo ufw allow "$port/tcp"
-        echo "Puerto $port/tcp permitido."
+        echo "Port $port/tcp allowed."
     done
 else
-    echo "No se agregaron puertos adicionales."
+    echo "No additional ports were added."
 fi
 
-# Habilitar y reiniciar UFW
+# Enable and reload UFW
 sudo ufw enable
 sudo ufw reload
 
-# Mostrar el estado de UFW
-echo -e "\n\033[1;34mEstado final de UFW:\033[0m\n"
+# Show UFW status
+echo -e "\n\033[1;34mFinal UFW status:\033[0m\n"
 sudo ufw status verbose

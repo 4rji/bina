@@ -247,6 +247,8 @@ reconnectbb8inst    Crea un crontab para que se reconecte cada 2 horas
 wgc                 Script que controla la coneccion de wireguard
 wgcomm              Algunos comandos de wireguard
 pingtime            Ping para verificar si host esta online o no cada 5 segundos o -t #
+sshbaner            de neofinst2 - crea un mensaje de bienvenida de ssh Despues logearse
+portmonitor         Monitorea cuando un puerto se abre, puerto abierto o cerrado. 
 
 
 ###------Repositorios
@@ -467,7 +469,8 @@ sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 
 ###----- Redteam 
 bloqueatodo         Para acceptar todo trafico o bloquear todo el trafico. 
-servidor            Inicia y detiene un servidor apache en 8080                                                         
+servidor            Inicia y detiene un servidor apache en 8080                                           
+sshautoscript       Abre un tunel SSH inverso a una maquina, ella accede a tu SSH local sin abrir puertos.
 shtb                Syncroniza carpetas con rsync entre servidores, para htb vmqemu
 mackali	            Cambia la MAC de kali
 ctfr                Enumera dominios, con -d starbucks.com por ejemplo o -o output
@@ -593,61 +596,43 @@ splunktestport      ejecuta un tcpdump para ver si recibe datos el puerto 998
 usuario             Crea un usuario en bash, automatico.
 
 bannerC             Banner for login and ssh
+bannerlogin      Modify the banner after login with ssh and also when start computer
+
 verpw               Verifica los permisos de los archivos /etc/passwd u linux claves
 backd-detect        detecta conexiones sospechosas hacia rangos RFC1918 e identifica procesos asociados
 backde              para detectar conexions, es un binario go
 backd               Muestra conexiones actuales con sus datos detallados, binario go 
 bloquearip          Bloquea IPs agregando a un set ipset y aplicando una regla iptables
 services            Encuentra servicios que no son del kernel linux corriendo.
-
-
 netevils            aun no se    
 procesos            Muestra los procesos de los usuarios sin PID, no PID
 proceso             Investiga un proceso con varias opciones
-
-
 findinst            Busca si un programa esta instalado, en dpkg - apt - systemctl
 findpak             Busca paquetes y servicios que esten instalados en varias distros
-sships              Agrega Ips o subnets a allow or deny hosts
-sshbaner            de neofinst2 - crea un mensaje de bienvenida de ssh Despues logearse.
-sshbanner           cambia el banner de ssh ANTES de logearse hola cacheton y se edita con bannere                                      
-bannerssssh80       Conecta con ssh -L para redirijir trafico desde una maquina a otra, a browser 
-sshlist             Modifica la lista de /etc/hosts allow deny para asegurar la red ssh
+
 sshmoni             sshmoni loop para correr el sshmoni while loop detecta conexiones
 mibebe              escanea las dos sshmoni lsofmoni
 mibebemata          Mi bebe mata solo. lol
 sshmoni             Este busca conexiones activas ssh, muestra procesos PID y luego ejecuta killsshmanual
 iarpon              Arpon para protejer de arp poising. arp sniff 
 iicmp               para protejer de ataques icmp, solo cambia el 0 a 1 este script
-rkhun               Instala, actualiza y ejecuta el scaneo rkhunter, tambien instala chkrootkit
+rkhun               Instala rkhunter y chkrootkit, actualiza y ejecuta el scaneo 
 clamavinst          instala antivirus e inicia un scaneo solo ingresando la ruta, y se actualiza tambien 
 
-
-bannerC             Banner de login consola y ssh
 versudo             Inspecciona sudo folder
-sshlist             Para allow en hosts
-portmonitor         Monitorea cuando un puerto se abre, puerto abierto o cerrado. 
-sshautoscript       Crea una conexion para autossh, pregunta datos y crea script
+
 mapa                Busca un proceso despues del script y lo mata ps aux
-backd               Usa python para buscar backdoors, conexiones activas
 ntpinst             Instala ntp en debian10 
 dnsinst             Instala bind9 dns 
 dnsblock            usa dns bind9 - Bloquea url, dominios o redirige dns trafico a localhost 
-dnsred              Cambia un dominio a un ip redireccionando trafico en bind9
 ntpcon              Conecta el servicio ntp time
 chroninst           Instala chrony
-updatecentos7       Para actualizar centos7
-updatecentos7-2     otra version
 sudoup              Hace un update de sudo de la version 9.12 adelante.
 ftpinst             Instala ftp
 sftpinst            Para sftp instalador de ssh, servidor
-blockicmp           bloquea en firewall cmd
+icmpb               Para bloquear icmp con iptables
 
 
-
-
-
-###------ 
 fishells             busca procesos, muestra puerto, para shells, usa ps y ss
 kshells             Mata shells en el sistema
 newprocess          Nuevos procesos en linux
@@ -786,3 +771,8 @@ lockfancyinst       Bloquear fancy para pantalla, alias lockf
 instsublime         Instala sublime en kali
 search              Crea datos para la pagina web, para llenar la base de busqueda search
 rango-ip            Crea una lista de ips X.X.X y crea una lista de ips 255 con esa subnet
+sships              Agrega Ips o subnets a allow or deny hosts
+sshlist             Modifica la lista de /etc/hosts allow deny para asegurar la red ssh
+updatecentos7       Para actualizar centos7
+updatecentos7-2     otra version
+blockicmp           bloquea en firewall cmd
