@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# show-ssh-stdin-cmds.sh
+
+set -euo pipefail
+
+# --- colors ---
+RST=$'\033[0m'
+BOLD=$'\033[1m'
+DIM=$'\033[2m'
+RED=$'\033[31m'
+GRN=$'\033[32m'
+YEL=$'\033[33m'
+CYN=$'\033[36m'
+WHT=$'\033[37m'
+
+hr() { printf "${DIM}%s${RST}\n" "------------------------------------------------------------"; }
+title() { printf "${BOLD}${CYN}%s${RST}\n" "$1"; }
+ok() { printf "${BOLD}${GRN}OK${RST}"; }
+bad() { printf "${BOLD}${RED}NO${RST}"; }
+
+print_cmd() {
+  local idx="$1" label="$2" status="$3" cmd="$4"
+  printf "${BOLD}${WHT}%s) %s${RST}  [%s]\n" "$idx" "$label" "$status"
+  printf "${DIM}%s${RST}\n" "$cmd"
+  hr
+}
+
+title "SSH stdin / heredoc commands (display only)"
+hr
+
+print_cmd "1" "stdin -> bash via /proc/self/fd/0" "$(ok)" \
+"ssh host 'bash /proc/self/fd/0' < file.sh"
+
+print_cmd "2" "stdin -> remote default shell" "$(ok)" \
+"ssh host < file.sh"
+
+print_cmd "3" "systemd-run user scope with --pipe" "$(ok)" \
+"ssh host 'systemd-run --user --pipe bash' < file.sh"
+
+print_cmd "4" "heredoc -> bash -s" "$(ok)" \
+"ssh host 'bash -s' <<EOF
+echo hola!
+hostname
+EOF"
+
+print_cmd "5" "tmux send-keys with \$(cat) (fragile/incorrect)" "$(bad)" \
+"cat file.sh | ssh host 'tmux send-keys -t 0 \"\$(cat)\" Enter'"
+
+printf "${DIM}Legend:${RST} [%s]=works as intended, [%s]=not reliable\n" "$(ok)" "$(bad)"
