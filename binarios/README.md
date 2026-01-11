@@ -430,8 +430,6 @@ mitnickAttack       Usa Scapy para realizar un SYN Flood y establecer una conexi
 spoofdetect         Detecta ataques con inundacion, muestra la direccion del ataque
 pcapmap             Genera un archivo kml para google maps de un pcap file para ver ubicacion
 downgeo             Descarga la base de datos de Geo para localizar ips
-iploc               localiza la hubicacion de una IP con python, descarga la base GEYO
-iplocf              Ips geolocalizacion igual que iploc pero esta ocupa un archivo para mostrar ubicacion 
 pscaner             escaneo de puertos, mostrando si los puertos están abiertos o cerrados
 pnmap               El script escanea los puertos especificados de un host objetivo y muestra su estado.
 sweepport           Escane un puerto con python estilo nmap.
