@@ -51,6 +51,12 @@ function mktemm() {
 }
 
 
+#para copiar lo que tengo en el portapapeles a un archivo por ssh
+cpl() {
+  pbpaste | ssh -J xps-arch natasha@192.168.122.10 "cat >> $1"
+}
+    
+
 
 
 #Extraer puertos para expo
