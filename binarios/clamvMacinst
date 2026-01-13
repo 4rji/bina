@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+
+#link
+
+echo "link"
+echo "https://www.clamav.net/downloads/production/clamav-1.4.3.macos.universal.pkg"
+
+echo "download it first"
+sleep 5
+echo "another sleep 10"
+sleep 10
+
+set -euo pipefail
+
+CLAM_ROOT="/usr/local/clamav"
+ETC="$CLAM_ROOT/etc"
+DBDIR="$CLAM_ROOT/share/clamav"
+FRESHCLAM="$CLAM_ROOT/bin/freshclam"
+
+need_root() {
+  if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
+    exec sudo -E "$0" "$@"
+  fi
+}
+
+need_root "$@"
+
+# Sanity
+[[ -x "$FRESHCLAM" ]] || { echo "ERROR: no existe $FRESHCLAM"; exit 1; }
+[[ -d "$ETC" ]]      || { echo "ERROR: no existe $ETC"; exit 1; }
+
+# Ensure config exists (prefer current file, else copy sample)
+if [[ ! -f "$ETC/freshclam.conf" ]]; then
+  if [[ -f "$ETC/freshclam.conf.sample" ]]; then
+    cp -f "$ETC/freshclam.conf.sample" "$ETC/freshclam.conf"
+  else
+    echo "ERROR: no hay freshclam.conf ni freshclam.conf.sample en $ETC"
+    exit 1
+  fi
+fi
+
+# (Optional) ensure clamd.conf exists too
+if [[ ! -f "$ETC/clamd.conf" && -f "$ETC/clamd.conf.sample" ]]; then
+  cp -f "$ETC/clamd.conf.sample" "$ETC/clamd.conf"
+fi
+
+# 1) Disable Example
+sed -i '' 's/^[[:space:]]*Example/#Example/' "$ETC/freshclam.conf" || true
+[[ -f "$ETC/clamd.conf" ]] && sed -i '' 's/^[[:space:]]*Example/#Example/' "$ETC/clamd.conf" || true
+
+# 2) Ensure DB dir
+mkdir -p "$DBDIR"
+
+# 3) Set DatabaseDirectory in both configs
+set_dbdir() {
+  local f="$1"
+  if grep -q '^[[:space:]]*DatabaseDirectory[[:space:]]\+' "$f"; then
+    sed -i '' "s|^[[:space:]]*DatabaseDirectory[[:space:]].*|DatabaseDirectory $DBDIR|" "$f"
+  else
+    printf "\nDatabaseDirectory %s\n" "$DBDIR" >> "$f"
+  fi
+}
+
+set_dbdir "$ETC/freshclam.conf"
+[[ -f "$ETC/clamd.conf" ]] && set_dbdir "$ETC/clamd.conf"
+
+# 4) Fix perms for UID/GID 82 (clamav/_clamav on macOS)
+chown -R 82:82 "$DBDIR"
+chmod 775 "$DBDIR"
+
+# 5) Update signatures
+"$FRESHCLAM" -v || "$FRESHCLAM" --user=root -v
+
+echo "OK: firmas actualizadas en $DBDIR"
+ls -la "$DBDIR" | head

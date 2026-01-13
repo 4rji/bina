@@ -133,7 +133,7 @@ tmuxinst            Archivos para la configuracion de tmux, lo instala. con B
 neofetchinst        Instala y personaliza neofetch para ppg1
 kittyinst           Instala kitty y baja su configuracion
 ovpninst            Instala OpenvpnServer para webadmin, 4rjiDocs
-
+clamvMacinst        Modifica la configuracion para MAC de clamv
 
 
 #DNS o ips 
@@ -594,9 +594,8 @@ splunktestport      ejecuta un tcpdump para ver si recibe datos el puerto 998
 
 ###------ CCDC
 usuario             Crea un usuario en bash, automatico.
-
 bannerC             Banner for login and ssh
-bannerlogin      Modify the banner after login with ssh and also when start computer
+bannerlogin         Modify the banner after login with ssh and also when start computer
 
 verpw               Verifica los permisos de los archivos /etc/passwd u linux claves
 backd-detect        detecta conexiones sospechosas hacia rangos RFC1918 e identifica procesos asociados
