@@ -61,7 +61,7 @@ refresh_wifi.sh     script para reiniciar wifi en raspberry
 nmcliwifi           Instrucciones para guardar wifi con nmcli
 nmclihelp           Varios comandos para conectar wifi
 operarch            Instala brave o opera en arch con yay
-
+clamvcomm           Comandos de clamv para ejecucion, echo
 
 ###------redhat
 dnfrepos            Actualiza unos repos EPEL, y otros, tambien qemu se habilita.

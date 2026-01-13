@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+cat <<'EOF'
+ClamAV quick commands:
+
+# Recursive scan of a folder (only show infected)
+clamscan -r -i ~/Downloads
+
+# Scan your entire home (may take a while)
+clamscan -r -i ~/
+
+# Scan a single file
+clamscan -i /path/to/file
+
+# Scan with a log file
+clamscan -r -i --log=/tmp/clamav-scan.log ~/Downloads
+
+# Exclude common macOS system paths
+clamscan -r -i --exclude-dir='(^/System|^/Library|^/Applications|^/Volumes)' ~/
+
+# Verbose output / detailed summary
+clamscan -r -i --verbose ~/Downloads
+
+# Update signatures (before scanning)
+sudo freshclam
+
+# Start the daemon (optional, faster scans via clamdscan)
+sudo clamd
+
+# Scan via daemon
+clamdscan -i ~/Downloads
+EOF

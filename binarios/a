@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ZSHRC="$HOME/.zshrc"
+LINE='export PATH="/usr/local/clamav/bin:$PATH"'
+
+grep -qxF "$LINE" "$ZSHRC" || echo "$LINE" >> "$ZSHRC"
+echo "OK: agregado a $ZSHRC. Recarga: source ~/.zshrc"

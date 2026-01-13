@@ -74,9 +74,8 @@ chmod 775 "$DBDIR"
 echo "OK: firmas actualizadas en $DBDIR"
 ls -la "$DBDIR" | head
 
-# --- ClamAV (pkg) ---
-if [ -d /usr/local/clamav/bin ]; then
-  export PATH="/usr/local/clamav/bin:$PATH"
-fi
-echo "[clamav] PATH añadido: /usr/local/clamav/bin (recarga con: source ~/.zshrc)"
-# --- /ClamAV ---
+ZSHRC="$HOME/.zshrc"
+LINE='export PATH="/usr/local/clamav/bin:$PATH"'
+
+grep -qxF "$LINE" "$ZSHRC" || echo "$LINE" >> "$ZSHRC"
+echo "OK: agregado a $ZSHRC. Recarga: source ~/.zshrc"
