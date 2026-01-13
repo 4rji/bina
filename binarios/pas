@@ -1,14 +1,32 @@
 #!/usr/bin/env bash
 
-# Obtener el contenido del portapapeles
-clipboard=$(xclip -selection clipboard -o)
+# Obtener el contenido del portapapeles (Wayland / Hyprland)
+clipboard=$(wl-paste --type text/plain)
 
-# Definir la ruta del archivo donde deseas guardar el contenido del portapapeles
+# Definir la ruta del archivo
 archivo="$htf"
 
 # Añadir el contenido del portapapeles al archivo
 echo "$clipboard" >> "$archivo"
 
 # Mensaje de confirmación
-echo "Anadido a $archivo"
+echo "Añadido a $archivo"
+
+
+
+
+
+
+#for bpswm
+# Obtener el contenido del portapapeles
+#clipboard=$(xclip -selection clipboard -o)
+
+# Definir la ruta del archivo donde deseas guardar el contenido del portapapeles
+#archivo="$htf"
+
+# Añadir el contenido del portapapeles al archivo
+#echo "$clipboard" >> "$archivo"
+
+# Mensaje de confirmación
+#echo "Anadido a $archivo"
 

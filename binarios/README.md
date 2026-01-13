@@ -420,13 +420,10 @@ qemuq2              Descarga linux VM qcow2, agrega e inicia una maquina debian/
 
 
 
-
-
-
 ###--Python tools
 nointer             bloquear internet con arp y python3 scapy, en cli- arp spoofing
 nointergui          Scapy con arp, para bloquear internet maquina, necesita GUI
-mitnickAttack       Usa Scapy para realizar un SYN Flood y establecer una conexión TCP falsificada
+mitnickAttack       Usa Scapy para rsealizar un SYN Flood y establecer una conexión TCP falsificada
 spoofdetect         Detecta ataques con inundacion, muestra la direccion del ataque
 pcapmap             Genera un archivo kml para google maps de un pcap file para ver ubicacion
 downgeo             Descarga la base de datos de Geo para localizar ips
@@ -466,6 +463,7 @@ sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
 
 
 ###----- Redteam 
+memory              algunos comandos para ejecutar en memoria comandos
 bloqueatodo         Para acceptar todo trafico o bloquear todo el trafico. 
 servidor            Inicia y detiene un servidor apache en 8080                                           
 sshautoscript       Abre un tunel SSH inverso a una maquina, ella accede a tu SSH local sin abrir puertos.
@@ -478,7 +476,7 @@ sship               ippsec sshpass el para pasar iniciar ssh sin mensajes ni aut
 sshcom              Copia y ejecuta un script en una maquina ssh remota en /tmp
 impactoinst         instala impacket smb server para montar con impacto
 msmb                monta un smb o samba
-smbcomm             Explota samba, arregla s tty, consola interactiva, control c    
+smbcomm             Explota samba, sarregla s tty, consola interactiva, control c    
 enviarnc            Envia archivos con bash puro, NO NC, hace sha256sum
 recibenc            recibe archivos con nc, usando enviarnc hace sha256sum  
 receiver            Recibidor de go para recibir archivos por nc
@@ -498,9 +496,8 @@ airsend             Enviar archivos, mensajes por c2, puerto 443
 ncarchivos          Muestra comandos para nc para enviar archivos o enviar comandos
 socat1              Bajado de https://github.com/aledbf/socat-static-binary/releases/download/v0.0.1/socat-linux-amd64
 linpi               Baja comprimidos, que contiene linpi, enum, chisel, pspy64, etc.
-s1pinst             Servidor, usa dockers para un reverse proxy apuntando a servidor.yop.com de cloudflare
+
 cloudtunnel         Inicia cloudflare tunnel en la xps con servicios ya configurados.
-johninst            Install john the ripper for GPU, from github.
 busq                alias busq='/opt/4rji/BreachCompilation/query.sh'
 pixeltrack          Instala servidor apache con un track pixel para email pixel track location
 consola             Obtener una consola interactiva tty.
@@ -591,6 +588,8 @@ splunktestport      ejecuta un tcpdump para ver si recibe datos el puerto 998
 
 
 ###------ CCDC
+psss
+pssc
 usuario             Crea un usuario en bash, automatico.
 
 bannerC             Banner for login and ssh

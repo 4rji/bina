@@ -1,30 +1,25 @@
 #!/usr/bin/env bash
 
-# Verificar que se proporciona un nombre como argumento
-if [ $# -ne 1 ]; then
-    echo "Uso: $0 <nombre>"
+# Verificar argumentos
+if [ $# -ne 2 ]; then
+    echo "Uso: $0 <nombre> <IP>"
     exit 1
 fi
 
-# Obtener el directorio base
-base_dir="/home/ass/Documents/GitHub/4rji/4rjinotes/htb"
-
-# Obtener el nombre del directorio base
+# Argumentos
 nombre="$1"
+ip="$2"
 
-# Obtener el nombre del directorio actual
-foldername=$(basename "$nombre")
+# Directorio base
+base_dir="$HOME/4rjinotes/htb"
 
-# Agregar la extensión .md al nombre del directorio
-foldername_with_extension="$foldername.md"
+# Crear estructura si no existe
+mkdir -p "$base_dir/$nombre"
 
-# Ejecutar el script para obtener la dirección IP
-resultado=$("$HOME/.config/bin/bateria.sh")
+# Nombre del archivo markdown
+foldername_with_extension="$nombre.md"
 
-# Obtener la dirección IP del resultado (Se ha dejado 8.8.8.8 como ejemplo)
-ip=$(echo "$resultado" | grep -oE "\b([0-9]{1,3}\.){3}[0-9]{1,3}\b")
-
-# Mostrar información y variables
+# Mostrar información
 echo "Definiendo las siguientes variables:"
 echo ""
 echo "export htf=\"$base_dir/$nombre/$foldername_with_extension\""
@@ -32,13 +27,13 @@ echo "export htcon=\"$base_dir/$nombre\""
 echo "export ip=\"$ip\""
 echo "export maquina=\"$nombre\""
 
-# Eliminar las líneas existentes del archivo .zshrc si ya están definidas
+# Comentar variables previas
 sed -i 's/^export htf=/##&/' ~/.zshrc
 sed -i 's/^export htcon=/##&/' ~/.zshrc
 sed -i 's/^export ip=/##&/' ~/.zshrc
 sed -i 's/^export maquina=/##&/' ~/.zshrc
 
-# Añadir las líneas al final del archivo .zshrc
+# Añadir nuevas variables
 {
   echo ""
   echo "# Variables definidas por el script htp"
@@ -48,8 +43,7 @@ sed -i 's/^export maquina=/##&/' ~/.zshrc
   echo "export maquina=\"$nombre\""
 } >> ~/.zshrc
 
-# Notificar al usuario
 echo ""
-echo "Las variables han sido definidas y agregadas al archivo ~/.zshrc"
-echo "REINICIAR la shell, cerrarla"
+echo "Variables agregadas a ~/.zshrc"
+echo "Reinicia la shell"
 echo ""
