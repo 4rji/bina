@@ -73,3 +73,10 @@ chmod 775 "$DBDIR"
 
 echo "OK: firmas actualizadas en $DBDIR"
 ls -la "$DBDIR" | head
+
+# --- ClamAV (pkg) ---
+if [ -d /usr/local/clamav/bin ]; then
+  export PATH="/usr/local/clamav/bin:$PATH"
+fi
+echo "[clamav] PATH añadido: /usr/local/clamav/bin (recarga con: source ~/.zshrc)"
+# --- /ClamAV ---
