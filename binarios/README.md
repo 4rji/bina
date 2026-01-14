@@ -135,6 +135,9 @@ kittyinst           Instala kitty y baja su configuracion
 ovpninst            Instala OpenvpnServer para webadmin, 4rjiDocs
 clamvMacinst        Modifica la configuracion para MAC de clamv
 xrayinst            instala xray. no es mi script. 
+fx11inst            Instala firefox en docker para acceder remotamente
+fx11                se usa para activar remotamente el firefox de docker remoto con -s o con -t
+
 
 
 #DNS o ips 
