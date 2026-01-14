@@ -46,7 +46,9 @@ apache9000          Modifica la configuracion de apache para correr en el puerto
 pwdc                Copia el directorio actual con pwd y xclip
 
 
-
+#Windows
+clamWinst.ps1       Instala clamv en windows muestra la ruta al final de los archivos
+bannerWin.ps1       Banner para windows server 
 
 ###------Arch linux
 astrike             Github pentesting, instala herramientas manualmente para arch
