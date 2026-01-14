@@ -1,42 +1,240 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-paquetes=("clamav")
-paquete_instalado() {  
-dpkg -l "$1" | grep -q '^ii'  
+LINUX_DEB_URL="https://www.clamav.net/downloads/production/clamav-1.5.1.linux.x86_64.deb"
+LINUX_RPM_URL="https://www.clamav.net/downloads/production/clamav-1.5.1.linux.x86_64.rpm"
+
+WIN_MSI_URL="https://www.clamav.net/downloads/production/clamav-1.5.1.win.x64.msi"
+WIN_ZIP_URL="https://www.clamav.net/downloads/production/clamav-1.5.1.win.x64.zip"
+MAC_PKG_URL="https://www.clamav.net/downloads/production/clamav-1.5.1.macos.universal.pkg"
+
+# Many distros use /etc, upstream pkg uses /usr/local/etc. We’ll detect.
+DEFAULT_CONF_DIR="/usr/local/etc"
+
+echo "ClamAV download links:"
+echo "  [Linux .deb]  $LINUX_DEB_URL"
+echo "  [Linux .rpm]  $LINUX_RPM_URL"
+echo "  [Windows MSI] $WIN_MSI_URL"
+echo "  [Windows ZIP] $WIN_ZIP_URL"
+echo "  [macOS PKG]   $MAC_PKG_URL"
+echo
+
+echo "Choose what you want to install:"
+echo "  1) Linux (.deb)"
+echo "  2) Linux (.rpm)"
+echo "  3) Windows (manual)"
+echo "  4) macOS (manual)"
+read -rp "Selection [1-4]: " choice
+
+need_cmd() { command -v "$1" >/dev/null 2>&1; }
+
+download() {
+  local url="$1" out="$2"
+  if need_cmd curl; then
+    curl -fL --retry 3 -o "$out" "$url"
+  elif need_cmd wget; then
+    wget -O "$out" "$url"
+  else
+    echo "Error: curl or wget required."
+    exit 1
+  fi
 }
 
-for paquete in "${paquetes[@]}"; do if ! paquete_instalado "$paquete"; then  
-sudo apt-get install -y "$paquete"  
-fi  
-done
+# Detect where configs actually live
+detect_conf_dir() {
+  for d in /etc /usr/local/etc; do
+    if [ -f "$d/freshclam.conf" ] || [ -f "$d/freshclam.conf.sample" ] || [ -f "$d/clamd.conf" ] || [ -f "$d/clamd.conf.sample" ]; then
+      echo "$d"
+      return 0
+    fi
+  done
+  echo "$DEFAULT_CONF_DIR"
+}
 
+CONF_DIR="$(detect_conf_dir)"
 
-#actualiza la base de datos
-sudo systemctl stop clamav-freshclam
-sudo freshclam
-sudo systemctl start clamav-freshclam
+is_installed_linux() {
+  # "clamav" binary might not exist on some splits, but freshclam usually does.
+  if need_cmd freshclam || need_cmd clamscan || need_cmd clamd; then
+    return 0
+  fi
 
-#el scaneo
-#sudo clamscan -i -r --move /tmp --max-scansize=1024M --max-filesize=500M /var/
-#!/usr/bin/env bash
+  # fallback by package manager metadata
+  if need_cmd dpkg-query; then
+    dpkg-query -W -f='${Status}\n' clamav 2>/dev/null | grep -q "install ok installed" && return 0 || true
+    dpkg-query -W -f='${Status}\n' clamav-base 2>/dev/null | grep -q "install ok installed" && return 0 || true
+  fi
+  if need_cmd rpm; then
+    rpm -q clamav >/dev/null 2>&1 && return 0 || true
+  fi
 
-# Pedir al usuario la ruta a escanear
-echo "Por favor, introduce la ruta que quieres escanear:"
-read ruta_escaneo
+  return 1
+}
 
-# Comprobar si se ha introducido una ruta
-if [[ -z "$ruta_escaneo" ]]; then
-    echo "No se ha introducido ninguna ruta. El script se cerrará."
+ensure_clamav_user() {
+  # Linux-only; on macOS this won't work and you’re doing manual anyway.
+  if getent passwd clamav >/dev/null 2>&1; then
+    return 0
+  fi
+
+  echo "Creating system user/group 'clamav'..."
+  if need_cmd useradd; then
+    sudo groupadd -f clamav
+    sudo useradd --system --no-create-home --shell /usr/sbin/nologin --gid clamav clamav 2>/dev/null || true
+  elif need_cmd adduser; then
+    sudo addgroup --system clamav 2>/dev/null || true
+    sudo adduser  --system --no-create-home --disabled-login --ingroup clamav clamav 2>/dev/null || true
+  else
+    echo "Error: neither useradd nor adduser found. Create user 'clamav' manually."
     exit 1
-fi
+  fi
 
-# Obtener la fecha y hora actual para el nombre del archivo de salida
-fecha_actual=$(date "+%Y%m%d%H%M%S")
-archivo_salida="$HOME/scan$fecha_actual.txt"
+  getent passwd clamav >/dev/null 2>&1 || {
+    echo "Error: failed to create user clamav."
+    exit 1
+  }
+}
 
-# Ejecutar ClamAV y guardar los resultados
-echo "Realizando escaneo de ClamAV en la ruta: $ruta_escaneo"
-sudo clamscan -i -r --move=/tmp --max-scansize=1024M --max-filesize=500M "$ruta_escaneo" > "$archivo_salida"
+strip_example_line() {
+  local f="$1"
+  [ -f "$f" ] || return 0
+  # portable sed (GNU/BSD): use backup suffix
+  sudo sed -i.bak '/^[[:space:]]*Example[[:space:]]*$/d' "$f" 2>/dev/null || true
+  sudo sed -i.bak '/^[[:space:]]*Example[[:space:]]\+/d' "$f" 2>/dev/null || true
+}
 
-echo "Escaneo completado. Resultados guardados en: $archivo_salida"
+ensure_key_value() {
+  # ensure "Key Value" exists (replace if present, else append)
+  local file="$1" key="$2" val="$3"
+  [ -f "$file" ] || return 0
+  if sudo grep -qE "^[[:space:]]*$key[[:space:]]+" "$file"; then
+    sudo sed -i.bak -E "s|^[[:space:]]*$key[[:space:]]+.*$|$key $val|g" "$file"
+  else
+    echo "$key $val" | sudo tee -a "$file" >/dev/null
+  fi
+}
 
+setup_configs() {
+  echo "Setting up configuration files in: $CONF_DIR"
+  sudo mkdir -p "$CONF_DIR"
+
+  if [ -f "$CONF_DIR/freshclam.conf.sample" ] && [ ! -f "$CONF_DIR/freshclam.conf" ]; then
+    sudo cp "$CONF_DIR/freshclam.conf.sample" "$CONF_DIR/freshclam.conf"
+  fi
+  if [ -f "$CONF_DIR/clamd.conf.sample" ] && [ ! -f "$CONF_DIR/clamd.conf" ]; then
+    sudo cp "$CONF_DIR/clamd.conf.sample" "$CONF_DIR/clamd.conf"
+  fi
+
+  strip_example_line "$CONF_DIR/freshclam.conf"
+  strip_example_line "$CONF_DIR/clamd.conf"
+
+  # If configs specify a non-existent user, force it to clamav
+  ensure_clamav_user
+
+  # freshclam uses DatabaseOwner
+  if [ -f "$CONF_DIR/freshclam.conf" ]; then
+    ensure_key_value "$CONF_DIR/freshclam.conf" "DatabaseOwner" "clamav"
+  fi
+
+  # clamd uses User
+  if [ -f "$CONF_DIR/clamd.conf" ]; then
+    ensure_key_value "$CONF_DIR/clamd.conf" "User" "clamav"
+  fi
+}
+
+get_db_dir() {
+  local dir=""
+  if [ -f "$CONF_DIR/freshclam.conf" ]; then
+    dir="$(awk '$1=="DatabaseDirectory"{print $2}' "$CONF_DIR/freshclam.conf" | tail -n1)"
+  fi
+  if [ -z "${dir:-}" ]; then
+    for cand in /var/lib/clamav /usr/local/share/clamav /var/db/clamav; do
+      [ -d "$cand" ] && { dir="$cand"; break; }
+    done
+  fi
+  echo "${dir:-/var/lib/clamav}"
+}
+
+prepare_db_dir() {
+  local dbdir
+  dbdir="$(get_db_dir)"
+  echo "Preparing database directory: $dbdir"
+  sudo mkdir -p "$dbdir"
+  # ownership only works if user exists
+  sudo chown -R clamav:clamav "$dbdir" 2>/dev/null || true
+}
+
+run_freshclam() {
+  ensure_clamav_user
+  setup_configs
+  prepare_db_dir
+  echo "Updating virus databases (freshclam)..."
+  sudo freshclam
+}
+
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
+
+case "$choice" in
+  1)
+    if is_installed_linux; then
+      echo "ClamAV already installed. Skipping download/install."
+    else
+      pkg="$tmpdir/clamav.deb"
+      download "$LINUX_DEB_URL" "$pkg"
+      sudo dpkg -i "$pkg" || true
+      if need_cmd apt-get; then
+        sudo apt-get -y -f install
+      fi
+    fi
+
+    run_freshclam
+
+    echo
+    echo "Done."
+    echo "Optional:"
+    echo "  sudo systemctl start clamav-freshclam 2>/dev/null || true"
+    echo "  sudo systemctl start clamd 2>/dev/null || true"
+    ;;
+  2)
+    if is_installed_linux; then
+      echo "ClamAV already installed. Skipping download/install."
+    else
+      pkg="$tmpdir/clamav.rpm"
+      download "$LINUX_RPM_URL" "$pkg"
+
+      if need_cmd dnf; then
+        sudo dnf -y install "$pkg"
+      elif need_cmd yum; then
+        sudo yum -y install "$pkg"
+      elif need_cmd zypper; then
+        sudo zypper --non-interactive install "$pkg"
+      else
+        sudo rpm -Uvh "$pkg"
+      fi
+    fi
+
+    run_freshclam
+
+    echo
+    echo "Done."
+    echo "Optional:"
+    echo "  sudo systemctl start clamav-freshclam 2>/dev/null || true"
+    echo "  sudo systemctl start clamd 2>/dev/null || true"
+    ;;
+  3)
+    echo "Windows selected. Install manually:"
+    echo "  $WIN_MSI_URL"
+    echo "  $WIN_ZIP_URL"
+    exit 0
+    ;;
+  4)
+    echo "macOS selected. Install manually:"
+    echo "  $MAC_PKG_URL"
+    exit 0
+    ;;
+  *)
+    echo "Invalid selection."
+    exit 1
+    ;;
+esac

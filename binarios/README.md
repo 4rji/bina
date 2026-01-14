@@ -167,6 +167,9 @@ nixbus              Para buscar programas en linea de comando y tambien corregir
 
 
 ###------utilidades 
+clipam              Copia un archivo al clibboard clipam #archivo
+ccdclabprogram      Programa que hice para vcenter para manejar apps
+cleanipsm           Limpia Ips, dominios, urls de un archivo y hace sort uniq
 sshterminal         sshx para compartir una terminal en la pagina web, remota, remoto
 passcheck           Verifica contrasenas en api.pwnedpasswords.com
 stiginst            Utilidad de verificacion windows por la navy
