@@ -134,6 +134,7 @@ neofetchinst        Instala y personaliza neofetch para ppg1
 kittyinst           Instala kitty y baja su configuracion
 ovpninst            Instala OpenvpnServer para webadmin, 4rjiDocs
 clamvMacinst        Modifica la configuracion para MAC de clamv
+xrayinst            instala xray. no es mi script. 
 
 
 #DNS o ips 
