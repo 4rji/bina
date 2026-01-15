@@ -1,0 +1,231 @@
+<# 
+CCDC FileServer bootstrap (Windows Server)
+- Creates AD users (optional)
+- Creates SMB shares (safe baseline)
+- Installs + configures IIS FTP (optional)
+
+Run as Domain Admin (for AD user creation) and Local Admin (for features/shares/FTP).
+#>
+
+[CmdletBinding()]
+param(
+  [string]$Domain = "CCDCTeam.com",
+  [string]$ComputerName = "FILESERVER",
+
+  # Users you showed
+  [string[]]$Users = @(
+    "Marie.Valez",
+    "Major.Taung",
+    "Tyler.Rock",
+    "Paul.Pride",
+    "Joseph.Flaco",
+    "Chase.Logan",
+    "Denise.Colon",
+    "Charles.Labelle"
+  ),
+
+  [SecureString]$DefaultPassword,
+
+  [switch]$RenameHost,
+  [switch]$CreateADUsers,
+  [switch]$ConfigureShares,
+  [switch]$ConfigureFtp
+)
+
+function Ensure-Module($Name) {
+  if (-not (Get-Module -ListAvailable -Name $Name)) {
+    throw "Missing module: $Name"
+  }
+  Import-Module $Name -ErrorAction Stop
+}
+
+function Ensure-Dir($Path) {
+  if (-not (Test-Path $Path)) { New-Item -ItemType Directory -Path $Path | Out-Null }
+}
+
+function Ensure-LocalUser($Name, [SecureString]$Pw) {
+  if (-not (Get-LocalUser -Name $Name -ErrorAction SilentlyContinue)) {
+    New-LocalUser -Name $Name -Password $Pw -PasswordNeverExpires:$false -UserMayNotChangePassword:$false | Out-Null
+  }
+}
+
+function New-RandomCcdcShareName {
+  $adjectives = @("Blue", "Rapid", "Calm", "Cinder", "Silver", "Quiet", "Amber", "Frozen", "Solid", "Sharp")
+  $nouns = @("Vault", "Harbor", "Quartz", "Forge", "Signal", "Canopy", "Beacon", "Atlas", "Summit", "Canyon")
+  $suffix = Get-Random -Minimum 100 -Maximum 999
+  return "CCDC-$((Get-Random $adjectives))-$((Get-Random $nouns))-$suffix"
+}
+
+if (-not $DefaultPassword) {
+  $DefaultPassword = Read-Host "Default password for created users" -AsSecureString
+}
+
+if ($RenameHost) {
+  if ($env:COMPUTERNAME -ne $ComputerName) {
+    Rename-Computer -NewName $ComputerName -Force
+    Write-Host "[*] Renamed to $ComputerName. Reboot required." -ForegroundColor Yellow
+  } else {
+    Write-Host "[*] Hostname already $ComputerName"
+  }
+}
+
+# ---------- AD USERS (Domain) ----------
+if ($CreateADUsers) {
+  Ensure-Module ActiveDirectory
+
+  $groupName = "FTP_Users"
+  $group = Get-ADGroup -Filter "Name -eq '$groupName'" -ErrorAction SilentlyContinue
+  if (-not $group) {
+    $group = New-ADGroup -Name $groupName -SamAccountName $groupName -GroupScope Global -GroupCategory Security
+  }
+
+  foreach ($u in $Users) {
+    $sam = $u
+    $display = $u.Replace(".", " ")
+    $exists = Get-ADUser -Filter "SamAccountName -eq '$sam'" -ErrorAction SilentlyContinue
+    if (-not $exists) {
+      New-ADUser `
+        -Name $display `
+        -SamAccountName $sam `
+        -UserPrincipalName "$sam@$Domain" `
+        -Enabled $true `
+        -AccountPassword $DefaultPassword `
+        -ChangePasswordAtLogon $true | Out-Null
+      Write-Host "[+] Created AD user: $sam"
+    } else {
+      Write-Host "[=] AD user exists: $sam"
+    }
+
+    Add-ADGroupMember -Identity $groupName -Members $sam -ErrorAction SilentlyContinue
+  }
+
+  Write-Host "[*] AD group ready: $groupName"
+}
+
+# ---------- SMB SHARES (Safe baseline) ----------
+if ($ConfigureShares) {
+  $base = "C:\Shares"
+  $sharePublic = Join-Path $base "Public"
+  $shareDept   = Join-Path $base "Dept"
+  $shareHR     = Join-Path $base "HR"
+
+  Ensure-Dir $sharePublic
+  Ensure-Dir $shareDept
+  Ensure-Dir $shareHR
+
+  # Create shares if missing
+  if (-not (Get-SmbShare -Name "Public" -ErrorAction SilentlyContinue)) {
+    New-SmbShare -Name "Public" -Path $sharePublic -FullAccess "BUILTIN\Administrators" -ChangeAccess "$Domain\Domain Users" | Out-Null
+  }
+  if (-not (Get-SmbShare -Name "Dept" -ErrorAction SilentlyContinue)) {
+    New-SmbShare -Name "Dept" -Path $shareDept -FullAccess "BUILTIN\Administrators" -ChangeAccess "$Domain\Domain Users" | Out-Null
+  }
+  if (-not (Get-SmbShare -Name "HR" -ErrorAction SilentlyContinue)) {
+    # HR is tighter on purpose
+    New-SmbShare -Name "HR" -Path $shareHR -FullAccess "BUILTIN\Administrators" -ReadAccess "$Domain\Domain Admins" | Out-Null
+  }
+
+  # NTFS perms (baseline)
+  icacls $base /inheritance:r | Out-Null
+  icacls $base /grant:r "BUILTIN\Administrators:(OI)(CI)F" "SYSTEM:(OI)(CI)F" | Out-Null
+
+  icacls $sharePublic /inheritance:r | Out-Null
+  icacls $sharePublic /grant:r "BUILTIN\Administrators:(OI)(CI)F" "SYSTEM:(OI)(CI)F" "$Domain\Domain Users:(OI)(CI)M" | Out-Null
+
+  icacls $shareDept /inheritance:r | Out-Null
+  icacls $shareDept /grant:r "BUILTIN\Administrators:(OI)(CI)F" "SYSTEM:(OI)(CI)F" "$Domain\Domain Users:(OI)(CI)M" | Out-Null
+
+  icacls $shareHR /inheritance:r | Out-Null
+  icacls $shareHR /grant:r "BUILTIN\Administrators:(OI)(CI)F" "SYSTEM:(OI)(CI)F" "$Domain\Domain Admins:(OI)(CI)RX" | Out-Null
+
+  # Seed files
+  Set-Content -Path (Join-Path $sharePublic "README.txt") -Value "Public share (baseline)."
+  Set-Content -Path (Join-Path $shareDept "notes.txt") -Value "Department share (baseline)."
+  Set-Content -Path (Join-Path $shareHR "hr-policy.txt") -Value "HR share (restricted baseline)."
+
+  # CCDC decoy shares: random names, anonymous + everyone read
+  $ccdcShares = @()
+  for ($i = 0; $i -lt 3; $i++) {
+    $ccdcShares += New-RandomCcdcShareName
+  }
+
+  foreach ($shareName in $ccdcShares) {
+    $sharePath = Join-Path $base $shareName
+    Ensure-Dir $sharePath
+
+    if (-not (Get-SmbShare -Name $shareName -ErrorAction SilentlyContinue)) {
+      New-SmbShare -Name $shareName -Path $sharePath `
+        -FullAccess "BUILTIN\Administrators" `
+        -ReadAccess "Everyone","ANONYMOUS LOGON" | Out-Null
+    }
+
+    icacls $sharePath /inheritance:r | Out-Null
+    icacls $sharePath /grant:r `
+      "BUILTIN\Administrators:(OI)(CI)F" `
+      "SYSTEM:(OI)(CI)F" `
+      "Everyone:(OI)(CI)RX" `
+      "ANONYMOUS LOGON:(OI)(CI)RX" | Out-Null
+
+    Set-Content -Path (Join-Path $sharePath "readme.txt") -Value "CCDC share (decoy)."
+  }
+
+  Write-Host ("[+] CCDC shares (anon/everyone read): " + ($ccdcShares -join ", "))
+  Write-Host "[+] Shares ready: Public, Dept, HR"
+}
+
+# ---------- IIS FTP ----------
+if ($ConfigureFtp) {
+  Import-Module ServerManager
+
+  $features = @(
+    "Web-Server", "Web-Mgmt-Tools",
+    "Web-Ftp-Server", "Web-Ftp-Service", "Web-Ftp-Ext"
+  )
+
+  foreach ($f in $features) {
+    $st = Get-WindowsFeature $f
+    if ($st -and -not $st.Installed) {
+      Install-WindowsFeature $f -IncludeManagementTools | Out-Null
+    }
+  }
+
+  Import-Module WebAdministration
+
+  $ftpRoot = "C:\FTP"
+  Ensure-Dir $ftpRoot
+
+  $siteName = "CCDC-FTP"
+  if (-not (Test-Path "IIS:\Sites\$siteName")) {
+    New-WebFtpSite -Name $siteName -Port 21 -PhysicalPath $ftpRoot -Force | Out-Null
+  }
+
+  # Basic auth on, anonymous off (baseline)
+  Set-ItemProperty "IIS:\Sites\$siteName" -Name ftpServer.security.authentication.basicAuthentication.enabled -Value $true
+  Set-ItemProperty "IIS:\Sites\$siteName" -Name ftpServer.security.authentication.anonymousAuthentication.enabled -Value $false
+
+  # Authorization: allow group if it exists, else Domain Users
+  $authGroup = "$Domain\FTP_Users"
+  $fallback  = "$Domain\Domain Users"
+
+  # Clear existing rules
+  Remove-WebConfiguration -Filter "system.ftpServer/security/authorization" -PSPath "IIS:\Sites\$siteName" -ErrorAction SilentlyContinue
+
+  try {
+    Add-WebConfiguration -Filter "system.ftpServer/security/authorization" -PSPath "IIS:\Sites\$siteName" `
+      -Value @{accessType="Allow";roles="FTP_Users";permissions="Read,Write"} | Out-Null
+    Write-Host "[*] FTP auth: group FTP_Users"
+  } catch {
+    Add-WebConfiguration -Filter "system.ftpServer/security/authorization" -PSPath "IIS:\Sites\$siteName" `
+      -Value @{accessType="Allow";users="*";permissions="Read"} | Out-Null
+    Write-Host "[*] FTP auth: fallback minimal rule applied"
+  }
+
+  # NTFS perms for FTP root: admins/system full, Domain Users modify (baseline)
+  icacls $ftpRoot /inheritance:r | Out-Null
+  icacls $ftpRoot /grant:r "BUILTIN\Administrators:(OI)(CI)F" "SYSTEM:(OI)(CI)F" "$fallback:(OI)(CI)M" | Out-Null
+
+  Set-Content -Path (Join-Path $ftpRoot "welcome.txt") -Value "CCDC FTP (baseline)."
+  Write-Host "[+] FTP site ready: $siteName on port 21"
+}
+
+Write-Host "[DONE]"
