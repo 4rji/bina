@@ -157,24 +157,94 @@ try {
   Write-Host "[..] DNS module not available or partial DNS hardening skipped."
 }
 
-# --- Time source hardening ---
-w32tm /config /manualpeerlist:$TrustedNtpServer /syncfromflags:manual /reliable:yes /update | Out-Null
-Restart-Service w32time
-Write-Host "[OK] Time source set to trusted NTP."
+# --- Time source hardening (safe) ---
+try {
+  w32tm /config /manualpeerlist:$TrustedNtpServer /syncfromflags:manual /reliable:yes /update | Out-Null
 
-# --- Firewall baseline ---
-netsh advfirewall set allprofiles state on | Out-Null
-netsh advfirewall set allprofiles firewallpolicy blockinbound,allowoutbound | Out-Null
+  # Try a soft start if stopped
+  $svc = Get-Service w32time -ErrorAction SilentlyContinue
+  if ($svc -and $svc.Status -ne "Running") {
+    Start-Service w32time -ErrorAction SilentlyContinue
+  }
 
-# Core DC ports (TCP/UDP where appropriate)
+  # Force resync (does not require restart)
+  w32tm /resync /force | Out-Null
+
+  Write-Host "[OK] Time source configured and resync attempted."
+} catch {
+  Write-Host "[!!] Time service configured but could not start/resync now. Will recover after reboot."
+}
+# --- Firewall: robust (BFE/MpsSvc + fallback to netsh) ---
+
+function Ensure-ServiceRunning($name) {
+  $s = Get-Service $name -ErrorAction SilentlyContinue
+  if ($s -and $s.Status -ne "Running") {
+    try { Start-Service $name -ErrorAction Stop } catch {}
+  }
+}
+
+Ensure-ServiceRunning "BFE"    # Base Filtering Engine
+Ensure-ServiceRunning "MpsSvc" # Windows Defender Firewall
+
+# Enable firewall + default inbound block (best-effort)
+try { netsh advfirewall set allprofiles state on | Out-Null } catch {}
+try { netsh advfirewall set allprofiles firewallpolicy blockinbound,allowoutbound | Out-Null } catch {}
+
 $TcpPorts = @(53,88,135,389,445,464,636,3268,3269)
-$UdpPorts = @(53,88,123,389,464)  # include NTP 123/UDP
+$UdpPorts = @(53,88,123,389,464)
+
 foreach ($p in $TcpPorts) {
-  New-NetFirewallRule -DisplayName "CCDC-DC-Allow-TCP-$p" -Direction Inbound -Action Allow -Protocol TCP -LocalPort $p -Profile Any | Out-Null
+  $name = "CCDC-DC-Allow-TCP-$p"
+  try {
+    New-NetFirewallRule -DisplayName $name -Direction Inbound -Action Allow -Protocol TCP -LocalPort $p -Profile Any -ErrorAction Stop | Out-Null
+    Write-Host "[OK] FW rule (TCP $p) added via New-NetFirewallRule"
+  } catch {
+    # fallback
+    netsh advfirewall firewall add rule name="$name" dir=in action=allow protocol=TCP localport=$p profile=any | Out-Null
+    Write-Host "[OK] FW rule (TCP $p) added via netsh fallback"
+  }
 }
+
 foreach ($p in $UdpPorts) {
-  New-NetFirewallRule -DisplayName "CCDC-DC-Allow-UDP-$p" -Direction Inbound -Action Allow -Protocol UDP -LocalPort $p -Profile Any | Out-Null
+  $name = "CCDC-DC-Allow-UDP-$p"
+  try {
+    New-NetFirewallRule -DisplayName $name -Direction Inbound -Action Allow -Protocol UDP -LocalPort $p -Profile Any -ErrorAction Stop | Out-Null
+    Write-Host "[OK] FW rule (UDP $p) added via New-NetFirewallRule"
+  } catch {
+    netsh advfirewall firewall add rule name="$name" dir=in action=allow protocol=UDP localport=$p profile=any | Out-Null
+    Write-Host "[OK] FW rule (UDP $p) added via netsh fallback"
+  }
 }
+
+# Disable existing Remote Desktop allow rules (group), then add explicit block rules for 3389.
+try {
+  Get-NetFirewallRule -DisplayGroup "Remote Desktop" -ErrorAction Stop | Disable-NetFirewallRule | Out-Null
+  Write-Host "[OK] Remote Desktop firewall group disabled."
+} catch {
+  try {
+    netsh advfirewall firewall set rule group="remote desktop" new enable=No | Out-Null
+    Write-Host "[OK] Remote Desktop firewall group disabled via netsh."
+  } catch {
+    Write-Host "[!!] Could not disable Remote Desktop firewall group."
+  }
+}
+
+foreach ($proto in @("TCP","UDP")) {
+  $name = "CCDC-Block-RDP-$proto-3389"
+  try {
+    $existing = Get-NetFirewallRule -DisplayName $name -ErrorAction SilentlyContinue
+    if ($existing) {
+      Enable-NetFirewallRule -DisplayName $name | Out-Null
+    } else {
+      New-NetFirewallRule -DisplayName $name -Direction Inbound -Action Block -Protocol $proto -LocalPort 3389 -Profile Any -ErrorAction Stop | Out-Null
+    }
+    Write-Host "[OK] FW rule (Block $proto 3389) enforced."
+  } catch {
+    netsh advfirewall firewall add rule name="$name" dir=in action=block protocol=$proto localport=3389 profile=any | Out-Null
+    Write-Host "[OK] FW rule (Block $proto 3389) added via netsh fallback."
+  }
+}
+
 Write-Host "[OK] Firewall locked to core AD/DNS ports (plus NTP UDP/123)."
 
 Write-Host "=== Done. Reboot recommended if features changed. ==="
