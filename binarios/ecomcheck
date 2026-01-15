@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PASS=0; FAIL=0
+ok()  { echo "[OK]  $*"; PASS=$((PASS+1)); }
+bad() { echo "[X]   $*"; FAIL=$((FAIL+1)); }
+info(){ echo "[i]   $*"; }
+
+need() { command -v "$1" >/dev/null 2>&1 || { echo "Missing: $1"; exit 1; }; }
+
+need curl
+need ss
+need apache2ctl || true
+
+AP_CONF_DIR="/etc/apache2"
+LAB_ROOT="/var/www/lab"
+USERS=(magento opencart wordpress drupal)
+DEFAULT_PASS="metro"
+
+echo "=== Apache hardening (expected hardened state) ==="
+
+# 1) ServerTokens should be Prod (or at least NOT Full)
+if sudo grep -RqsE '^\s*ServerTokens\s+Prod\b' "$AP_CONF_DIR/conf-enabled" "$AP_CONF_DIR/sites-enabled" 2>/dev/null; then
+  ok "ServerTokens Prod"
+else
+  bad "ServerTokens not set to Prod"
+fi
+
+# 2) ServerSignature should be Off
+if sudo grep -RqsE '^\s*ServerSignature\s+Off\b' "$AP_CONF_DIR/conf-enabled" "$AP_CONF_DIR/sites-enabled" 2>/dev/null; then
+  ok "ServerSignature Off"
+else
+  bad "ServerSignature not Off"
+fi
+
+# 3) Directory listing for /lab/dirlist/ should be disabled
+DIRLIST_HTML="$(curl -fsS http://127.0.0.1/lab/dirlist/ 2>/dev/null || true)"
+if [[ -z "$DIRLIST_HTML" ]]; then
+  ok "/lab/dirlist/ not reachable (blocked/removed)"
+else
+  if echo "$DIRLIST_HTML" | grep -qi "Index of /"; then
+    bad "Directory listing ENABLED on /lab/dirlist/"
+  else
+    ok "Directory listing disabled"
+  fi
+fi
+
+# 4) Port 8080 should be closed
+if ss -lntp 2>/dev/null | grep -q ':8080'; then
+  bad "Port 8080 is listening"
+else
+  ok "Port 8080 closed"
+fi
+
+# 5) Security headers should exist
+HDRS="$(curl -fsSI http://127.0.0.1/lab/ 2>/dev/null || true)"
+if [[ -z "$HDRS" ]]; then
+  bad "Cannot fetch headers from /lab/"
+else
+  echo "$HDRS" | grep -qi '^X-Content-Type-Options:' && ok "X-Content-Type-Options present" || bad "Missing X-Content-Type-Options"
+  echo "$HDRS" | grep -qi '^X-Frame-Options:' && ok "X-Frame-Options present" || bad "Missing X-Frame-Options"
+  echo "$HDRS" | grep -qi '^Content-Security-Policy:' && ok "CSP present" || bad "Missing Content-Security-Policy"
+fi
+
+# 6) phpinfo should NOT be exposed (your index.php currently has phpinfo())
+LAB_INDEX_URL="http://127.0.0.1/lab/"
+INDEX_BODY="$(curl -fsS "$LAB_INDEX_URL" 2>/dev/null || true)"
+if echo "$INDEX_BODY" | grep -qi "phpinfo()"; then
+  bad "phpinfo exposed on /lab/ (remove phpinfo())"
+else
+  ok "phpinfo not exposed"
+fi
+
+# 7) suspicious stub file should be removed
+if curl -fsS "http://127.0.0.1/lab/suspicious.php" >/dev/null 2>&1; then
+  bad "/lab/suspicious.php still reachable (remove it)"
+else
+  ok "suspicious.php not reachable"
+fi
+
+echo
+echo "=== MySQL hardening (expected hardened state) ==="
+
+if command -v mysql >/dev/null 2>&1; then
+  # 8) Practice users must exist (keep this as OK)
+  for u in "${USERS[@]}"; do
+    if sudo mysql -Nse "SELECT COUNT(*) FROM mysql.user WHERE user='${u}' AND host='localhost';" 2>/dev/null | grep -qx '1'; then
+      ok "MySQL user exists: $u"
+    else
+      bad "Missing MySQL user: $u"
+    fi
+  done
+
+  # 9) Default password MUST be changed (we check by attempting login with 'metro')
+  # If login with default works => FAIL
+  for u in "${USERS[@]}"; do
+    if mysql --connect-timeout=2 -u "$u" -p"$DEFAULT_PASS" -e "SELECT 1;" >/dev/null 2>&1; then
+      bad "User $u STILL accepts default password '$DEFAULT_PASS' (rotate it)"
+    else
+      ok "User $u does NOT accept default password"
+    fi
+  done
+
+  # 10) Users must NOT have GRANT OPTION, ALL on *.*, or admin-level privs
+  for u in "${USERS[@]}"; do
+    GR="$(sudo mysql -Nse "SHOW GRANTS FOR '${u}'@'localhost';" 2>/dev/null || true)"
+
+    if echo "$GR" | grep -qiE "GRANT\s+ALL\s+PRIVILEGES\s+ON\s+\*\.\*"; then
+      bad "User $u has ALL PRIVILEGES on *.*"
+    else
+      ok "User $u no ALL PRIVILEGES on *.*"
+    fi
+
+    if echo "$GR" | grep -qi "WITH GRANT OPTION"; then
+      bad "User $u has GRANT OPTION"
+    else
+      ok "User $u no GRANT OPTION"
+    fi
+
+    if echo "$GR" | grep -qiE "\b(SUPER|FILE|PROCESS|SHUTDOWN|RELOAD|CREATE USER|DROP USER)\b"; then
+      bad "User $u has admin-level privilege"
+    else
+      ok "User $u no admin-level privileges"
+    fi
+  done
+
+else
+  bad "mysql client not found; cannot check MySQL hardening"
+fi
+
+echo
+echo "=== SCORE ==="
+echo "Passed: $PASS"
+echo "Failed: $FAIL"
+exit $((FAIL>0))

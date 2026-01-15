@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+AP_CONF="/etc/apache2/conf-available/hardening.conf"
+PORTS="/etc/apache2/ports.conf"
+LAB_SITE="lab-8080.conf"
+
+sudo apt update
+sudo apt install -y apache2
+
+# headers module
+sudo a2enmod headers >/dev/null
+
+# hardening conf
+sudo tee "$AP_CONF" >/dev/null <<'EOF'
+ServerTokens Prod
+ServerSignature Off
+
+# Basic security headers
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-Frame-Options "SAMEORIGIN"
+Header always set Content-Security-Policy "default-src 'self'; object-src 'none'; base-uri 'self'"
+
+# Disable directory listing for lab dirlist if configured elsewhere
+<Directory "/var/www/lab/dirlist">
+    Options -Indexes +FollowSymLinks
+</Directory>
+EOF
+
+sudo a2enconf hardening >/dev/null
+
+# disable 8080 vhost if present
+if sudo test -e "/etc/apache2/sites-enabled/${LAB_SITE}"; then
+  sudo a2dissite "$LAB_SITE" >/dev/null || true
+fi
+sudo rm -f "/etc/apache2/sites-available/${LAB_SITE}" || true
+
+# remove Listen 8080
+sudo sed -i '/^\s*Listen\s\+8080\s*$/d' "$PORTS"
+
+sudo apache2ctl -t
+sudo systemctl reload apache2
+
+echo "[+] Apache hardened + reloaded"
