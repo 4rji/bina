@@ -80,6 +80,7 @@ dropinst            sftp cliente para guardar archivos, transferir o extraer
 nodeinst            Instala node en linux debian using nvm with npm
 elast-fileb-inst    Instala y configura elasticsearch, filebeat y envio suricata logs
 zeekinst            Zeek para debian 12 y 13
+zeekclone           git clone para arch, sin usar yay. make and makefile
 oniuxinst           Instala cargo, oniux y curl ip
 fastinst            Instala fastfetch, fastconf y fastconfmac para solo el archivo conf.
 searchinst          Instala searxng que es como google pero privado.

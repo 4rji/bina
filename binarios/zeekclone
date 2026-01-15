@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+
+
+: << 'COMMENT'
+Tuve que instalar con github en arch
+
+
+git clone https://github.com/zeek/zeek.git
+
+
+#fallo tuve que hacer:
+cd /dev/shm/tmp.MMyn9b/zeek/zeek && git submodule update --recursive --init
+./configure
+make -j$(nproc)
+sudo make install
+
+
+ sudo /usr/local/zeek/bin/zeek --version
+/usr/local/zeek/bin/zeek version 8.2.0-dev.94
+
+COMMENT
+
+
+
+set -euo pipefail
+
+# Build + install Zeek from source (with submodules) on Debian/Ubuntu
+# Output binary: /usr/local/zeek/bin/zeek
+
+REPO_URL="https://github.com/zeek/zeek.git"
+WORKDIR="${WORKDIR:-/tmp}"
+SRC_DIR="${SRC_DIR:-$WORKDIR/zeek}"
+JOBS="${JOBS:-$(nproc)}"
+
+need_cmd() { command -v "$1" >/dev/null 2>&1; }
+
+echo "[*] Installing build deps (Debian/Ubuntu)..."
+if need_cmd apt-get; then
+  sudo apt-get update
+  sudo apt-get install -y --no-install-recommends \
+    git ca-certificates build-essential cmake make gcc g++ \
+    flex bison libpcap-dev libssl-dev python3-dev swig zlib1g-dev \
+    libsqlite3-dev libkrb5-dev libgeoip-dev libcurl4-openssl-dev \
+    libmaxminddb-dev
+else
+  echo "[!] apt-get not found. Install deps manually, then re-run."
+  exit 1
+fi
+
+echo "[*] Getting Zeek source in: $SRC_DIR"
+if [ -d "$SRC_DIR/.git" ]; then
+  cd "$SRC_DIR"
+  git fetch --all --tags
+  git pull --ff-only || true
+else
+  git clone "$REPO_URL" "$SRC_DIR"
+  cd "$SRC_DIR"
+fi
+
+echo "[*] Ensuring submodules are present (fixes missing cmake/)..."
+git submodule update --init --recursive
+
+# If a previous configure failed, clean up
+if [ -f Makefile ]; then
+  echo "[*] Cleaning previous build (if any)..."
+  make distclean >/dev/null 2>&1 || true
+fi
+
+echo "[*] Configuring..."
+./configure
+
+echo "[*] Building with -j$JOBS ..."
+make -j"$JOBS"
+
+echo "[*] Installing (sudo)..."
+sudo make install
+
+echo "[*] Verifying..."
+sudo /usr/local/zeek/bin/zeek --version || {
+  echo "[!] Install finished but zeek --version failed."
+  exit 1
+}
+
+echo "[+] Done. Zeek installed at /usr/local/zeek/bin/zeek"
