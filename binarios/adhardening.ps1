@@ -252,4 +252,31 @@ foreach ($proto in @("TCP","UDP")) {
 
 Write-Host "[OK] Firewall locked to core AD/DNS ports (plus NTP UDP/123)."
 
+Write-Host "=== Validation (best-effort) ==="
+try {
+  $llmnr = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows NT\DNSClient" -Name "EnableMulticast" -ErrorAction Stop
+  Write-Host "LLMNR disabled (EnableMulticast=0)    " ($llmnr.EnableMulticast -eq 0)
+} catch {
+  Write-Host "LLMNR disabled (EnableMulticast=0)    FAIL   EnableMulticast="
+}
+try {
+  $sbl = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ScriptBlockLogging" -Name "EnableScriptBlockLogging" -ErrorAction Stop
+  Write-Host "PowerShell ScriptBlockLogging enabled " ($sbl.EnableScriptBlockLogging -eq 1)
+} catch {
+  Write-Host "PowerShell ScriptBlockLogging enabled FAIL   EnableScriptBlockLogging="
+}
+try {
+  $ml = Get-ItemProperty -Path "HKLM:\SOFTWARE\Policies\Microsoft\Windows\PowerShell\ModuleLogging" -Name "EnableModuleLogging" -ErrorAction Stop
+  Write-Host "PowerShell ModuleLogging enabled      " ($ml.EnableModuleLogging -eq 1)
+} catch {
+  Write-Host "PowerShell ModuleLogging enabled      FAIL   EnableModuleLogging="
+}
+try {
+  Import-Module DNSServer -ErrorAction Stop
+  $rec = Get-DnsServerRecursion -ErrorAction Stop
+  Write-Host "DNS recursion disabled                " (-not $rec.Enable)
+} catch {
+  Write-Host "DNS recursion disabled                FAIL   Enable="
+}
+
 Write-Host "=== Done. Reboot recommended if features changed. ==="
