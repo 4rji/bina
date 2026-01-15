@@ -2,112 +2,131 @@
 $ErrorActionPreference = "Stop"
 
 # --- CONFIG ---
-$PackagesWinget = @(
-  "Git.Git",
-  "Notepad++.Notepad++",
-  "curl.curl",
-  "ApacheFriends.Xampp"   # Alternativa simple para PHP+Apache (XAMPP)
-  # Si prefieres Apache "puro", usa Chocolatey (abajo) o un MSI específico.
-)
-
 $RepoUrl   = "https://github.com/banago/simple-php-website.git"
 $WebRoot   = "C:\www\simple-php-website"
 $IndexUrl  = "https://raw.githubusercontent.com/4rji/ccdc/main/index.php"
 $IndexPath = Join-Path $WebRoot "index.php"
 
-function Test-Command($name) { return [bool](Get-Command $name -ErrorAction SilentlyContinue) }
+# XAMPP path (choco)
+$XamppDir  = "C:\tools\xampp"
+$ApacheExe = Join-Path $XamppDir "apache_start.bat"
 
-function Install-WithWinget {
-  param([string[]]$Pkgs)
-  foreach ($p in $Pkgs) {
-    Write-Host "[*] Installing (winget): $p"
-    winget install --id $p --silent --accept-package-agreements --accept-source-agreements
-  }
-}
+# Optional “cron” equivalent
+$RefreshUrl = "http://10.5.8.11/index.php"
+$EnableRefreshTask = $false
+
+function Test-Command($name) { [bool](Get-Command $name -ErrorAction SilentlyContinue) }
 
 function Ensure-Choco {
   if (Test-Command choco) { return }
-  Write-Host "[*] Installing Chocolatey..."
   Set-ExecutionPolicy Bypass -Scope Process -Force
   [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
   iex ((New-Object Net.WebClient).DownloadString("https://community.chocolatey.org/install.ps1"))
 }
 
-function Install-WithChoco {
+function Choco-Install {
   param([string[]]$Pkgs)
   Ensure-Choco
   foreach ($p in $Pkgs) {
-    Write-Host "[*] Installing (choco): $p"
-    choco install -y $p
+    choco install -y $p --no-progress
   }
 }
 
-# --- PICK A PACKAGE MANAGER ---
-if (Test-Command winget) {
-  Install-WithWinget -Pkgs $PackagesWinget
-} else {
-  # Fallback: Chocolatey (ajusta a tu gusto)
-  Install-WithChoco -Pkgs @("git", "notepadplusplus", "curl")
-  # Para Apache/PHP en choco podrías usar: "apache-httpd" y "php" (según disponibilidad en tu entorno)
-}
+function Resolve-GitExe {
+  $cmd = Get-Command git -ErrorAction SilentlyContinue
+  if ($cmd) { return $cmd.Source }
 
-# --- CLONE REPO ---
-function Invoke-Native {
-  param(
-    [Parameter(Mandatory=$true)][string]$FilePath,
-    [Parameter(Mandatory=$true)][string[]]$Args
+  $candidates = @(
+    "$env:ProgramFiles\Git\cmd\git.exe",
+    "$env:ProgramFiles\Git\bin\git.exe",
+    "${env:ProgramFiles(x86)}\Git\cmd\git.exe",
+    "${env:ProgramFiles(x86)}\Git\bin\git.exe",
+    "$env:LocalAppData\Programs\Git\cmd\git.exe",
+    "$env:LocalAppData\Programs\Git\bin\git.exe"
   )
-
-  $out = & $FilePath @Args 2>&1
-  $code = $LASTEXITCODE
-
-  # imprime salida normal
-  if ($out) { $out | ForEach-Object { Write-Host $_ } }
-
-  if ($code -ne 0) {
-    throw "Native command failed ($code): $FilePath $($Args -join ' ')"
-  }
+  foreach ($p in $candidates) { if (Test-Path $p) { return $p } }
+  throw "git.exe no encontrado (reabre PowerShell si se acaba de instalar Git)."
 }
 
-# --- CLONE / UPDATE REPO ---
+function Invoke-Native {
+  param([Parameter(Mandatory)][string]$FilePath, [Parameter(Mandatory)][string[]]$Args)
+  & $FilePath @Args
+  if ($LASTEXITCODE -ne 0) { throw "Falló ($LASTEXITCODE): $FilePath $($Args -join ' ')" }
+}
 
-# resolve git path (after installs)
-$GitExe = (Get-Command git -ErrorAction Stop).Source
+function Lock-FileAclReadOnly {
+  param([Parameter(Mandatory)][string]$Path)
+  icacls $Path /inheritance:r | Out-Null
+  icacls $Path /grant:r "Administrators:(F)" "SYSTEM:(F)" "Users:(R)" | Out-Null
+  attrib +R $Path
+}
+
+function Ensure-IndexRefreshTask {
+  param([string]$TaskName, [string]$Url, [string]$OutFile)
+
+  $ps = "powershell.exe"
+  $arg = "-NoProfile -ExecutionPolicy Bypass -Command `"try { iwr -UseBasicParsing -Uri '$Url' -OutFile '$OutFile' } catch { }`""
+
+  schtasks /Delete /TN $TaskName /F 2>$null | Out-Null
+  schtasks /Create /TN $TaskName /SC MINUTE /MO 1 /RU "SYSTEM" /RL HIGHEST `
+    /TR "`"$ps`" $arg" | Out-Null
+}
+
+# --- INSTALL (choco) ---
+Choco-Install -Pkgs @("git", "curl", "notepadplusplus", "xampp")
+
+# --- CLONE / UPDATE ---
+$GitExe = Resolve-GitExe
+
+New-Item -ItemType Directory -Force -Path (Split-Path $WebRoot -Parent) | Out-Null
 
 if (!(Test-Path $WebRoot)) {
   Write-Host "[*] Cloning repo -> $WebRoot"
   Invoke-Native -FilePath $GitExe -Args @("clone", $RepoUrl, $WebRoot)
 } else {
-  Write-Host "[*] Repo path exists, pulling latest..."
+  Write-Host "[*] Repo exists, pulling..."
   Invoke-Native -FilePath $GitExe -Args @("-C", $WebRoot, "pull")
 }
 
-
-# --- DOWNLOAD index.php ---
+# --- DOWNLOAD index.php (override) ---
 Write-Host "[*] Downloading index.php -> $IndexPath"
 New-Item -ItemType Directory -Force -Path $WebRoot | Out-Null
+
+# unlock if exists
+if (Test-Path $IndexPath) {
+  attrib -R $IndexPath 2>$null
+  icacls $IndexPath /reset 2>$null | Out-Null
+  Remove-Item $IndexPath -Force -ErrorAction SilentlyContinue
+}
+
 Invoke-WebRequest -Uri $IndexUrl -OutFile $IndexPath -UseBasicParsing
 
-# --- LOCK FILE (read-only via ACL, stronger than attrib) ---
-Write-Host "[*] Setting ACL: deny write to non-admin users on index.php"
-icacls $IndexPath /inheritance:r | Out-Null
-icacls $IndexPath /grant:r "Administrators:(F)" "SYSTEM:(F)" "Users:(R)" | Out-Null
+# re-lock
+Write-Host "[*] Locking index.php (ACL + ReadOnly)"
+Lock-FileAclReadOnly -Path $IndexPath
 
-# Optional: also set ReadOnly attribute (cosmetic)
-attrib +R $IndexPath
 
-# --- START APACHE SERVICE (if installed as a Windows service) ---
-# XAMPP doesn't install "Apache2.4" as a normal service unless you do it via its control panel.
-# If you have a service, this will try to start it.
-$svc = Get-Service | Where-Object { $_.Name -match "Apache|httpd" } | Select-Object -First 1
-if ($svc) {
-  Write-Host "[*] Starting service: $($svc.Name)"
-  Start-Service $svc.Name -ErrorAction SilentlyContinue
-  Set-Service  $svc.Name -StartupType Automatic -ErrorAction SilentlyContinue
+
+# --- LOCK index.php ---
+Write-Host "[*] Locking index.php (ACL + ReadOnly)"
+Lock-FileAclReadOnly -Path $IndexPath
+
+# --- OPTIONAL refresh task ---
+if ($EnableRefreshTask) {
+  Write-Host "[*] Creating scheduled task (minutely refresh)"
+  Ensure-IndexRefreshTask -TaskName "CCDC-IndexRefresh" -Url $RefreshUrl -OutFile $IndexPath
+}
+
+# --- START APACHE (XAMPP) ---
+if (Test-Path $ApacheExe) {
+  Write-Host "[*] Starting Apache via XAMPP..."
+  Push-Location $XamppDir
+  cmd.exe /c $ApacheExe | Out-Null
+  Pop-Location
 } else {
-  Write-Host "[!] No Apache/httpd service found. If you're using XAMPP, start Apache from XAMPP Control Panel."
+  Write-Host "[!] XAMPP not found at $XamppDir. Search your XAMPP install path and update `$XamppDir."
 }
 
 Write-Host "[+] Done."
-Write-Host "    Web path: $WebRoot"
+Write-Host "    Web path:  $WebRoot"
 Write-Host "    index.php: $IndexPath"

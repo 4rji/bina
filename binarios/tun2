@@ -1,0 +1,95 @@
+#!/usr/bin/env bash
+# tun-toggle.sh
+# Policy routing por tun0 SOLO para tu usuario, pero EXCLUYE SSH (TCP/22) para no tumbar la sesión.
+
+set -euo pipefail
+
+TABLE=100
+MARK=1
+DEV="tun0"
+UID_ME="$(id -u)"
+CHAIN="TUN2SOCKS_MARK"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  ./tun-toggle.sh -a     Add (enable) policy routing to tun0 for your user
+  ./tun-toggle.sh -r     Remove (disable) the rules
+  ./tun-toggle.sh -s     Show current state
+
+Flags:
+  -a  Adds:
+      1) ip route ... table 100     -> default route in table 100 goes to tun0
+      2) ip rule fwmark 1 table 100 -> packets marked with 1 use table 100
+      3) iptables mangle OUTPUT     -> marks ONLY your UID traffic (except SSH tcp/22)
+
+  -r  Removes the above (iptables chain/hook, ip rule, and table 100 routes)
+
+  -s  Shows:
+      ip rule + table 100 routes + mangle OUTPUT rules
+EOF
+}
+
+ensure_chain() {
+  # Create chain if missing
+  sudo iptables -t mangle -N "$CHAIN" 2>/dev/null || true
+
+  # Hook OUTPUT -> CHAIN once
+  sudo iptables -t mangle -C OUTPUT -j "$CHAIN" 2>/dev/null \
+    || sudo iptables -t mangle -A OUTPUT -j "$CHAIN"
+
+  # Rules inside chain:
+  # 1) Don't touch localhost traffic
+  sudo iptables -t mangle -C "$CHAIN" -d 127.0.0.0/8 -j RETURN 2>/dev/null \
+    || sudo iptables -t mangle -A "$CHAIN" -d 127.0.0.0/8 -j RETURN
+
+  # 2) Don't mark SSH so you don't lose the session
+  sudo iptables -t mangle -C "$CHAIN" -p tcp --dport 22 -j RETURN 2>/dev/null \
+    || sudo iptables -t mangle -A "$CHAIN" -p tcp --dport 22 -j RETURN
+
+  # 3) Mark ONLY your user's traffic
+  sudo iptables -t mangle -C "$CHAIN" -m owner --uid-owner "$UID_ME" -j MARK --set-mark "$MARK" 2>/dev/null \
+    || sudo iptables -t mangle -A "$CHAIN" -m owner --uid-owner "$UID_ME" -j MARK --set-mark "$MARK"
+}
+
+add_rules() {
+  sudo ip route replace default dev "$DEV" table "$TABLE"
+  sudo ip rule add fwmark "$MARK" table "$TABLE" 2>/dev/null || true
+  ensure_chain
+
+  echo "[+] Enabled: fwmark=$MARK -> table=$TABLE default via $DEV (only UID=$UID_ME, SSH tcp/22 excluded)"
+}
+
+remove_rules() {
+  # Unhook and delete chain/rules (best-effort)
+  sudo iptables -t mangle -D OUTPUT -j "$CHAIN" 2>/dev/null || true
+  sudo iptables -t mangle -F "$CHAIN" 2>/dev/null || true
+  sudo iptables -t mangle -X "$CHAIN" 2>/dev/null || true
+
+  sudo ip rule del fwmark "$MARK" table "$TABLE" 2>/dev/null || true
+  sudo ip route flush table "$TABLE" 2>/dev/null || true
+
+  echo "[-] Disabled: removed ip rule, flushed table $TABLE, removed iptables chain $CHAIN"
+}
+
+show_state() {
+  echo "== ip rule =="
+  ip rule || true
+  echo
+  echo "== table $TABLE =="
+  ip route show table "$TABLE" || true
+  echo
+  echo "== iptables mangle OUTPUT =="
+  sudo iptables -t mangle -S OUTPUT || true
+  echo
+  echo "== chain $CHAIN (if exists) =="
+  sudo iptables -t mangle -S "$CHAIN" 2>/dev/null || echo "(chain not present)"
+}
+
+case "${1:-}" in
+  -a) add_rules ;;
+  -r) remove_rules ;;
+  -s) show_state ;;
+  -h|--help|"") usage ;;
+  *) echo "Unknown flag: $1"; usage; exit 1 ;;
+esac
