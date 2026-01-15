@@ -14,8 +14,8 @@ $DisableSMBv1     = $true
 $DisableLLMNR     = $true
 $DisableNetBIOS   = $true
 
-# DNS recursion: only disable if you are sure DC should NOT be a recursive resolver for clients
-$DisableDnsRecursion = $false
+# DNS recursion: disable unless you explicitly need the DC to be a recursive resolver for clients
+$DisableDnsRecursion = $true
 # -----------------
 
 function Disable-ServiceSafe($name) {
@@ -28,8 +28,13 @@ function Disable-ServiceSafe($name) {
     Write-Host "[..] Service not present: $name"
   }
 }
+function Ensure-RegKey($path) {
+  if (-not (Test-Path -Path $path)) {
+    try { New-Item -Path $path -Force -ErrorAction Stop | Out-Null } catch {}
+  }
+}
 function Set-RegDword($path, $name, $value) {
-  # Do NOT New-Item on protected keys; assume key exists and just set/create the value.
+  Ensure-RegKey $path
   try {
     Set-ItemProperty -Path $path -Name $name -Value $value -Type DWord -ErrorAction Stop | Out-Null
   } catch {
