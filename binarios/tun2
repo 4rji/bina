@@ -19,6 +19,7 @@ Usage:
   ./tun2.sh -r     Remove (disable) the rules
   ./tun2.sh -s     Show current state
 
+
 Flags:
   -t  Runs:
       sudo ip tuntap add dev tun0 mode tun
@@ -34,6 +35,13 @@ Flags:
 
   -s  Shows:
       ip rule + table 100 routes + mangle OUTPUT rules
+
+      echo ""
+      echo "now start:"
+      echo ""
+      echo "tun2socks --device tun://tun0 --proxy socks5://127.0.0.1:1080"
+
+      
 EOF
 }
 
@@ -94,6 +102,7 @@ remove_rules() {
   sudo ip route flush table "$TABLE" 2>/dev/null || true
 
   echo "[-] Disabled: removed ip rule, flushed table $TABLE, removed iptables chain $CHAIN"
+
 }
 
 show_state() {

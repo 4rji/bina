@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+API="https://api.digitalocean.com/v2"
+: "${DO_TOKEN:?DO_TOKEN environment variable not set}"
+
+need() { command -v "$1" >/dev/null 2>&1 || { echo "Missing: $1"; exit 1; }; }
+need curl
+need jq
+
+AUTH=(-H "Authorization: Bearer $DO_TOKEN" -H "Content-Type: application/json")
+
+JSON="$(curl -fsS "${AUTH[@]}" "$API/droplets?per_page=200")"
+
+COUNT="$(echo "$JSON" | jq '.droplets | length')"
+[[ "$COUNT" -eq 0 ]] && { echo "No droplets found."; exit 0; }
+
+echo "== Droplets =="
+echo "$JSON" | jq -r '
+  .droplets[] |
+  [
+    .id,
+    .name,
+    .status,
+    (.region.slug // "-"),
+    ((.networks.v4[]? | select(.type=="public") | .ip_address) // "-")
+  ] | @tsv
+' | nl -w2 -s'. ' | awk -F'\t' '{printf "%s\t%-20s\t%-10s\t%-10s\t%s\n",$1,$2,$3,$4,$5}'
+
+echo
+read -rp "Select droplet #: " IDX
+DROPLET_ID="$(echo "$JSON" | jq -r ".droplets[$((IDX-1))].id" 2>/dev/null || true)"
+DROPLET_NAME="$(echo "$JSON" | jq -r ".droplets[$((IDX-1))].name" 2>/dev/null || true)"
+
+[[ -z "${DROPLET_ID:-}" || "$DROPLET_ID" == "null" ]] && { echo "Invalid selection."; exit 1; }
+
+echo
+echo "Selected: $DROPLET_NAME ($DROPLET_ID)"
+echo "Action:"
+echo "  1) power_on"
+echo "  2) power_off"
+echo "  3) reboot"
+read -rp "Choose 1/2/3: " ACT
+
+case "$ACT" in
+  1) TYPE="power_on" ;;
+  2) TYPE="power_off" ;;
+  3) TYPE="reboot" ;;
+  *) echo "Invalid action."; exit 1 ;;
+esac
+
+read -rp "Confirm '$TYPE' on '$DROPLET_NAME'? (y/N): " OK
+[[ "${OK,,}" == "y" ]] || exit 0
+
+curl -fsS -X POST "${AUTH[@]}" \
+  "$API/droplets/$DROPLET_ID/actions" \
+  -d "{\"type\":\"$TYPE\"}" | jq

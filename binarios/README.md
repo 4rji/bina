@@ -136,7 +136,8 @@ neofetchinst        Instala y personaliza neofetch para ppg1
 kittyinst           Instala kitty y baja su configuracion
 ovpninst            Instala OpenvpnServer para webadmin, 4rjiDocs
 clamvMacinst        Modifica la configuracion para MAC de clamv
-xrayinst            instala xray. no es mi script. 
+xrayinst            instala xray. no es mi script.
+xrayinst2           Descarga el archivo de configuracion a b1 
 fx11inst            Instala firefox en docker para acceder remotamente
 fx11                se usa para activar remotamente el firefox de docker remoto con -s o con -t
 
@@ -169,6 +170,7 @@ nixbus              Para buscar programas en linea de comando y tambien corregir
 
 
 ###------utilidades 
+vmdig               Para manejar Digital ocean API
 clipam              Copia un archivo al clibboard clipam #archivo
 ccdclabprogram      Programa que hice para vcenter para manejar apps
 cleanipsm           Limpia Ips, dominios, urls de un archivo y hace sort uniq

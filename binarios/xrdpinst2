@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -e
+
+XRAY_DIR="/usr/local/etc/xray"
+CONFIG_URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/xray_config_client.json"
+CONFIG_FILE="config.json"
+
+sudo mkdir -p "$XRAY_DIR"
+cd "$XRAY_DIR"
+
+sudo wget -O "$CONFIG_FILE" "$CONFIG_URL"
+
+echo
+echo "=============================================="
+echo "Recuerda cambiar la ID por la correcta"
+echo "y reiniciar con:"
+echo "  sudo systemctl restart xray"
+echo "=============================================="
