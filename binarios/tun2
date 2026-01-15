@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# tun-toggle.sh
+# tun2.sh
 # Policy routing por tun0 SOLO para tu usuario, pero EXCLUYE SSH (TCP/22) para no tumbar la sesión.
 
 set -euo pipefail
@@ -7,17 +7,24 @@ set -euo pipefail
 TABLE=100
 MARK=1
 DEV="tun0"
+TUN_ADDR="10.0.0.1/24"
 UID_ME="$(id -u)"
 CHAIN="TUN2SOCKS_MARK"
 
 usage() {
   cat <<'EOF'
 Usage:
-  ./tun-toggle.sh -a     Add (enable) policy routing to tun0 for your user
-  ./tun-toggle.sh -r     Remove (disable) the rules
-  ./tun-toggle.sh -s     Show current state
+  ./tun2.sh -t     Create/bring up tun0 (tuntap + addr + up)
+  ./tun2.sh -a     Add (enable) policy routing to tun0 for your user
+  ./tun2.sh -r     Remove (disable) the rules
+  ./tun2.sh -s     Show current state
 
 Flags:
+  -t  Runs:
+      sudo ip tuntap add dev tun0 mode tun
+      sudo ip addr add 10.0.0.1/24 dev tun0
+      sudo ip link set tun0 up
+
   -a  Adds:
       1) ip route ... table 100     -> default route in table 100 goes to tun0
       2) ip rule fwmark 1 table 100 -> packets marked with 1 use table 100
@@ -52,6 +59,23 @@ ensure_chain() {
     || sudo iptables -t mangle -A "$CHAIN" -m owner --uid-owner "$UID_ME" -j MARK --set-mark "$MARK"
 }
 
+tun_setup() {
+  # 1) Create tun0 if missing
+  if ! ip link show "$DEV" >/dev/null 2>&1; then
+    sudo ip tuntap add dev "$DEV" mode tun
+  fi
+
+  # 2) Add addr if missing
+  if ! ip -4 addr show dev "$DEV" | grep -qE "\b${TUN_ADDR%/*}\/"; then
+    sudo ip addr add "$TUN_ADDR" dev "$DEV"
+  fi
+
+  # 3) Bring it up
+  sudo ip link set "$DEV" up
+
+  echo "[+] tun setup: $DEV up with $TUN_ADDR"
+}
+
 add_rules() {
   sudo ip route replace default dev "$DEV" table "$TABLE"
   sudo ip rule add fwmark "$MARK" table "$TABLE" 2>/dev/null || true
@@ -73,6 +97,10 @@ remove_rules() {
 }
 
 show_state() {
+  echo "== tun device =="
+  ip -d link show "$DEV" 2>/dev/null || echo "(no $DEV)"
+  ip -4 addr show dev "$DEV" 2>/dev/null || true
+  echo
   echo "== ip rule =="
   ip rule || true
   echo
@@ -87,6 +115,7 @@ show_state() {
 }
 
 case "${1:-}" in
+  -t) tun_setup ;;
   -a) add_rules ;;
   -r) remove_rules ;;
   -s) show_state ;;
