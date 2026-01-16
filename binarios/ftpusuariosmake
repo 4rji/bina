@@ -222,7 +222,7 @@ if ($ConfigureFtp) {
 
   # NTFS perms for FTP root: admins/system full, Domain Users modify (baseline)
   icacls $ftpRoot /inheritance:r | Out-Null
-  icacls $ftpRoot /grant:r "BUILTIN\Administrators:(OI)(CI)F" "SYSTEM:(OI)(CI)F" "$fallback:(OI)(CI)M" | Out-Null
+  icacls $ftpRoot /grant:r "BUILTIN\Administrators:(OI)(CI)F" "SYSTEM:(OI)(CI)F" "${fallback}:(OI)(CI)M" | Out-Null
 
   Set-Content -Path (Join-Path $ftpRoot "welcome.txt") -Value "CCDC FTP (baseline)."
   Write-Host "[+] FTP site ready: $siteName on port 21"
