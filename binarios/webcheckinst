@@ -1,0 +1,12 @@
+#!/bin/bash
+
+
+echo "docker pull lissy93/web-check"
+
+echo 
+
+echo "change the port"
+
+echo "docker run --rm -p 3001:3000 lissy93/web-check"
+
+ 

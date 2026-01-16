@@ -73,6 +73,7 @@ lolcatinst          Instala gem, ruby y lolcat
 
 
 ###------instaladores
+webcheck            Para examinar website, funciona en docker, cool info de websites
 hyplinst            instala hyprland y descarga los dotfiles
 lab                 Ejecuta el servidor http 8000 en python para labs, creado ahora htb
 cloudfinst          Para instalar cloudflare para el tunel
