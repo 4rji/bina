@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+cd /usr/local/etc/xray
+
+sudo wget -O config.json \
+https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/xray_config_client.json
+
+sudo nano /usr/local/etc/xray/config.json
+
+echo "restart xray"
