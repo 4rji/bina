@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ZSHRC="$HOME/.zshrc"
 LINE='export PATH="/usr/local/clamav/bin:$PATH"'
 
-grep -qxF "$LINE" "$ZSHRC" || echo "$LINE" >> "$ZSHRC"
-echo "OK: agregado a $ZSHRC. Recarga: source ~/.zshrc"
+for RC in "$HOME/.zshrc" "$HOME/.bashrc"; do
+  [ -f "$RC" ] || touch "$RC"
+  grep -qxF "$LINE" "$RC" || echo "$LINE" >> "$RC"
+  echo "OK: agregado a $RC"
+done
+
+echo ""
+echo "Reload with:"
+echo "  source ~/.zshrc"
+echo "  source ~/.bashrc"

@@ -627,8 +627,8 @@ sshmoni             Este busca conexiones activas ssh, muestra procesos PID y lu
 iarpon              Arpon para protejer de arp poising. arp sniff 
 iicmp               para protejer de ataques icmp, solo cambia el 0 a 1 este script
 rkhun               Instala rkhunter y chkrootkit, actualiza y ejecuta el scaneo 
-clamavinst          instala antivirus e inicia un scaneo solo ingresando la ruta, y se actualiza tambien 
-
+clamvinst           instala antivirus e inicia un scaneo solo ingresando la ruta, y se actualiza tambien 
+clamvpath           Agrega a el path clamv en bashrc y zshrc
 versudo             Inspecciona sudo folder
 
 mapa                Busca un proceso despues del script y lo mata ps aux
