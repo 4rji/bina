@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # tun2.sh
-# Policy routing por tun0 SOLO para tu usuario, pero EXCLUYE SSH (TCP/22) para no tumbar la sesión.
+# Policy routing via tun0 ONLY for your user, but EXCLUDES SSH (TCP/22) to avoid killing the session.
 
 set -euo pipefail
 
@@ -11,38 +11,55 @@ TUN_ADDR="10.0.0.1/24"
 UID_ME="$(id -u)"
 CHAIN="TUN2SOCKS_MARK"
 
+# Function to show messages
+echo_msg() {
+  echo ""
+  echo -e "\033[36m==============================================\033[0m"
+  echo -e "$1"
+  echo -e "\033[36m==============================================\033[0m"
+  echo ""
+  echo -e "\033[35m_________________________________________________________\033[0m"
+  echo ""
+}
+
 usage() {
-  cat <<'EOF'
-Usage:
-  ./tun2.sh -t     Create/bring up tun0 (tuntap + addr + up)
-  ./tun2.sh -a     Add (enable) policy routing to tun0 for your user
-  ./tun2.sh -r     Remove (disable) the rules
-  ./tun2.sh -s     Show current state
+  echo_msg "\033[34mUSAGE\033[0m"
 
+  echo -e "\033[33m  ./tun2.sh -t     Create/bring up tun0 (tuntap + addr + up)\033[0m"
+  echo -e "\033[33m  ./tun2.sh -a     Add (enable) policy routing to tun0 for your user\033[0m"
+  echo -e "\033[33m  ./tun2.sh -r     Remove (disable) the rules\033[0m"
+  echo -e "\033[33m  ./tun2.sh -s     Show current state\033[0m"
+  echo -e "\033[33m  ./tun2.sh -x     Execute tun2socks tunnel\033[0m"
 
-Flags:
-  -t  Runs:
-      sudo ip tuntap add dev tun0 mode tun
-      sudo ip addr add 10.0.0.1/24 dev tun0
-      sudo ip link set tun0 up
+  echo ""
+  echo -e "\033[34mFLAGS\033[0m"
+  echo ""
+  echo -e "\033[32m  -t  Runs:\033[0m"
+  echo -e "\033[32m      sudo ip tuntap add dev tun0 mode tun\033[0m"
+  echo -e "\033[32m      sudo ip addr add 10.0.0.1/24 dev tun0\033[0m"
+  echo -e "\033[32m      sudo ip link set tun0 up\033[0m"
 
-  -a  Adds:
-      1) ip route ... table 100     -> default route in table 100 goes to tun0
-      2) ip rule fwmark 1 table 100 -> packets marked with 1 use table 100
-      3) iptables mangle OUTPUT     -> marks ONLY your UID traffic (except SSH tcp/22)
+  echo ""
+  echo -e "\033[36m  -a  Adds:\033[0m"
+  echo -e "\033[36m      1) ip route ... table 100     -> default route in table 100 goes to tun0\033[0m"
+  echo -e "\033[36m      2) ip rule fwmark 1 table 100 -> packets marked with 1 use table 100\033[0m"
+  echo -e "\033[36m      3) iptables mangle OUTPUT     -> marks ONLY your UID traffic (except SSH tcp/22)\033[0m"
 
-  -r  Removes the above (iptables chain/hook, ip rule, and table 100 routes)
+  echo ""
+  echo -e "\033[35m  -r  Removes the above (iptables chain/hook, ip rule, and table 100 routes)\033[0m"
 
-  -s  Shows:
-      ip rule + table 100 routes + mangle OUTPUT rules
+  echo ""
+  echo -e "\033[34m  -s  Shows:\033[0m"
+  echo -e "\033[34m      ip rule + table 100 routes + mangle OUTPUT rules\033[0m"
+  echo ""
+  echo -e "\033[33m      now start:\033[0m"
+  echo ""
+  echo -e "\033[33m      tun2socks --device tun://tun0 --proxy socks5://127.0.0.1:1080\033[0m"
+  echo ""
 
-      echo ""
-      echo "now start:"
-      echo ""
-      echo "tun2socks --device tun://tun0 --proxy socks5://127.0.0.1:1080"
-
-      
-EOF
+  echo -e "\033[32m  -x  Runs:\033[0m"
+  echo -e "\033[32m      tun2socks --device tun://tun0 --proxy socks5://127.0.0.1:1080\033[0m"
+  echo ""
 }
 
 ensure_chain() {
@@ -81,7 +98,7 @@ tun_setup() {
   # 3) Bring it up
   sudo ip link set "$DEV" up
 
-  echo "[+] tun setup: $DEV up with $TUN_ADDR"
+  echo_msg "\033[32m[+] tun setup: $DEV up with $TUN_ADDR\033[0m"
 }
 
 add_rules() {
@@ -89,7 +106,7 @@ add_rules() {
   sudo ip rule add fwmark "$MARK" table "$TABLE" 2>/dev/null || true
   ensure_chain
 
-  echo "[+] Enabled: fwmark=$MARK -> table=$TABLE default via $DEV (only UID=$UID_ME, SSH tcp/22 excluded)"
+  echo_msg "\033[36m[+] Enabled: fwmark=$MARK -> table=$TABLE default via $DEV (only UID=$UID_ME, SSH tcp/22 excluded)\033[0m"
 }
 
 remove_rules() {
@@ -101,26 +118,30 @@ remove_rules() {
   sudo ip rule del fwmark "$MARK" table "$TABLE" 2>/dev/null || true
   sudo ip route flush table "$TABLE" 2>/dev/null || true
 
-  echo "[-] Disabled: removed ip rule, flushed table $TABLE, removed iptables chain $CHAIN"
-
+  echo_msg "\033[33m[-] Disabled: removed ip rule, flushed table $TABLE, removed iptables chain $CHAIN\033[0m"
 }
 
 show_state() {
-  echo "== tun device =="
-  ip -d link show "$DEV" 2>/dev/null || echo "(no $DEV)"
+  echo_msg "\033[34m== tun device ==\033[0m"
+  ip -d link show "$DEV" 2>/dev/null || echo -e "\033[31m(no $DEV)\033[0m"
   ip -4 addr show dev "$DEV" 2>/dev/null || true
-  echo
-  echo "== ip rule =="
+
+  echo_msg "\033[35m== ip rule ==\033[0m"
   ip rule || true
-  echo
-  echo "== table $TABLE =="
+
+  echo_msg "\033[34m== table $TABLE ==\033[0m"
   ip route show table "$TABLE" || true
-  echo
-  echo "== iptables mangle OUTPUT =="
+
+  echo_msg "\033[36m== iptables mangle OUTPUT ==\033[0m"
   sudo iptables -t mangle -S OUTPUT || true
-  echo
-  echo "== chain $CHAIN (if exists) =="
-  sudo iptables -t mangle -S "$CHAIN" 2>/dev/null || echo "(chain not present)"
+
+  echo_msg "\033[33m== chain $CHAIN (if exists) ==\033[0m"
+  sudo iptables -t mangle -S "$CHAIN" 2>/dev/null || echo -e "\033[31m(chain not present)\033[0m"
+}
+
+run_tunnel() {
+  echo_msg "\033[32m[>] Starting: tun2socks --device tun://tun0 --proxy socks5://127.0.0.1:1080\033[0m"
+  tun2socks --device tun://tun0 --proxy socks5://127.0.0.1:1080
 }
 
 case "${1:-}" in
@@ -128,6 +149,7 @@ case "${1:-}" in
   -a) add_rules ;;
   -r) remove_rules ;;
   -s) show_state ;;
+  -x) run_tunnel ;;
   -h|--help|"") usage ;;
-  *) echo "Unknown flag: $1"; usage; exit 1 ;;
+  *) echo_msg "\033[31mUnknown flag: $1\033[0m"; usage; exit 1 ;;
 esac
