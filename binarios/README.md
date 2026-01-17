@@ -1,3 +1,7 @@
+#FIX ssh banner on splunk
+
+
+
 ###-----Detecciones
 tmpnoexec           Cambia a noexec /tmp modificando el fstab
 decloaktools        Post-detection investigation checklist for decloak analysis
