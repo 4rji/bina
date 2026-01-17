@@ -140,3 +140,7 @@ fi
 
 echo
 echo "Done."
+
+echo "logs"
+echo "sudo tail -f /var/ossec/logs/ossec.log"
+sudo tail -f /var/ossec/logs/ossec.log

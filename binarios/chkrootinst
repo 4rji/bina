@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+URL="ftp://ftp.chkrootkit.org/pub/seg/pac/chkrootkit.tar.gz"
+WORKDIR="${TMPDIR:-/tmp}/chkrootkit-install.$$"
+DEST="/usr/local/chkrootkit"
+BIN_LINK="/usr/local/bin/chkrootkit"
+
+need() { command -v "$1" >/dev/null 2>&1; }
+
+pm_install() {
+  local pkgs=("$@")
+  if need apt-get; then
+    sudo apt-get update -y
+    sudo apt-get install -y "${pkgs[@]}"
+  elif need dnf; then
+    sudo dnf -y install "${pkgs[@]}"
+  elif need yum; then
+    sudo yum -y install "${pkgs[@]}"
+  else
+    echo "[-] No supported package manager (apt/dnf/yum). Install manually: ${pkgs[*]}"
+    exit 1
+  fi
+}
+
+install_deps() {
+  pm_install ca-certificates tar make gcc curl wget net-tools
+}
+
+fetch_tarball() {
+  mkdir -p "$WORKDIR"
+  cd "$WORKDIR"
+
+  if need curl; then
+    curl -fsSL "$URL" -o chkrootkit.tar.gz
+  elif need wget; then
+    wget -qO chkrootkit.tar.gz "$URL"
+  else
+    echo "[-] Need curl or wget"
+    exit 1
+  fi
+
+  tar -xzf chkrootkit.tar.gz
+}
+
+build() {
+  cd "$WORKDIR"/chkrootkit-*
+
+  # Try the usual build first
+  if make sense; then
+    return
+  fi
+
+  # Fedora commonly fails at strings-static due to missing static glibc.
+  echo "[!] make sense failed; retrying without strings-static (no static glibc needed)..."
+  make -k sense || true
+  make -k chkrootkit chkproc chkdirs chklastlog chkwtmp check_wtmpx strings || true
+}
+
+install_files() {
+  cd "$WORKDIR"/chkrootkit-*
+
+  sudo rm -rf "$DEST"
+  sudo mkdir -p "$DEST"
+  sudo cp -a ./* "$DEST/"
+
+  sudo tee "$BIN_LINK" >/dev/null <<'EOF'
+#!/usr/bin/env bash
+exec /usr/local/chkrootkit/chkrootkit "$@"
+EOF
+  sudo chmod 755 "$BIN_LINK"
+}
+
+cleanup() { rm -rf "$WORKDIR" || true; }
+
+main() {
+  install_deps
+  fetch_tarball
+  build
+  install_files
+  cleanup
+  echo "[+] Installed to: $DEST"
+  echo "[+] Run: sudo chkrootkit"
+}
+
+main
+
+
+echo
+echo "now starting chkrootkit"
+sleep 3
+echo ""
+sudo chkrootkit
+
