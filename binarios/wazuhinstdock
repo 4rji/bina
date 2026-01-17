@@ -1,62 +1,32 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Auto-sudo
-if [[ $EUID -ne 0 ]]; then
-  exec sudo bash "$0" "$@"
+REPO_URL="https://github.com/wazuh/wazuh-docker.git"
+BRANCH="v4.14.2"
+DIR="wazuh-docker"
+
+echo "[*] Cloning official Wazuh repo ($BRANCH)..."
+if [[ -d "$DIR" ]]; then
+  echo "[!] '$DIR' already exists. Remove it first."
+  exit 1
 fi
 
-WAZUH_VERSION="4.14.2"
+git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$DIR"
 
-echo "[*] Checking Docker..."
+cd "$DIR/single-node"
 
-if ! command -v docker >/dev/null 2>&1; then
-  echo "curl -fsSL https://get.docker.com | bash"
-  curl -fsSL https://get.docker.com | bash
-  systemctl enable --now docker
-fi
+echo "[*] Generating indexer certificates..."
+docker compose -f generate-indexer-certs.yml run --rm generator
 
-echo "[*] Checking docker compose..."
-
-if ! docker compose version >/dev/null 2>&1; then
-  echo "Installing docker-compose plugin"
-  mkdir -p /usr/local/lib/docker/cli-plugins
-  curl -SL https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64 \
-    -o /usr/local/lib/docker/cli-plugins/docker-compose
-  chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-fi
-
-echo "[*] Deploying Wazuh Docker stack..."
-
-mkdir -p /opt/wazuh-docker
-cd /opt/wazuh-docker
-
-echo "curl -L -o docker-compose.yml https://raw.githubusercontent.com/wazuh/wazuh-docker/v4.14.2/single-node/docker-compose.yml"
-curl -L -o docker-compose.yml \
-  https://raw.githubusercontent.com/wazuh/wazuh-docker/v4.14.2/single-node/docker-compose.yml
-
-# Force correct version tags (some files default to :latest or broken tags)
-echo "Fixing image versions to ${WAZUH_VERSION}"
-sed -i "s|wazuh/wazuh-manager:.*|wazuh/wazuh-manager:${WAZUH_VERSION}|g" docker-compose.yml
-sed -i "s|wazuh/wazuh-indexer:.*|wazuh/wazuh-indexer:${WAZUH_VERSION}|g" docker-compose.yml
-sed -i "s|wazuh/wazuh-dashboard:.*|wazuh/wazuh-dashboard:${WAZUH_VERSION}|g" docker-compose.yml
-
-cat > .env <<EOF
-WAZUH_VERSION=${WAZUH_VERSION}
-ELASTIC_PASSWORD=M3tr0123!
-KIBANA_PASSWORD=M3tr0123!
-EOF
-
-echo "[*] Pulling images..."
-docker compose pull
-
-echo "[*] Starting containers..."
+echo "[*] Starting Wazuh stack..."
 docker compose up -d
 
 echo ""
-echo "[+] Wazuh Docker stack running"
-echo "    https://<SERVER-IP>:5601"
-echo "    user: admin"
-echo "    pass: M3tr0123!"
+echo "=============================================="
+echo " This is the default username and password to"
+echo " access the Wazuh dashboard:"
 echo ""
-echo "docker ps"
+echo "   Username: admin"
+echo "   Password: SecretPassword"
+echo "=============================================="
+echo ""
