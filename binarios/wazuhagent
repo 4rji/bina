@@ -1,10 +1,28 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WAZUH_VER="4.13.1-1"
+# Wazuh Agent (Linux) install/remove script
+# - Detects DEB vs RPM automatically
+# - Prompts only for Manager IP and Agent name
+# - Flag: -r (remove)
+
+WAZUH_VER="4.14.2-1"
 GROUP="default"
 
+DEB_URL="https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/wazuh-agent_${WAZUH_VER}_amd64.deb"
+RPM_URL_X86_64="https://packages.wazuh.com/4.x/yum/wazuh-agent-${WAZUH_VER}.x86_64.rpm"
+RPM_URL_AARCH64="https://packages.wazuh.com/4.x/yum/wazuh-agent-${WAZUH_VER}.aarch64.rpm"
+
+usage() {
+  echo "Usage: $0 [-r]"
+  echo "  -r    remove wazuh-agent and /var/ossec"
+}
+
 ask() { local p="$1" v; read -r -p "$p" v; printf '%s' "$v"; }
+
+need_cmd() {
+  command -v "$1" >/dev/null 2>&1 || { echo "Missing required command: $1" >&2; exit 1; }
+}
 
 arch_norm() {
   case "$(uname -m)" in
@@ -14,78 +32,111 @@ arch_norm() {
   esac
 }
 
-need_cmd() {
-  command -v "$1" >/dev/null 2>&1 || { echo "Missing required command: $1" >&2; exit 1; }
+detect_pkg_mgr() {
+  if command -v dpkg >/dev/null 2>&1; then
+    echo "deb"
+  elif command -v rpm >/dev/null 2>&1; then
+    echo "rpm"
+  else
+    echo "unknown"
+  fi
 }
 
 start_agent() {
   sudo systemctl daemon-reload
-  sudo systemctl enable wazuh-agent
-  sudo systemctl start wazuh-agent
+  sudo systemctl enable wazuh-agent >/dev/null 2>&1 || true
+  sudo systemctl restart wazuh-agent
 }
 
-echo "=== Wazuh Agent (Linux) installer ==="
+remove_agent() {
+  echo "[*] Removing wazuh-agent..."
+  sudo systemctl stop wazuh-agent >/dev/null 2>&1 || true
+
+  local pm
+  pm="$(detect_pkg_mgr)"
+
+  if [[ "$pm" == "deb" ]]; then
+    sudo dpkg -r wazuh-agent >/dev/null 2>&1 || true
+    sudo dpkg -P wazuh-agent >/dev/null 2>&1 || true
+  elif [[ "$pm" == "rpm" ]]; then
+    sudo rpm -e wazuh-agent >/dev/null 2>&1 || true
+  else
+    echo "Could not detect DEB/RPM. Install dpkg or rpm tools." >&2
+    exit 1
+  fi
+
+  sudo rm -rf /var/ossec
+  echo "[+] Removed."
+}
+
+REMOVE=0
+while getopts ":rh" opt; do
+  case "$opt" in
+    r) REMOVE=1 ;;
+    h) usage; exit 0 ;;
+    *) usage; exit 1 ;;
+  esac
+done
+
+if [[ "$REMOVE" -eq 1 ]]; then
+  remove_agent
+  exit 0
+fi
+
+echo "=== Wazuh Agent (Linux) installer (auto DEB/RPM) ==="
 
 MANAGER_IP="$(ask "Wazuh Manager IP: ")"
 AGENT_NAME="$(ask "Agent name: ")"
 
-echo
-echo "Select distro:"
-echo "  1) Ubuntu (DEB amd64)"
-echo "  2) Fedora / Oracle (RPM x86_64 or aarch64)"
-DISTRO_CHOICE="$(ask "Choice [1-2]: ")"
-
 ARCH="$(arch_norm)"
 [[ "$ARCH" == "unknown" ]] && { echo "Unsupported architecture: $(uname -m)" >&2; exit 1; }
+
+PKGTYPE="$(detect_pkg_mgr)"
+[[ "$PKGTYPE" == "unknown" ]] && { echo "Could not detect DEB/RPM (missing dpkg/rpm)." >&2; exit 1; }
 
 tmpdir="$(mktemp -d)"
 trap 'rm -rf "$tmpdir"' EXIT
 
-case "$DISTRO_CHOICE" in
-  1)
-    need_cmd wget
-    if [[ "$ARCH" != "x86_64" ]]; then
-      echo "Ubuntu path is set for DEB amd64 only. Detected arch: $ARCH" >&2
-      exit 1
-    fi
-
-    DEB="wazuh-agent_${WAZUH_VER}_amd64.deb"
-    URL="https://packages.wazuh.com/4.x/apt/pool/main/w/wazuh-agent/${DEB}"
-
-    echo "Downloading: $URL"
-    wget -q -O "$tmpdir/$DEB" "$URL"
-
-    echo "Installing .deb..."
-    sudo WAZUH_MANAGER="$MANAGER_IP" WAZUH_AGENT_NAME="$AGENT_NAME" WAZUH_AGENT_GROUP="$GROUP" \
-      dpkg -i "$tmpdir/$DEB"
-
-    start_agent
-    ;;
-
-  2)
-    need_cmd curl
-
-    RPM_ARCH="$ARCH" # x86_64 or aarch64
-    RPM="wazuh-agent-${WAZUH_VER}.${RPM_ARCH}.rpm"
-    URL="https://packages.wazuh.com/4.x/yum/${RPM}"
-
-    echo "Downloading: $URL"
-    curl -fsSL -o "$tmpdir/$RPM" "$URL"
-
-    echo "Installing .rpm..."
-    sudo WAZUH_MANAGER="$MANAGER_IP" WAZUH_AGENT_NAME="$AGENT_NAME" WAZUH_AGENT_GROUP="$GROUP" \
-      rpm -ihv "$tmpdir/$RPM"
-
-    start_agent
-    ;;
-
-  *)
-    echo "Invalid choice. Use 1 or 2." >&2
+if [[ "$PKGTYPE" == "deb" ]]; then
+  need_cmd wget
+  if [[ "$ARCH" != "x86_64" ]]; then
+    echo "DEB link provided is amd64 only. Detected arch: $ARCH" >&2
     exit 1
-    ;;
-esac
+  fi
+
+  DEB="wazuh-agent_${WAZUH_VER}_amd64.deb"
+  URL="$DEB_URL"
+
+  echo "Downloading: $URL"
+  wget -q -O "$tmpdir/$DEB" "$URL"
+
+  echo "Installing .deb..."
+  sudo WAZUH_MANAGER="$MANAGER_IP" WAZUH_AGENT_NAME="$AGENT_NAME" WAZUH_AGENT_GROUP="$GROUP" \
+    dpkg -i "$tmpdir/$DEB"
+
+  start_agent
+
+elif [[ "$PKGTYPE" == "rpm" ]]; then
+  need_cmd curl
+
+  if [[ "$ARCH" == "x86_64" ]]; then
+    URL="$RPM_URL_X86_64"
+    RPM="wazuh-agent-${WAZUH_VER}.x86_64.rpm"
+  else
+    URL="$RPM_URL_AARCH64"
+    RPM="wazuh-agent-${WAZUH_VER}.aarch64.rpm"
+  fi
+
+  echo "Downloading: $URL"
+  curl -fsSL -o "$tmpdir/$RPM" "$URL"
+
+  echo "Installing .rpm..."
+  # Use -Uvh to upgrade/replace cleanly (avoids file conflicts on re-run)
+  sudo WAZUH_MANAGER="$MANAGER_IP" WAZUH_AGENT_NAME="$AGENT_NAME" WAZUH_AGENT_GROUP="$GROUP" \
+    rpm -Uvh "$tmpdir/$RPM"
+
+  start_agent
+fi
 
 echo
 echo "Done."
-
-sudo /usr/share/wazuh-indexer/plugins/opensearch-security/tools/wazuh-passwords-tool.sh -u admin -p "M3tr0123*"
