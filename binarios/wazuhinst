@@ -8,8 +8,8 @@ echo ""
 echo ""
 sleep .5
 set -e
-
-INSTALLER_URL="https://packages.wazuh.com/4.13/wazuh-install.sh"
+               
+INSTALLER_URL="https://packages.wazuh.com/4.14/wazuh-install.sh"
 INSTALLER="wazuh-install.sh"
 
 usage() {
