@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+sudo /usr/share/wazuh-indexer/plugins/opensearch-security/tools/wazuh-passwords-tool.sh -u admin -p M3tro123*.

@@ -52,4 +52,4 @@ echo "[✓] Done"
 
 sudo systemctl restart wazuh-indexer wazuh-dashboard
 
-sudo /usr/share/wazuh-indexer/plugins/opensearch-security/tools/wazuh-passwords-tool.sh -u admin -p M3tro123*.a
+#sudo /usr/share/wazuh-indexer/plugins/opensearch-security/tools/wazuh-passwords-tool.sh -u admin -p M3tro123*.a
