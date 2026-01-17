@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Auto-sudo
+if [[ $EUID -ne 0 ]]; then
+  exec sudo bash "$0" "$@"
+fi
+
+. /etc/os-release
+OS_ID="${ID:-}"
+OS_LIKE="${ID_LIKE:-}"
+
+echo "systemctl stop cockpit"
+systemctl stop cockpit 2>/dev/null || true
+
+echo "systemctl disable cockpit"
+systemctl disable cockpit 2>/dev/null || true
+
+if [[ "$OS_ID" == "ubuntu" || "$OS_ID" == "debian" ]]; then
+  echo "apt purge -y cockpit cockpit-*"
+  apt purge -y cockpit cockpit-* || true
+elif [[ "$OS_ID" == "fedora" || "$OS_ID" == "ol" || "$OS_ID" == "oraclelinux" || "$OS_LIKE" == *"rhel"* ]]; then
+  echo "dnf remove -y cockpit cockpit-*"
+  dnf remove -y cockpit cockpit-* || true
+else
+  exit 0
+fi
+
+echo "rm -rf /etc/cockpit /var/lib/cockpit"
+rm -rf /etc/cockpit /var/lib/cockpit
+
+echo "ss -lntp | grep 9090"
+ss -lntp | grep 9090 || true

@@ -603,6 +603,8 @@ splunktestport      ejecuta un tcpdump para ver si recibe datos el puerto 998
 
 
 ###------ CCDC
+chronservinst       Instala servidor chrony con flags 
+cockpitremove       remueve cock pit 
 psss
 pssc
 usuario             Crea un usuario en bash, automatico.
@@ -635,9 +637,8 @@ versudo             Inspecciona sudo folder
 mapa                Busca un proceso despues del script y lo mata ps aux
 ntpinst             Instala ntp en debian10 
 dnsinst             Instala bind9 dns 
-dnsblock            usa dns bind9 - Bloquea url, dominios o redirige dns trafico a localhost 
-ntpcon              Conecta el servicio ntp time
-chroninst           Instala chrony
+dnsblock            usa dns bind9 - Bloquea url, dominios o redirige dns trafico a localhost ntpcon              Conecta el servicio ntp time
+
 sudoup              Hace un update de sudo de la version 9.12 adelante.
 ftpinst             Instala ftp
 sftpinst            Para sftp instalador de ssh, servidor
