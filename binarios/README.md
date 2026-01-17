@@ -12,6 +12,7 @@ ptysnoop.bt         Hace snoop in tty, sudo bpftrace -Bnone ptysnoop.bt 99999
 ###------CCDC
 wazuhagent          Instala el agente en linux fedora/ubuntu
 wazuhinst           Instala wazuh. asistente. automatico
+wazuhinstdock       instala docker compose y wazuh en ubuntu 24
 nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 crondir             Hace un dir y cat a los cron del sistema
 pingpublic          Hace ping a direcciones CCDC publicas y ssh
