@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+
+# ---- Colors ----
+BOLD="\e[1m"
+BLUE="\e[34m"
+RESET="\e[0m"
+
+# ---- Hostname ----
+HOSTNAME=$(hostname)
+
+# ---- Primary interface (default route) ----
+IFACE=$(ip route show default 2>/dev/null | awk '{print $5}' | head -n1)
+
+# ---- IP Address ----
+IP_ADDRESS=$(ip -o -4 addr show "$IFACE" 2>/dev/null | awk '{print $4}' | cut -d/ -f1)
+
+# ---- MAC Address ----
+MAC_ADDRESS=$(cat /sys/class/net/"$IFACE"/address 2>/dev/null)
+
+# ---- OS Info ----
+if [ -f /etc/os-release ]; then
+  . /etc/os-release
+  OS_NAME="$NAME"
+  OS_VERSION="$VERSION"
+else
+  OS_NAME=$(uname -s)
+  OS_VERSION=$(uname -r)
+fi
+
+# ---- Output ----
+clear
+echo -e "${BOLD}Business Memorandum${RESET}"
+echo -e "${BLUE}Date:${RESET} $(date +"%B %d, %Y")"
+echo -e "${BLUE}Subject:${RESET} Local System Operating System Inventory"
+echo -e "${BLUE}Purpose:${RESET} Network / System Documentation"
+echo
+
+printf "${BOLD}%-15s %-20s %-16s %-20s %-25s${RESET}\n" \
+  "DEVICE" "HOSTNAME" "IP ADDRESS" "MAC ADDRESS" "OS VERSION"
+printf "%-15s %-20s %-16s %-20s %-25s\n" \
+  "---------------" "--------------------" "----------------" "--------------------" "-------------------------"
+
+printf "%-15s %-20s %-16s %-20s %-25s\n" \
+  "$IFACE" "$HOSTNAME" "${IP_ADDRESS:-N/A}" "${MAC_ADDRESS:-N/A}" "$OS_NAME $OS_VERSION"
+
+echo
+echo -e "${BOLD}Raw /etc/os-release:${RESET}"
+
+if [ -f /etc/os-release ]; then
+  echo "------------------------------"
+  cat /etc/os-release
+  echo "------------------------------"
+else
+  echo "File /etc/os-release not found."
+fi
+
+echo
+echo -e "${BOLD}Note:${RESET}"
+echo "All information displayed was collected directly from the local system."
