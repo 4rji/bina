@@ -6,45 +6,57 @@ if [[ $EUID -ne 0 ]]; then
   exec sudo bash "$0" "$@"
 fi
 
-echo "[*] Installing Docker..."
+WAZUH_VERSION="4.14.2"
 
-apt-get update -y
-apt-get install -y ca-certificates curl gnupg lsb-release
+echo "[*] Checking Docker..."
 
 if ! command -v docker >/dev/null 2>&1; then
+  echo "curl -fsSL https://get.docker.com | bash"
   curl -fsSL https://get.docker.com | bash
+  systemctl enable --now docker
 fi
 
-echo "[*] Installing docker-compose plugin..."
+echo "[*] Checking docker compose..."
 
-mkdir -p /usr/local/lib/docker/cli-plugins
-curl -SL https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64 \
-  -o /usr/local/lib/docker/cli-plugins/docker-compose
-chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
-
-systemctl enable --now docker
+if ! docker compose version >/dev/null 2>&1; then
+  echo "Installing docker-compose plugin"
+  mkdir -p /usr/local/lib/docker/cli-plugins
+  curl -SL https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64 \
+    -o /usr/local/lib/docker/cli-plugins/docker-compose
+  chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+fi
 
 echo "[*] Deploying Wazuh Docker stack..."
 
 mkdir -p /opt/wazuh-docker
 cd /opt/wazuh-docker
 
-curl -sO https://packages.wazuh.com/4.14/docker-compose.yml
+echo "curl -L -o docker-compose.yml https://raw.githubusercontent.com/wazuh/wazuh-docker/v4.14.2/single-node/docker-compose.yml"
+curl -L -o docker-compose.yml \
+  https://raw.githubusercontent.com/wazuh/wazuh-docker/v4.14.2/single-node/docker-compose.yml
+
+# Force correct version tags (some files default to :latest or broken tags)
+echo "Fixing image versions to ${WAZUH_VERSION}"
+sed -i "s|wazuh/wazuh-manager:.*|wazuh/wazuh-manager:${WAZUH_VERSION}|g" docker-compose.yml
+sed -i "s|wazuh/wazuh-indexer:.*|wazuh/wazuh-indexer:${WAZUH_VERSION}|g" docker-compose.yml
+sed -i "s|wazuh/wazuh-dashboard:.*|wazuh/wazuh-dashboard:${WAZUH_VERSION}|g" docker-compose.yml
 
 cat > .env <<EOF
-WAZUH_VERSION=4.14.2
+WAZUH_VERSION=${WAZUH_VERSION}
 ELASTIC_PASSWORD=M3tr0123!
 KIBANA_PASSWORD=M3tr0123!
 EOF
+
+echo "[*] Pulling images..."
+docker compose pull
 
 echo "[*] Starting containers..."
 docker compose up -d
 
 echo ""
-echo "[+] Wazuh deployed in Docker"
-echo "    URL: https://<SERVER-IP>:5601"
-echo "    User: admin"
-echo "    Pass: M3tr0123!"
+echo "[+] Wazuh Docker stack running"
+echo "    https://<SERVER-IP>:5601"
+echo "    user: admin"
+echo "    pass: M3tr0123!"
 echo ""
-echo "Check status:"
-echo "    docker ps"
+echo "docker ps"
