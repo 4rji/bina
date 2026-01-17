@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Auto-sudo
+if [[ $EUID -ne 0 ]]; then
+  exec sudo bash "$0" "$@"
+fi
+
+echo "[*] Installing Docker..."
+
+apt-get update -y
+apt-get install -y ca-certificates curl gnupg lsb-release
+
+if ! command -v docker >/dev/null 2>&1; then
+  curl -fsSL https://get.docker.com | bash
+fi
+
+echo "[*] Installing docker-compose plugin..."
+
+mkdir -p /usr/local/lib/docker/cli-plugins
+curl -SL https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64 \
+  -o /usr/local/lib/docker/cli-plugins/docker-compose
+chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+
+systemctl enable --now docker
+
+echo "[*] Deploying Wazuh Docker stack..."
+
+mkdir -p /opt/wazuh-docker
+cd /opt/wazuh-docker
+
+curl -sO https://packages.wazuh.com/4.14/docker-compose.yml
+
+cat > .env <<EOF
+WAZUH_VERSION=4.14.2
+ELASTIC_PASSWORD=StrongPassword123!
+KIBANA_PASSWORD=StrongPassword123!
+EOF
+
+echo "[*] Starting containers..."
+docker compose up -d
+
+echo ""
+echo "[+] Wazuh deployed in Docker"
+echo "    URL: https://<SERVER-IP>:5601"
+echo "    User: admin"
+echo "    Pass: StrongPassword123!"
+echo ""
+echo "Check status:"
+echo "    docker ps"
