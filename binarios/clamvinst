@@ -221,6 +221,8 @@ case "$choice" in
     echo "Optional:"
     echo "  sudo systemctl start clamav-freshclam 2>/dev/null || true"
     echo "  sudo systemctl start clamd 2>/dev/null || true"
+    
+
     ;;
   3)
     echo "Windows selected. Install manually:"
@@ -238,3 +240,8 @@ case "$choice" in
     exit 1
     ;;
 esac
+
+
+echo "clamscan"
+    sleep 2
+    clamscan
