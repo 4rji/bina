@@ -1,0 +1,104 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Auto-sudo
+if [[ $EUID -ne 0 ]]; then
+  exec sudo bash "$0" "$@"
+fi
+
+# --- Detect OS ---
+if [[ -f /etc/os-release ]]; then
+  . /etc/os-release
+  OS_ID="${ID:-}"
+  OS_LIKE="${ID_LIKE:-}"
+else
+  echo "Cannot detect OS." >&2
+  exit 1
+fi
+
+is_ubuntu=false
+is_rhel_like=false
+
+if [[ "$OS_ID" == "ubuntu" ]]; then
+  is_ubuntu=true
+elif [[ "$OS_ID" == "fedora" || "$OS_ID" == "ol" || "$OS_ID" == "oraclelinux" ]]; then
+  is_rhel_like=true
+elif [[ "$OS_LIKE" == *"rhel"* || "$OS_LIKE" == *"fedora"* ]]; then
+  is_rhel_like=true
+fi
+
+if $is_ubuntu; then
+  CONF="/etc/chrony/chrony.conf"
+  SVC="chrony"
+elif $is_rhel_like; then
+  CONF="/etc/chrony.conf"
+  SVC="chronyd"
+else
+  echo "Unsupported OS." >&2
+  exit 1
+fi
+
+usage() {
+  echo ""
+  echo "Usage: $0 -i | -s | -t"
+  echo ""
+  echo "  -i   Configure this host as NTP client"
+  echo "  -s   Show NTP sources"
+  echo "  -t   Show tracking status"
+  echo ""
+  exit 1
+}
+
+configure_client() {
+
+  DEFAULT_SERVER="172.20.240.89"
+
+  read -r -p "NTP server IP/hostname [${DEFAULT_SERVER}]: " NTP_SERVER
+  NTP_SERVER="${NTP_SERVER:-$DEFAULT_SERVER}"
+
+  if [[ -z "$NTP_SERVER" ]]; then
+    echo "No server provided." >&2
+    exit 1
+  fi
+
+  BACKUP="${CONF}.bak.$(date +%Y%m%d%H%M%S)"
+  cp -a "$CONF" "$BACKUP" 2>/dev/null || true
+
+  cat > "$CONF" <<EOF
+# Managed by chrony-ntp-client.sh
+
+server ${NTP_SERVER} iburst
+
+driftfile /var/lib/chrony/chrony.drift
+makestep 1.0 3
+rtcsync
+EOF
+
+  systemctl enable --now "$SVC"
+  systemctl restart "$SVC"
+
+  echo "[+] NTP client configured."
+  echo "    $0 -s"
+  echo "    $0 -t"
+}
+
+show_sources() {
+  chronyc sources -v
+}
+
+show_tracking() {
+  chronyc tracking
+}
+
+while getopts ":ist" opt; do
+  case $opt in
+    i) configure_client ;;
+    s) show_sources ;;
+    t) show_tracking ;;
+    *) usage ;;
+  esac
+done
+
+if [[ $# -eq 0 ]]; then
+  usage
+fi

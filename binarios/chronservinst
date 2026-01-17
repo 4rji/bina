@@ -1,77 +1,105 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# chrony-ntp-server-setup.sh (Ubuntu 22/24)
-# Installs chrony, configures it as an NTP server, opens UDP/123 (ufw if available), enables service.
-
+# Auto-sudo
 if [[ $EUID -ne 0 ]]; then
-  echo "Run as root (sudo)." >&2
-  exit 1
+  exec sudo bash "$0" "$@"
 fi
 
-DEFAULT_POOL="pool.ntp.org"
-DEFAULT_ALLOW="172.20.0.0/16"
-DEFAULT_STRATUM="10"
-
-read -r -p "Upstream NTP pool/server [${DEFAULT_POOL}]: " POOL
-POOL="${POOL:-$DEFAULT_POOL}"
-
-read -r -p "Allow clients CIDR [${DEFAULT_ALLOW}]: " ALLOW
-ALLOW="${ALLOW:-$DEFAULT_ALLOW}"
-
-read -r -p "Local stratum (when upstream unreachable) [${DEFAULT_STRATUM}]: " STRATUM
-STRATUM="${STRATUM:-$DEFAULT_STRATUM}"
-
-echo "[*] Installing chrony..."
-export DEBIAN_FRONTEND=noninteractive
-apt-get update -y
-apt-get install -y chrony
-
 CONF="/etc/chrony/chrony.conf"
-BACKUP="/etc/chrony/chrony.conf.bak.$(date +%Y%m%d%H%M%S)"
-cp -a "$CONF" "$BACKUP"
 
-echo "[*] Writing chrony config: $CONF (backup: $BACKUP)"
-cat > "$CONF" <<EOF
-# Managed by chrony-ntp-server-setup.sh
-# Upstream sources
-pool ${POOL} iburst
+usage() {
+  echo ""
+  echo "Usage: $0 -i | -c | -s"
+  echo ""
+  echo "  -i   Install & configure Chrony as NTP server"
+  echo "  -c   Show connected NTP clients"
+  echo "  -s   Show NTP sources"
+  echo ""
+  exit 1
+}
 
-# Allow clients
-allow ${ALLOW}
+install_server() {
 
-# Serve time even if upstream is down (adjust stratum as you prefer)
+  DEFAULT_ALLOW="172.20.0.0/16"
+  DEFAULT_STRATUM="10"
+
+  echo ""
+  echo "===================================================="
+  echo " Chrony NTP Server Setup (Ubuntu 22/24)"
+  echo "===================================================="
+  echo ""
+  echo "Enter MULTIPLE subnets separated by commas."
+  echo "Example: 172.20.0.0/16,192.168.88.0/24,10.10.0.0/16"
+  echo ""
+
+  read -r -p "Allow clients CIDR list [${DEFAULT_ALLOW}]: " ALLOW_LIST
+  ALLOW_LIST="${ALLOW_LIST:-$DEFAULT_ALLOW}"
+
+  read -r -p "Local stratum when offline [${DEFAULT_STRATUM}]: " STRATUM
+  STRATUM="${STRATUM:-$DEFAULT_STRATUM}"
+
+  echo "[*] Installing chrony..."
+  export DEBIAN_FRONTEND=noninteractive
+  apt-get update -y
+  apt-get install -y chrony
+
+  BACKUP="${CONF}.bak.$(date +%Y%m%d%H%M%S)"
+  cp -a "$CONF" "$BACKUP" 2>/dev/null || true
+
+  # Build allow lines
+  ALLOW_LINES=""
+  IFS=',' read -ra NETS <<< "$ALLOW_LIST"
+  for net in "${NETS[@]}"; do
+    net="$(echo "$net" | xargs)"
+    ALLOW_LINES+="allow $net"$'\n'
+  done
+
+  cat > "$CONF" <<EOF
+# Managed by chrony-ntp-server.sh
+
+# Upstream pools
+pool 0.pool.ntp.org iburst
+pool 1.pool.ntp.org iburst
+
+# Allowed client networks
+${ALLOW_LINES}
+
+# Serve time if isolated
 local stratum ${STRATUM}
 
-# Basic hygiene
 driftfile /var/lib/chrony/chrony.drift
 makestep 1.0 3
 rtcsync
 logdir /var/log/chrony
 EOF
 
-echo "[*] Enabling and restarting chrony..."
-systemctl enable --now chrony
-systemctl restart chrony
+  systemctl enable --now chrony
+  systemctl restart chrony
 
-# Open firewall if ufw exists (best-effort)
-if command -v ufw >/dev/null 2>&1; then
-  if ufw status | grep -qi "Status: active"; then
-    echo "[*] UFW active -> allowing UDP/123"
-    ufw allow 123/udp >/dev/null
-  else
-    echo "[*] UFW installed but not active -> skipping firewall change"
-  fi
+  echo ""
+  echo "[+] NTP server installed."
+  echo "    $0 -s   (show sources)"
+  echo "    $0 -c   (show clients)"
+}
+
+show_clients() {
+  chronyc clients
+}
+
+show_sources() {
+  chronyc sources -v
+}
+
+while getopts ":ics" opt; do
+  case $opt in
+    i) install_server ;;
+    c) show_clients ;;
+    s) show_sources ;;
+    *) usage ;;
+  esac
+done
+
+if [[ $# -eq 0 ]]; then
+  usage
 fi
-
-echo ""
-echo "[+] Done. Quick checks:"
-echo "    chronyc tracking"
-echo "    chronyc sources -v"
-echo "    chronyc clients   (after clients connect)"
-echo ""
-chronyc tracking || true
-echo ""
-chronyc sources -v || true
-echo ""
-ss -ulpn | grep -E ':(123)\b' || true
