@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# chrony-ntp-server-setup.sh (Ubuntu 22/24)
+# Installs chrony, configures it as an NTP server, opens UDP/123 (ufw if available), enables service.
+
+if [[ $EUID -ne 0 ]]; then
+  echo "Run as root (sudo)." >&2
+  exit 1
+fi
+
+DEFAULT_POOL="pool.ntp.org"
+DEFAULT_ALLOW="172.20.0.0/16"
+DEFAULT_STRATUM="10"
+
+read -r -p "Upstream NTP pool/server [${DEFAULT_POOL}]: " POOL
+POOL="${POOL:-$DEFAULT_POOL}"
+
+read -r -p "Allow clients CIDR [${DEFAULT_ALLOW}]: " ALLOW
+ALLOW="${ALLOW:-$DEFAULT_ALLOW}"
+
+read -r -p "Local stratum (when upstream unreachable) [${DEFAULT_STRATUM}]: " STRATUM
+STRATUM="${STRATUM:-$DEFAULT_STRATUM}"
+
+echo "[*] Installing chrony..."
+export DEBIAN_FRONTEND=noninteractive
+apt-get update -y
+apt-get install -y chrony
+
+CONF="/etc/chrony/chrony.conf"
+BACKUP="/etc/chrony/chrony.conf.bak.$(date +%Y%m%d%H%M%S)"
+cp -a "$CONF" "$BACKUP"
+
+echo "[*] Writing chrony config: $CONF (backup: $BACKUP)"
+cat > "$CONF" <<EOF
+# Managed by chrony-ntp-server-setup.sh
+# Upstream sources
+pool ${POOL} iburst
+
+# Allow clients
+allow ${ALLOW}
+
+# Serve time even if upstream is down (adjust stratum as you prefer)
+local stratum ${STRATUM}
+
+# Basic hygiene
+driftfile /var/lib/chrony/chrony.drift
+makestep 1.0 3
+rtcsync
+logdir /var/log/chrony
+EOF
+
+echo "[*] Enabling and restarting chrony..."
+systemctl enable --now chrony
+systemctl restart chrony
+
+# Open firewall if ufw exists (best-effort)
+if command -v ufw >/dev/null 2>&1; then
+  if ufw status | grep -qi "Status: active"; then
+    echo "[*] UFW active -> allowing UDP/123"
+    ufw allow 123/udp >/dev/null
+  else
+    echo "[*] UFW installed but not active -> skipping firewall change"
+  fi
+fi
+
+echo ""
+echo "[+] Done. Quick checks:"
+echo "    chronyc tracking"
+echo "    chronyc sources -v"
+echo "    chronyc clients   (after clients connect)"
+echo ""
+chronyc tracking || true
+echo ""
+chronyc sources -v || true
+echo ""
+ss -ulpn | grep -E ':(123)\b' || true
