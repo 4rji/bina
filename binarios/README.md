@@ -1,5 +1,9 @@
 #FIX ssh banner on splunk
-
+script for snmp netw07t
+#FIX ssh banner on splunk
+#fix ntp install ubuntu
+#fix connor clamv task schedule 1 hore
+#install command crear a alias 
 
 
 ###-----Detecciones
