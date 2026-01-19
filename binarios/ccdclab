@@ -16,14 +16,7 @@ echo -e "\n\033[1;34m_________________________________________________________\0
 
 
 
-
-
-
-
-
-
 # Lista de paquetes a instalar
-#paquetes=("python3" "zsh" "python3-flask")
 paquetes=("python3" "python3-pip" "python3-venv" "python3-flask")
 
 # Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
