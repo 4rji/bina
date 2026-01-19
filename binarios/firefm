@@ -21,18 +21,19 @@ fi
 NETWORK="searchnet"
 PORT=8080
 CONTAINER="searxng"
+SEARXNG_DIR="/tmp/searxng"
 
 docker network inspect "$NETWORK" >/dev/null 2>&1 || docker network create "$NETWORK"
 docker image inspect searxng/searxng >/dev/null 2>&1 || docker pull searxng/searxng
 
 CID=""
 if ! docker ps --format '{{.Names}}' | grep -qw "$CONTAINER"; then
-  mkdir -p searxng
+  mkdir -p "$SEARXNG_DIR"
   CID=$(docker run -d --rm \
         --name "$CONTAINER" \
         --network "$NETWORK" \
         -p "${PORT}:8080" \
-        -v "${PWD}/searxng:/etc/searxng" \
+        -v "${SEARXNG_DIR}:/etc/searxng" \
         -e "BASE_URL=http://${CONTAINER}:${PORT}/" \
         searxng/searxng)
 fi
