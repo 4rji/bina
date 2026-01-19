@@ -49,6 +49,7 @@ velodisk            mide la velocidad de lectura y escritura disco con dd y fio.
 coll                Muestra comandos con colores con batcat y un tmp archivo
 apache9000          Modifica la configuracion de apache para correr en el puerto 80 y otro puerto
 pwdc                Copia el directorio actual con pwd y xclip
+grubp               Crea una copia de grub, boot, efi y la guarda en /var/lib/os-system, restaura tambien
 
 
 #Windows
