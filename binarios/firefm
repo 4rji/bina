@@ -52,10 +52,16 @@ done
 read -rp "Número: " num
 
 if [[ -z "$num" ]]; then
-  idx=0
-elif [[ "$num" =~ ^[0-9]+$ ]]; then
-  idx=$((num-1))
+  num=1
+fi
+
+if [[ "$num" =~ ^[0-9]+$ ]]; then
+  idx=$((10#$num - 1))
 else
+  idx=0
+fi
+
+if (( idx < 0 || idx >= ${#LANG_CODES[@]} )); then
   idx=0
 fi
 
