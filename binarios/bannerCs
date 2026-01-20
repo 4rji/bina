@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BANNER_TEXT='
+ AUTHORIZED USE ONLY
+
+This system is the property of the organization and may be accessed only by authorized users.
+By continuing to use this system, you acknowledge and consent to monitoring, recording, and
+review of all activity for security and administrative purposes.
+
+There is no expectation of privacy. Unauthorized access or misuse is strictly prohibited and
+may result in disciplinary action, civil penalties, and criminal prosecution.
+
+If you are not an authorized user, disconnect immediately.
+'
+
+SSHD_CFG="/etc/ssh/sshd_config"
+SSHD_BANNER="/etc/ssh/sshd-banner"
+ISSUE_FILE="/etc/issue"
+
+# --- Require systemctl (Oracle 9 uses systemd) ---
+command -v systemctl >/dev/null 2>&1 || { echo "ERROR: systemctl not found"; exit 1; }
+
+# --- SSHD config must exist ---
+if [[ ! -f "$SSHD_CFG" ]]; then
+  echo "ERROR: $SSHD_CFG not found (is openssh-server installed?)"
+  exit 1
+fi
+
+# --- Write SSH pre-login banner file ---
+printf "%s\n" "$BANNER_TEXT" | sudo tee "$SSHD_BANNER" >/dev/null
+sudo chmod 644 "$SSHD_BANNER"
+
+# --- Remove existing Banner lines (ignore Match blocks complexity; keeps it simple) ---
+sudo sed -i '/^[[:space:]]*Banner[[:space:]]\+/d' "$SSHD_CFG"
+
+# --- Ensure Banner directive exists once ---
+printf "Banner %s\n" "$SSHD_BANNER" | sudo tee -a "$SSHD_CFG" >/dev/null
+
+# --- Validate sshd config if possible ---
+if command -v sshd >/dev/null 2>&1; then
+  sudo sshd -t || { echo "ERROR: sshd_config validation failed"; exit 1; }
+fi
+
+# --- Restart sshd (Oracle/RHEL) ---
+if systemctl list-unit-files --no-pager --no-legend 2>/dev/null | awk '{print $1}' | grep -qx 'sshd.service'; then
+  sudo systemctl restart sshd
+else
+  echo "WARN: sshd.service not found (SSH banner written but service not restarted)."
+fi
+
+# --- TTY console pre-login banner ---
+printf "%s\n" "$BANNER_TEXT" | sudo tee "$ISSUE_FILE" >/dev/null
+sudo chmod 644 "$ISSUE_FILE"
+
+# Refresh getty on common TTYs (don’t fail if missing)
+for i in 1 2 3 4 5 6; do
+  sudo systemctl restart "getty@tty${i}.service" 2>/dev/null || true
+done
+
+# --- Aliases for bash (only if file exists OR create it) ---
+BASHRC="$HOME/.bashrc"
+touch "$BASHRC"
+
+grep -q "^alias bannere=" "$BASHRC" 2>/dev/null || echo "alias bannere='sudo nano $SSHD_BANNER'" >> "$BASHRC"
+grep -q "^alias issuee="  "$BASHRC" 2>/dev/null || echo "alias issuee='sudo nano $ISSUE_FILE'" >> "$BASHRC"
+
+echo "Listo: SSH pre-login banner + TTY /etc/issue aplicados (Oracle Linux 9)."
