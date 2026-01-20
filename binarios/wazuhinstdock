@@ -5,8 +5,52 @@ REPO_URL="https://github.com/wazuh/wazuh-docker.git"
 BRANCH="v4.14.2"
 DIR="wazuh-docker"
 
+need_root() {
+  [[ $EUID -eq 0 ]] || { echo "[!] Run as root"; exit 1; }
+}
+
+install_deps() {
+  if command -v apt >/dev/null 2>&1; then
+    apt update
+    apt install -y ca-certificates curl gnupg git
+
+    if ! command -v docker >/dev/null 2>&1; then
+      curl -fsSL https://get.docker.com | sh
+      systemctl enable --now docker
+    fi
+
+    if ! docker compose version >/dev/null 2>&1; then
+      mkdir -p /usr/local/lib/docker/cli-plugins
+      curl -SL https://github.com/docker/compose/releases/download/v2.25.0/docker-compose-linux-x86_64 \
+        -o /usr/local/lib/docker/cli-plugins/docker-compose
+      chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+    fi
+
+  elif command -v dnf >/dev/null 2>&1; then
+    dnf install -y ca-certificates curl git
+
+    if ! command -v docker >/dev/null 2>&1; then
+      dnf install -y docker
+      systemctl enable --now docker
+    fi
+
+    if ! docker compose version >/dev/null 2>&1; then
+      mkdir -p /usr/local/lib/docker/cli-plugins
+      curl -SL https://github.com/docker/compose/releases/download/v2.25.0/docker-compose-linux-x86_64 \
+        -o /usr/local/lib/docker/cli-plugins/docker-compose
+      chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+    fi
+  else
+    echo "[!] Unsupported distro"
+    exit 1
+  fi
+}
+
+need_root
+install_deps
+
 echo "[*] Cloning official Wazuh repo ($BRANCH)..."
-if [[ -d "$DIR" ]]; then
+if [[ -e "$DIR" ]]; then
   echo "[!] '$DIR' already exists. Remove it first."
   exit 1
 fi
@@ -15,16 +59,17 @@ git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$DIR"
 
 cd "$DIR/single-node"
 
+DC="docker compose"
+
 echo "[*] Generating indexer certificates..."
-docker compose -f generate-indexer-certs.yml run --rm generator
+$DC -f generate-indexer-certs.yml run --rm generator
 
 echo "[*] Starting Wazuh stack..."
-docker compose up -d
+$DC up -d
 
 echo ""
 echo "=============================================="
-echo " This is the default username and password to"
-echo " access the Wazuh dashboard:"
+echo " Default Wazuh dashboard credentials:"
 echo ""
 echo "   Username: admin"
 echo "   Password: SecretPassword"

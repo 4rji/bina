@@ -65,7 +65,7 @@ apply_pwquality() {
   local f="/etc/security/pwquality.conf"
   [[ -f "$f" ]] || { mkdir -p /etc/security; touch "$f"; }
   bk "$f"
-  # 1) 4 types, 2) minlen 15, 10/11) complexity enabled via pwquality
+
   ensure_kv_conf "$f" "minlen" "15" "="
   ensure_kv_conf "$f" "ucredit" "-1" "="
   ensure_kv_conf "$f" "lcredit" "-1" "="
@@ -75,6 +75,9 @@ apply_pwquality() {
   ensure_kv_conf "$f" "maxrepeat" "3" "="
   ensure_kv_conf "$f" "gecoscheck" "1" "="
   ensure_kv_conf "$f" "dictcheck" "1" "="
+
+  # enforce real blocking (including root)
+  ensure_line_once "$f" "enforce_for_root"
 }
 
 apply_faillock_conf() {
@@ -86,29 +89,28 @@ apply_faillock_conf() {
   ensure_kv_conf "$f" "fail_interval" "900" "="
   ensure_kv_conf "$f" "unlock_time" "900" "="
 }
-
 apply_kerberos_clockskew() {
   local f="/etc/krb5.conf"
   [[ -f "$f" ]] || return 0
   bk "$f"
-  # 11) time tolerance 5 minutes => clockskew = 300
+
   if grep -Eq '^[[:space:]]*clockskew[[:space:]]*=' "$f"; then
     sed -ri 's/^[[:space:]]*clockskew[[:space:]]*=.*/    clockskew = 300/g' "$f"
     return 0
   fi
+
   if grep -Eq '^\[libdefaults\]' "$f"; then
     awk '
-      BEGIN{done=0}
-      /^\[libdefaults\]/{print; in=1; next}
-      in==1 && done==0 && /^\[/{print "    clockskew = 300"; done=1; in=0}
+      BEGIN{done=0; in_lib=0}
+      /^\[libdefaults\]/{print; in_lib=1; next}
+      in_lib==1 && done==0 && /^\[/{print "    clockskew = 300"; done=1; in_lib=0}
       {print}
-      END{ if(in==1 && done==0){print "    clockskew = 300"} }
+      END{ if(in_lib==1 && done==0){print "    clockskew = 300"} }
     ' "$f" > "${f}.tmp" && mv "${f}.tmp" "$f"
   else
     printf "\n[libdefaults]\n    clockskew = 300\n" >> "$f"
   fi
 }
-
 debian_pam() {
   # common-password: pwquality + history
   local cp="/etc/pam.d/common-password"
@@ -199,6 +201,25 @@ apply_chage_humans() {
   done < <(human_users)
 }
 
+show_pwquality_status() {
+  echo ""
+  echo "[*] /etc/security/pwquality.conf (effective lines):"
+  grep -E '^(minlen|minclass|ucredit|lcredit|dcredit|ocredit|maxrepeat|gecoscheck|dictcheck|enforce_for_root)' \
+    /etc/security/pwquality.conf || true
+
+  echo ""
+  echo "[*] PAM uses pwquality:"
+  grep -nE 'pam_pwquality\.so' /etc/pam.d/system-auth /etc/pam.d/password-auth 2>/dev/null || true
+}
+
+apply_authselect_changes_if_present() {
+  if has authselect; then
+    authselect apply-changes >/dev/null 2>&1 || true
+  fi
+}
+
+
+
 main() {
   need_root
   local fam
@@ -207,7 +228,9 @@ main() {
   apply_login_defs
   apply_pwquality
   apply_kerberos_clockskew
-
+  apply_pwquality
+  apply_authselect_changes_if_present
+  show_pwquality_status
   case "$fam" in
     debian)
       apply_faillock_conf
