@@ -1,0 +1,262 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# secure-snmp-linux.sh
+# Secures Net-SNMP on Linux: SNMPv3 only (authPriv), restrict source IPs, evidence output.
+
+# ---- User inputs (env vars or prompts) ----
+NMS_ALLOWED_CIDRS="${NMS_ALLOWED_CIDRS:-}"
+SNMPV3_USER="${SNMPV3_USER:-snmpadmin}"
+SNMPV3_AUTH_PASS="${SNMPV3_AUTH_PASS:-}"
+SNMPV3_PRIV_PASS="${SNMPV3_PRIV_PASS:-}"
+SNMP_SYSLOCATION="${SNMP_SYSLOCATION:-CCDC-LAB}"
+SNMP_SYSCONTACT="${SNMP_SYSCONTACT:-noc@lab.local}"
+SEED_CREATEUSER=0
+
+if [[ -z "$NMS_ALLOWED_CIDRS" ]]; then
+  read -r -p "Allowed NMS source CIDRs (comma-separated, e.g. 10.0.0.10/32,10.0.0.0/24): " NMS_ALLOWED_CIDRS
+fi
+if [[ -z "$SNMPV3_AUTH_PASS" ]]; then
+  read -r -s -p "SNMPv3 AUTH password (min 8 chars): " SNMPV3_AUTH_PASS; echo
+fi
+if [[ -z "$SNMPV3_PRIV_PASS" ]]; then
+  read -r -s -p "SNMPv3 PRIV password (min 8 chars): " SNMPV3_PRIV_PASS; echo
+fi
+
+IFS=',' read -r -a CIDRS <<< "$NMS_ALLOWED_CIDRS"
+
+# ---- Detect package manager / install net-snmp ----
+install_snmp() {
+  if command -v apt-get >/dev/null 2>&1; then
+    apt-get update -y
+    apt-get install -y snmp snmpd
+  elif command -v dnf >/dev/null 2>&1; then
+    dnf install -y net-snmp net-snmp-utils
+  elif command -v yum >/dev/null 2>&1; then
+    yum install -y net-snmp net-snmp-utils
+  elif command -v pacman >/dev/null 2>&1; then
+    pacman -Sy --noconfirm net-snmp
+  else
+    echo "[-] No supported package manager found." >&2
+    exit 1
+  fi
+}
+
+if ! command -v snmpd >/dev/null 2>&1; then
+  echo "[*] Installing Net-SNMP..."
+  install_snmp
+fi
+
+# ---- Backup config ----
+SNMPD_CONF="/etc/snmp/snmpd.conf"
+mkdir -p /etc/snmp
+if [[ -f "$SNMPD_CONF" ]]; then
+  cp -a "$SNMPD_CONF" "${SNMPD_CONF}.bak.$(date +%Y%m%d%H%M%S)"
+fi
+
+# ---- Create minimal secure snmpd.conf (SNMPv3 only) ----
+cat > "$SNMPD_CONF" <<EOF
+###############################################################################
+# CCDC Secure SNMP - SNMPv3 only
+# - Disable SNMPv1/v2c community strings
+# - Allow only SNMPv3 authPriv
+###############################################################################
+
+# Listen on UDP/161 (default). If you want ONLY mgmt interface, bind to IP:
+# agentAddress udp:161
+
+sysLocation  ${SNMP_SYSLOCATION}
+sysContact   ${SNMP_SYSCONTACT}
+
+# Don't expose v1/v2c
+# (No "rocommunity"/"rwcommunity" lines)
+
+# Restrict views to system basics (adjust as needed)
+view   systemview  included   .1.3.6.1.2.1.1
+view   systemview  included   .1.3.6.1.2.1.2
+view   systemview  included   .1.3.6.1.2.1.25.1
+
+# Only allow SNMPv3 users (rouser)
+# NOTE: user will be created via net-snmp-create-v3-user
+rouser ${SNMPV3_USER} authPriv -V systemview
+
+# Harden defaults
+dontLogTCPWrappersConnects yes
+EOF
+
+# ---- Create SNMPv3 user (authPriv SHA/AES) ----
+# On Debian/Ubuntu with systemd sandboxing, ensure snmpd can read/write /var/lib/snmp.
+ensure_snmpd_override() {
+  if ! command -v systemctl >/dev/null 2>&1; then
+    return 0
+  fi
+  mkdir -p /etc/systemd/system/snmpd.service.d
+  cat > /etc/systemd/system/snmpd.service.d/override.conf <<'EOF'
+[Service]
+ProtectHome=false
+ReadWritePaths=/var/lib/snmp
+EOF
+  systemctl daemon-reexec >/dev/null 2>&1 || true
+}
+
+create_v3_user() {
+  # Ensure DB file exists with correct perms/owner first.
+  mkdir -p /var/lib/snmp
+  touch /var/lib/snmp/snmpd.conf
+  chmod 600 /var/lib/snmp/snmpd.conf
+  if getent passwd Debian-snmp >/dev/null 2>&1; then
+    chown Debian-snmp:Debian-snmp /var/lib/snmp/snmpd.conf || true
+  fi
+
+  if command -v net-snmp-create-v3-user >/dev/null 2>&1; then
+    if ! net-snmp-create-v3-user -ro -A "$SNMPV3_AUTH_PASS" -a SHA -X "$SNMPV3_PRIV_PASS" -x AES "$SNMPV3_USER" >/dev/null 2>&1; then
+      echo "[!] net-snmp-create-v3-user failed; ensuring createUser line directly."
+    fi
+  fi
+  # Ensure createUser line exists (authoritative fallback).
+  if ! grep -q "^createUser[[:space:]]\+$SNMPV3_USER" /var/lib/snmp/snmpd.conf; then
+    echo "createUser ${SNMPV3_USER} SHA \"${SNMPV3_AUTH_PASS}\" AES \"${SNMPV3_PRIV_PASS}\"" >> /var/lib/snmp/snmpd.conf
+  fi
+  chmod 600 /var/lib/snmp/snmpd.conf
+  if getent passwd Debian-snmp >/dev/null 2>&1; then
+    chown Debian-snmp:Debian-snmp /var/lib/snmp/snmpd.conf || true
+  fi
+
+  # If still missing, seed main config so snmpd can persist on start.
+  if ! grep -q "^createUser[[:space:]]\+$SNMPV3_USER" /var/lib/snmp/snmpd.conf; then
+    if ! grep -q "^createUser[[:space:]]\+$SNMPV3_USER" "$SNMPD_CONF"; then
+      echo "createUser ${SNMPV3_USER} SHA \"${SNMPV3_AUTH_PASS}\" AES \"${SNMPV3_PRIV_PASS}\"" >> "$SNMPD_CONF"
+      SEED_CREATEUSER=1
+    fi
+  fi
+}
+
+echo "[*] Creating/ensuring SNMPv3 user..."
+ensure_snmpd_override
+systemctl stop snmpd >/dev/null 2>&1 || systemctl stop snmpd.service >/dev/null 2>&1 || true
+create_v3_user
+systemctl start snmpd >/dev/null 2>&1 || systemctl start snmpd.service >/dev/null 2>&1 || true
+
+if [ "$SEED_CREATEUSER" = "1" ]; then
+  # Remove seeded line to avoid leaving plaintext creds in main config.
+  if grep -q "^createUser[[:space:]]\+$SNMPV3_USER" /var/lib/snmp/snmpd.conf; then
+    sed -i.bak "/^createUser[[:space:]]\+${SNMPV3_USER}[[:space:]]/d" "$SNMPD_CONF" || true
+  fi
+fi
+
+# ---- Enable + restart snmpd ----
+echo "[*] Enabling and restarting snmpd..."
+systemctl enable --now snmpd >/dev/null 2>&1 || systemctl enable --now snmpd.service >/dev/null 2>&1 || true
+systemctl restart snmpd >/dev/null 2>&1 || systemctl restart snmpd.service >/dev/null 2>&1 || true
+
+# ---- Restrict network access to UDP/161 from NMS only ----
+echo "[*] Restricting UDP/161 to allowed NMS CIDRs..."
+
+# Try firewalld
+if command -v firewall-cmd >/dev/null 2>&1 && firewall-cmd --state >/dev/null 2>&1; then
+  ZONE="$(firewall-cmd --get-default-zone)"
+  # remove broad allow if exists
+  firewall-cmd --permanent --zone="$ZONE" --remove-service=snmp >/dev/null 2>&1 || true
+  firewall-cmd --permanent --zone="$ZONE" --remove-port=161/udp >/dev/null 2>&1 || true
+  for c in "${CIDRS[@]}"; do
+    firewall-cmd --permanent --zone="$ZONE" --add-rich-rule="rule family=ipv4 source address=${c} port protocol=udp port=161 accept" >/dev/null || true
+  done
+  firewall-cmd --permanent --zone="$ZONE" --add-rich-rule="rule family=ipv4 port protocol=udp port=161 drop" >/dev/null || true
+  firewall-cmd --reload >/dev/null || true
+# Try nftables
+elif command -v nft >/dev/null 2>&1; then
+  # Create table/chain if missing
+  nft list table inet filter >/dev/null 2>&1 || nft add table inet filter
+  nft list chain inet filter input >/dev/null 2>&1 || nft add chain inet filter input "{ type filter hook input priority 0; policy accept; }"
+  # Remove old rules tagged "ccdc-snmp" if any
+  nft -a list chain inet filter input | awk '/ccdc-snmp/{print $NF}' | while read -r handle; do nft delete rule inet filter input handle "$handle" || true; done
+  for c in "${CIDRS[@]}"; do
+    nft add rule inet filter input ip saddr "$c" udp dport 161 accept comment "ccdc-snmp" || true
+  done
+  nft add rule inet filter input udp dport 161 drop comment "ccdc-snmp" || true
+# Fallback iptables
+elif command -v iptables >/dev/null 2>&1; then
+  # Flush prior SNMP rules (best-effort)
+  iptables -S INPUT | awk '/--dport 161/{print $0}' >/dev/null 2>&1 || true
+  for c in "${CIDRS[@]}"; do
+    iptables -C INPUT -p udp -s "$c" --dport 161 -j ACCEPT 2>/dev/null || iptables -I INPUT -p udp -s "$c" --dport 161 -j ACCEPT
+  done
+  iptables -C INPUT -p udp --dport 161 -j DROP 2>/dev/null || iptables -A INPUT -p udp --dport 161 -j DROP
+fi
+
+# ---- Evidence bundle (for screenshot / memo) ----
+OUTDIR="./snmp_evidence_$(hostname)_$(date +%Y%m%d%H%M%S)"
+mkdir -p "$OUTDIR"
+
+echo "[*] Collecting evidence in $OUTDIR ..."
+cp -a "$SNMPD_CONF" "$OUTDIR/snmpd.conf"
+systemctl status snmpd --no-pager > "$OUTDIR/systemctl_status_snmpd.txt" 2>&1 || true
+ss -lunp | grep -E ':(161)\b' > "$OUTDIR/ss_udp_161.txt" 2>&1 || true
+
+# Show a local SNMPv3 query (will work if localhost allowed; not all builds)
+if command -v snmpwalk >/dev/null 2>&1; then
+  snmpwalk -v3 -l authPriv -u "$SNMPV3_USER" -a SHA -A "$SNMPV3_AUTH_PASS" -x AES -X "$SNMPV3_PRIV_PASS" localhost sysName.0 \
+    > "$OUTDIR/snmpwalk_localhost_sysName.txt" 2>&1 || true
+fi
+
+echo "[+] Done. Evidence folder: $OUTDIR"
+echo "    Screenshot targets:"
+echo "    - $OUTDIR/snmpd.conf"
+echo "    - $OUTDIR/systemctl_status_snmpd.txt"
+echo "    - $OUTDIR/ss_udp_161.txt"
+echo "    - $OUTDIR/snmpwalk_localhost_sysName.txt (if present)"
+
+
+echo ""
+echo "================= SNMP HARDENING VERIFICATION ================="
+echo ""
+
+echo "[1] Active snmpd service:"
+systemctl --no-pager status snmpd | sed -n '1,12p' || true
+echo ""
+
+echo "[2] snmpd.conf (proof of SNMPv3 only):"
+grep -E "rouser|rocommunity|rwcommunity" /etc/snmp/snmpd.conf || true
+echo ""
+
+echo "[3] SNMPv3 user present:"
+grep -E "createUser|usmUser" /var/lib/snmp/snmpd.conf || true
+echo ""
+
+echo "[4] UDP/161 listening:"
+ss -lunp | grep 161 || true
+echo ""
+
+echo "[5] Firewall rules for SNMP:"
+
+if command -v firewall-cmd >/dev/null 2>&1 && firewall-cmd --state >/dev/null 2>&1; then
+  firewall-cmd --list-rich-rules | grep 161 || true
+elif command -v nft >/dev/null 2>&1; then
+  nft list chain inet filter input | grep 161 || true
+elif command -v iptables >/dev/null 2>&1; then
+  iptables -L INPUT -n | grep 161 || true
+fi
+
+echo ""
+echo "[6] Local SNMPv3 test:"
+
+ALLOW_LOCAL_TEST=0
+for c in "${CIDRS[@]}"; do
+  case "$c" in
+    127.0.0.1|127.0.0.1/32|::1|::1/128) ALLOW_LOCAL_TEST=1 ;;
+  esac
+done
+if [ "$ALLOW_LOCAL_TEST" = "1" ]; then
+  snmpwalk -v3 -l authPriv -u "$SNMPV3_USER" -a SHA -A "$SNMPV3_AUTH_PASS" -x AES -X "$SNMPV3_PRIV_PASS" localhost sysName.0 2>/dev/null || echo "SNMPv3 test failed"
+else
+  echo "Local SNMPv3 test skipped (localhost not in NMS_ALLOWED_CIDRS)"
+fi
+
+echo ""
+echo "[7] SNMPv2 test (should FAIL):"
+
+snmpwalk -v2c -c public localhost 2>/dev/null || echo "SNMPv2 correctly blocked"
+
+echo ""
+echo "================= END OF VERIFICATION ================="
+echo ""

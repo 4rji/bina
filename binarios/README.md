@@ -1,6 +1,5 @@
 #FIX ssh banner on splunk
 script for snmp netw07t
-#FIX ssh banner on splunk
 #fix ntp install ubuntu
 #fix connor clamv task schedule 1 hore
 #install command crear a alias 
@@ -95,7 +94,7 @@ zeekclone           git clone para arch, sin usar yay. make and makefile
 oniuxinst           Instala cargo, oniux y curl ip
 fastinst            Instala fastfetch, fastconf y fastconfmac para solo el archivo conf.
 searchinst          Instala searxng que es como google pero privado.
-lazydinst           Instala lazydocker con go. instala go tambien
+lazydockerdinst     Instala lazydocker con go. instala go tambien
 instpowershell      Descarga nishang powershell modules
 openboxinst         Instala openbox que es un escritorio ligero, tambien instala chromium
 nviminst            Instala neovim, nvchad, 

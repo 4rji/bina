@@ -4,19 +4,25 @@ set -e
 REPO="https://github.com/Rootkit-Hunter/rkhunter.git"
 DIR="rkhunter"
 
+echo "[*] Cloning rkhunter..."
 rm -rf "$DIR"
 git clone "$REPO"
 cd "$DIR"
 
-# El installer.sh NO corre sin parametros
+echo "[*] Installing rkhunter..."
 sudo bash installer.sh --layout default --install
 
-# Ejecutar
-sudo rkhunter --check --sk
+# Fix PATH for sudo + non-interactive shells
+export PATH="/usr/local/bin:/usr/bin:/bin:$PATH"
+hash -r
 
+echo "[*] Initial DB update..."
+sudo /usr/local/bin/rkhunter --update
+
+echo "[*] Running rkhunter check (non-interactive)..."
+sudo /usr/local/bin/rkhunter --check --sk --nocolors
 
 echo ""
-echo "sudo rkhunter --check --sk "
-
+echo "================= LAST SCAN SUMMARY ================="
 sudo tac /var/log/rkhunter.log | grep -m1 -B50 "System checks summary" | tac
-
+echo "====================================================="
