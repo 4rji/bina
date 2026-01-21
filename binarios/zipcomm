@@ -1,34 +1,33 @@
 #!/usr/bin/env bash
-# ZIP / UNZIP quick reference script
+# ZIP / UNZIP quick reference (echo only)
 
-# Create a zip with one file
-zip file.zip file.txt
-# Compress a single file into file.zip
+BLUE='\033[0;34m'
+GREEN='\033[0;32m'
+GRAY='\033[0;90m'
+NC='\033[0m'
 
-# Create a zip with multiple files
-zip files.zip a.txt b.txt c.log
-# Compress multiple files into one archive
+echo -e "${BLUE}=== ZIP / UNZIP COMMANDS ===${NC}\n"
 
-# Compress a directory recursively
-zip -r folder.zip folder/
-# -r = recursive, includes all subdirectories
+echo -e "${GREEN}zip file.zip file.txt${NC}"
+echo -e "${GRAY}# Compress a single file into file.zip${NC}\n"
 
-# Exclude files by pattern
-zip -r backup.zip folder/ -x "*.log"
-# Excludes all .log files from the archive
+echo -e "${GREEN}zip files.zip a.txt b.txt c.log${NC}"
+echo -e "${GRAY}# Compress multiple files into one archive${NC}\n"
 
-# Maximum compression level
-zip -9 -r data.zip folder/
-# -9 = best compression (slower)
+echo -e "${GREEN}zip -r folder.zip folder/${NC}"
+echo -e "${GRAY}# Compress a directory recursively${NC}\n"
 
-# List contents of a zip (no extraction)
-unzip -l archive.zip
-# Shows files inside the zip without extracting
+echo -e "${GREEN}zip -r backup.zip folder/ -x \"*.log\"${NC}"
+echo -e "${GRAY}# Compress directory excluding .log files${NC}\n"
 
-# Extract zip to current directory
-unzip archive.zip
-# Decompress files into current directory
+echo -e "${GREEN}zip -9 -r data.zip folder/${NC}"
+echo -e "${GRAY}# Maximum compression level (slower)${NC}\n"
 
-# Extract zip to a specific directory
-unzip archive.zip -d output_dir/
-# Extracts files into output_dir
+echo -e "${GREEN}unzip -l archive.zip${NC}"
+echo -e "${GRAY}# List zip contents without extracting${NC}\n"
+
+echo -e "${GREEN}unzip archive.zip${NC}"
+echo -e "${GRAY}# Extract zip into current directory${NC}\n"
+
+echo -e "${GREEN}unzip archive.zip -d output_dir/${NC}"
+echo -e "${GRAY}# Extract zip into a specific directory${NC}"
