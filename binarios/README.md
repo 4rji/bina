@@ -32,6 +32,7 @@ ttyinicio           Crea mensaje de inicio de tty para ver la ip del servidor de
 
 
 ###------linux
+modinvest           Crea snapshop de modulos, para comparar e investigar
 interfacess         imprime ejemplos y comandos de configuración de red, dhcp, 
 liberarIP           Cambia la MAC de debian para liberar una IP duplicada, usa dhclient
 socatcomm           Comandos utiles de socat

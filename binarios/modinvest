@@ -7,7 +7,7 @@ mkdir -p "$BASE_DIR"
 usage() {
   echo "Usage:"
   echo "  $0 snap [name]"
-  echo "  $0 diff <a> <b>"
+  echo "  $0 diff name1 name2 (no extensions or path, just file name)"
   echo "  $0 last"
   exit 1
 }
