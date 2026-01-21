@@ -184,6 +184,8 @@ nixbus              Para buscar programas en linea de comando y tambien corregir
 
 
 ###------utilidades 
+
+videocapture        Captures HTTP traffic from an IPCam, extracts frames from the pcap, and reconstructs into video
 zipcomm             Comandos basicos de zip
 vmdig               Para manejar Digital ocean API
 clipam              Copia un archivo al clibboard clipam #archivo

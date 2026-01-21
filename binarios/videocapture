@@ -1,0 +1,54 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# cam_pcap_to_mp4.sh
+# Usage:
+#   ./cam_pcap_to_mp4.sh 10.0.4.65 en0 80 10 out.mp4
+# Defaults:
+CAM_IP="${1:-10.0.4.65}"
+IFACE="${2:-en0}"
+PORT="${3:-80}"
+FPS="${4:-10}"
+OUT="${5:-out.mp4}"
+
+PCAP="cam.pcap"
+FRAMES_DIR="frames"
+JPG_DIR="jpg"
+
+need() { command -v "$1" >/dev/null 2>&1 || { echo "[-] Missing: $1"; exit 1; }; }
+need tcpdump
+need tshark
+need file
+need ffmpeg
+
+echo "[*] Capturing from $IFACE -> host $CAM_IP port $PORT"
+echo "    Ctrl+C to stop capture (the script will continue)."
+sudo tcpdump -i "$IFACE" host "$CAM_IP" and port "$PORT" -w "$PCAP" || true
+
+echo "[*] Exporting HTTP objects from $PCAP -> $FRAMES_DIR/"
+rm -rf "$FRAMES_DIR" "$JPG_DIR"
+mkdir -p "$FRAMES_DIR" "$JPG_DIR"
+tshark -r "$PCAP" --export-objects "http,$FRAMES_DIR/"
+
+echo "[*] Filtering JPEGs and renaming sequentially -> $JPG_DIR/"
+i=0
+# sort by filename (usually includes seq=...) for stable order
+while IFS= read -r f; do
+  if file "$f" | grep -q 'JPEG image data'; then
+    printf -v n "%06d" "$i"
+    cp "$f" "$JPG_DIR/frame_${n}.jpg"
+    i=$((i+1))
+  fi
+done < <(find "$FRAMES_DIR" -maxdepth 1 -type f -print | sort)
+
+if [[ "$i" -eq 0 ]]; then
+  echo "[-] No JPEG frames found in $FRAMES_DIR/. (Maybe not MJPEG or not HTTP objects.)"
+  exit 2
+fi
+
+echo "[+] JPEG frames: $i"
+
+echo "[*] Building mp4 @ ${FPS}fps -> $OUT"
+ffmpeg -y -framerate "$FPS" -i "$JPG_DIR/frame_%06d.jpg" -c:v libx264 -pix_fmt yuv420p "$OUT"
+
+echo "[+] Done: $OUT"
