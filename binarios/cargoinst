@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ===== Colors =====
+RED='\033[31m'; GRN='\033[32m'; YLW='\033[33m'; BLU='\033[34m'; MAG='\033[35m'; CYN='\033[36m'
+BOLD='\033[1m'; DIM='\033[2m'; RST='\033[0m'
+
+need() { command -v "$1" >/dev/null 2>&1; }
+
+if ! need cargo; then
+  echo -e "${RED}${BOLD}[!] cargo not found${RST}"
+  echo -e "${YLW}Install Rust (rustup) first, then re-run.${RST}"
+  exit 1
+fi
+
+# ===== Tools (name | install args | short description) =====
+TOOLS=(
+  "havn|havn|Terminal-first cheats/snippets helper (fast lookup + reuse of commands)."
+  "lla|lla|Modern ls-style directory listing (clean output, handy defaults)."
+  "kmon|kmon|TUI for Linux kernel modules + live kernel log view (modules/dmesg in one UI)."
+)
+
+show_menu() {
+  echo -e "${BOLD}${CYN}=== Cargo Installer Menu ===${RST}"
+  echo -e "${DIM}Select what to install via cargo:${RST}\n"
+
+  local i=1
+  for t in "${TOOLS[@]}"; do
+    IFS='|' read -r key pkg desc <<<"$t"
+    printf "${BOLD}${BLU}%2d)${RST} ${BOLD}%-6s${RST} ${DIM}(%s)${RST}\n" "$i" "$key" "$pkg"
+    printf "    ${YLW}%s${RST}\n\n" "$desc"
+    ((i++))
+  done
+
+  echo -e "${BOLD}${MAG} a)${RST} Install ALL"
+  echo -e "${BOLD}${MAG} q)${RST} Quit"
+}
+
+install_one() {
+  local key="$1" pkg="$2"
+  echo -e "\n${GRN}${BOLD}[*] Installing:${RST} ${BOLD}$key${RST}  ${DIM}(cargo install $pkg)${RST}"
+  if cargo install "$pkg"; then
+    echo -e "${GRN}${BOLD}[+] Done:${RST} $key"
+  else
+    echo -e "${RED}${BOLD}[!] Failed:${RST} $key"
+    return 1
+  fi
+}
+
+install_all() {
+  local any_fail=0
+  for t in "${TOOLS[@]}"; do
+    IFS='|' read -r key pkg desc <<<"$t"
+    install_one "$key" "$pkg" || any_fail=1
+  done
+  return "$any_fail"
+}
+
+while true; do
+  clear || true
+  show_menu
+  echo
+  read -rp "$(echo -e "${BOLD}${CYN}Choice:${RST} ")" choice
+
+  case "${choice,,}" in
+    q|quit|exit) echo -e "${DIM}Bye.${RST}"; exit 0 ;;
+    a|all)
+      install_all || true
+      echo -e "\n${DIM}Press Enter to continue...${RST}"
+      read -r
+      ;;
+    1|2|3)
+      idx=$((choice - 1))
+      IFS='|' read -r key pkg desc <<<"${TOOLS[$idx]}"
+      install_one "$key" "$pkg" || true
+      echo -e "\n${DIM}Press Enter to continue...${RST}"
+      read -r
+      ;;
+    *)
+      echo -e "${RED}${BOLD}[!] Invalid choice.${RST}"
+      echo -e "${DIM}Press Enter to continue...${RST}"
+      read -r
+      ;;
+  esac
+done

@@ -83,6 +83,7 @@ lolcatinst          Instala gem, ruby y lolcat
 
 
 ###------instaladores
+cargoinst           Instala cargo y tambien herramientas de la lista
 llainst             Cargo tool para ver ls con tablas, mejor formato
 webcheck            Para examinar website, funciona en docker, cool info de websites
 hyplinst            instala hyprland y descarga los dotfiles
