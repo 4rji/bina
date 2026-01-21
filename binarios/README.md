@@ -82,6 +82,7 @@ lolcatinst          Instala gem, ruby y lolcat
 
 
 ###------instaladores
+llainst             Cargo tool para ver ls con tablas, mejor formato
 webcheck            Para examinar website, funciona en docker, cool info de websites
 hyplinst            instala hyprland y descarga los dotfiles
 lab                 Ejecuta el servidor http 8000 en python para labs, creado ahora htb
@@ -181,6 +182,7 @@ nixbus              Para buscar programas en linea de comando y tambien corregir
 
 
 ###------utilidades 
+zipcomm             Comandos basicos de zip
 vmdig               Para manejar Digital ocean API
 clipam              Copia un archivo al clibboard clipam #archivo
 ccdclabprogram      Programa que hice para vcenter para manejar apps

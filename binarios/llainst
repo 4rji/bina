@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Installs lla via Cargo, then prints basic usage examples (does NOT execute them).
+
+echo "[*] Installing lla with Cargo..."
+cargo install lla
+
+echo ""
+echo "================= lla basic commands ================="
+echo "lla -G"
+echo "  # Grid view (compact listing)."
+
+echo "lla -T"
+echo "  # Tree view (show directory structure)."
+
+echo "lla -S"
+echo "  # Sort listing (commonly by size; depends on lla version/config)."
+
+echo 'lla zip.file'
+echo "  # Inspect / list contents related to an archive/file (behavior depends on lla build)."
+
+echo 'lla --search "exec("'
+echo "  # Search for text/pattern (here: exec() ) across files."
+
+echo "lla diff folder1 folder2"
+echo "  # Diff two folders (shows differences)."
+
+echo ""
+echo "[*] Tip: run any of the above commands to see the output."
