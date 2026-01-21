@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+
+echo "=== KERNEL MODULE CLI CHEAT SHEET ==="
+echo
+
+echo "# Ver módulos cargados"
+echo "lsmod"
+echo "-> Lista módulos actualmente cargados en el kernel"
+echo
+
+echo "# Buscar un módulo específico"
+echo "lsmod | grep <modulo>"
+echo "-> Ver si un módulo está cargado"
+echo
+
+echo "# Ver información de un módulo (NO lo carga)"
+echo "modinfo <modulo>"
+echo "-> Muestra metadata: origen, firma, dependencias, parámetros"
+echo
+
+echo "# Ver si el módulo es built-in"
+echo "modinfo <modulo> | grep filename"
+echo "-> Si no hay filename o falla, puede estar compilado en el kernel"
+echo
+
+echo "# Cargar un módulo"
+echo "modprobe <modulo>"
+echo "-> Carga el módulo y dependencias automáticamente"
+echo
+
+echo "# Cargar un módulo con parámetros"
+echo "modprobe <modulo> param=valor"
+echo "-> Carga el módulo con configuración específica"
+echo
+
+echo "# Descargar un módulo (seguro)"
+echo "modprobe -r <modulo>"
+echo "-> Descarga el módulo si no tiene dependencias activas"
+echo
+
+echo "# Descargar un módulo forzado"
+echo "rmmod <modulo>"
+echo "-> Quita el módulo directamente (puede fallar si está en uso)"
+echo
+
+echo "# Ver quién usa un módulo"
+echo "lsmod | awk '\$1==\"<modulo>\" {print \$3}'"
+echo "-> Muestra cuántos lo están usando"
+echo
+
+echo "# Ver dependencias de un módulo"
+echo "modinfo <modulo> | grep depends"
+echo "-> Otros módulos requeridos"
+echo
+
+echo "# Ver parámetros configurables"
+echo "modinfo <modulo> | grep parm"
+echo "-> Opciones ajustables al cargar"
+echo
+
+echo "# Ver eventos del kernel en vivo"
+echo "dmesg -w"
+echo "-> Logs en tiempo real (carga/descarga de módulos)"
+echo
+
+echo "# Ver cuándo se cargó un módulo (aprox)"
+echo "dmesg | grep <modulo>"
+echo "-> Correlación temporal"
+echo
+
+echo "# Bloquear un módulo (blacklist)"
+echo "echo \"blacklist <modulo>\" > /etc/modprobe.d/<modulo>.conf"
+echo "-> Evita que vuelva a cargarse"
+echo
+
+echo "# Quitar blacklist"
+echo "rm /etc/modprobe.d/<modulo>.conf"
+echo "-> Permite cargarlo de nuevo"
+echo
+
+echo "# Ver módulos cargados al boot"
+echo "cat /etc/modules /etc/modules-load.d/*.conf 2>/dev/null"
+echo "-> Persistencia"
+echo
+
+echo "# Comparar snapshots (baseline)"
+echo "lsmod > before.txt"
+echo "lsmod > after.txt"
+echo "diff before.txt after.txt"
+echo "-> Detectar cambios"
+echo
+
+echo "=== FIN ==="

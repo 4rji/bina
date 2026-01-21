@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE_DIR="${BASE_DIR:-/var/lib/module-baseline}"
+mkdir -p "$BASE_DIR"
+
+usage() {
+  echo "Usage:"
+  echo "  $0 snap [name]"
+  echo "  $0 diff <a> <b>"
+  echo "  $0 last"
+  exit 1
+}
+
+snap() {
+  local name="${1:-$(date +%Y%m%d-%H%M%S)}"
+  local out="$BASE_DIR/${name}.lsmod"
+  lsmod | awk 'NR==1{next} {print $1 "\t" $2 "\t" $3}' | sort -k1,1 > "$out"
+  echo "[*] Snapshot: $out"
+}
+
+modinfo_report() {
+  local snap_a="$1" snap_b="$2"
+  local fa="$BASE_DIR/${snap_a}.lsmod"
+  local fb="$BASE_DIR/${snap_b}.lsmod"
+  local rpt="$BASE_DIR/${snap_a}_to_${snap_b}.added.modinfo.txt"
+
+  : > "$rpt"
+  while IFS= read -r mod; do
+    [[ -n "$mod" ]] || continue
+    {
+      echo "============================================================"
+      echo "MODULE: $mod"
+      echo "------------------------------------------------------------"
+      modinfo "$mod" 2>/dev/null | awk -F': *' '
+        $1 ~ /^(filename|description|license|depends|intree|vermagic|signer|sig_id|parm)$/ {print}
+      ' || echo "modinfo: (not found / built-in / restricted)"
+      echo
+    } >> "$rpt"
+  done < <(comm -13 <(cut -f1 "$fa") <(cut -f1 "$fb") || true)
+
+  echo "[*] modinfo report: $rpt"
+}
+
+diff_snaps() {
+  local a="$1" b="$2"
+  local fa="$BASE_DIR/${a}.lsmod"
+  local fb="$BASE_DIR/${b}.lsmod"
+
+  [[ -f "$fa" && -f "$fb" ]] || { echo "Missing snapshot(s)"; exit 2; }
+
+  echo "=== ADDED (in $b, not in $a) ==="
+  comm -13 <(cut -f1 "$fa") <(cut -f1 "$fb") | sed 's/^/ + /' || true
+  echo
+
+  echo "=== REMOVED (in $a, not in $b) ==="
+  comm -23 <(cut -f1 "$fa") <(cut -f1 "$fb") | sed 's/^/ - /' || true
+  echo
+
+  echo "=== CHANGED (same module, size/used_by differs) ==="
+  join -t $'\t' -j 1 "$fa" "$fb" | awk -F'\t' '
+    { if ($2 != $4 || $3 != $5) printf " * %s\t(%s,%s) -> (%s,%s)\n", $1,$2,$3,$4,$5 }
+  ' || true
+  echo
+
+  # generate modinfo report for ADDED modules
+  modinfo_report "$a" "$b"
+}
+
+last_two() {
+  local snaps
+  mapfile -t snaps < <(ls -1 "$BASE_DIR"/*.lsmod 2>/dev/null | sed 's#.*/##; s#\.lsmod$##' | sort)
+  ((${#snaps[@]} >= 2)) || { echo "Need at least 2 snapshots in $BASE_DIR"; exit 3; }
+  local a="${snaps[-2]}" b="${snaps[-1]}"
+  echo "[*] Diffing: $a -> $b"
+  diff_snaps "$a" "$b"
+}
+
+cmd="${1:-}"
+case "$cmd" in
+  snap) shift; snap "${1:-}" ;;
+  diff) shift; [[ $# -eq 2 ]] || usage; diff_snaps "$1" "$2" ;;
+  last) shift; last_two ;;
+  *) usage ;;
+esac
