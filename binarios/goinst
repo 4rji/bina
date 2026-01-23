@@ -14,6 +14,7 @@ OPTIONS=(
   "sshc — Run same command across every host (module mode enabled)"
   "vulnx — Map CVEs to affected products and versions"
   "ssh_fzf — SSH selector using fzf"
+  "sitemirror — Download websites and create a local copy"
   "Quit"
 )
 
@@ -24,6 +25,7 @@ commands=(
   "GO111MODULE=on go install github.com/4rji/binarios-go/sshc@latest"
   "go install github.com/projectdiscovery/cvemap/cmd/vulnx@latest"
   "go install github.com/4rji/binarios-go/ssh_fzf@latest"
+  "go install github.com/4rji/binarios-go/sitemirror@latest"
 )
 
 bins=(
@@ -33,6 +35,7 @@ bins=(
   "sshc"
   "vulnx"
   "ssh_fzf"
+  "sitemirror"
 )
 
 echo ""
@@ -83,6 +86,7 @@ case $idx in
   3) echo -e "  \033[36mRun the same command across multiple hosts.\033[0m" ;;
   4) echo -e "  \033[36mMap CVEs to affected products and versions.\033[0m" ;;
   5) echo -e "  \033[36mInteractive SSH host selector using fzf.\033[0m" ;;
+  6) echo -e "  \033[36mDownload websites and create a local copy.\033[0m" ;;
 esac
 
 echo ""

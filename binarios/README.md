@@ -486,8 +486,7 @@ sshforward          similar to the openssh -R option.
 arper               arp poisonig scapy, crea un archivo y ejecuta arpers, no funciona con unifi Firewall
 bruto               brute forcing directorios, lista all.txt se descarga web hacking no https
 contrawp            Fuerza bruta a wordpress joomla, descarga cain.txt diccionario
-sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
-
+sitemirror          Descarga una pagina web, como sitescrapy, pero en go, mas facil
 
 
 ###----- Redteam 
@@ -804,3 +803,4 @@ updatecentos7       Para actualizar centos7
 updatecentos7-2     otra version
 blockicmp           bloquea en firewall cmd
 itcpd               Enmascara ssh o cualquier puerto con tcpd, version ssh nmap -sV -sC
+sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy
