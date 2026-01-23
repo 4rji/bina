@@ -4,12 +4,17 @@ trap "echo -e '\n\e[1;31mAborted by user. Exiting...\e[0m'; exit" SIGINT
 
 # Check for target
 if [[ -z "$1" ]]; then
-    echo -e "\e[1;31mUsage:\e[0m $0 <target>"
+    echo "Usage: $0 target"
     echo "Example: $0 192.168.1.1"
+    echo "Tip: Convert Nmap XML to HTML with xsltproc:"
+    echo "Example: xsltproc scan.xml > scan.html"
+    echo "Note: If it fails, install nmap's XSL or use the full path to nmap.xsl (e.g. /usr/share/nmap/nmap.xsl)."
     exit 1
 fi
 
 TARGET="$1"
+SAFE_TARGET="${TARGET//[^a-zA-Z0-9._-]/_}"
+OUTDIR="$(pwd)/${SAFE_TARGET}"
 
 function check_dependencies() {
     local deps=("nmap")
@@ -28,13 +33,31 @@ function check_dependencies() {
     done
 }
 
+function slugify() {
+    echo "$1" | tr '[:upper:]' '[:lower:]' | tr ' ' '_' | tr -cd 'a-z0-9_-'
+}
+
+function run_nmap() {
+    local label="$1"
+    shift
+    local ts
+    ts="$(date +%Y%m%d_%H%M%S)"
+    local slug
+    slug="$(slugify "$label")"
+    local out="${OUTDIR}/${slug}_${ts}"
+    echo -e "\e[1;31mnmap $* -oA $out\e[0m"
+    nmap "$@" -oA "$out"
+}
+
 function show_header() {
     clear
     echo -e "\e[1;34m=========== ULTRA SCAN MENU ===========\e[0m"
     echo "Target: $TARGET"
+    echo "Output folder: $OUTDIR"
 }
 
 check_dependencies
+mkdir -p "$OUTDIR"
 
 while true; do
     show_header
@@ -80,64 +103,40 @@ while true; do
     read opt
 
     case $opt in
-        1) echo -e "\e[1;31mnmap -sn $TARGET\e[0m"
-           nmap -sn "$TARGET" ;;
-        2) echo -e "\e[1;31mnmap -sS $TARGET\e[0m"
-           nmap -sS "$TARGET" ;;
-        3) echo -e "\e[1;31mnmap -sU $TARGET\e[0m"
-           nmap -sU "$TARGET" ;;
-        4) echo -e "\e[1;31mnmap -O $TARGET\e[0m"
-           nmap -O "$TARGET" ;;
-        5) echo -e "\e[1;31mnmap -sV $TARGET\e[0m"
-           nmap -sV "$TARGET" ;;
-        6) echo -e "\e[1;31mnmap -A $TARGET\e[0m"
-           nmap -A "$TARGET" ;;
-        7) echo -e "\e[1;31mnmap -F $TARGET\e[0m"
-           nmap -F "$TARGET" ;;
-        8) echo -e "\e[1;31mnmap -p- $TARGET\e[0m"
-           nmap -p- "$TARGET" ;;
-        9) echo -e "\e[1;31mnmap --top-ports 100 $TARGET\e[0m"
-           nmap --top-ports 100 "$TARGET" ;;
-        10) echo -e "\e[1;31mnmap -f --data-length 200 $TARGET\e[0m"
-            nmap -f --data-length 200 "$TARGET" ;;
-        11) echo -e "\e[1;31mnmap --script vuln $TARGET\e[0m"
-            nmap --script vuln "$TARGET" ;;
-        12) echo -e "\e[1;31mnmap --script default,vuln $TARGET\e[0m"
-            nmap --script default,vuln "$TARGET" ;;
+        1) run_nmap "Ping Scan" -sn "$TARGET" ;;
+        2) run_nmap "TCP SYN Scan" -sS "$TARGET" ;;
+        3) run_nmap "UDP Scan" -sU "$TARGET" ;;
+        4) run_nmap "OS Detection" -O "$TARGET" ;;
+        5) run_nmap "Version Detection" -sV "$TARGET" ;;
+        6) run_nmap "Aggressive Scan" -A "$TARGET" ;;
+        7) run_nmap "Fast Scan" -F "$TARGET" ;;
+        8) run_nmap "All Ports Scan" -p- "$TARGET" ;;
+        9) run_nmap "Top Ports Scan" --top-ports 100 "$TARGET" ;;
+        10) run_nmap "Firewall Evasion" -f --data-length 200 "$TARGET" ;;
+        11) run_nmap "Vulnerability Scan" --script vuln "$TARGET" ;;
+        12) run_nmap "NSE Script Scan" --script default,vuln "$TARGET" ;;
         13) read -p "Enter decoy IP (or RND:10): " decoy
-            echo -e "\e[1;31mnmap -D $decoy $TARGET\e[0m"
-            nmap -D "$decoy" "$TARGET" ;;
-        14) echo -e "\e[1;31mnmap --traceroute $TARGET\e[0m"
-            nmap --traceroute "$TARGET" ;;
+            run_nmap "Decoy Scan" -D "$decoy" "$TARGET" ;;
+        14) run_nmap "Traceroute" --traceroute "$TARGET" ;;
         15) read -p "Enter ports (e.g. 21,22,80): " ports
-            echo -e "\e[1;31mnmap -p $ports $TARGET\e[0m"
-            nmap -p "$ports" "$TARGET" ;;
+            run_nmap "Custom Ports" -p "$ports" "$TARGET" ;;
         16) read -p "Output filename (no extension): " filename
-            echo -e "\e[1;31mnmap -A -oA $filename $TARGET\e[0m"
-            nmap -A -oA "$filename" "$TARGET" ;;
+            ts="$(date +%Y%m%d_%H%M%S)"
+            out="${OUTDIR}/${filename}_${ts}"
+            echo -e "\e[1;31mnmap -A $TARGET -oA $out\e[0m"
+            nmap -A "$TARGET" -oA "$out" ;;
         17) read -p "Enter MAC type (e.g. 0=random): " mac
-            echo -e "\e[1;31mnmap --spoof-mac $mac $TARGET\e[0m"
-            nmap --spoof-mac "$mac" "$TARGET" ;;
-        18) echo -e "\e[1;31mnmap --script dns-brute $TARGET\e[0m"
-            nmap --script dns-brute "$TARGET" ;;
-        19) echo -e "\e[1;31mnmap --script http-title $TARGET\e[0m"
-            nmap --script http-title "$TARGET" ;;
-        20) echo -e "\e[1;31mnmap --script smb-enum-shares,smb-enum-users $TARGET\e[0m"
-            nmap --script smb-enum-shares,smb-enum-users "$TARGET" ;;
-        21) echo -e "\e[1;31mnmap --script ftp-anon $TARGET\e[0m"
-            nmap --script ftp-anon "$TARGET" ;;
-        22) echo -e "\e[1;31mnmap --script ssl-cert $TARGET\e[0m"
-            nmap --script ssl-cert "$TARGET" ;;
-        23) echo -e "\e[1;31mnmap --script http-waf-detect $TARGET\e[0m"
-            nmap --script http-waf-detect "$TARGET" ;;
-        24) echo -e "\e[1;31mnmap --script http-methods $TARGET\e[0m"
-            nmap --script http-methods "$TARGET" ;;
-        25) echo -e "\e[1;31mnmap --script http-robots.txt $TARGET\e[0m"
-            nmap --script http-robots.txt "$TARGET" ;;
-        26) echo -e "\e[1;31mnmap --script whois $TARGET\e[0m"
-            nmap --script whois "$TARGET" ;;
-        27) echo -e "\e[1;31mnmap --script safe $TARGET\e[0m"
-            nmap --script safe "$TARGET" ;;
+            run_nmap "Spoof MAC" --spoof-mac "$mac" "$TARGET" ;;
+        18) run_nmap "DNS Brute Force" --script dns-brute "$TARGET" ;;
+        19) run_nmap "HTTP Title Enum" --script http-title "$TARGET" ;;
+        20) run_nmap "SMB Enumeration" --script smb-enum-shares,smb-enum-users "$TARGET" ;;
+        21) run_nmap "FTP Anonymous Check" --script ftp-anon "$TARGET" ;;
+        22) run_nmap "SSL Certificate Info" --script ssl-cert "$TARGET" ;;
+        23) run_nmap "Detect WAF" --script http-waf-detect "$TARGET" ;;
+        24) run_nmap "HTTP Methods Check" --script http-methods "$TARGET" ;;
+        25) run_nmap "Extract Robots.txt" --script http-robots.txt "$TARGET" ;;
+        26) run_nmap "Whois Lookup" --script whois "$TARGET" ;;
+        27) run_nmap "Run All Safe Scripts" --script safe "$TARGET" ;;
         28) echo -e "\n\e[1;31mExiting Ultra Scan... Goodbye!\e[0m"
             exit 0 ;;
         *) echo -e "\e[1;31mInvalid option. Try again.\e[0m" ;;
