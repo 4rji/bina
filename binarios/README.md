@@ -376,7 +376,7 @@ sshmont             Monta una carpeta usando sshh           Edita el banner de i
 sshc                Binario en comprimidos, que enviar un comando a los host ssh, tipo ansible
 sshcm               Mac version: envia comando a todos los hosts por medio de ssh, tipo ansible
 sshmoni             Este busca conexiones activas ssh, muestra procesos PID y luego ejecuta killsshmanual
-itcpd               Enmascara ssh o cualquier puerto con tcpd, version ssh nmap -sV -sC
+
 
 
 ###------Network
@@ -803,3 +803,4 @@ sshlist             Modifica la lista de /etc/hosts allow deny para asegurar la 
 updatecentos7       Para actualizar centos7
 updatecentos7-2     otra version
 blockicmp           bloquea en firewall cmd
+itcpd               Enmascara ssh o cualquier puerto con tcpd, version ssh nmap -sV -sC
