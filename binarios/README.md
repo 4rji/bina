@@ -1,3 +1,7 @@
+ubuntupwsh
+ubuntuhome
+splunkhome
+
 #FIX ssh banner on splunk
 script for snmp netw07t
 #fix ntp install ubuntu

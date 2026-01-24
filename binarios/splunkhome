@@ -1,0 +1,57 @@
+#!/usr/bin/env bash
+#fix home permissions on centos
+
+set -euo pipefail
+
+# Color
+if [[ -t 1 ]]; then
+  RED=$'\033[31m'; GRN=$'\033[32m'; YEL=$'\033[33m'; CYA=$'\033[36m'; BLD=$'\033[1m'; RST=$'\033[0m'
+else
+  RED=""; GRN=""; YEL=""; CYA=""; BLD=""; RST=""
+fi
+
+run(){ echo "${CYA}$ $*${RST}"; "$@"; }
+
+[[ ${EUID:-$(id -u)} -eq 0 ]] || { echo "${RED}[!] Run as root${RST}"; exit 1; }
+
+echo "${BLD}1) Command:${RST} chmod 700 /home/<user> && chown <user>:<user> /home/<user>"
+echo "${BLD}2) Discovery:${RST} getent passwd (field 6 = home directory)"
+echo
+
+printf "${BLD}%-16s %-28s %-6s %-10s %-10s${RST}\n" "USER" "HOME" "PERMS" "OWNER" "STATUS"
+echo "---------------------------------------------------------------------"
+
+issues=0
+
+while IFS=: read -r user _ uid _ _ home _; do
+  [[ "$uid" =~ ^[0-9]+$ ]] || continue
+  [[ "$uid" -ge 1000 ]] || continue
+
+  # HARD WHITELIST: only /home/<user>
+  [[ "$home" =~ ^/home/[^/]+$ ]] || { printf "%-16s %-28s %-6s %-10s %s\n" "$user" "$home" "-" "-" "${YEL}SKIPPED${RST}"; continue; }
+  [[ -d "$home" ]] || { printf "%-16s %-28s %-6s %-10s %s\n" "$user" "$home" "-" "-" "${YEL}MISSING${RST}"; continue; }
+
+  perms="$(stat -c '%a' "$home")"
+  owner="$(stat -c '%U' "$home")"
+
+  if [[ "$perms" != "700" || "$owner" != "$user" ]]; then
+    issues=1
+    printf "%-16s %-28s %-6s %-10s %s\n" "$user" "$home" "$perms" "$owner" "${RED}FIXING${RST}"
+    run chown "$user:$user" "$home"
+    run chmod 700 "$home"
+    perms2="$(stat -c '%a' "$home")"
+    owner2="$(stat -c '%U' "$home")"
+    printf "%-16s %-28s %-6s %-10s %s\n" "$user" "$home" "$perms2" "$owner2" "${GRN}FIXED${RST}"
+  else
+    printf "%-16s %-28s %-6s %-10s %s\n" "$user" "$home" "$perms" "$owner" "${GRN}OK${RST}"
+  fi
+done < <(getent passwd)
+
+echo
+echo "${BLD}3) Non-compliant homes:${RST} $( [[ "$issues" -eq 0 ]] && echo "None" || echo "See FIXED rows above" )"
+echo
+echo "${BLD}4) Evidence (one server):${RST} showing permissions"
+run ls -ld /home/* 2>/dev/null || true
+
+
+
