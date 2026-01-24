@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ====== EDITA ESTO ======
+VPN_NET="10.50.8.0"
+VPN_MASK="255.255.255.0"
+LAN_NET="192.168.0.0/24"          # red interna a la que quieres acceder por VPN
+DNS_IP="192.168.0.200"            # DNS que empujas al cliente
+DOMAIN="std.local"
+WAN_IF="eth0"                     # interfaz hacia Internet (ej: ens18, enp1s0)
+CLIENT_NAME="client01"
+# ========================
+
+SUDO="sudo"; [[ ${EUID:-0} -eq 0 ]] && SUDO=""
+
+need_cmd(){ command -v "$1" >/dev/null 2>&1 || { echo "Missing: $1"; exit 1; }; }
+
+need_cmd awk
+need_cmd sed
+
+echo "[*] Install packages"
+$SUDO apt update
+$SUDO apt -y install openvpn easy-rsa nftables
+
+echo "[*] Enable autostart (Debian default file)"
+$SUDO sed -i 's/^#\?AUTOSTART=.*/AUTOSTART="all"/' /etc/default/openvpn || true
+$SUDO systemctl daemon-reload
+
+echo "[*] Init PKI under /etc/openvpn (as in guide)"
+cd /etc/openvpn
+
+# easy-rsa path on Debian
+EASYRSA="/usr/share/easy-rsa/easyrsa"
+[[ -x "$EASYRSA" ]] || { echo "easyrsa not found at $EASYRSA"; exit 1; }
+
+if [[ ! -d /etc/openvpn/pki ]]; then
+  $SUDO $EASYRSA init-pki
+fi
+
+# Optional: longer expirations (safe defaults from the guide)
+if [[ ! -f /etc/openvpn/pki/vars ]]; then
+  $SUDO cp -a /usr/share/easy-rsa/vars.example /etc/openvpn/pki/vars
+  $SUDO sed -i \
+    -e 's/^\s*set_var\s\+EASYRSA_CA_EXPIRE.*/set_var EASYRSA_CA_EXPIRE       3650/' \
+    -e 's/^\s*set_var\s\+EASYRSA_CERT_EXPIRE.*/set_var EASYRSA_CERT_EXPIRE     1825/' \
+    -e 's/^\s*set_var\s\+EASYRSA_CRL_DAYS.*/set_var EASYRSA_CRL_DAYS        1095/' \
+    -e 's/^\s*set_var\s\+EASYRSA_KEY_SIZE.*/set_var EASYRSA_KEY_SIZE        4096/' \
+    /etc/openvpn/pki/vars || true
+fi
+
+echo "[*] Build CA (nopass)"
+if [[ ! -f /etc/openvpn/pki/ca.crt ]]; then
+  $SUDO $EASYRSA build-ca nopass
+fi
+
+echo "[*] Build server cert/key (nopass)"
+if [[ ! -f /etc/openvpn/pki/issued/server.crt || ! -f /etc/openvpn/pki/private/server.key ]]; then
+  $SUDO $EASYRSA build-server-full server nopass
+fi
+
+echo "[*] Generate DH params"
+if [[ ! -f /etc/openvpn/pki/dh.pem ]]; then
+  $SUDO $EASYRSA gen-dh
+fi
+
+echo "[*] Build client cert/key (nopass): $CLIENT_NAME"
+if [[ ! -f "/etc/openvpn/pki/issued/${CLIENT_NAME}.crt" || ! -f "/etc/openvpn/pki/private/${CLIENT_NAME}.key" ]]; then
+  $SUDO $EASYRSA build-client-full "$CLIENT_NAME" nopass
+fi
+
+echo "[*] Write /etc/openvpn/server.conf"
+$SUDO tee /etc/openvpn/server.conf >/dev/null <<EOF
+port 1194
+proto udp
+dev tun
+
+ca /etc/openvpn/pki/ca.crt
+cert /etc/openvpn/pki/issued/server.crt
+key /etc/openvpn/pki/private/server.key
+dh /etc/openvpn/pki/dh.pem
+
+server ${VPN_NET} ${VPN_MASK}
+ifconfig-pool-persist ipp.txt
+
+keepalive 10 120
+persist-key
+persist-tun
+
+push "dhcp-option DNS ${DNS_IP}"
+push "dhcp-option DOMAIN ${DOMAIN}"
+push "route ${LAN_NET%/*} 255.255.255.0"
+
+status /var/log/openvpn-status.log
+verb 3
+EOF
+
+echo "[*] Enable + restart OpenVPN instance (openvpn@server)"
+$SUDO systemctl enable openvpn@server.service
+$SUDO systemctl restart openvpn@server.service
+$SUDO systemctl --no-pager --full status openvpn@server.service || true
+
+echo "[*] Enable IP forwarding"
+echo 'net.ipv4.ip_forward=1' | $SUDO tee /etc/sysctl.d/99-openvpn.conf >/dev/null
+$SUDO sysctl --system >/dev/null
+
+echo "[*] (Optional) nftables gateway rules (NAT + forward for VPN clients)"
+$SUDO systemctl enable --now nftables
+$SUDO tee /etc/nftables.d/openvpn-gateway.nft >/dev/null <<EOF
+table inet openvpn {
+  chain forward {
+    type filter hook forward priority 0; policy drop;
+
+    ct state established,related accept
+    iifname "tun0" oifname "${WAN_IF}" accept
+    iifname "tun0" ip daddr ${LAN_NET} accept
+    iifname "${WAN_IF}" oifname "tun0" ct state established,related accept
+  }
+
+  chain postrouting {
+    type nat hook postrouting priority 100; policy accept;
+    ip saddr ${VPN_NET%.*}.0/24 oifname "${WAN_IF}" masquerade
+  }
+}
+EOF
+
+# include file if not already included
+if ! grep -q 'nftables.d/openvpn-gateway.nft' /etc/nftables.conf 2>/dev/null; then
+  echo 'include "/etc/nftables.d/openvpn-gateway.nft"' | $SUDO tee -a /etc/nftables.conf >/dev/null
+fi
+$SUDO nft -f /etc/nftables.conf
+
+echo "[*] Done."
+echo "    Server config: /etc/openvpn/server.conf"
+echo "    Client cert:   /etc/openvpn/pki/issued/${CLIENT_NAME}.crt"
+echo "    Client key:    /etc/openvpn/pki/private/${CLIENT_NAME}.key"
