@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+
+#fix permission for ubuntu home directories
+
+set -euo pipefail
+
+# inject_home_permissions_safe.sh
+# Safe across Debian/Ubuntu + RHEL/Oracle
+# - Prints each inject point (English)
+# - Shows + executes commands
+# - NEVER touches /, /usr, /usr/bin, /home (base dirs)
+
+# ---------- colors ----------
+if [[ -t 1 ]]; then
+  RED=$'\033[31m'; GRN=$'\033[32m'; YEL=$'\033[33m'; BLU=$'\033[34m'
+  CYA=$'\033[36m'; BLD=$'\033[1m'; RST=$'\033[0m'
+else
+  RED=""; GRN=""; YEL=""; BLU=""; CYA=""; BLD=""; RST=""
+fi
+
+hr() { echo "${BLU}--------------------------------------------------${RST}"; }
+h1() { echo; echo "${BLD}${CYA}================ $* ================${RST}"; }
+sec() { echo; echo "${BLD}${YEL}$*${RST}"; hr; }
+ok() { echo "${GRN}[OK]${RST} $*"; }
+warn() { echo "${YEL}[WARN]${RST} $*"; }
+bad() { echo "${RED}[FIX]${RST} $*"; }
+
+run() { echo "${CYA}$ $*${RST}"; "$@"; }
+
+need_root() {
+  if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
+    echo "${RED}[!] Run as root (or with sudo).${RST}"
+    exit 1
+  fi
+}
+need_root
+
+# Determine UID_MIN (RHEL/Oracle may use 500; Debian often 1000)
+UID_MIN_DEFAULT=1000
+UID_MIN="$(awk '$1=="UID_MIN"{print $2}' /etc/login.defs 2>/dev/null | head -n1 || true)"
+UID_MIN="${UID_MIN:-$UID_MIN_DEFAULT}"
+
+# Hard denylist: never chmod/chown these
+is_danger_path() {
+  local p="$1"
+  [[ "$p" == "/" ]] && return 0
+  [[ "$p" == "/usr" || "$p" == "/usr/bin" ]] && return 0
+  [[ "$p" == "/home" ]] && return 0
+  [[ "$p" == "/bin" || "$p" == "/sbin" || "$p" == "/lib" || "$p" == "/lib64" ]] && return 0
+  return 1
+}
+
+# Only allow "real" home dirs:
+# - must be absolute
+# - must contain at least 2 path components: /something/user
+# - must NOT be base dir like /home, /export, /u01
+is_valid_home() {
+  local p="$1"
+  [[ "$p" == /* ]] || return 1
+  is_danger_path "$p" && return 1
+  # Require at least "/X/Y" (avoid "/home" "/export" etc)
+  [[ "$p" =~ ^/[^/]+/[^/]+$ ]] || return 1
+  return 0
+}
+
+h1 "INJECT RESPONSE (SAFE)"
+
+sec "1. Linux command used to restrict home directory access"
+echo "Command:"
+echo "  chmod 700 <home_dir> && chown <user>:<user> <home_dir>"
+echo
+echo "Explanation:"
+echo "  chmod 700 ensures only the owner has read/write/execute access."
+echo "  chown ensures the directory is owned by the correct user."
+
+sec "2. How home directories were discovered"
+echo "Command used:"
+echo "  getent passwd"
+echo
+echo "Explanation:"
+echo "  getent passwd returns authoritative user account records, including each user's home directory path."
+echo
+echo "UID_MIN used for 'regular users': $UID_MIN (from /etc/login.defs if available)"
+
+sec "3. Enumeration of users/directories not set for owner-only access (and remediation)"
+printf "${BLD}%-16s %-40s %-6s %-10s %-12s${RST}\n" "USER" "HOME" "PERMS" "OWNER" "STATUS"
+hr
+
+issues=0
+
+while IFS=: read -r user _ uid _ _ home _; do
+  [[ "$uid" =~ ^[0-9]+$ ]] || continue
+  [[ "$uid" -ge "$UID_MIN" ]] || continue
+  [[ -d "$home" ]] || continue
+  is_valid_home "$home" || { printf "%-16s %-40s %-6s %-10s %s\n" "$user" "$home" "-" "-" "${YEL}SKIPPED(path)${RST}"; continue; }
+
+  perms="$(stat -c '%a' "$home")"
+  owner="$(stat -c '%U' "$home")"
+
+  if [[ "$perms" != "700" || "$owner" != "$user" ]]; then
+    issues=1
+    printf "%-16s %-40s %-6s %-10s %s\n" "$user" "$home" "$perms" "$owner" "${RED}FIXING${RST}"
+    run chown "$user:$user" "$home"
+    run chmod 700 "$home"
+    newp="$(stat -c '%a' "$home")"
+    newo="$(stat -c '%U' "$home")"
+    printf "%-16s %-40s %-6s %-10s %s\n" "$user" "$home" "$newp" "$newo" "${GRN}FIXED${RST}"
+  else
+    printf "%-16s %-40s %-6s %-10s %s\n" "$user" "$home" "$perms" "$owner" "${GRN}OK${RST}"
+  fi
+done < <(getent passwd)
+
+echo
+if [[ "$issues" -eq 0 ]]; then
+  ok "No improperly secured home directories were discovered (within the safe path policy)."
+else
+  warn "One or more home directories were corrected to owner-only access (700) and proper ownership."
+fi
+
+sec "4. Evidence: listing from 1 server showing permissions of home directories"
+echo "Commands executed (evidence):"
+echo "  getent passwd | awk -F: '\$3>=$UID_MIN {print \$6}' | sort -u"
+echo "  for each discovered home: ls -ld <home>"
+echo
+
+# Print evidence for discovered homes (safe only)
+homes=$(getent passwd | awk -F: -v m="$UID_MIN" '$3>=m {print $6}' | sort -u)
+while read -r h; do
+  [[ -d "$h" ]] || continue
+  is_valid_home "$h" || continue
+  run ls -ld "$h"
+done <<< "$homes"
+
+h1 "END OF RESPONSE"

@@ -12,4 +12,4 @@ if [ ! -e "$archivo" ]; then
     exit 1
 fi
 
-sudo chflags schg "$archivo"
+sudo chflags noschg "$archivo"
