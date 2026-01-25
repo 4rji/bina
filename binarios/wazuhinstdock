@@ -1,29 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Auto-elevate (re-run with sudo if not root)
+if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
+  exec sudo -E bash "$0" "$@"
+fi
+
 REPO_URL="https://github.com/wazuh/wazuh-docker.git"
 BRANCH="v4.14.2"
 DIR="wazuh-docker"
-
-need_root() {
-  [[ $EUID -eq 0 ]] || { echo "[!] Run as root"; exit 1; }
-}
+COMPOSE_VERSION="v2.25.0"
 
 install_deps() {
   if command -v apt >/dev/null 2>&1; then
     apt update
-    apt install -y ca-certificates curl gnupg git
+    apt install -y ca-certificates curl gnupg git ufw
 
     if ! command -v docker >/dev/null 2>&1; then
       curl -fsSL https://get.docker.com | sh
       systemctl enable --now docker
-    fi
-
-    if ! docker compose version >/dev/null 2>&1; then
-      mkdir -p /usr/local/lib/docker/cli-plugins
-      curl -SL https://github.com/docker/compose/releases/download/v2.25.0/docker-compose-linux-x86_64 \
-        -o /usr/local/lib/docker/cli-plugins/docker-compose
-      chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
     fi
 
   elif command -v dnf >/dev/null 2>&1; then
@@ -34,20 +29,46 @@ install_deps() {
       systemctl enable --now docker
     fi
 
-    if ! docker compose version >/dev/null 2>&1; then
-      mkdir -p /usr/local/lib/docker/cli-plugins
-      curl -SL https://github.com/docker/compose/releases/download/v2.25.0/docker-compose-linux-x86_64 \
-        -o /usr/local/lib/docker/cli-plugins/docker-compose
-      chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+    # ufw normalmente no existe en Fedora/RHEL por defecto (firewalld)
+    if ! command -v ufw >/dev/null 2>&1; then
+      echo "[*] UFW not available on this distro (likely uses firewalld). Skipping UFW."
+      return 0
     fi
+
   else
     echo "[!] Unsupported distro"
     exit 1
   fi
+
+  # Docker Compose plugin (if missing)
+  if ! docker compose version >/dev/null 2>&1; then
+    mkdir -p /usr/local/lib/docker/cli-plugins
+    curl -sSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-x86_64" \
+      -o /usr/local/lib/docker/cli-plugins/docker-compose
+    chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
+  fi
 }
 
-need_root
+configure_ufw() {
+  command -v ufw >/dev/null 2>&1 || { echo "[*] UFW not installed, skipping firewall config"; return 0; }
+
+  echo "[*] Configuring UFW rules for Wazuh..."
+
+  ufw allow 5601/tcp    # Dashboard
+  ufw allow 55000/tcp   # Wazuh API
+  ufw allow 1514/udp    # Agents
+  ufw allow 1515/tcp    # Agent enrollment
+
+  # Enable if inactive (non-interactive)
+  if ufw status | grep -qi "Status: inactive"; then
+    ufw --force enable
+  fi
+
+  ufw reload || true
+}
+
 install_deps
+configure_ufw
 
 echo "[*] Cloning official Wazuh repo ($BRANCH)..."
 if [[ -e "$DIR" ]]; then
@@ -56,7 +77,6 @@ if [[ -e "$DIR" ]]; then
 fi
 
 git clone --depth 1 --branch "$BRANCH" "$REPO_URL" "$DIR"
-
 cd "$DIR/single-node"
 
 DC="docker compose"
