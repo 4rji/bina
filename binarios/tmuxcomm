@@ -3,3 +3,12 @@
 echo "tmux ls"
 echo "tmux new -s airsend"
 echo "tmux attach -t airsend"
+
+echo ""
+echo "## Copy and PASTE mode"
+echo ""
+echo '''Ctrl-b Enter   -> copy-mode (move with arrows to select)
+v              -> select
+y              -> copy
+Ctrl-b ]       -> paste
+'''

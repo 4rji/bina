@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+echo "doas alternative"
 # List of packages to install
 packages=("build-essential" "libpam0g-dev" "libssl-dev" "libselinux1-dev" "libtool" "pkg-config" "libaudit-dev" "libbsd-dev" "autoconf" "automake")
 
