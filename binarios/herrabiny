@@ -35,7 +35,7 @@ done
 
 if [[ $omitir != true ]]; then
     # Lista de paquetes a instalar
-    paquetes=("sudo" "chafa" "fzf" "curl" "rg" "fd-find" "git" "zoxide" "kitty" "nano" "ifupdown" "zsh" "xclip" "python3" "bat" "lsd" "tldr" "iproute2" "net-tools" "iputils" "moreutils")
+    paquetes=("sudo" "zsh" "chafa" "fzf" "curl" "rg" "fd-find" "git" "zoxide" "kitty" "nano" "ifupdown" "zsh" "xclip" "python3" "bat" "lsd" "tldr" "iproute2" "net-tools" "iputils" "moreutils")
 
     # Instalar paquetes
     echo "Instalando paquetes necesarios..."
