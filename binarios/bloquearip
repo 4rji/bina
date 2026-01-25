@@ -1,51 +1,51 @@
 #!/usr/bin/env bash
 
 # ==============================================
-# Bloqueo por IPSET / IPTABLES
-# - Si pasas un ARCHIVO: bloquea todas las IPs del archivo (una por línea).
-# - Si pasas una IP: menú para bloquear/comprobar/desbloquear esa IP.
-# - Sin argumentos: muestra uso.
+# IPSET / IPTABLES blocking
+# - If you pass a FILE: blocks all IPs in the file (one per line).
+# - If you pass an IP: menu to block/check/unblock that IP.
+# - With no args: shows usage.
 # ==============================================
 
-# Lista de paquetes a instalar
+# Packages to install
 paquetes=("ipset" "iptables" "iptables-persistent" "kmod")
 
-# Funciones de verificación de paquetes
+# Package check helpers
 paquete_instalado_apt() { dpkg -l "$1" | grep -q '^ii'; }
 paquete_instalado_yum() { yum list installed "$1" &> /dev/null; }
 paquete_instalado_dnf() { dnf list installed "$1" &> /dev/null; }
 paquete_instalado_pacman() { pacman -Qi "$1" &> /dev/null; }
 
-# Detectar el sistema operativo
+# Detect OS
 if [ -f /etc/os-release ]; then
   . /etc/os-release
   OS=$ID
 fi
 
-# Instalar paquetes según SO
+# Install packages per OS
 for paquete in "${paquetes[@]}"; do
   case $OS in
     "debian"|"ubuntu"|"kali")
       if ! paquete_instalado_apt "$paquete"; then
-        echo "Instalando $paquete..."
+        echo "Installing $paquete..."
         sudo apt-get install -y "$paquete"
       fi
       ;;
     "centos"|"rhel")
       if ! paquete_instalado_yum "$paquete"; then
-        echo "Instalando $paquete..."
+        echo "Installing $paquete..."
         sudo yum install -y "$paquete"
       fi
       ;;
     "fedora")
       if ! paquete_instalado_dnf "$paquete"; then
-        echo "Instalando $paquete..."
+        echo "Installing $paquete..."
         sudo dnf install -y "$paquete"
       fi
       ;;
     "arch")
       if ! paquete_instalado_pacman "$paquete"; then
-        echo "Instalando $paquete..."
+        echo "Installing $paquete..."
         sudo pacman -S --noconfirm "$paquete"
       fi
       ;;
@@ -54,10 +54,10 @@ for paquete in "${paquetes[@]}"; do
 done
 
 # -------------------------
-# Utilidades
+# Utilities
 # -------------------------
 
-# Mensaje con color (31 rojo, 34 azul, 35 magenta por default, 32 verde, 33 amarillo)
+# Colored message (31 red, 34 blue, 35 magenta default, 32 green, 33 yellow)
 echo_msg() {
   local msg="$1"
   local color="${2:-35}"
@@ -66,80 +66,80 @@ echo_msg() {
   echo -e "==============================================\n"
 }
 
-# Asegurar ipset y regla iptables
+# Ensure ipset and iptables rule
 ensure_set() { sudo ipset list blacklist &>/dev/null || sudo ipset create blacklist hash:ip; }
 ensure_iptables() {
   sudo iptables -C INPUT -m set --match-set blacklist src -j DROP &>/dev/null || \
   sudo iptables -I INPUT -m set --match-set blacklist src -j DROP
 }
 
-# Guardar configuración
+# Save configuration
 save_conf() {
   sudo ipset save | sudo tee /etc/ipset.conf > /dev/null
   sudo iptables-save | sudo tee /etc/iptables/rules.v4 > /dev/null
 }
 
-# Uso
+# Usage
 display_usage() {
-  echo_msg "Uso" 34
+  echo_msg "Usage" 34
   cat <<EOF
-  $0 <archivo>       → Bloquea todas las IPs listadas (una por línea)
-  $0 <IP>            → Menú para bloquear/comprobar/desbloquear esa IP
-  $0                 → Mostrar esta ayuda
+  $0 <file>          → Blocks all listed IPs (one per line)
+  $0 <IP>            → Menu to block/check/unblock that IP
+  $0                 → Show this help
 
-Ejemplos:
+Examples:
   $0 lista_ips.txt
   $0 203.0.113.10
 EOF
 }
 
-# Bloquear IPs desde archivo
+# Block IPs from file
 block_file() {
   local file="$1"
-  echo_msg "Cargando y bloqueando IPs desde: $file" 34
+  echo_msg "Loading and blocking IPs from: $file" 34
   sudo ipset flush blacklist
-  # Ignora líneas vacías y comentarios (#)
+  # Ignore empty lines and comments (#)
   while IFS= read -r ip; do
     [[ -z "$ip" || "$ip" =~ ^[[:space:]]*# ]] && continue
     sudo ipset add blacklist "$ip" 2>/dev/null
   done < "$file"
   ensure_iptables
   save_conf
-  echo_msg "Bloqueo aplicado desde $file" 34
+  echo_msg "Blocklist applied from $file" 34
 }
 
-# Bloquear IP única
+# Block a single IP
 block_ip() {
-  echo_msg "Bloqueando IP: $1" 31
+  echo_msg "Blocking IP: $1" 31
   sudo ipset add blacklist "$1" 2>/dev/null
   ensure_iptables
-  echo_msg "IP $1 bloqueada" 31
+  echo_msg "IP $1 blocked" 31
 }
 
-# Comprobar IP
+# Check IP
 check_ip() {
   if sudo ipset test blacklist "$1" &>/dev/null; then
-    echo_msg "La IP $1 está en el blacklist" 34
+    echo_msg "IP $1 is in the blacklist" 34
   else
-    echo_msg "La IP $1 NO está en el blacklist" 34
+    echo_msg "IP $1 is NOT in the blacklist" 34
   fi
 }
 
-# Eliminar IP
+# Remove IP
 delete_ip() {
-  echo_msg "Eliminando IP: $1" 32
+  echo_msg "Removing IP: $1" 32
   sudo ipset test blacklist "$1" &>/dev/null && sudo ipset del blacklist "$1"
-  echo_msg "IP $1 eliminada si existía" 32
+  echo_msg "IP $1 removed if it existed" 32
 }
 
 # -------------------------
-# Inicio
+# Start
 # -------------------------
 
 ensure_set
 tput civis 2>/dev/null
 
-# Sin argumentos → ayuda
+# No args → help
 if [[ $# -eq 0 ]]; then
   display_usage
   tput cnorm 2>/dev/null
@@ -148,39 +148,39 @@ fi
 
 ARG="$1"
 
-# Si es archivo legible → bloquear archivo
+# If it's a readable file → block from file
 if [[ -f "$ARG" && -r "$ARG" ]]; then
   block_file "$ARG"
   tput cnorm 2>/dev/null
   exit 0
 fi
 
-# Si parece IP → menú de acciones
+# If it looks like an IP → action menu
 IP_REGEX='^([0-9]{1,3}\.){3}[0-9]{1,3}(/[0-9]{1,2})?$'
 if [[ "$ARG" =~ $IP_REGEX ]]; then
   IP="$ARG"
   while true; do
-    echo -e "\nAcciones para IP $IP:"
-    echo "  b) Bloquear"
-    echo "  c) Comprobar"
-    echo "  d) Desbloquear"
-    echo "  q) Salir"
-    read -n1 -p "Elige opción: " action
+    echo -e "\nActions for IP $IP:"
+    echo "  b) Block"
+    echo "  c) Check"
+    echo "  d) Unblock"
+    echo "  q) Quit"
+    read -n1 -p "Choose an option: " action
     echo
     case "$action" in
       b|B) block_ip "$IP" ;;
       c|C) check_ip "$IP" ;;
       d|D) delete_ip "$IP" ;;
       q|Q) save_conf; break ;;
-      *) echo_msg "Opción inválida" 33 ;;
+      *) echo_msg "Invalid option" 33 ;;
     esac
   done
   tput cnorm 2>/dev/null
   exit 0
 fi
 
-# Si no es archivo ni IP válida → ayuda
-echo_msg "Argumento no reconocido: $ARG" 33
+# If it's not a file or a valid IP → help
+echo_msg "Unrecognized argument: $ARG" 33
 display_usage
 tput cnorm 2>/dev/null
 exit 1
