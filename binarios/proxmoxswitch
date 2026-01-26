@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+#para encender o apagar una vm
+#./b promox-thp 412 -a   (encender) -t apagar
+set -euo pipefail
+
+[[ $# -lt 3 ]] && {
+  echo "Uso: $0 <ssh_host> <VMID> -a|-t|-f"
+  exit 1
+}
+
+HOST="$1"
+VMID="$2"
+FLAG="$3"
+
+case "$FLAG" in
+  -a) ACTION="start" ;;
+  -t) ACTION="shutdown" ;;
+  -f) ACTION="stop" ;;
+  *) echo "Flag inválida: use -a | -t | -f"; exit 1 ;;
+esac
+
+[[ "$VMID" =~ ^[0-9]+$ ]] || { echo "VMID inválido"; exit 1; }
+
+ssh "$HOST" "qm $ACTION $VMID"
+
