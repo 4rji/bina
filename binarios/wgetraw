@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+url="${1:?uso: wget2 http://host:puerto/path [output]}"
+out="${2:-}"
+
+# Parse URL (http only)
+rest="${url#*://}"
+hostport="${rest%%/*}"
+path="/${rest#*/}"
+[[ "$path" == "/" ]] && path="/"
+
+host="$hostport"
+port=80
+if [[ "$hostport" == *:* ]]; then
+  host="${hostport%%:*}"
+  port="${hostport##*:}"
+fi
+
+# Default output filename
+if [[ -z "$out" ]]; then
+  out="${path##*/}"
+  [[ -z "$out" || "$out" == "/" ]] && out="index.html"
+fi
+
+exec 3<>"/dev/tcp/$host/$port" || { echo "connect fail $host:$port" >&2; exit 1; }
+
+# Request
+printf 'GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n' "$path" "$hostport" >&3
+
+# Read status line + headers
+IFS= read -r _statusline <&3 || { echo "no response" >&2; exit 1; }
+
+content_length=""
+transfer_encoding=""
+
+while IFS= read -r line <&3; do
+  line="${line%$'\r'}"
+  [[ -z "$line" ]] && break
+  case "$line" in
+    [Cc]ontent-[Ll]ength:*) content_length="${line#*: }" ;;
+    [Tt]ransfer-[Ee]ncoding:*) transfer_encoding="${line#*: }" ;;
+  esac
+done
+
+# Body -> file
+: > "$out" || { echo "no puedo escribir: $out" >&2; exit 1; }
+
+if [[ "${transfer_encoding,,}" == *chunked* ]]; then
+  # chunked decode
+  while IFS= read -r line <&3; do
+    line="${line%$'\r'}"
+    [[ -z "$line" ]] && continue
+    chunk=$((16#$line))
+    (( chunk == 0 )) && { IFS= read -r _ <&3 || true; break; }
+    dd bs=1 count="$chunk" <&3 >>"$out" 2>/dev/null
+    IFS= read -r _ <&3 || true  # trailing CRLF
+  done
+else
+  # simple stream
+  cat <&3 >>"$out"
+fi
+
+exec 3>&-
+echo "saved: $out" >&2

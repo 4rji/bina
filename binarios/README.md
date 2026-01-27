@@ -51,7 +51,6 @@ shm                 Aumenta la memoria de tmp de la /dev/shm, y la limpia con -c
 yazi                Como ranger para ver fotos, esta en comprimidos.
 fire                Abre firefox con distrobox, -g para google, -d duckducl. sin - para los dos
 rutainter           Definir la via ruta de internet cuando hay 2 interfaces internet
-wgett               Descarga archivos con wget, carpeta completa reescribiendo o no
 veloint             iperf3 para medir la velocidad de ethernet o conexion, instrucciones e instala
 velodisk            mide la velocidad de lectura y escritura disco con dd y fio.
 coll                Muestra comandos con colores con batcat y un tmp archivo
@@ -60,9 +59,18 @@ pwdc                Copia el directorio actual con pwd y xclip
 grubp               Crea una copia de grub, boot, efi y la guarda en /var/lib/os-system, restaura tambien
 
 
+###------descargar_cosas
+wgett               Descarga archivos con wget, carpeta completa reescribiendo o no
+wgetf               Descarga (FUNCTION) - HTTP minimo que hace GET via TCP - /dev/tcp, http only
+wgetraw             Descarga HTTP minimo que hace GET via TCP - /dev/tcp
+
+
+
+
 #Windows
 clamWinst.ps1       Instala clamv en windows muestra la ruta al final de los archivos
 bannerWin.ps1       Banner para windows server 
+
 
 ###------Arch linux
 astrike             Github pentesting, instala herramientas manualmente para arch
@@ -188,7 +196,6 @@ nixbus              Para buscar programas en linea de comando y tambien corregir
 
 
 ###------utilidades 
-wget2               FUNCTION, HTTP mínimo que hace GET via TCP - /dev/tcp, http only
 videocapture        Captures HTTP traffic from an IPCam, extracts frames from the pcap, and reconstructs into video
 zipcomm             Comandos basicos de zip
 vmdig               Para manejar Digital ocean API

@@ -222,20 +222,24 @@ loop() {
 
 
 # Cliente HTTP mínimo en zsh que hace GET vía TCP usando /dev/tcp, similar a wget -qO- pero sin TLS.
-wget2() {
-  local proto host query
-  IFS=/ read -r proto _ host query <<<"$1"
+wgetf () {
+    bash -c '
+    rest="${1#*://}"
+    hp="${rest%%/*}"
+    path="/${rest#*/}"
+    h="$hp"; port=80
+    [[ "$hp" == *:* ]] && { h="${hp%%:*}"; port="${hp##*:}"; }
 
-  exec 3<>/dev/tcp/$host/${PORT:-80} || return 1
-  print -r -- "GET /$query HTTP/1.0\r\nHost: $host\r\n\r\n" >&3
+    exec 3<>"/dev/tcp/$h/$port" || exit 1
+    printf "GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n" "$path" "$hp" >&3
 
-  while IFS= read -r line <&3; do
-    [[ "$line" == $'\r' ]] && break
-    print -u2 -- "$line"
-  done
+    # skip headers (stop ONLY at CR line)
+    while IFS= read -r l <&3; do
+      [[ "$l" == $'\''\r'\'' ]] && break
+    done
 
-  cat <&3
-  exec 3>&-
+    cat <&3
+  ' _ "$1"
 }
 
 
