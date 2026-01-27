@@ -188,7 +188,7 @@ nixbus              Para buscar programas en linea de comando y tambien corregir
 
 
 ###------utilidades 
-
+wget2               FUNCTION, HTTP mínimo que hace GET via TCP - /dev/tcp, http only
 videocapture        Captures HTTP traffic from an IPCam, extracts frames from the pcap, and reconstructs into video
 zipcomm             Comandos basicos de zip
 vmdig               Para manejar Digital ocean API
