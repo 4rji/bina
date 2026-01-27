@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-url="${1:?uso: wget2 http://host:puerto/path [output]}"
+echo -e "\033[36mExemple:  http://192.168.44.27:8000/a.py\033[0m"
+
+url="${1:?$(echo -e "\033[33m-- http://host:port/path_file \033[0m")}"
 out="${2:-}"
 
 # Parse URL (http only)
@@ -23,13 +25,13 @@ if [[ -z "$out" ]]; then
   [[ -z "$out" || "$out" == "/" ]] && out="index.html"
 fi
 
-exec 3<>"/dev/tcp/$host/$port" || { echo "connect fail $host:$port" >&2; exit 1; }
+exec 3<>"/dev/tcp/$host/$port" || { echo -e "\033[31mconnect fail $host:$port\033[0m" >&2; exit 1; }
 
 # Request
 printf 'GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n' "$path" "$hostport" >&3
 
 # Read status line + headers
-IFS= read -r _statusline <&3 || { echo "no response" >&2; exit 1; }
+IFS= read -r _statusline <&3 || { echo -e "\033[31mno response\033[0m" >&2; exit 1; }
 
 content_length=""
 transfer_encoding=""
@@ -44,7 +46,7 @@ while IFS= read -r line <&3; do
 done
 
 # Body -> file
-: > "$out" || { echo "no puedo escribir: $out" >&2; exit 1; }
+: > "$out" || { echo -e "\033[31mno puedo escribir: $out\033[0m" >&2; exit 1; }
 
 if [[ "${transfer_encoding,,}" == *chunked* ]]; then
   # chunked decode
@@ -62,4 +64,4 @@ else
 fi
 
 exec 3>&-
-echo "saved: $out" >&2
+echo -e "\033[32msaved: $out\033[0m" >&2
