@@ -18,8 +18,8 @@ cleanup
 ##############################################
 echo -e "\e[1;37m_________________________________________________________\e[0m"
 
-# Run dd write test
-dd_write_output=$(dd if=/dev/zero of=testfile2 bs=1M count=1024 oflag=direct 2>&1)
+# Run dd write test (WITH realtime progress)
+dd_write_output=$(dd if=/dev/zero of=testfile2 bs=1M count=1024 oflag=direct status=progress 2>&1)
 dd_write_last_line=$(echo "$dd_write_output" | tail -n 1)
 dd_write_speed_raw=$(echo "$dd_write_last_line" | awk -F', ' '{print $NF}')
 dd_write_number=$(echo "$dd_write_speed_raw" | awk '{print $1}')
@@ -35,8 +35,8 @@ else
   dd_write_speed="N/A"
 fi
 
-# Run dd read test
-dd_read_output=$(dd if=testfile2 of=/dev/null bs=1M iflag=direct 2>&1)
+# Run dd read test (WITH realtime progress)
+dd_read_output=$(dd if=testfile2 of=/dev/null bs=1M iflag=direct status=progress 2>&1)
 dd_read_last_line=$(echo "$dd_read_output" | tail -n 1)
 dd_read_speed_raw=$(echo "$dd_read_last_line" | awk -F', ' '{print $NF}')
 dd_read_number=$(echo "$dd_read_speed_raw" | awk '{print $1}')
