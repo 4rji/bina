@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+
+if [[ $EUID -ne 0 && -z "${SUDO_USER-}" ]]; then
+  echo "Run with sudo"
+  exit 1
+fi
+
+
+
+
 # secure-snmp-linux.sh
 # Secures Net-SNMP on Linux: SNMPv3 only (authPriv), restrict source IPs, evidence output.
 
