@@ -36,6 +36,8 @@ ttyinicio           Crea mensaje de inicio de tty para ver la ip del servidor de
 
 
 ###------linux
+browshinst          Browsh para ver el browser en ssh terminal necesita firefox
+mapat               alias de mapa en telnet - telnet mapscii.me
 modinvest           Crea snapshop de modulos, para comparar e investigar
 interfacess         imprime ejemplos y comandos de configuración de red, dhcp, 
 liberarIP           Cambia la MAC de debian para liberar una IP duplicada, usa dhclient
@@ -52,7 +54,7 @@ yazi                Como ranger para ver fotos, esta en comprimidos.
 fire                Abre firefox con distrobox, -g para google, -d duckducl. sin - para los dos
 rutainter           Definir la via ruta de internet cuando hay 2 interfaces internet
 veloint             iperf3 para medir la velocidad de ethernet o conexion, instrucciones e instala
-velodisk            mide la velocidad de lectura y escritura disco con dd y fio.
+diskspeed           mide la velocidad de lectura y escritura disco con dd y fio.
 coll                Muestra comandos con colores con batcat y un tmp archivo
 apache9000          Modifica la configuracion de apache para correr en el puerto 80 y otro puerto
 pwdc                Copia el directorio actual con pwd y xclip

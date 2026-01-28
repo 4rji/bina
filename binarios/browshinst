@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -e
+
+URL="https://github.com/browsh-org/browsh/releases/download/v1.8.0/browsh_1.8.0_linux_amd64.deb"
+PKG="browsh_1.8.0_linux_amd64.deb"
+
+wget "$URL"
+sudo apt install -y "./$PKG"
+rm -f "./$PKG"
+echo "run browsh"
