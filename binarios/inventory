@@ -1,5 +1,45 @@
 #!/usr/bin/env bash
 
+
+#!/usr/bin/env bash
+
+usage() {
+  echo "Usage: $0 [-w | -s | -e]"
+  exit 1
+}
+
+[[ $# -eq 0 ]] && usage
+
+while getopts "wse" opt; do
+  case "$opt" in
+    w)
+      echo "[WEBMAIL]"
+      command -v httpd >/dev/null && httpd -v
+      command -v php >/dev/null && php -v | head -n1
+      command -v postfix >/dev/null && postconf -d | grep mail_version
+      command -v dovecot >/dev/null && dovecot --version
+      ;;
+    s)
+      echo "[SPLUNK]"
+      if [[ -x /opt/splunk/bin/splunk ]]; then
+        /opt/splunk/bin/splunk version
+      else
+        echo "Splunk not found"
+      fi
+      ;;
+    e)
+      echo "[ECOM]"
+      command -v httpd >/dev/null && httpd -v
+      command -v mysql >/dev/null && mysql --version
+      ;;
+    *)
+      usage
+      ;;
+  esac
+done
+
+
+
 # ---- Colors ----
 BOLD="\e[1m"
 BLUE="\e[34m"
