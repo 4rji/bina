@@ -1,0 +1,152 @@
+#!/bin/bash
+#
+# spunkforwarder
+# One-shot Splunk Universal Forwarder setup for CCDC
+# Usage (after git clone):
+#   cd repo
+#   sudo ./spunkforwarder
+#
+
+set -e
+
+# ------------------------------
+# 1. ROOT CHECK
+# ------------------------------
+if [ "$(id -u)" -ne 0 ]; then
+  echo "[!] Please run this script as root."
+  echo "    Example: sudo ./spunkforwarder"
+  exit 1
+fi
+
+clear
+echo "========================================="
+echo "   Splunk Universal Forwarder Setup"
+echo "========================================="
+echo ""
+
+# ------------------------------
+# 2. ASK FOR OS TYPE
+# ------------------------------
+echo "Select OS type for this machine:"
+echo "  1) Ubuntu / Debian"
+echo "  2) Fedora / Oracle / RHEL"
+echo ""
+
+read -rp "Enter 1 or 2: " OS_CHOICE
+
+case "$OS_CHOICE" in
+  1)
+    OS_TYPE="ubuntu"
+    echo "[*] OS set to: Ubuntu / Debian"
+    ;;
+  2)
+    OS_TYPE="rhel"
+    echo "[*] OS set to: Fedora / Oracle / RHEL"
+    ;;
+  *)
+    echo "[!] Invalid choice. Please run the script again and choose 1 or 2."
+    exit 1
+    ;;
+esac
+
+# ------------------------------
+# 3. ASK FOR SPLUNK INDEXER IP
+# ------------------------------
+echo ""
+read -rp "Enter Splunk server (indexer) IP address: " SPLUNK_SERVER_IP
+
+if [ -z "$SPLUNK_SERVER_IP" ]; then
+  echo "[!] Splunk server IP cannot be empty."
+  exit 1
+fi
+
+echo "[*] Using Splunk server: $SPLUNK_SERVER_IP"
+echo ""
+
+# ------------------------------
+# 4. CONFIG – DEFAULT UF VERSION
+#    (edit these 2 lines if your UF build is different)
+# ------------------------------
+DEFAULT_UF_VERSION="9.0.1"
+DEFAULT_UF_BUILD="82c987350fde"
+
+INSTALL_DIR="/opt/splunkforwarder"
+
+# ------------------------------
+# 5. FIND OR DOWNLOAD UF TARBALL
+#    Priority:
+#      a) splunkforwarder-*.tgz in current folder (repo)
+#      b) download default version from Splunk
+# ------------------------------
+cd "$(dirname "$0")"   # go to script directory (repo root)
+
+UF_LOCAL_TGZ=$(ls splunkforwarder-*.tgz 2>/dev/null | head -n1 || true)
+
+if [ -n "$UF_LOCAL_TGZ" ]; then
+  echo "[*] Found local Splunk UF tarball: $UF_LOCAL_TGZ"
+else
+  echo "[*] No local UF tarball found, downloading default version..."
+  UF_FILE="splunkforwarder-${DEFAULT_UF_VERSION}-${DEFAULT_UF_BUILD}-Linux-x86_64.tgz"
+  UF_URL="https://download.splunk.com/products/universalforwarder/releases/${DEFAULT_UF_VERSION}/linux/${UF_FILE}"
+
+  echo "[*] Downloading from: $UF_URL"
+  wget -O "$UF_FILE" "$UF_URL"
+  UF_LOCAL_TGZ="$UF_FILE"
+fi
+
+# ------------------------------
+# 6. EXTRACT TO /opt
+# ------------------------------
+echo "[*] Extracting $UF_LOCAL_TGZ to /opt ..."
+tar -xvf "$UF_LOCAL_TGZ" -C /opt
+
+# The directory is usually /opt/splunkforwarder
+chown -R root:root "$INSTALL_DIR"
+
+# ------------------------------
+# 7. INITIAL START
+# ------------------------------
+echo "[*] Starting Splunk Universal Forwarder for the first time..."
+"$INSTALL_DIR/bin/splunk" start --accept-license --answer-yes --no-prompt
+
+# ------------------------------
+# 8. CONFIGURE FORWARD-SERVER
+# ------------------------------
+echo "[*] Pointing forwarder to Splunk indexer at ${SPLUNK_SERVER_IP}:9997 ..."
+# Note: if UF asks for credentials, you can re-run this later with -auth user:pass
+"$INSTALL_DIR/bin/splunk" add forward-server "${SPLUNK_SERVER_IP}:9997" || true
+
+# ------------------------------
+# 9. ADD IMPORTANT LOGS BASED ON OS
+# ------------------------------
+echo ""
+echo "[*] Adding important log files to monitor for OS type: $OS_TYPE"
+
+if [ "$OS_TYPE" = "ubuntu" ]; then
+  [ -f /var/log/auth.log ]   && "$INSTALL_DIR/bin/splunk" add monitor /var/log/auth.log   || true
+  [ -f /var/log/syslog ]     && "$INSTALL_DIR/bin/splunk" add monitor /var/log/syslog     || true
+  [ -f /var/log/kern.log ]   && "$INSTALL_DIR/bin/splunk" add monitor /var/log/kern.log   || true
+else
+  [ -f /var/log/secure ]     && "$INSTALL_DIR/bin/splunk" add monitor /var/log/secure     || true
+  [ -f /var/log/messages ]   && "$INSTALL_DIR/bin/splunk" add monitor /var/log/messages   || true
+fi
+
+# Common logs (both types)
+[ -f /var/log/wtmp ]         && "$INSTALL_DIR/bin/splunk" add monitor /var/log/wtmp       || true
+[ -f /var/log/btmp ]         && "$INSTALL_DIR/bin/splunk" add monitor /var/log/btmp       || true
+
+echo "[*] Log monitors added where files exist."
+
+# ------------------------------
+# 10. ENABLE BOOT-START
+# ------------------------------
+echo ""
+echo "[*] Enabling Splunk Universal Forwarder to start on boot..."
+"$INSTALL_DIR/bin/splunk" enable boot-start -systemd-managed 1 --answer-yes --no-prompt
+
+echo ""
+echo "========================================="
+echo "[✓] Splunk Universal Forwarder setup completed on $(hostname)."
+echo "[✓] Forwarding logs to ${SPLUNK_SERVER_IP}:9997"
+echo "========================================="
+echo ""
