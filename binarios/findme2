@@ -1,0 +1,18 @@
+#!/usr/bin/env sh
+# findbin: busca un binario en PATH o en el sistema
+# uso: ./findbin <comando>
+
+CMD="$1"
+
+[ -z "$CMD" ] && { echo "uso: $0 <comando>"; exit 1; }
+
+# 1) PATH
+if command -v "$CMD" >/dev/null 2>&1; then
+  command -v "$CMD"
+  exit 0
+fi
+
+# 2) búsqueda rápida en FS (limitada)
+find / \
+  \( -path /proc -o -path /sys -o -path /dev \) -prune -o \
+  -type f -name "$CMD" -perm -111 -print 2>/dev/null | head

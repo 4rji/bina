@@ -369,6 +369,7 @@ todooo              Busca en dentro de los scripts palabras que cohincidan, mas 
 buspal              Buscador de palabras en un directorio, con grep -q buspal {directorio}
 comentadas 			Copia al portapapales las lineas no comentadas, -c para solo verlas sin copiar
 findme              Usa el comando find para buscar archivos
+findme2             Para buscar binarios como zeek
 
 
 ###------ssh
