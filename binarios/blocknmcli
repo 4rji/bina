@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Network connection profiles:"
+echo "--------------------------------"
+nmcli -f NAME,UUID,TYPE,DEVICE con show
+echo "--------------------------------"
+
+read -rp "Enter the interface name (DEVICE) or connection NAME to disable: " TARGET
+
+# Match as connection name
+CONN=$(nmcli -t -f NAME con show | grep -x "$TARGET" || true)
+
+# If not a connection name, try to find a connection bound to a DEVICE name
+if [[ -z "$CONN" ]]; then
+  CONN=$(nmcli -t -f NAME,DEVICE con show | awk -F: -v t="$TARGET" '$2==t{print $1; exit}')
+fi
+
+# Match as device
+DEV=$(nmcli -t -f DEVICE dev status | grep -x "$TARGET" || true)
+
+# If still no device, try to get device from the connection (may be "--")
+if [[ -z "$DEV" && -n "$CONN" ]]; then
+  DEV=$(nmcli -g GENERAL.DEVICES con show "$CONN" 2>/dev/null | head -n1 || true)
+  [[ "$DEV" == "--" ]] && DEV=""
+fi
+
+if [[ -z "${CONN:-}" && -z "${DEV:-}" ]]; then
+  echo "[-] '$TARGET' not found as a device or connection profile."
+  exit 1
+fi
+
+echo "[*] Hard-disabling (more secure): managed=no + link down"
+
+if [[ -n "${DEV:-}" ]]; then
+  sudo nmcli dev set "$DEV" managed no || true
+  sudo ip link set "$DEV" down || true
+else
+  echo "[*] Device not currently present; disabling profile only."
+fi
+
+if [[ -n "${CONN:-}" ]]; then
+  echo "[*] Disabling connection profile: $CONN"
+  sudo nmcli con down "$CONN" 2>/dev/null || true
+  sudo nmcli con mod "$CONN" connection.autoconnect no
+
+  read -rp "Do you want to DELETE the connection profile '$CONN'? (y/N): " ANS
+  case "${ANS,,}" in
+    y|yes)
+      echo "[*] Deleting connection profile: $CONN"
+      sudo nmcli con delete "$CONN"
+      ;;
+    *)
+      echo "[*] Keeping connection profile: $CONN (autoconnect disabled)"
+      ;;
+  esac
+fi
+
+echo "[+] Done."
+echo
+echo "Verify with:"
+echo "  nmcli dev status"
+echo "  nmcli con show"
+echo "  ip a"
+
+nmcli dev status
+nmcli con show
+ip a
