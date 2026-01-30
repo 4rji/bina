@@ -1,30 +1,66 @@
 #!/usr/bin/env bash
-# Menú interactivo para visualizar logs de Zeek en /opt/zeek/spool/zeek
+# Menú interactivo para visualizar logs de Zeek.
+# Si pasas un .pcap: crea una carpeta local y corre Zeek ahí para que los logs queden en ese path.
 
-LOGDIR="/opt/zeek/spool/zeek"
+set -euo pipefail
+
+ZEEK_BIN="/opt/zeek/bin/zeek"
+
+
+# Si pasas un pcap, usamos logs en una carpeta local. Si no, intentamos /opt/zeek/spool/zeek y si no existe, usamos una local.
+DEFAULT_LOGDIR="/opt/zeek/spool/zeek"
+LOCAL_LOGDIR="./zeek-logs"
+
+LOGDIR="$DEFAULT_LOGDIR"
+
+if [[ "${1-}" != "" ]]; then
+  PCAP="$1"
+  if [[ ! -f "$PCAP" ]]; then
+    echo -e "\e[91m❌ No existe el archivo: $PCAP\e[0m"
+    exit 1
+  fi
+
+  LOGDIR="$LOCAL_LOGDIR"
+  mkdir -p "$LOGDIR"
+
+  echo -e "\e[92m▶ Ejecutando: "$ZEEK_BIN" -r $PCAP (logs en $LOGDIR)\e[0m"
+  ( cd "$LOGDIR" && "$ZEEK_BIN" -r "../$PCAP" )
+
+  echo -e "\e[96m✅ Listo. Abriendo menú de logs en: $LOGDIR\e[0m"
+else
+  if [[ ! -d "$DEFAULT_LOGDIR" ]]; then
+    LOGDIR="$LOCAL_LOGDIR"
+    mkdir -p "$LOGDIR"
+  fi
+fi
 
 # Verifica existencia
-if ! sudo test -d "$LOGDIR"; then
-    echo -e "\e[91m❌ No existe $LOGDIR\e[0m"
-    exit 1
+if [[ ! -d "$LOGDIR" ]]; then
+  echo -e "\e[91m❌ No existe $LOGDIR\e[0m"
+  exit 1
 fi
 
 while true; do
-    echo -e "\n\e[96m=== Archivos disponibles en $LOGDIR ===\e[0m"
-    mapfile -t files < <(sudo ls -1 "$LOGDIR")
-    files+=("Salir")
+  echo -e "\n\e[96m=== Archivos disponibles en $LOGDIR ===\e[0m"
+  mapfile -t files < <(ls -1 "$LOGDIR" 2>/dev/null || true)
 
-    select file in "${files[@]}"; do
-        if [[ "$file" == "Salir" ]]; then
-            echo -e "\e[93m👋 Saliendo...\e[0m"
-            exit 0
-        elif [[ -n "$file" ]]; then
-            echo -e "\n\e[92m▶ Mostrando: $LOGDIR/$file\e[0m"
-            echo -e "\e[95m(Usa q para salir y volver al menú)\e[0m\n"
-            sudo less -RS "$LOGDIR/$file"
-            break
-        else
-            echo -e "\e[91mOpción inválida\e[0m"
-        fi
-    done
+  if [[ ${#files[@]} -eq 0 ]]; then
+    echo -e "\e[93m⚠️  No hay logs aquí todavía.\e[0m"
+  fi
+
+  files+=("Salir")
+
+  select file in "${files[@]}"; do
+    if [[ "$file" == "Salir" ]]; then
+      echo -e "\e[93m👋 Saliendo...\e[0m"
+      exit 0
+    elif [[ -n "${file-}" && -f "$LOGDIR/$file" ]]; then
+      echo -e "\n\e[92m▶ Mostrando: $LOGDIR/$file\e[0m"
+      echo -e "\e[95m(Usa q para salir y volver al menú)\e[0m\n"
+      less -RS "$LOGDIR/$file"
+      break
+    else
+      echo -e "\e[91mOpción inválida\e[0m"
+    fi
+  done
 done

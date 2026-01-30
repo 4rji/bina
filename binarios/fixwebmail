@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+TS="$(date +%Y%m%d%H%M%S)"
+BKDIR="/root/mailcfg_backup_$TS"
+mkdir -p "$BKDIR"
+
+POSTFIX_MAIN="/etc/postfix/main.cf"
+DOVECOT_CONF="/etc/dovecot/dovecot.conf"
+
+echo "[*] Backup -> $BKDIR"
+cp -a "$POSTFIX_MAIN" "$BKDIR/main.cf"
+cp -a "$DOVECOT_CONF" "$BKDIR/dovecot.conf"
+
+# --- Postfix: ensure safe mynetworks + recipient restrictions ---
+echo "[*] Updating Postfix: mynetworks + smtpd_recipient_restrictions"
+
+# mynetworks = 127.0.0.0/8
+postconf -e "mynetworks=127.0.0.0/8"
+
+# smtpd_recipient_restrictions minimal safe
+postconf -e "smtpd_recipient_restrictions=permit_mynetworks,reject_unauth_destination"
+
+# --- Dovecot: disable plaintext auth, remove pop3 from protocols ---
+echo "[*] Updating Dovecot: disable_plaintext_auth=yes, remove pop3 from protocols"
+
+# Update (or add) disable_plaintext_auth
+if grep -qE '^\s*disable_plaintext_auth\s*=' "$DOVECOT_CONF"; then
+  sed -ri 's/^\s*disable_plaintext_auth\s*=.*/disable_plaintext_auth = yes/' "$DOVECOT_CONF"
+else
+  echo "disable_plaintext_auth = yes" >> "$DOVECOT_CONF"
+fi
+
+# Remove pop3 from protocols line (keep imap/lmtp/submission)
+if grep -qE '^\s*protocols\s*=' "$DOVECOT_CONF"; then
+  # normalize spacing, drop pop3 token
+  sed -ri 's/^\s*protocols\s*=\s*(.*)$/protocols = \1/' "$DOVECOT_CONF"
+  sed -ri 's/\bpop3\b//g; s/[[:space:]]+/ /g; s/ = / = /; s/ = $/ =/; s/\s+$//' "$DOVECOT_CONF"
+else
+  echo "protocols = imap lmtp submission" >> "$DOVECOT_CONF"
+fi
+
+# --- Validate + restart ---
+echo "[*] Validating configs"
+
+postfix check
+
+# dovecot -n returns nonzero if config broken
+dovecot -n >/dev/null
+
+echo "[*] Restarting services"
+systemctl restart postfix
+systemctl restart dovecot
+
+echo "[+] Done."
+echo "    Backups in: $BKDIR"
+echo "    Rollback:"
+echo "      cp -a $BKDIR/main.cf $POSTFIX_MAIN && systemctl restart postfix"
+echo "      cp -a $BKDIR/dovecot.conf $DOVECOT_CONF && systemctl restart dovecot"
