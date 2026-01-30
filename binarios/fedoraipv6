@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Auto-sudo
+if [[ $EUID -ne 0 ]]; then
+  exec sudo bash "$0" "$@"
+fi
+
+echo "[*] Disabling IPv6 via NetworkManager..."
+
+mapfile -t CONNS < <(
+  nmcli -t -f NAME,DEVICE con show --active \
+  | awk -F: '$2 != "lo" {print $1}'
+)
+
+for c in "${CONNS[@]}"; do
+  echo " - $c"
+  nmcli con mod "$c" ipv6.method disabled
+  nmcli con up "$c" >/dev/null
+done
+
+echo "[+] IPv6 disabled (loopback ignored)"
+
+echo "[*] Verifying..."
+ip a | grep inet6 || echo "No IPv6 addresses found"

@@ -6,7 +6,7 @@ if [[ $EUID -ne 0 ]]; then
   exec sudo bash "$0" "$@"
 fi
 
-CONF="/etc/chrony/chrony.conf"
+CONF="/etc/chrony.conf"
 
 usage() {
   echo ""
@@ -39,10 +39,16 @@ install_server() {
   read -r -p "Local stratum when offline [${DEFAULT_STRATUM}]: " STRATUM
   STRATUM="${STRATUM:-$DEFAULT_STRATUM}"
 
-  echo "[*] Installing chrony..."
-  export DEBIAN_FRONTEND=noninteractive
-  apt-get update -y
-  apt-get install -y chrony
+    echo "[*] Installing chrony..."
+  if command -v dnf >/dev/null 2>&1; then
+    dnf -y install chrony
+    SVC="chronyd"
+  else
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -y
+    apt-get install -y chrony
+    SVC="chrony"
+  fi
 
   BACKUP="${CONF}.bak.$(date +%Y%m%d%H%M%S)"
   cp -a "$CONF" "$BACKUP" 2>/dev/null || true
@@ -74,8 +80,8 @@ rtcsync
 logdir /var/log/chrony
 EOF
 
-  systemctl enable --now chrony
-  systemctl restart chrony
+  systemctl enable --now "$SVC"
+  systemctl restart "$SVC"
 
   echo ""
   echo "[+] NTP server installed."
