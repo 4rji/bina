@@ -1,0 +1,192 @@
+#######
+# Palo Alto:
+# Outside – 172.16.101.254/24
+# Inside – 172.20.242.254/24
+# Management GUI – 172.20.242.150
+#######
+# Subnet: 172.20.242.0/24 --- 172.25.29.0/24
+# Ecom – 172.20.242.30 --- 172.25.29.11
+# Webmail – 172.20.242.40 --- 172.25.29.39
+# Splunk – 172.20.242.20 --- 172.25.29.9
+# Ubuntu Wkst – DHCP
+#######
+
+#######
+# Device & MGMT Hardening
+set deviceconfig system permitted-ip 172.20.242.0/24
+set deviceconfig system login-banner AuthorizedAccessOnly
+
+# Interface Management Profile
+set network profiles interface-management-profile Default ping no https yes ssh yes telnet no http no snmp no response-pages no
+set network profiles interface-management-profile Default permitted-ip 172.20.242.0/24
+
+# MGMT Profile to Interfaces
+set network interface ethernet ethernet1/1 layer3 interface-management-profile Default
+set network interface ethernet ethernet1/2 layer3 interface-management-profile Default
+#######
+
+#######
+# Security Profiles
+set profile-group SecPro file-blocking "strict file blocking" spyware default url-filtering default virus default vulnerability default wildfire-analysis default
+#######
+
+#######
+# Zone Protection
+set network profiles zone-protection-profile ZonePro discard-tcp-synack-with-data yes
+set network profiles zone-protection-profile ZonePro discard-timestamp yes
+set network profiles zone-protection-profile ZonePro discard-unknown-option yes
+set network profiles zone-protection-profile ZonePro remove-tcp-timestamp yes
+set network profiles zone-protection-profile ZonePro strict-ip-check yes
+set network profiles zone-protection-profile ZonePro strip-mptcp-option yes
+set network profiles zone-protection-profile ZonePro strip-tcp-fast-open-and-data yes
+set network profiles zone-protection-profile ZonePro suppress-icmp-needfrag yes
+set network profiles zone-protection-profile ZonePro suppress-icmp-timeexceeded yes
+set network profiles zone-protection-profile ZonePro tcp-reject-non-syn yes
+
+set network profiles zone-protection-profile ZonePro flood tcp-syn enable yes red activate-rate 10000 alarm-rate 10000 maximal-rate 10000
+set network profiles zone-protection-profile ZonePro flood udp enable yes red activate-rate 10000 alarm-rate 10000 maximal-rate 10000
+set network profiles zone-protection-profile ZonePro flood icmp enable yes red activate-rate 10000 alarm-rate 10000 maximal-rate 10000
+set network profiles zone-protection-profile ZonePro flood other-ip enable yes red activate-rate 10000 alarm-rate 10000 maximal-rate 10000
+set network profiles zone-protection-profile ZonePro flood icmpv6 enable yes red alarm-rate 1000 activate-rate 2000 maximal-rate 3000
+#######
+
+#######
+# Attach Profile to Zones
+set zone external network zone-protection-profile ZonePro
+set zone internal network zone-protection-profile ZonePro
+#######
+
+#######
+# OBJECTS (optional)
+# Address objects
+# Internal servers
+set address ecom ip-netmask 172.20.242.30/32
+set address splunk ip-netmask 172.20.242.20/32
+set address webmail ip-netmask 172.20.242.40/32
+set address UbuntuWkst ip-netmask 172.20.242.102/32
+# Public servers 
+set address Public IPs ip-netmask 172.25.29.0/24
+set address ecom-public ip-netmask 172.25.29.11/32
+set address webmail-public ip-netmask 172.25.29.39/32
+set address splunk-public ip-netmask 172.25.29.9/32
+# Windows <-> Palo
+set address AD-DNS ip-netmask 172.20.240.102/32
+set address win11-wkst ip-netmask 172.20.240.100/32
+set address win-web ip-netmask 172.20.240.101/32
+set address win-ftp ip-netmask 172.20.240.104/32
+# Situational Objects for clarity
+set address Trust-lan-Linux ip-netmask 172.20.242.0/24
+set address Cisco-Net-240 ip-netmask 172.20.240.0/24
+set address palo-mgmt ip-netmask 172.20.242.150/32
+set address inside-26 ip-netmask 172.20.242.254/24
+set address Vyos ip-netmask 172.16.101.254
+# Splunk
+set service Splunk-9997 protocol tcp port 9997
+set service Splunk-9998 protocol tcp port 9998
+set service Splunk-1514-tcp protocol tcp port 1514
+set service Splunk-1514-udp protocol udp port 1514
+set service Splunk-Web-8000 protocol tcp port 8000
+set service Splunk-Mgmt-8089 protocol tcp port 8089
+
+
+# Address groups (optional) #
+set address-group public-Linux-services static [ ecom-public splunk-public webmail-public ]
+set address-group internal-Linux-servers static [ ecom splunk webmail ]
+#######
+
+
+#######
+# Security Rules
+
+# Inbound Rules #
+# Inbound ICMP
+set rulebase security rules Allow-ICMP-Inbound profile-setting group SecPro
+set rulebase security rules Allow-ICMP-Inbound from external to internal source any destination any application ping service application-default action allow log-start yes log-end yes
+
+# Ecom Inbound
+set rulebase security rules Allow-Ecom-Inbound profile-setting group SecPro
+set rulebase security rules Allow-Ecom-Inbound from external to internal source any destination ecom-public application [ ssl web-browsing ] service application-default action allow log-start yes log-end yes
+
+# Webmail Inbound
+set rulebase security rules Allow-Webmail-Inbound profile-setting group SecPro
+set rulebase security rules Allow-Webmail-Inbound from external to internal source any destination webmail-public application [ ssl web-browsing smtp pop3 imap ] service application-default action allow log-start yes log-end yes
+
+# Splunk Inbound
+set rulebase security rules Allow-Splunk-Inbound profile-setting group SecPro
+set rulebase security rules Allow-Splunk-Inbound from external to internal source any destination splunk-public application [ splunk ssl web-browsing ] service application-default action allow log-start yes log-end yes
+
+# Windows to Linux
+set rulebase security rules inside-to-cisco-bi profile-setting group SecPro
+set rulebase security rules inside-to-cisco-bi from external to internal source Cisco-Net-240 destination Trust-lan-Linux application any service application-default action allow log-start yes log-end yes
+set rulebase security rules Deny-Server-Lateral disabled yes
+
+# Splunk ingest Windows
+set rulebase security rules Allow-Windows-to-Splunk-Ingest profile-setting group SecPro
+set rulebase security rules Allow-Windows-to-Splunk-Ingest from external to internal source Cisco-Net-240 destination splunk application any service [ Splunk-1514-tcp Splunk-1514-udp Splunk-9998 ] action allow log-start yes log-end yes
+set rulebase security rules Deny-Server-Lateral disabled yes
+
+# Inbound Deny (Perimeter)
+set rulebase security rules Inbound-Deny-All from external to internal source any destination any application any service any action deny log-start yes log-end yes
+
+
+# Internal Traffic #
+# Splunk Ingest
+set rulebase security rules Allow-Splunk-Ingest profile-setting group SecPro
+set rulebase security rules Allow-Splunk-Ingest from internal to internal source Trust-lan-Linux destination splunk application any service [ Splunk-1514-tcp Splunk-1514-udp Splunk-9998 ] action allow log-start yes log-end yes
+
+# Deny server to server (Lateral)
+set rulebase security rules Deny-Server-Lateral from internal to internal source Trust-lan-Linux destination Trust-lan-Linux application any service any action deny log-start yes log-end yes
+set rulebase security rules Deny-Server-Lateral disabled yes
+
+# Outbound Rules #
+# DNS for AD/DNS Windows
+set rulebase security rules Allow-DNS-AD-Auth profile-setting group SecPro
+set rulebase security rules Allow-DNS-AD-Auth from internal to external source Trust-lan-Linux destination AD-DNS application [ dns ] service application-default action allow log-start yes log-end yes
+set rulebase security rules Deny-Server-Lateral disabled yes
+
+# DNS outbound
+set rulebase security rules Allow-DNS-Outbound profile-setting group SecPro
+set rulebase security rules Allow-DNS-Outbound from internal to external source Trust-lan-Linux destination any application dns service application-default action allow log-start yes log-end yes
+
+# NTP outbound
+set rulebase security rules Allow-NTP-Outbound profile-setting group SecPro
+set rulebase security rules Allow-NTP-Outbound from internal to external source Trust-lan-Linux destination any application ntp service application-default action allow log-start yes log-end yes
+
+# Webmail outbound
+set rulebase security rules Allow-Webmail-Outbound profile-setting group SecPro
+set rulebase security rules Allow-Webmail-Outbound from internal to external source webmail destination any application [ ssl web-browsing smtp pop3 imap ] service application-default action allow log-start yes log-end yes
+
+# Palo & Wildfire updates
+set rulebase security rules Allow-Palo-Updates profile-setting group SecPro
+set rulebase security rules Allow-Palo-Updates from internal to external source palo-mgmt destination any application [ pan-db-cloud paloalto-updates paloalto-wildfire-cloud dns ] service application-default action allow log-start yes log-end yes
+
+# Linux repos
+set rulebase security rules Allow-Linux-Repos profile-setting group SecPro
+set rulebase security rules Allow-Linux-Repos from internal to external source Trust-lan-Linux destination any application [ github apt-get google-base yum ] service application-default action allow log-start yes log-end yes
+
+# Linux to Windows
+set rulebase security rules Allow-to-cisco profile-setting group SecPro
+set rulebase security rules Allow-to-cisco from internal to external source Trust-lan-Linux destination Cisco-Net-240 application any service application-default action allow log-start yes log-end yes
+set rulebase security rules Deny-Server-Lateral disabled yes
+
+# Outbound Core
+set rulebase security rules Allow-Core-Web-Outbound profile-setting group SecPro
+set rulebase security rules Allow-Core-Web-Outbound from internal to external source Trust-lan-Linux destination any application any service application-default action allow log-start yes log-end yes
+
+# Outbound Deny (C2/reverse shells)
+set rulebase security rules Outbound-Deny-All from internal to external source any destination any application any service any action deny log-start yes log-end yes
+
+# Final Denies and Blocks #
+# Block noisy protocols
+set rulebase security rules BlockBad from any to any source any destination any application [ telnet ms-rdp vnc tftp snmp ms-ds-smb rpc http-proxy ] service application-default action deny log-start yes log-end yes
+
+# Deny All
+set rulebase security rules Deny-All from any to any source any destination any application any service any action deny log-start yes log-end yes
+#######
+
+# content updates
+request anti-virus upgrade install version latest
+request wildfire upgrade install version latest
+request content upgrade install version latest
+
+commit
