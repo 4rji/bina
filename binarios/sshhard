@@ -1,20 +1,5 @@
 #!/usr/bin/env bash
 
-
-USER="nala"
-PUBKEY='ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBmobwDzQ84y6RMpYdDskOW4hrUzJ5MzKECSQE9V1Ehj nala@debian-s-1vcpu-1gb-amd-sfo3-01'
-
-HOME_DIR=$(getent passwd "$USER" | cut -d: -f6)
-
-sudo mkdir -p "$HOME_DIR/.ssh"
-echo "$PUBKEY" | sudo tee "$HOME_DIR/.ssh/authorized_keys" >/dev/null
-
-sudo chown -R "$USER:$USER" "$HOME_DIR/.ssh"
-sudo chmod 700 "$HOME_DIR/.ssh"
-sudo chmod 600 "$HOME_DIR/.ssh/authorized_keys"
-
-
-
 # Backup the sshd_config file
 sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.backup
 
@@ -42,20 +27,6 @@ lines_to_insert=(
     "PasswordAuthentication no"  # Added line
     "Port 2246"  # Added line
 )
-
-
-sudo tee -a /etc/ssh/sshd_config >/dev/null <<'EOF'
-
-AllowUsers nala@172.20.242.40
-
-Match User nala Address 172.20.242.40
-    PubkeyAuthentication yes
-    PasswordAuthentication no
-
-Match all
-    DenyUsers nala
-EOF
-
 
 # Replace or add the specified lines in the sshd_config file
 for line in "${lines_to_insert[@]}"; do
