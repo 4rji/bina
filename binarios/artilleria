@@ -73,9 +73,9 @@ done
 
 
 # Clone the Artillery repository
-git clone https://github.com/BinaryDefense/artillery.git
+git clone https://github.com/4rji/artilleria-pesada
 
-cd artillery
+cd artilleria-pesada/
 # Run the setup script
 sudo python3 setup.py
 
