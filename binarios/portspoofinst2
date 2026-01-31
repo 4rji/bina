@@ -65,5 +65,12 @@ echo -e "\033[1;32mPara eliminar todo lo anterior (alias ftables)\033[0m"
 echo -e "\033[1;32msudo iptables -t nat -F\033[0m"
 echo -e "\n\033[1;34m---------------------------------------------------------\033[0m\n"
 
-# Mensaje final de asesoría
-echo -e "\033[1;31mADVISORY: This script should be used for authorized penetration testing and/or educational purposes only. Any misuse of this software will not be the responsibility of the author or of any other collaborator. Use it at your own computers and/or with the computer owner's permission.\033[0m"
+
+read -r -p "Do you want to start Portspoof now? [y/n] " answer
+if [[ "${answer,,}" == "y" ]]; then
+  # Avoid duplicating the rule
+  if ! sudo iptables -t nat -C PREROUTING -p tcp -m tcp --dport 1:65535 -j REDIRECT --to-ports 4444 2>/dev/null; then
+    sudo iptables -t nat -A PREROUTING -p tcp -m tcp --dport 1:65535 -j REDIRECT --to-ports 4444
+  fi
+  sudo portspoof -c /etc/portspoof/portspoof.conf -s /etc/portspoof/portspoof_signatures
+fi
