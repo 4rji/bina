@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+URL="https://raw.githubusercontent.com/4rji/bina/refs/heads/main/binarios/id_ed25519"
+TARGET_USER="metro"
+
+HOME_DIR="$(getent passwd "$TARGET_USER" | cut -d: -f6)"
+SSH_DIR="$HOME_DIR/.ssh"
+PRIV_KEY="$SSH_DIR/id_ed25519"
+
+sudo -u "$TARGET_USER" mkdir -p "$SSH_DIR"
+sudo -u "$TARGET_USER" chmod 700 "$SSH_DIR"
+
+# descargar la clave privada
+sudo sh -c "wget -qO '$PRIV_KEY' '$URL'"
+
+sudo chown "$TARGET_USER:$TARGET_USER" "$PRIV_KEY"
+sudo chmod 600 "$PRIV_KEY"
