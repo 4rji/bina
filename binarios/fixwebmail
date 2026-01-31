@@ -3,57 +3,62 @@ set -euo pipefail
 
 TS="$(date +%Y%m%d%H%M%S)"
 BKDIR="/root/mailcfg_backup_$TS"
-mkdir -p "$BKDIR"
+sudo mkdir -p "$BKDIR"
 
 POSTFIX_MAIN="/etc/postfix/main.cf"
 DOVECOT_CONF="/etc/dovecot/dovecot.conf"
+DOVECOT_MASTER="/etc/dovecot/conf.d/10-master.conf"
 
 echo "[*] Backup -> $BKDIR"
-cp -a "$POSTFIX_MAIN" "$BKDIR/main.cf"
-cp -a "$DOVECOT_CONF" "$BKDIR/dovecot.conf"
+sudo cp -a "$POSTFIX_MAIN" "$BKDIR/main.cf"
+sudo cp -a "$DOVECOT_CONF" "$BKDIR/dovecot.conf"
+sudo cp -a "$DOVECOT_MASTER" "$BKDIR/10-master.conf"
 
-# --- Postfix: ensure safe mynetworks + recipient restrictions ---
+# --- Postfix: safe relay config ---
 echo "[*] Updating Postfix: mynetworks + smtpd_recipient_restrictions"
 
-# mynetworks = 127.0.0.0/8
-postconf -e "mynetworks=127.0.0.0/8"
+sudo postconf -e "mynetworks=127.0.0.0/8"
+sudo postconf -e "smtpd_recipient_restrictions=permit_mynetworks,reject_unauth_destination"
 
-# smtpd_recipient_restrictions minimal safe
-postconf -e "smtpd_recipient_restrictions=permit_mynetworks,reject_unauth_destination"
+# --- Dovecot: disable plaintext auth ---
+echo "[*] Updating Dovecot: disable_plaintext_auth=yes"
 
-# --- Dovecot: disable plaintext auth, remove pop3 from protocols ---
-echo "[*] Updating Dovecot: disable_plaintext_auth=yes, remove pop3 from protocols"
-
-# Update (or add) disable_plaintext_auth
-if grep -qE '^\s*disable_plaintext_auth\s*=' "$DOVECOT_CONF"; then
-  sed -ri 's/^\s*disable_plaintext_auth\s*=.*/disable_plaintext_auth = yes/' "$DOVECOT_CONF"
+if sudo grep -qE '^\s*disable_plaintext_auth\s*=' "$DOVECOT_CONF"; then
+  sudo sed -ri 's/^\s*disable_plaintext_auth\s*=.*/disable_plaintext_auth = yes/' "$DOVECOT_CONF"
 else
-  echo "disable_plaintext_auth = yes" >> "$DOVECOT_CONF"
+  echo "disable_plaintext_auth = yes" | sudo tee -a "$DOVECOT_CONF" >/dev/null
 fi
 
-# Remove pop3 from protocols line (keep imap/lmtp/submission)
-if grep -qE '^\s*protocols\s*=' "$DOVECOT_CONF"; then
-  # normalize spacing, drop pop3 token
-  sed -ri 's/^\s*protocols\s*=\s*(.*)$/protocols = \1/' "$DOVECOT_CONF"
-  sed -ri 's/\bpop3\b//g; s/[[:space:]]+/ /g; s/ = / = /; s/ = $/ =/; s/\s+$//' "$DOVECOT_CONF"
+# --- Dovecot: remove pop3 from protocols ---
+if sudo grep -qE '^\s*protocols\s*=' "$DOVECOT_CONF"; then
+  sudo sed -ri 's/\bpop3\b//g; s/[[:space:]]+/ /g' "$DOVECOT_CONF"
 else
-  echo "protocols = imap lmtp submission" >> "$DOVECOT_CONF"
+  echo "protocols = imap lmtp submission" | sudo tee -a "$DOVECOT_CONF" >/dev/null
 fi
 
-# --- Validate + restart ---
+# --- Dovecot: disable submission listener properly (port = 0) ---
+echo "[*] Disabling Dovecot submission listener (587 -> port 0)"
+
+if sudo grep -q 'service submission-login' "$DOVECOT_MASTER"; then
+  sudo sed -ri '
+    /service submission-login/,/}/ {
+      s/port *= *587/port = 0/
+    }
+  ' "$DOVECOT_MASTER"
+fi
+
+# --- Validate ---
 echo "[*] Validating configs"
+sudo postfix check
+sudo dovecot -n >/dev/null
 
-postfix check
-
-# dovecot -n returns nonzero if config broken
-dovecot -n >/dev/null
-
+# --- Restart ---
 echo "[*] Restarting services"
-systemctl restart postfix
-systemctl restart dovecot
+sudo systemctl restart dovecot
+sudo systemctl restart postfix
 
 echo "[+] Done."
 echo "    Backups in: $BKDIR"
 echo "    Rollback:"
-echo "      cp -a $BKDIR/main.cf $POSTFIX_MAIN && systemctl restart postfix"
-echo "      cp -a $BKDIR/dovecot.conf $DOVECOT_CONF && systemctl restart dovecot"
+echo "      sudo cp -a $BKDIR/main.cf $POSTFIX_MAIN && sudo systemctl restart postfix"
+echo "      sudo cp -a $BKDIR/dovecot.conf $DOVECOT_CONF && sudo cp -a $BKDIR/10-master.conf $DOVECOT_MASTER && sudo systemctl restart dovecot"
