@@ -459,9 +459,6 @@ qemuq2              Descarga linux VM qcow2, agrega e inicia una maquina debian/
 
 
 
-
-
-
 ###--Python tools
 nointer             bloquear internet con arp y python3 scapy, en cli- arp spoofing
 nointergui          Scapy con arp, para bloquear internet maquina, necesita GUI
@@ -620,7 +617,6 @@ recibepython        Para recibir archivos con curl -T desde la otra maquina, rec
 bomba               Crea procesos recursivos sin fin, - sistema es inutilizable o se cuelga
 
 
-
 ###------ Splunk
 splunkinst          instala Splunk y crea un alias para uniciar en zsh
 splunkuninstall     Desinstala splunky
@@ -694,7 +690,6 @@ sqlport             hace que mysql solo escuche en puerto 127.0.0.1:3306
 passpl              Para aplicar politicas en linux de contrasenas
 nsscheck           Verifica los ajuste de nsswitch 
 
-
 sysacc             Para ver si estan bloqueados y sus privilegios, solo usuarios con UID > 1000
 setnologin         Crea una lista con los usuarios en la home, y hace backup de passwd, modificar archivo
 setnologin2        Hace un nologin a el archivo ~/users-pw, modificarlo primero porque le hace a todos de lista
@@ -711,7 +706,6 @@ ufwloopb          Configura el loopback del firewall
 netevils          Mask and remove -y telnet ftp ftpd tftp talk talkd tftp tftpd
 rootcheck         Checa varios archivos .bash ...
 sshmod            Modifica ssh y hace copia
-
 
 
 #ccdclab
