@@ -639,7 +639,7 @@ verpw               Verifica los permisos de los archivos /etc/passwd u linux cl
 backd-detect        detecta conexiones sospechosas hacia rangos RFC1918 e identifica procesos asociados
 backde              para detectar conexions, es un binario go
 backd               Muestra conexiones actuales con sus datos detallados, binario go 
-bloquearip          Bloquea IPs agregando a un set ipset y aplicando una regla iptables
+blockip             Bloquea IPs agregando a un set ipset y aplicando una regla iptables
 services            Encuentra servicios que no son del kernel linux corriendo.
 netevils            aun no se    
 procesos            Muestra los procesos de los usuarios sin PID, no PID
