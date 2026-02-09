@@ -680,6 +680,8 @@ psss                Escanea por conexiones lsof netstat, mi bebe mibebe
 pssc                Mismo que psss pero este las cierra en 12 segundos automaticamente mibebe
 sshmoni
 fwcom               firewall-cmd commands, comandos para manejar el firewall
+firewall-ipt        un firewall manual que usa iptables 
+ipredir             redirecciona una IP por otra, util para mandar o cambiar trafico
 finddb              Busca una database corriendo ya sea sqlite mariadb
 python9inst         instala python 3.9 compila para yum 
 zshupdate           actualiza descargando compidor a 5.9

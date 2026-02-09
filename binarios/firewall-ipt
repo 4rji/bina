@@ -1,0 +1,226 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Simple interactive iptables rule builder/applier.
+# Works with iptables classic (requires root).
+
+IPT=(iptables)
+if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
+  echo "Nota: iptables requiere root. Usare sudo para ejecutar." >&2
+  IPT=(sudo iptables)
+fi
+
+prompt() {
+  local label="$1" default="${2-}"
+  local input
+  if [[ -n "$default" ]]; then
+    read -r -p "$label [$default]: " input
+    echo "${input:-$default}"
+  else
+    read -r -p "$label: " input
+    echo "$input"
+  fi
+}
+
+is_valid_port() {
+  local p="$1"
+  if [[ "$p" =~ ^[0-9]+$ ]]; then
+    [[ "$p" -ge 1 && "$p" -le 65535 ]]
+  elif [[ "$p" =~ ^[0-9]+:[0-9]+$ ]]; then
+    local a b
+    a="${p%%:*}"
+    b="${p##*:}"
+    [[ "$a" -ge 1 && "$a" -le 65535 && "$b" -ge 1 && "$b" -le 65535 && "$a" -le "$b" ]]
+  else
+    return 1
+  fi
+}
+
+choose_action() {
+  echo "Accion:" >&2
+  echo "  1) Permitir (ACCEPT)" >&2
+  echo "  2) Bloquear (DROP)" >&2
+  local choice
+  while true; do
+    choice=$(prompt "Accion (1-2) 1=Permitir, 2=Bloquear" "1")
+    case "$choice" in
+      1) echo "ACCEPT"; return 0 ;;
+      2) echo "DROP"; return 0 ;;
+      *) echo "Opcion invalida." ;;
+    esac
+  done
+}
+
+choose_chain() {
+  echo "Direccion:" >&2
+  echo "  1) Entrante (INPUT)" >&2
+  echo "  2) Saliente (OUTPUT)" >&2
+  echo "  3) Reenvio (FORWARD)" >&2
+  local choice
+  while true; do
+    choice=$(prompt "Direccion (1-3) 1=Entrante, 2=Saliente, 3=Reenvio" "1")
+    case "$choice" in
+      1) echo "INPUT"; return 0 ;;
+      2) echo "OUTPUT"; return 0 ;;
+      3) echo "FORWARD"; return 0 ;;
+      *) echo "Opcion invalida." ;;
+    esac
+  done
+}
+
+choose_proto() {
+  echo "Protocolo:" >&2
+  echo "  1) tcp" >&2
+  echo "  2) udp" >&2
+  echo "  3) icmp" >&2
+  echo "  4) all (sin -p)" >&2
+  local choice
+  while true; do
+    choice=$(prompt "Protocolo (1-4) 1=tcp, 2=udp, 3=icmp, 4=todos" "1")
+    case "$choice" in
+      1) echo "tcp"; return 0 ;;
+      2) echo "udp"; return 0 ;;
+      3) echo "icmp"; return 0 ;;
+      4) echo "all"; return 0 ;;
+      *) echo "Opcion invalida." ;;
+    esac
+  done
+}
+
+apply_rule() {
+  local action chain proto port src dst inif outif
+
+  action=$(choose_action)
+  chain=$(choose_chain)
+  proto=$(choose_proto)
+
+  port=""
+  if [[ "$proto" == "tcp" || "$proto" == "udp" ]]; then
+    while true; do
+      port=$(prompt "Puerto o rango (ej: 80 o 1000:2000, o 'any')" "any")
+      if [[ "$port" == "any" ]]; then
+        port=""
+        break
+      fi
+      if is_valid_port "$port"; then
+        break
+      fi
+      echo "Puerto invalido."
+    done
+  fi
+
+  src=$(prompt "IP/CIDR de origen (enter para omitir)" "")
+  dst=$(prompt "IP/CIDR de destino (enter para omitir)" "")
+
+  inif=""
+  outif=""
+  if [[ "$chain" == "INPUT" || "$chain" == "FORWARD" ]]; then
+    inif=$(prompt "Interfaz de entrada (enter para omitir)" "")
+  fi
+  if [[ "$chain" == "OUTPUT" || "$chain" == "FORWARD" ]]; then
+    outif=$(prompt "Interfaz de salida (enter para omitir)" "")
+  fi
+
+  local -a cmd
+  cmd=("${IPT[@]}" -A "$chain")
+
+  if [[ "$proto" != "all" ]]; then
+    cmd+=(-p "$proto")
+  fi
+  if [[ -n "$port" ]]; then
+    cmd+=(--dport "$port")
+  fi
+  if [[ -n "$src" ]]; then
+    cmd+=(-s "$src")
+  fi
+  if [[ -n "$dst" ]]; then
+    cmd+=(-d "$dst")
+  fi
+  if [[ -n "$inif" ]]; then
+    cmd+=(-i "$inif")
+  fi
+  if [[ -n "$outif" ]]; then
+    cmd+=(-o "$outif")
+  fi
+
+  cmd+=(-j "$action")
+
+  echo ""
+  echo "Comando a ejecutar:"
+  printf '>> '
+  printf '%q ' "${cmd[@]}"
+  echo ""
+
+  local confirm
+  confirm=$(prompt "Aplicar regla? (s/N)" "N")
+  case "$confirm" in
+    s|S|si|SI)
+      "${cmd[@]}"
+      echo "Regla aplicada."
+      ;;
+    *)
+      echo "Cancelado."
+      ;;
+  esac
+}
+
+main_menu() {
+  while true; do
+    echo ""
+    echo "Firewall wizard (iptables)"
+    echo "  1) Crear y aplicar regla"
+    echo "  2) Listar reglas actuales"
+    echo "  3) Habilitar firewall (default DROP)"
+    echo "  4) Deshabilitar firewall (default ACCEPT)"
+    echo "  5) Salir"
+    local choice
+    choice=$(prompt "Menu (1-5) 1=Crear, 2=Listar, 3=Enable, 4=Disable, 5=Salir" "1")
+    case "$choice" in
+      1) apply_rule ;;
+      2) "${IPT[@]}" -L -n -v --line-numbers ;;
+      3) enable_firewall ;;
+      4) disable_firewall ;;
+      5) exit 0 ;;
+      *) echo "Opcion invalida." ;;
+    esac
+  done
+}
+
+enable_firewall() {
+  echo ""
+  echo "Habilitar firewall: INPUT=DROP, FORWARD=DROP, OUTPUT=ACCEPT"
+  local confirm
+  confirm=$(prompt "Confirmar? (s/N)" "N")
+  case "$confirm" in
+    s|S|si|SI)
+      # Reglas base seguras
+      "${IPT[@]}" -C INPUT -i lo -j ACCEPT 2>/dev/null || "${IPT[@]}" -I INPUT -i lo -j ACCEPT
+      "${IPT[@]}" -C INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || "${IPT[@]}" -I INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+      "${IPT[@]}" -C FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || "${IPT[@]}" -I FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+      "${IPT[@]}" -P INPUT DROP
+      "${IPT[@]}" -P FORWARD DROP
+      "${IPT[@]}" -P OUTPUT ACCEPT
+      echo "Firewall habilitado."
+      ;;
+    *) echo "Cancelado." ;;
+  esac
+}
+
+disable_firewall() {
+  echo ""
+  echo "Deshabilitar firewall: INPUT=ACCEPT, FORWARD=ACCEPT, OUTPUT=ACCEPT"
+  local confirm
+  confirm=$(prompt "Confirmar? (s/N)" "N")
+  case "$confirm" in
+    s|S|si|SI)
+      "${IPT[@]}" -P INPUT ACCEPT
+      "${IPT[@]}" -P FORWARD ACCEPT
+      "${IPT[@]}" -P OUTPUT ACCEPT
+      echo "Firewall deshabilitado (politicas en ACCEPT)."
+      ;;
+    *) echo "Cancelado." ;;
+  esac
+}
+
+main_menu
