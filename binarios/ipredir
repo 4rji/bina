@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+TAG="redir.sh"
+
+usage() {
+cat <<'EOF'
+Usage:
+  ./redir.sh -o ORIGIN_IP -d DEST_IP [-p PORT] [-P tcp|udp] [-a add|del] [-s]
+
+Options:
+  -o  Original destination IP to match
+  -d  New destination IP
+  -p  Port (optional). If omitted, ALL ports are redirected
+  -P  Protocol (default: tcp)
+  -a  Action: add | del (default: add)
+  -s  Show ONLY rules created by this script (tagged)
+
+Examples:
+  ./redir.sh -o 123.32.32.12 -d 10.10.10.50
+  ./redir.sh -o 123.32.32.12 -d 10.10.10.50 -p 5123
+  ./redir.sh -o 123.32.32.12 -d 10.10.10.50 -p 5123 -a del
+  ./redir.sh -s
+EOF
+}
+
+# Auto-sudo
+if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
+  exec sudo -E bash "$0" "$@"
+fi
+
+ACTION="add"
+ORIGIN=""
+DEST=""
+PORT=""
+PROTO="tcp"
+SHOW_ONLY=0
+
+while getopts ":a:o:d:p:P:sh" opt; do
+  case "$opt" in
+    a) ACTION="$OPTARG" ;;
+    o) ORIGIN="$OPTARG" ;;
+    d) DEST="$OPTARG" ;;
+    p) PORT="$OPTARG" ;;
+    P) PROTO="$OPTARG" ;;
+    s) SHOW_ONLY=1 ;;
+    h) usage; exit 0 ;;
+    \?) echo "Unknown option: -$OPTARG" >&2; usage; exit 2 ;;
+    :)  echo "Missing arg for -$OPTARG" >&2; usage; exit 2 ;;
+  esac
+done
+
+show_rules() {
+  # Show only OUTPUT rules tagged by this script
+  iptables -t nat -S OUTPUT | grep -F -- "--comment $TAG" || true
+}
+
+# If -s is used, show and exit
+if [[ "$SHOW_ONLY" -eq 1 ]]; then
+  show_rules
+  exit 0
+fi
+
+[[ -n "$ORIGIN" ]] || { echo "Missing -o ORIGIN_IP"; usage; exit 2; }
+
+# Build a unique tag so you can differentiate multiple rules
+COMMENT="$TAG o=$ORIGIN d=${DEST:-?} p=${PORT:-all} proto=$PROTO"
+
+case "$ACTION" in
+  add)
+    [[ -n "$DEST" ]] || { echo "Missing -d DEST_IP"; usage; exit 2; }
+    if [[ -n "$PORT" ]]; then
+      iptables -t nat -A OUTPUT -d "$ORIGIN" -p "$PROTO" --dport "$PORT" \
+        -m comment --comment "$COMMENT" \
+        -j DNAT --to-destination "$DEST:$PORT"
+    else
+      iptables -t nat -A OUTPUT -d "$ORIGIN" -p "$PROTO" \
+        -m comment --comment "$COMMENT" \
+        -j DNAT --to-destination "$DEST"
+    fi
+    ;;
+  del)
+    [[ -n "$DEST" ]] || { echo "Missing -d DEST_IP (needed to match the exact rule)"; usage; exit 2; }
+    if [[ -n "$PORT" ]]; then
+      iptables -t nat -D OUTPUT -d "$ORIGIN" -p "$PROTO" --dport "$PORT" \
+        -m comment --comment "$COMMENT" \
+        -j DNAT --to-destination "$DEST:$PORT" || true
+    else
+      iptables -t nat -D OUTPUT -d "$ORIGIN" -p "$PROTO" \
+        -m comment --comment "$COMMENT" \
+        -j DNAT --to-destination "$DEST" || true
+    fi
+    ;;
+  *)
+    echo "Invalid -a action (use add|del)"; usage; exit 2 ;;
+esac
