@@ -1,30 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TAG="redir.sh"
+SCRIPT_NAME="$(basename "$0")"
+TAG="$SCRIPT_NAME"
 
 usage() {
-cat <<'EOF'
+cat <<EOF
 Usage:
-  ./redir.sh -o ORIGIN_IP -d DEST_IP [-p PORT] [-P tcp|udp] [-a add|del] [-s]
+  ./$SCRIPT_NAME -o ORIGIN_IP -d DEST_IP [-p PORT] [-P tcp|udp] [-a add|del]
+  ./$SCRIPT_NAME -s
 
 Options:
-  -o  Original destination IP to match
+  -o  Original destination IP
   -d  New destination IP
-  -p  Port (optional). If omitted, ALL ports are redirected
+  -p  Port (optional, if omitted ALL ports)
   -P  Protocol (default: tcp)
   -a  Action: add | del (default: add)
-  -s  Show ONLY rules created by this script (tagged)
-
-Examples:
-  ./redir.sh -o 123.32.32.12 -d 10.10.10.50
-  ./redir.sh -o 123.32.32.12 -d 10.10.10.50 -p 5123
-  ./redir.sh -o 123.32.32.12 -d 10.10.10.50 -p 5123 -a del
-  ./redir.sh -s
+  -s  Show ONLY rules created by this script
 EOF
 }
 
-# Auto-sudo
+# Auto-sudo (but allow -s to work cleanly)
 if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
   exec sudo -E bash "$0" "$@"
 fi
@@ -45,30 +41,28 @@ while getopts ":a:o:d:p:P:sh" opt; do
     P) PROTO="$OPTARG" ;;
     s) SHOW_ONLY=1 ;;
     h) usage; exit 0 ;;
-    \?) echo "Unknown option: -$OPTARG" >&2; usage; exit 2 ;;
-    :)  echo "Missing arg for -$OPTARG" >&2; usage; exit 2 ;;
+    \?) echo "Unknown option: -$OPTARG"; usage; exit 2 ;;
+    :)  echo "Missing arg for -$OPTARG"; usage; exit 2 ;;
   esac
 done
 
 show_rules() {
-  # Show only OUTPUT rules tagged by this script
   iptables -t nat -S OUTPUT | grep -F -- "--comment $TAG" || true
 }
 
-# If -s is used, show and exit
+# -s works standalone
 if [[ "$SHOW_ONLY" -eq 1 ]]; then
   show_rules
   exit 0
 fi
 
-[[ -n "$ORIGIN" ]] || { echo "Missing -o ORIGIN_IP"; usage; exit 2; }
+[[ -n "$ORIGIN" ]] || { echo "Missing -o"; usage; exit 2; }
 
-# Build a unique tag so you can differentiate multiple rules
 COMMENT="$TAG o=$ORIGIN d=${DEST:-?} p=${PORT:-all} proto=$PROTO"
 
 case "$ACTION" in
   add)
-    [[ -n "$DEST" ]] || { echo "Missing -d DEST_IP"; usage; exit 2; }
+    [[ -n "$DEST" ]] || { echo "Missing -d"; usage; exit 2; }
     if [[ -n "$PORT" ]]; then
       iptables -t nat -A OUTPUT -d "$ORIGIN" -p "$PROTO" --dport "$PORT" \
         -m comment --comment "$COMMENT" \
@@ -80,7 +74,7 @@ case "$ACTION" in
     fi
     ;;
   del)
-    [[ -n "$DEST" ]] || { echo "Missing -d DEST_IP (needed to match the exact rule)"; usage; exit 2; }
+    [[ -n "$DEST" ]] || { echo "Missing -d"; usage; exit 2; }
     if [[ -n "$PORT" ]]; then
       iptables -t nat -D OUTPUT -d "$ORIGIN" -p "$PROTO" --dport "$PORT" \
         -m comment --comment "$COMMENT" \
@@ -92,5 +86,5 @@ case "$ACTION" in
     fi
     ;;
   *)
-    echo "Invalid -a action (use add|del)"; usage; exit 2 ;;
+    echo "Invalid action"; usage; exit 2 ;;
 esac
