@@ -7,13 +7,14 @@ TAG="$SCRIPT_NAME"
 usage() {
 cat <<EOF
 Usage:
-  ./$SCRIPT_NAME -o ORIGIN_IP -d DEST_IP [-p PORT] [-P tcp|udp] [-a add|del]
+  ./$SCRIPT_NAME -o ORIGIN_IP -d DEST_IP [-p PORT] [-r DEST_PORT] [-P tcp|udp] [-a add|del]
   ./$SCRIPT_NAME -s
 
 Options:
   -o  Original destination IP
   -d  New destination IP
-  -p  Port (optional, if omitted ALL ports)
+  -p  Port to match (optional, if omitted ALL ports)
+  -r  Destination port (optional, defaults to -p value)
   -P  Protocol (default: tcp)
   -a  Action: add | del (default: add)
   -s  Show ONLY rules created by this script
@@ -29,15 +30,17 @@ ACTION="add"
 ORIGIN=""
 DEST=""
 PORT=""
+DEST_PORT=""
 PROTO="tcp"
 SHOW_ONLY=0
 
-while getopts ":a:o:d:p:P:sh" opt; do
+while getopts ":a:o:d:p:r:P:sh" opt; do
   case "$opt" in
     a) ACTION="$OPTARG" ;;
     o) ORIGIN="$OPTARG" ;;
     d) DEST="$OPTARG" ;;
     p) PORT="$OPTARG" ;;
+    r) DEST_PORT="$OPTARG" ;;
     P) PROTO="$OPTARG" ;;
     s) SHOW_ONLY=1 ;;
     h) usage; exit 0 ;;
@@ -58,7 +61,24 @@ fi
 
 [[ -n "$ORIGIN" ]] || { echo "Missing -o"; usage; exit 2; }
 
-COMMENT="$TAG o=$ORIGIN d=${DEST:-?} p=${PORT:-all} proto=$PROTO"
+COMMENT="$TAG o=$ORIGIN d=${DEST:-?} p=${PORT:-all}->${DEST_PORT:-same} proto=$PROTO"
+
+to_destination() {
+  local dest_ip="$1"
+  local match_port="$2"
+  local dest_port="$3"
+
+  # If a destination port was not provided, reuse the match port when present
+  if [[ -z "$dest_port" && -n "$match_port" ]]; then
+    dest_port="$match_port"
+  fi
+
+  if [[ -n "$dest_port" ]]; then
+    echo "$dest_ip:$dest_port"
+  else
+    echo "$dest_ip"
+  fi
+}
 
 case "$ACTION" in
   add)
@@ -66,11 +86,11 @@ case "$ACTION" in
     if [[ -n "$PORT" ]]; then
       iptables -t nat -A OUTPUT -d "$ORIGIN" -p "$PROTO" --dport "$PORT" \
         -m comment --comment "$COMMENT" \
-        -j DNAT --to-destination "$DEST:$PORT"
+        -j DNAT --to-destination "$(to_destination "$DEST" "$PORT" "$DEST_PORT")"
     else
       iptables -t nat -A OUTPUT -d "$ORIGIN" -p "$PROTO" \
         -m comment --comment "$COMMENT" \
-        -j DNAT --to-destination "$DEST"
+        -j DNAT --to-destination "$(to_destination "$DEST" "" "$DEST_PORT")"
     fi
     ;;
   del)
@@ -78,11 +98,11 @@ case "$ACTION" in
     if [[ -n "$PORT" ]]; then
       iptables -t nat -D OUTPUT -d "$ORIGIN" -p "$PROTO" --dport "$PORT" \
         -m comment --comment "$COMMENT" \
-        -j DNAT --to-destination "$DEST:$PORT" || true
+        -j DNAT --to-destination "$(to_destination "$DEST" "$PORT" "$DEST_PORT")" || true
     else
       iptables -t nat -D OUTPUT -d "$ORIGIN" -p "$PROTO" \
         -m comment --comment "$COMMENT" \
-        -j DNAT --to-destination "$DEST" || true
+        -j DNAT --to-destination "$(to_destination "$DEST" "" "$DEST_PORT")" || true
     fi
     ;;
   *)
