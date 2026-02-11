@@ -1,0 +1,5 @@
+#!/bin/bash
+
+sudo cp ~/.config/Wallpaper/grub-16x9/01/00/grub-4x3.png /boot/grub/themes/kali/grub-4x3.png
+sudo cp ~/.config/Wallpaper/grub-16x9/01/00/grub-4x3.png /boot/grub/themes/kali/grub-16x9.png
+sudo cp ~/.config/Wallpaper/grub-16x9/01/_background.png /usr/share/images/desktop-base/desktop-grub.png
