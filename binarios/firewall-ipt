@@ -4,6 +4,14 @@ set -euo pipefail
 # Simple interactive iptables rule builder/applier.
 # Works with iptables classic (requires root).
 
+# Colors
+RED="\033[1;31m"
+GREEN="\033[1;32m"
+YELLOW="\033[1;33m"
+BLUE="\033[1;34m"
+CYAN="\033[1;36m"
+RESET="\033[0m"
+
 IPT=(iptables)
 if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
   echo "Nota: iptables requiere root. Usare sudo para ejecutar." >&2
@@ -22,6 +30,18 @@ prompt() {
   fi
 }
 
+print_cmd() {
+  echo -e "${YELLOW}Comando a ejecutar:${RESET}"
+  printf '>> '
+  printf '%q ' "$@"
+  echo ""
+}
+
+run_cmd() {
+  print_cmd "$@"
+  "$@"
+}
+
 is_valid_port() {
   local p="$1"
   if [[ "$p" =~ ^[0-9]+$ ]]; then
@@ -37,9 +57,9 @@ is_valid_port() {
 }
 
 choose_action() {
-  echo "Accion:" >&2
-  echo "  1) Permitir (ACCEPT)" >&2
-  echo "  2) Bloquear (DROP)" >&2
+  echo -e "${CYAN}Accion:${RESET}" >&2
+  echo -e "  ${GREEN}1${RESET}) Permitir (ACCEPT)" >&2
+  echo -e "  ${RED}2${RESET}) Bloquear (DROP)" >&2
   local choice
   while true; do
     choice=$(prompt "Accion (1-2) 1=Permitir, 2=Bloquear" "1")
@@ -52,10 +72,10 @@ choose_action() {
 }
 
 choose_chain() {
-  echo "Direccion:" >&2
-  echo "  1) Entrante (INPUT)" >&2
-  echo "  2) Saliente (OUTPUT)" >&2
-  echo "  3) Reenvio (FORWARD)" >&2
+  echo -e "${CYAN}Direccion:${RESET}" >&2
+  echo -e "  ${GREEN}1${RESET}) Entrante (INPUT)" >&2
+  echo -e "  ${GREEN}2${RESET}) Saliente (OUTPUT)" >&2
+  echo -e "  ${GREEN}3${RESET}) Reenvio (FORWARD)" >&2
   local choice
   while true; do
     choice=$(prompt "Direccion (1-3) 1=Entrante, 2=Saliente, 3=Reenvio" "1")
@@ -69,11 +89,11 @@ choose_chain() {
 }
 
 choose_proto() {
-  echo "Protocolo:" >&2
-  echo "  1) tcp" >&2
-  echo "  2) udp" >&2
-  echo "  3) icmp" >&2
-  echo "  4) all (sin -p)" >&2
+  echo -e "${CYAN}Protocolo:${RESET}" >&2
+  echo -e "  ${GREEN}1${RESET}) tcp" >&2
+  echo -e "  ${GREEN}2${RESET}) udp" >&2
+  echo -e "  ${GREEN}3${RESET}) icmp" >&2
+  echo -e "  ${GREEN}4${RESET}) all (sin -p)" >&2
   local choice
   while true; do
     choice=$(prompt "Protocolo (1-4) 1=tcp, 2=udp, 3=icmp, 4=todos" "1")
@@ -146,20 +166,17 @@ apply_rule() {
   cmd+=(-j "$action")
 
   echo ""
-  echo "Comando a ejecutar:"
-  printf '>> '
-  printf '%q ' "${cmd[@]}"
-  echo ""
+  print_cmd "${cmd[@]}"
 
   local confirm
   confirm=$(prompt "Aplicar regla? (s/N)" "N")
   case "$confirm" in
     s|S|si|SI)
       "${cmd[@]}"
-      echo "Regla aplicada."
+      echo -e "${GREEN}Regla aplicada.${RESET}"
       ;;
     *)
-      echo "Cancelado."
+      echo -e "${RED}Cancelado.${RESET}"
       ;;
   esac
 }
@@ -167,17 +184,17 @@ apply_rule() {
 main_menu() {
   while true; do
     echo ""
-    echo "Firewall wizard (iptables)"
-    echo "  1) Crear y aplicar regla"
-    echo "  2) Listar reglas actuales"
-    echo "  3) Habilitar firewall (default DROP)"
-    echo "  4) Deshabilitar firewall (default ACCEPT)"
-    echo "  5) Salir"
+    echo -e "${BLUE}Firewall wizard (iptables)${RESET}"
+    echo -e "  ${GREEN}1${RESET}) Crear y aplicar regla"
+    echo -e "  ${GREEN}2${RESET}) Listar reglas actuales"
+    echo -e "  ${GREEN}3${RESET}) Habilitar firewall (default DROP)"
+    echo -e "  ${GREEN}4${RESET}) Deshabilitar firewall (default ACCEPT)"
+    echo -e "  ${RED}5${RESET}) Salir"
     local choice
     choice=$(prompt "Menu (1-5) 1=Crear, 2=Listar, 3=Enable, 4=Disable, 5=Salir" "1")
     case "$choice" in
       1) apply_rule ;;
-      2) "${IPT[@]}" -L -n -v --line-numbers ;;
+      2) run_cmd "${IPT[@]}" -L -n -v --line-numbers ;;
       3) enable_firewall ;;
       4) disable_firewall ;;
       5) exit 0 ;;
@@ -188,38 +205,38 @@ main_menu() {
 
 enable_firewall() {
   echo ""
-  echo "Habilitar firewall: INPUT=DROP, FORWARD=DROP, OUTPUT=ACCEPT"
+  echo -e "${YELLOW}Habilitar firewall:${RESET} INPUT=DROP, FORWARD=DROP, OUTPUT=ACCEPT"
   local confirm
   confirm=$(prompt "Confirmar? (s/N)" "N")
   case "$confirm" in
     s|S|si|SI)
       # Reglas base seguras
-      "${IPT[@]}" -C INPUT -i lo -j ACCEPT 2>/dev/null || "${IPT[@]}" -I INPUT -i lo -j ACCEPT
-      "${IPT[@]}" -C INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || "${IPT[@]}" -I INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-      "${IPT[@]}" -C FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || "${IPT[@]}" -I FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+      run_cmd "${IPT[@]}" -C INPUT -i lo -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I INPUT -i lo -j ACCEPT
+      run_cmd "${IPT[@]}" -C INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+      run_cmd "${IPT[@]}" -C FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
-      "${IPT[@]}" -P INPUT DROP
-      "${IPT[@]}" -P FORWARD DROP
-      "${IPT[@]}" -P OUTPUT ACCEPT
-      echo "Firewall habilitado."
+      run_cmd "${IPT[@]}" -P INPUT DROP
+      run_cmd "${IPT[@]}" -P FORWARD DROP
+      run_cmd "${IPT[@]}" -P OUTPUT ACCEPT
+      echo -e "${GREEN}Firewall habilitado.${RESET}"
       ;;
-    *) echo "Cancelado." ;;
+    *) echo -e "${RED}Cancelado.${RESET}" ;;
   esac
 }
 
 disable_firewall() {
   echo ""
-  echo "Deshabilitar firewall: INPUT=ACCEPT, FORWARD=ACCEPT, OUTPUT=ACCEPT"
+  echo -e "${YELLOW}Deshabilitar firewall:${RESET} INPUT=ACCEPT, FORWARD=ACCEPT, OUTPUT=ACCEPT"
   local confirm
   confirm=$(prompt "Confirmar? (s/N)" "N")
   case "$confirm" in
     s|S|si|SI)
-      "${IPT[@]}" -P INPUT ACCEPT
-      "${IPT[@]}" -P FORWARD ACCEPT
-      "${IPT[@]}" -P OUTPUT ACCEPT
-      echo "Firewall deshabilitado (politicas en ACCEPT)."
+      run_cmd "${IPT[@]}" -P INPUT ACCEPT
+      run_cmd "${IPT[@]}" -P FORWARD ACCEPT
+      run_cmd "${IPT[@]}" -P OUTPUT ACCEPT
+      echo -e "${GREEN}Firewall deshabilitado (politicas en ACCEPT).${RESET}"
       ;;
-    *) echo "Cancelado." ;;
+    *) echo -e "${RED}Cancelado.${RESET}" ;;
   esac
 }
 
