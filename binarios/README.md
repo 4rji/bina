@@ -36,6 +36,7 @@ ttyinicio           Crea mensaje de inicio de tty para ver la ip del servidor de
 
 
 ###------linux
+wallpaperinst       Instala wallpaper del grub de kali
 browshinst          Browsh para ver el browser en ssh terminal necesita firefox
 mapat               alias de mapa en telnet - telnet mapscii.me
 modinvest           Crea snapshop de modulos, para comparar e investigar
