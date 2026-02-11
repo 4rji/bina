@@ -1,0 +1,13 @@
+vmware --version 
+sudo apt-get install linux-headers-$(uname -r)
+git clone https://github.com/philipl/vmware-hos... -b workstation-17.6.3
+cd vmware-host-modules
+
+make
+
+tar -cf vmmon.tar vmmon-only
+tar -cf vmnet.tar vmnet-only
+
+#THE FOLLOWING COMMANDS ARE WITH SUDO!!
+sudo cp -v vmmon.tar vmnet.tar /usr/lib/vmware/modules/source/
+sudo vmware-modconfig --console --install-all
