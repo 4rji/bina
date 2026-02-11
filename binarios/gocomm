@@ -29,3 +29,7 @@ echo -e "${BLUE}\n=== Done ===${NC}"
 echo "Para compilar para ELF ezuri, no lo he probado"
 echo "GOOS=linux GOARCH=amd64 go build -o demon-go demon.go"
 echo ""
+
+echo "Para compilar con sus dependencias"
+echo "GOCACHE=/tmp/gocache CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o airsend ."
+echo ""
