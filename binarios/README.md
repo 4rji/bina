@@ -168,7 +168,7 @@ xrayinst            instala xray. no es mi script.
 xrayinst2           Descarga el archivo de configuracion a b1 
 fx11inst            Instala firefox en docker para acceder remotamente
 fx11                se usa para activar remotamente el firefox de docker remoto con -s o con -t
-xleakinst           Para ver xcel, archivos como xls y similares en terminal xleak
+xleakinst           Para ver xcel, cvs  archivos como xls y similares en terminal xleak
 
 
 #DNS o ips 
