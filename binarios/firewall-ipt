@@ -56,6 +56,25 @@ is_valid_port() {
   fi
 }
 
+is_valid_ports_spec() {
+  local spec="$1"
+  local token
+  local count=0
+
+  [[ -n "$spec" ]] || return 1
+
+  IFS=',' read -r -a tokens <<< "$spec"
+  for token in "${tokens[@]}"; do
+    token="${token//[[:space:]]/}"
+    [[ -n "$token" ]] || return 1
+    is_valid_port "$token" || return 1
+    count=$((count + 1))
+  done
+
+  # iptables multiport admite hasta 15 puertos/rangos por regla.
+  [[ "$count" -le 15 ]]
+}
+
 choose_action() {
   echo -e "${CYAN}Accion:${RESET}" >&2
   echo -e "  ${GREEN}1${RESET}) Permitir (ACCEPT)" >&2
@@ -117,15 +136,16 @@ apply_rule() {
   port=""
   if [[ "$proto" == "tcp" || "$proto" == "udp" ]]; then
     while true; do
-      port=$(prompt "Puerto o rango (ej: 80 o 1000:2000, o 'any')" "any")
+      port=$(prompt "Puerto(s)/rango(s) (ej: 80, 22,1234,12411 o 1000:2000, o 'any')" "any")
       if [[ "$port" == "any" ]]; then
         port=""
         break
       fi
-      if is_valid_port "$port"; then
+      if is_valid_ports_spec "$port"; then
+        port="${port//[[:space:]]/}"
         break
       fi
-      echo "Puerto invalido."
+      echo "Puerto(s) invalido(s). Usa coma para multiples y maximo 15 items."
     done
   fi
 
@@ -148,7 +168,11 @@ apply_rule() {
     cmd+=(-p "$proto")
   fi
   if [[ -n "$port" ]]; then
-    cmd+=(--dport "$port")
+    if [[ "$port" == *,* ]]; then
+      cmd+=(-m multiport --dports "$port")
+    else
+      cmd+=(--dport "$port")
+    fi
   fi
   if [[ -n "$src" ]]; then
     cmd+=(-s "$src")
@@ -189,15 +213,19 @@ main_menu() {
     echo -e "  ${GREEN}2${RESET}) Listar reglas actuales"
     echo -e "  ${GREEN}3${RESET}) Habilitar firewall (default DROP)"
     echo -e "  ${GREEN}4${RESET}) Deshabilitar firewall (default ACCEPT)"
-    echo -e "  ${RED}5${RESET}) Salir"
+    echo -e "  ${GREEN}5${RESET}) Modo agresivo (OUTPUT DROP + allowlist)"
+    echo -e "  ${GREEN}6${RESET}) Modo internet (DNS + HTTP/HTTPS)"
+    echo -e "  ${RED}7${RESET}) Salir"
     local choice
-    choice=$(prompt "Menu (1-5) 1=Crear, 2=Listar, 3=Enable, 4=Disable, 5=Salir" "1")
+    choice=$(prompt "Menu (1-7) 1=Crear, 2=Listar, 3=Enable, 4=Disable, 5=Agresivo, 6=Internet, 7=Salir" "1")
     case "$choice" in
       1) apply_rule ;;
       2) run_cmd "${IPT[@]}" -L -n -v --line-numbers ;;
       3) enable_firewall ;;
       4) disable_firewall ;;
-      5) exit 0 ;;
+      5) aggressive_mode ;;
+      6) internet_mode ;;
+      7) exit 0 ;;
       *) echo "Opcion invalida." ;;
     esac
   done
@@ -235,6 +263,61 @@ disable_firewall() {
       run_cmd "${IPT[@]}" -P FORWARD ACCEPT
       run_cmd "${IPT[@]}" -P OUTPUT ACCEPT
       echo -e "${GREEN}Firewall deshabilitado (politicas en ACCEPT).${RESET}"
+      ;;
+    *) echo -e "${RED}Cancelado.${RESET}" ;;
+  esac
+}
+
+aggressive_mode() {
+  echo ""
+  echo -e "${YELLOW}Modo agresivo:${RESET} INPUT=DROP, FORWARD=DROP, OUTPUT=DROP"
+  echo -e "${YELLOW}Solo se permitira trafico saliente con reglas OUTPUT explicitas.${RESET}"
+  local confirm
+  confirm=$(prompt "Confirmar modo agresivo? (s/N)" "N")
+  case "$confirm" in
+    s|S|si|SI)
+      # Reglas base para no romper loopback y conexiones ya establecidas.
+      run_cmd "${IPT[@]}" -C INPUT -i lo -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I INPUT -i lo -j ACCEPT
+      run_cmd "${IPT[@]}" -C OUTPUT -o lo -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I OUTPUT -o lo -j ACCEPT
+      run_cmd "${IPT[@]}" -C INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+      run_cmd "${IPT[@]}" -C OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+      run_cmd "${IPT[@]}" -C FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+      run_cmd "${IPT[@]}" -P INPUT DROP
+      run_cmd "${IPT[@]}" -P FORWARD DROP
+      run_cmd "${IPT[@]}" -P OUTPUT DROP
+      echo -e "${GREEN}Modo agresivo habilitado.${RESET}"
+      ;;
+    *) echo -e "${RED}Cancelado.${RESET}" ;;
+  esac
+}
+
+internet_mode() {
+  echo ""
+  echo -e "${YELLOW}Modo internet:${RESET} INPUT=DROP, FORWARD=DROP, OUTPUT=DROP + allowlist web"
+  echo -e "${YELLOW}Permite DNS (53 tcp/udp), HTTP (80/tcp), HTTPS (443/tcp+udp).${RESET}"
+  local confirm
+  confirm=$(prompt "Confirmar modo internet? (s/N)" "N")
+  case "$confirm" in
+    s|S|si|SI)
+      # Base segura: loopback y trafico relacionado/establecido.
+      run_cmd "${IPT[@]}" -C INPUT -i lo -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I INPUT -i lo -j ACCEPT
+      run_cmd "${IPT[@]}" -C OUTPUT -o lo -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I OUTPUT -o lo -j ACCEPT
+      run_cmd "${IPT[@]}" -C INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+      run_cmd "${IPT[@]}" -C OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+      run_cmd "${IPT[@]}" -C FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+      # Allowlist saliente para internet.
+      run_cmd "${IPT[@]}" -C OUTPUT -p udp --dport 53 -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -A OUTPUT -p udp --dport 53 -j ACCEPT
+      run_cmd "${IPT[@]}" -C OUTPUT -p tcp --dport 53 -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -A OUTPUT -p tcp --dport 53 -j ACCEPT
+      run_cmd "${IPT[@]}" -C OUTPUT -p tcp --dport 80 -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -A OUTPUT -p tcp --dport 80 -j ACCEPT
+      run_cmd "${IPT[@]}" -C OUTPUT -p tcp --dport 443 -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -A OUTPUT -p tcp --dport 443 -j ACCEPT
+      run_cmd "${IPT[@]}" -C OUTPUT -p udp --dport 443 -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -A OUTPUT -p udp --dport 443 -j ACCEPT
+
+      run_cmd "${IPT[@]}" -P INPUT DROP
+      run_cmd "${IPT[@]}" -P FORWARD DROP
+      run_cmd "${IPT[@]}" -P OUTPUT DROP
+      echo -e "${GREEN}Modo internet habilitado.${RESET}"
       ;;
     *) echo -e "${RED}Cancelado.${RESET}" ;;
   esac
