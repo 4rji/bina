@@ -14,7 +14,7 @@ RESET="\033[0m"
 
 IPT=(iptables)
 if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
-  echo "Nota: iptables requiere root. Usare sudo para ejecutar." >&2
+  echo "Note: iptables requires root. I will use sudo to run commands." >&2
   IPT=(sudo iptables)
 fi
 
@@ -31,7 +31,7 @@ prompt() {
 }
 
 print_cmd() {
-  echo -e "${YELLOW}Comando a ejecutar:${RESET}"
+  echo -e "${YELLOW}Command to run:${RESET}"
   printf '>> '
   printf '%q ' "$@"
   echo ""
@@ -71,57 +71,57 @@ is_valid_ports_spec() {
     count=$((count + 1))
   done
 
-  # iptables multiport admite hasta 15 puertos/rangos por regla.
+  # iptables multiport supports up to 15 ports/ranges per rule.
   [[ "$count" -le 15 ]]
 }
 
 choose_action() {
-  echo -e "${CYAN}Accion:${RESET}" >&2
-  echo -e "  ${GREEN}1${RESET}) Permitir (ACCEPT)" >&2
-  echo -e "  ${RED}2${RESET}) Bloquear (DROP)" >&2
+  echo -e "${CYAN}Action:${RESET}" >&2
+  echo -e "  ${GREEN}1${RESET}) Allow (ACCEPT)" >&2
+  echo -e "  ${RED}2${RESET}) Block (DROP)" >&2
   local choice
   while true; do
-    choice=$(prompt "Accion (1-2) 1=Permitir, 2=Bloquear" "1")
+    choice=$(prompt "Action (1-2) 1=Allow, 2=Block" "1")
     case "$choice" in
       1) echo "ACCEPT"; return 0 ;;
       2) echo "DROP"; return 0 ;;
-      *) echo "Opcion invalida." ;;
+      *) echo "Invalid option." ;;
     esac
   done
 }
 
 choose_chain() {
-  echo -e "${CYAN}Direccion:${RESET}" >&2
-  echo -e "  ${GREEN}1${RESET}) Entrante (INPUT)" >&2
-  echo -e "  ${GREEN}2${RESET}) Saliente (OUTPUT)" >&2
-  echo -e "  ${GREEN}3${RESET}) Reenvio (FORWARD)" >&2
+  echo -e "${CYAN}Direction:${RESET}" >&2
+  echo -e "  ${GREEN}1${RESET}) Incoming (INPUT)" >&2
+  echo -e "  ${GREEN}2${RESET}) Outgoing (OUTPUT)" >&2
+  echo -e "  ${GREEN}3${RESET}) Forwarding (FORWARD)" >&2
   local choice
   while true; do
-    choice=$(prompt "Direccion (1-3) 1=Entrante, 2=Saliente, 3=Reenvio" "1")
+    choice=$(prompt "Direction (1-3) 1=Incoming, 2=Outgoing, 3=Forwarding" "1")
     case "$choice" in
       1) echo "INPUT"; return 0 ;;
       2) echo "OUTPUT"; return 0 ;;
       3) echo "FORWARD"; return 0 ;;
-      *) echo "Opcion invalida." ;;
+      *) echo "Invalid option." ;;
     esac
   done
 }
 
 choose_proto() {
-  echo -e "${CYAN}Protocolo:${RESET}" >&2
+  echo -e "${CYAN}Protocol:${RESET}" >&2
   echo -e "  ${GREEN}1${RESET}) tcp" >&2
   echo -e "  ${GREEN}2${RESET}) udp" >&2
   echo -e "  ${GREEN}3${RESET}) icmp" >&2
-  echo -e "  ${GREEN}4${RESET}) all (sin -p)" >&2
+  echo -e "  ${GREEN}4${RESET}) all (without -p)" >&2
   local choice
   while true; do
-    choice=$(prompt "Protocolo (1-4) 1=tcp, 2=udp, 3=icmp, 4=todos" "1")
+    choice=$(prompt "Protocol (1-4) 1=tcp, 2=udp, 3=icmp, 4=all" "1")
     case "$choice" in
       1) echo "tcp"; return 0 ;;
       2) echo "udp"; return 0 ;;
       3) echo "icmp"; return 0 ;;
       4) echo "all"; return 0 ;;
-      *) echo "Opcion invalida." ;;
+      *) echo "Invalid option." ;;
     esac
   done
 }
@@ -136,7 +136,7 @@ apply_rule() {
   port=""
   if [[ "$proto" == "tcp" || "$proto" == "udp" ]]; then
     while true; do
-      port=$(prompt "Puerto(s)/rango(s) (ej: 80, 22,1234,12411 o 1000:2000, o 'any')" "any")
+      port=$(prompt "Port(s)/range(s) (e.g.: 80, 22,1234,12411 or 1000:2000, or 'any')" "any")
       if [[ "$port" == "any" ]]; then
         port=""
         break
@@ -145,20 +145,20 @@ apply_rule() {
         port="${port//[[:space:]]/}"
         break
       fi
-      echo "Puerto(s) invalido(s). Usa coma para multiples y maximo 15 items."
+      echo "Invalid port(s). Use commas for multiple values, max 15 items."
     done
   fi
 
-  src=$(prompt "IP/CIDR de origen (enter para omitir)" "")
-  dst=$(prompt "IP/CIDR de destino (enter para omitir)" "")
+  src=$(prompt "Source IP/CIDR (enter to skip)" "")
+  dst=$(prompt "Destination IP/CIDR (enter to skip)" "")
 
   inif=""
   outif=""
   if [[ "$chain" == "INPUT" || "$chain" == "FORWARD" ]]; then
-    inif=$(prompt "Interfaz de entrada (enter para omitir)" "")
+    inif=$(prompt "Input interface (enter to skip)" "")
   fi
   if [[ "$chain" == "OUTPUT" || "$chain" == "FORWARD" ]]; then
-    outif=$(prompt "Interfaz de salida (enter para omitir)" "")
+    outif=$(prompt "Output interface (enter to skip)" "")
   fi
 
   local -a cmd
@@ -193,14 +193,14 @@ apply_rule() {
   print_cmd "${cmd[@]}"
 
   local confirm
-  confirm=$(prompt "Aplicar regla? (s/N)" "N")
+  confirm=$(prompt "Apply rule? (y/N)" "N")
   case "$confirm" in
-    s|S|si|SI)
+    y|Y|yes|YES|s|S|si|SI)
       "${cmd[@]}"
-      echo -e "${GREEN}Regla aplicada.${RESET}"
+      echo -e "${GREEN}Rule applied.${RESET}"
       ;;
     *)
-      echo -e "${RED}Cancelado.${RESET}"
+      echo -e "${RED}Canceled.${RESET}"
       ;;
   esac
 }
@@ -209,15 +209,16 @@ main_menu() {
   while true; do
     echo ""
     echo -e "${BLUE}Firewall wizard (iptables)${RESET}"
-    echo -e "  ${GREEN}1${RESET}) Crear y aplicar regla"
-    echo -e "  ${GREEN}2${RESET}) Listar reglas actuales"
-    echo -e "  ${GREEN}3${RESET}) Habilitar firewall (default DROP)"
-    echo -e "  ${GREEN}4${RESET}) Deshabilitar firewall (default ACCEPT)"
-    echo -e "  ${GREEN}5${RESET}) Modo agresivo (OUTPUT DROP + allowlist)"
-    echo -e "  ${GREEN}6${RESET}) Modo internet (DNS + HTTP/HTTPS)"
-    echo -e "  ${RED}7${RESET}) Salir"
+    echo -e "  ${GREEN}1${RESET}) Create and apply rule"
+    echo -e "  ${GREEN}2${RESET}) List current rules"
+    echo -e "  ${GREEN}3${RESET}) Enable firewall (default DROP)"
+    echo -e "  ${GREEN}4${RESET}) Disable firewall (default ACCEPT)"
+    echo -e "  ${GREEN}5${RESET}) Aggressive mode (OUTPUT DROP + allowlist)"
+    echo -e "  ${GREEN}6${RESET}) Internet mode (DNS + HTTP/HTTPS)"
+    echo -e "  ${GREEN}7${RESET}) Delete rule by number"
+    echo -e "  ${RED}8${RESET}) Exit"
     local choice
-    choice=$(prompt "Menu (1-7) 1=Crear, 2=Listar, 3=Enable, 4=Disable, 5=Agresivo, 6=Internet, 7=Salir" "1")
+    choice=$(prompt "Menu (1-8) 1=Create, 2=List, 3=Enable, 4=Disable, 5=Aggressive, 6=Internet, 7=Delete, 8=Exit" "1")
     case "$choice" in
       1) apply_rule ;;
       2) run_cmd "${IPT[@]}" -L -n -v --line-numbers ;;
@@ -225,20 +226,21 @@ main_menu() {
       4) disable_firewall ;;
       5) aggressive_mode ;;
       6) internet_mode ;;
-      7) exit 0 ;;
-      *) echo "Opcion invalida." ;;
+      7) delete_rule ;;
+      8) exit 0 ;;
+      *) echo "Invalid option." ;;
     esac
   done
 }
 
 enable_firewall() {
   echo ""
-  echo -e "${YELLOW}Habilitar firewall:${RESET} INPUT=DROP, FORWARD=DROP, OUTPUT=ACCEPT"
+  echo -e "${YELLOW}Enable firewall:${RESET} INPUT=DROP, FORWARD=DROP, OUTPUT=ACCEPT"
   local confirm
-  confirm=$(prompt "Confirmar? (s/N)" "N")
+  confirm=$(prompt "Confirm? (y/N)" "N")
   case "$confirm" in
-    s|S|si|SI)
-      # Reglas base seguras
+    y|Y|yes|YES|s|S|si|SI)
+      # Safe baseline rules.
       run_cmd "${IPT[@]}" -C INPUT -i lo -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I INPUT -i lo -j ACCEPT
       run_cmd "${IPT[@]}" -C INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
       run_cmd "${IPT[@]}" -C FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
@@ -246,37 +248,37 @@ enable_firewall() {
       run_cmd "${IPT[@]}" -P INPUT DROP
       run_cmd "${IPT[@]}" -P FORWARD DROP
       run_cmd "${IPT[@]}" -P OUTPUT ACCEPT
-      echo -e "${GREEN}Firewall habilitado.${RESET}"
+      echo -e "${GREEN}Firewall enabled.${RESET}"
       ;;
-    *) echo -e "${RED}Cancelado.${RESET}" ;;
+    *) echo -e "${RED}Canceled.${RESET}" ;;
   esac
 }
 
 disable_firewall() {
   echo ""
-  echo -e "${YELLOW}Deshabilitar firewall:${RESET} INPUT=ACCEPT, FORWARD=ACCEPT, OUTPUT=ACCEPT"
+  echo -e "${YELLOW}Disable firewall:${RESET} INPUT=ACCEPT, FORWARD=ACCEPT, OUTPUT=ACCEPT"
   local confirm
-  confirm=$(prompt "Confirmar? (s/N)" "N")
+  confirm=$(prompt "Confirm? (y/N)" "N")
   case "$confirm" in
-    s|S|si|SI)
+    y|Y|yes|YES|s|S|si|SI)
       run_cmd "${IPT[@]}" -P INPUT ACCEPT
       run_cmd "${IPT[@]}" -P FORWARD ACCEPT
       run_cmd "${IPT[@]}" -P OUTPUT ACCEPT
-      echo -e "${GREEN}Firewall deshabilitado (politicas en ACCEPT).${RESET}"
+      echo -e "${GREEN}Firewall disabled (policies set to ACCEPT).${RESET}"
       ;;
-    *) echo -e "${RED}Cancelado.${RESET}" ;;
+    *) echo -e "${RED}Canceled.${RESET}" ;;
   esac
 }
 
 aggressive_mode() {
   echo ""
-  echo -e "${YELLOW}Modo agresivo:${RESET} INPUT=DROP, FORWARD=DROP, OUTPUT=DROP"
-  echo -e "${YELLOW}Solo se permitira trafico saliente con reglas OUTPUT explicitas.${RESET}"
+  echo -e "${YELLOW}Aggressive mode:${RESET} INPUT=DROP, FORWARD=DROP, OUTPUT=DROP"
+  echo -e "${YELLOW}Only outbound traffic explicitly allowed in OUTPUT rules will pass.${RESET}"
   local confirm
-  confirm=$(prompt "Confirmar modo agresivo? (s/N)" "N")
+  confirm=$(prompt "Confirm aggressive mode? (y/N)" "N")
   case "$confirm" in
-    s|S|si|SI)
-      # Reglas base para no romper loopback y conexiones ya establecidas.
+    y|Y|yes|YES|s|S|si|SI)
+      # Baseline rules to keep loopback and established/related traffic working.
       run_cmd "${IPT[@]}" -C INPUT -i lo -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I INPUT -i lo -j ACCEPT
       run_cmd "${IPT[@]}" -C OUTPUT -o lo -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I OUTPUT -o lo -j ACCEPT
       run_cmd "${IPT[@]}" -C INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
@@ -286,28 +288,28 @@ aggressive_mode() {
       run_cmd "${IPT[@]}" -P INPUT DROP
       run_cmd "${IPT[@]}" -P FORWARD DROP
       run_cmd "${IPT[@]}" -P OUTPUT DROP
-      echo -e "${GREEN}Modo agresivo habilitado.${RESET}"
+      echo -e "${GREEN}Aggressive mode enabled.${RESET}"
       ;;
-    *) echo -e "${RED}Cancelado.${RESET}" ;;
+    *) echo -e "${RED}Canceled.${RESET}" ;;
   esac
 }
 
 internet_mode() {
   echo ""
-  echo -e "${YELLOW}Modo internet:${RESET} INPUT=DROP, FORWARD=DROP, OUTPUT=DROP + allowlist web"
-  echo -e "${YELLOW}Permite DNS (53 tcp/udp), HTTP (80/tcp), HTTPS (443/tcp+udp).${RESET}"
+  echo -e "${YELLOW}Internet mode:${RESET} INPUT=DROP, FORWARD=DROP, OUTPUT=DROP + web allowlist"
+  echo -e "${YELLOW}Allows DNS (53 tcp/udp), HTTP (80/tcp), HTTPS (443/tcp+udp).${RESET}"
   local confirm
-  confirm=$(prompt "Confirmar modo internet? (s/N)" "N")
+  confirm=$(prompt "Confirm internet mode? (y/N)" "N")
   case "$confirm" in
-    s|S|si|SI)
-      # Base segura: loopback y trafico relacionado/establecido.
+    y|Y|yes|YES|s|S|si|SI)
+      # Safe baseline: loopback and established/related traffic.
       run_cmd "${IPT[@]}" -C INPUT -i lo -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I INPUT -i lo -j ACCEPT
       run_cmd "${IPT[@]}" -C OUTPUT -o lo -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I OUTPUT -o lo -j ACCEPT
       run_cmd "${IPT[@]}" -C INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
       run_cmd "${IPT[@]}" -C OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
       run_cmd "${IPT[@]}" -C FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -I FORWARD -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
-      # Allowlist saliente para internet.
+      # Outbound internet allowlist.
       run_cmd "${IPT[@]}" -C OUTPUT -p udp --dport 53 -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -A OUTPUT -p udp --dport 53 -j ACCEPT
       run_cmd "${IPT[@]}" -C OUTPUT -p tcp --dport 53 -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -A OUTPUT -p tcp --dport 53 -j ACCEPT
       run_cmd "${IPT[@]}" -C OUTPUT -p tcp --dport 80 -j ACCEPT 2>/dev/null || run_cmd "${IPT[@]}" -A OUTPUT -p tcp --dport 80 -j ACCEPT
@@ -317,9 +319,44 @@ internet_mode() {
       run_cmd "${IPT[@]}" -P INPUT DROP
       run_cmd "${IPT[@]}" -P FORWARD DROP
       run_cmd "${IPT[@]}" -P OUTPUT DROP
-      echo -e "${GREEN}Modo internet habilitado.${RESET}"
+      echo -e "${GREEN}Internet mode enabled.${RESET}"
       ;;
-    *) echo -e "${RED}Cancelado.${RESET}" ;;
+    *) echo -e "${RED}Canceled.${RESET}" ;;
+  esac
+}
+
+delete_rule() {
+  echo ""
+  echo -e "${YELLOW}Delete rule by number${RESET}"
+  local chain rule_num confirm
+
+  chain=$(choose_chain)
+
+  echo ""
+  echo -e "${CYAN}Current rules in ${chain}:${RESET}"
+  run_cmd "${IPT[@]}" -L "$chain" -n -v --line-numbers
+
+  while true; do
+    rule_num=$(prompt "Rule number to delete in ${chain} (enter to cancel)" "")
+    if [[ -z "$rule_num" ]]; then
+      echo -e "${RED}Canceled.${RESET}"
+      return 0
+    fi
+    if [[ "$rule_num" =~ ^[0-9]+$ ]] && [[ "$rule_num" -ge 1 ]]; then
+      break
+    fi
+    echo "Invalid number."
+  done
+
+  confirm=$(prompt "Confirm deletion of ${chain} line ${rule_num}? (y/N)" "N")
+  case "$confirm" in
+    y|Y|yes|YES|s|S|si|SI)
+      run_cmd "${IPT[@]}" -D "$chain" "$rule_num"
+      echo -e "${GREEN}Rule deleted.${RESET}"
+      ;;
+    *)
+      echo -e "${RED}Canceled.${RESET}"
+      ;;
   esac
 }
 
