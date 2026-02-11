@@ -19,7 +19,8 @@ Options:
   -P  Protocol (default: tcp)
   -R  Use REDIRECT target (port rewrite for local traffic; ignores -d)
   -a  Action: add | del (default: add)
-  -s  Show ONLY rules created by this script
+  -s  Show ALL existing NAT rules
+  -m  Show ONLY rules created by this script
 Notes:
   -R (REDIRECT) must also be used when deleting that rule type.
   Adds are idempotent: if the identical rule exists, it will not be duplicated.
@@ -37,10 +38,11 @@ DEST=""
 PORT=""
 DEST_PORT=""
 PROTO="tcp"
-SHOW_ONLY=0
+SHOW_ALL_NAT=0
+SHOW_ONLY_MINE=0
 TARGET="DNAT"
 
-while getopts ":a:o:d:p:r:P:sRh" opt; do
+while getopts ":a:o:d:p:r:P:smRh" opt; do
   case "$opt" in
     a) ACTION="$OPTARG" ;;
     o) ORIGIN="$OPTARG" ;;
@@ -48,7 +50,8 @@ while getopts ":a:o:d:p:r:P:sRh" opt; do
     p) PORT="$OPTARG" ;;
     r) DEST_PORT="$OPTARG" ;;
     P) PROTO="$OPTARG" ;;
-    s) SHOW_ONLY=1 ;;
+    s) SHOW_ALL_NAT=1 ;;
+    m) SHOW_ONLY_MINE=1 ;;
     R) TARGET="REDIRECT" ;;
     h) usage; exit 0 ;;
     \?) echo "Unknown option: -$OPTARG"; usage; exit 2 ;;
@@ -63,8 +66,17 @@ show_rules() {
   fi
 }
 
-# -s works standalone
-if [[ "$SHOW_ONLY" -eq 1 ]]; then
+show_all_nat_rules() {
+  iptables-save -t nat
+}
+
+# -s and -m work standalone
+if [[ "$SHOW_ALL_NAT" -eq 1 ]]; then
+  show_all_nat_rules
+  exit 0
+fi
+
+if [[ "$SHOW_ONLY_MINE" -eq 1 ]]; then
   show_rules
   exit 0
 fi
