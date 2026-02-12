@@ -1,0 +1,60 @@
+#!/usr/bin/env bash
+
+UNINSTALL_SUDO=false
+
+while getopts ":i" opt; do
+    case "$opt" in
+        i) UNINSTALL_SUDO=true ;;
+        \?)
+            echo "Usage: $0 [-i]"
+            exit 1
+            ;;
+    esac
+done
+
+# Detect distribution
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# 1. Install package
+case "$OS" in
+    ubuntu|debian|kali)
+        sudo apt update && sudo apt install -y doas
+        CONF_PATH="/etc/doas.conf"
+        ;;
+    fedora|ol)
+        sudo dnf install -y opendoas
+        CONF_PATH="/etc/doas.conf"
+        # In some Fedora/Oracle versions the path may be /etc/doas.d/doas.conf
+        [ -d /etc/doas.d ] && CONF_PATH="/etc/doas.d/doas.conf"
+        ;;
+    *)
+        echo "Distribution not automatically supported."
+        exit 1
+        ;;
+esac
+
+# 2. Configure file
+echo "permit persist $USER" | sudo tee "$CONF_PATH"
+
+# 3. Apply restrictive permissions
+sudo chown root:root "$CONF_PATH"
+sudo chmod 0400 "$CONF_PATH"
+
+# 4. Final verification
+echo "--- Verification ---"
+echo "Modified configuration file: $CONF_PATH"
+doas whoami
+if [ "$UNINSTALL_SUDO" = true ]; then
+    case "$OS" in
+        ubuntu|debian|kali)
+            sudo apt remove -y sudo
+            ;;
+        fedora|ol)
+            sudo dnf remove -y sudo
+            ;;
+    esac
+fi
+echo "use the flag -i to uninstall sudo."
