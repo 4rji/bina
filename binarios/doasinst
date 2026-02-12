@@ -12,6 +12,12 @@ while getopts ":i" opt; do
     esac
 done
 
+print_section() {
+    echo
+    echo "=== $1 ==="
+    echo
+}
+
 # Detect distribution
 if [ -f /etc/os-release ]; then
     . /etc/os-release
@@ -19,6 +25,7 @@ if [ -f /etc/os-release ]; then
 fi
 
 # 1. Install package
+print_section "Installing doas"
 case "$OS" in
     ubuntu|debian|kali)
         sudo apt update && sudo apt install -y doas
@@ -37,6 +44,7 @@ case "$OS" in
 esac
 
 # 2. Configure file
+print_section "Configuring doas"
 echo "permit persist $USER" | sudo tee "$CONF_PATH"
 
 # 3. Apply restrictive permissions
@@ -44,10 +52,14 @@ sudo chown root:root "$CONF_PATH"
 sudo chmod 0400 "$CONF_PATH"
 
 # 4. Final verification
-echo "--- Verification ---"
+print_section ""
 echo "Modified configuration file: $CONF_PATH"
+echo ""
+print_section "Verification"
 doas whoami
+
 if [ "$UNINSTALL_SUDO" = true ]; then
+    print_section "Uninstalling sudo"
     case "$OS" in
         ubuntu|debian|kali)
             sudo apt remove -y sudo
@@ -57,4 +69,6 @@ if [ "$UNINSTALL_SUDO" = true ]; then
             ;;
     esac
 fi
+
+echo
 echo "use the flag -i to uninstall sudo."
