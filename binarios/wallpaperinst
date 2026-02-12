@@ -3,6 +3,8 @@
 sudo cp ~/.config/Wallpaper/grub-16x9/01/00/grub-4x3.png /boot/grub/themes/kali/grub-4x3.png
 sudo cp ~/.config/Wallpaper/grub-16x9/01/00/grub-4x3.png /boot/grub/themes/kali/grub-16x9.png
 sudo cp ~/.config/Wallpaper/grub-16x9/01/_background.png /usr/share/images/desktop-base/desktop-grub.png
-sudo chmod a-w /boot/grub/themes/kali/grub-4x3.png
-sudo chmod a-w /boot/grub/themes/kali/grub-16x9.png
-sudo chmod a-w /usr/share/images/desktop-base/desktop-grub.png
+sudo chttr +i /boot/grub/themes/kali/grub-4x3.png
+sudo chttr +i /boot/grub/themes/kali/grub-16x9.png
+sudo chttr +i /usr/share/images/desktop-base/desktop-grub.png
+
+sudo update-grub
