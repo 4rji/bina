@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
 
-# Función para mostrar mensajes
-echo_msg() {
-    echo -e "=============================================="
-    echo -e "$1"
-    echo -e "=============================================="
-}
-
 # Check if two arguments (host and port) are provided
 if [ "$#" -ne 2 ]; then
   echo ""
@@ -17,30 +10,16 @@ fi
 
 HOST="$1"
 PORT="$2"
+CHECK_CMD="nc -z \"$HOST\" \"$PORT\" >/dev/null 2>&1"
 
-echo ""
-echo -e "  \033[1;34m_________________________________________________________\033[0m"
-echo ""
-
-echo_msg "  \033[1;33mMonitoring port $PORT on host $HOST. Press Ctrl+C to exit.\033[0m"
-
-echo ""
-echo -e "  \033[1;34m_________________________________________________________\033[0m"
-echo ""
+echo -e "  \033[1;33mMonitoring $HOST:$PORT (Ctrl+C to stop)\033[0m"
+echo -e "  \033[1;36m$CHECK_CMD\033[0m"
 
 while true; do
-  CMD="nc -z $HOST $PORT > /dev/null 2>&1"
-  echo -e "  \033[1;36m$CMD\033[0m"
-  eval $CMD
-  if [ $? -eq 0 ]; then
-    echo ""
-    echo_msg "  \033[1;32mPort $PORT on $HOST is open.\033[0m"
-    echo ""
-    break
+  if nc -z "$HOST" "$PORT" >/dev/null 2>&1; then
+    echo -e "  [$(date '+%H:%M:%S')] \033[1;32mOPEN\033[0m $HOST:$PORT"
   else
-    echo ""
-    echo -e "  \033[1;31mPort $PORT on $HOST is not open yet. Checking again...\033[0m"
-    echo ""
+    echo -e "  [$(date '+%H:%M:%S')] \033[1;31mCLOSED\033[0m $HOST:$PORT"
   fi
   sleep 5
 done
