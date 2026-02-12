@@ -1,35 +1,47 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 # Colors
 GREEN='\033[0;32m'
 BLUE='\033[1;34m'
-NC='\033[0m' # No Color
+YELLOW='\033[1;33m'
+NC='\033[0m'
 
-# Step 1: Initialize the module
-echo -e "${BLUE}\n=== Step 1: Initialize the Go module ===${NC}"
-echo -e "${GREEN}go mod init yourModuleName${NC}"
+banner() { echo -e "${BLUE}\n=== $* ===${NC}"; }
+cmd()    { echo -e "${GREEN}$*${NC}"; }
+note()   { echo -e "${YELLOW}$*${NC}"; }
 
-# Step 2: Download dependencies
-echo -e "${BLUE}\n=== Step 2: Get required package ===${NC}"
-echo -e "${GREEN}go get github.com/AlecAivazis/survey/v2${NC}"
+# ---- Config ----
+MODULE_NAME="${1:-yourModuleName}"
+OUT_NAME="airsend"
+PKG_DIR="."
+# ----------------
 
-# Step 3: Build the binary with optimizations
-echo -e "${BLUE}\n=== Step 3: Build the binary with minimal size ===${NC}"
+banner "Step 1: Initialize Go module"
+cmd "go mod init ${MODULE_NAME}"
+note "Si go.mod ya existe, ignora este paso."
 
-echo -e "${GREEN}go build -o todo todo.go${NC}"
-echo -e "${GREEN}go build -ldflags=\"-s -w\" -o todo todo.go${NC}"
+banner "Step 2: Download dependencies"
+cmd "go get github.com/AlecAivazis/survey/v2"
+cmd "go mod tidy"
 
+banner "Step 3: Build (native, optimized)"
+cmd "go build -trimpath -ldflags \"-s -w\" -o ${OUT_NAME} ${PKG_DIR}"
 
-# Step 4: Compress the binary using UPX
-echo -e "${BLUE}\n=== Step 4: Compress the binary===${NC}"
-echo -e "${GREEN}upx --best --lzma  --force-macos ${NC}"
+banner "Step 4: Optional UPX compression"
+note "Opcional"
+cmd "upx --best --lzma ${OUT_NAME}"
 
-echo -e "${BLUE}\n=== Done ===${NC}"
+banner "Step 5: Cross-compile Linux amd64 (static, reproducible)"
+cmd "GOCACHE=/tmp/gocache CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags \"-s -w\" -o ${OUT_NAME} ${PKG_DIR}"
 
-echo "Para compilar para ELF ezuri, no lo he probado"
-echo "GOOS=linux GOARCH=amd64 go build -o demon-go demon.go"
-echo ""
+banner "Step 6: Vendor dependencies (offline builds)"
+cmd "go mod vendor"
 
-echo "Para compilar con sus dependencias"
-echo "GOCACHE=/tmp/gocache CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags="-s -w" -o airsend ."
-echo ""
+banner "Step 7: Linux amd64 using vendor"
+cmd "GOCACHE=/tmp/gocache CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -mod=vendor -trimpath -ldflags \"-s -w\" -o ${OUT_NAME} ${PKG_DIR}"
+
+banner "Step 8: Windows amd64"
+cmd "GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go build -trimpath -ldflags \"-s -w\" -o ${OUT_NAME}-windows-amd64.exe ${PKG_DIR}"
+
+banner "Done"
