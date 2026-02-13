@@ -503,6 +503,7 @@ sitemirror          Descarga una pagina web, como sitescrapy, pero en go, mas fa
 
 
 ###----- Redteam 
+payloads            Dos payloads win and linux usando msfvenom metasploit
 tun2                Script que crea la interface tun0 y las reglas para enviar trafico por ahi 1080
 tun2socks           Para enviar todo el trafico por el tunnel usando tun0, necesita tun2 1080
 memory              algunos comandos para ejecutar en memoria comandos

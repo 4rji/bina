@@ -1,16 +1,21 @@
 #!/usr/bin/env bash
 
-# Comprobamos si estamos ejecutando el script como root
-if [[ $EUID -ne 0 ]]; then
-   echo "Este script debe ejecutarse como root o utilizando sudo."
-   exit 1
+# Ejecutar con sudo solo si no somos root
+if [[ $EUID -eq 0 ]]; then
+   SUDO=""
+else
+   if ! command -v sudo >/dev/null 2>&1; then
+      echo "No se encontró sudo. Ejecuta este script como root."
+      exit 1
+   fi
+   SUDO="sudo"
 fi
 
 # Inicializar la base de datos de Metasploit
-msfdb init
+$SUDO msfdb init
 
 # Iniciar el servicio de PostgreSQL
-service postgresql start
+$SUDO service postgresql start
 
 # Iniciar Metasploit
 msfconsole
