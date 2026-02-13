@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+KEYRING_DIR="/etc/apt/keyrings"
+KEYRING="$KEYRING_DIR/hashicorp-archive-keyring.gpg"
+LIST="/etc/apt/sources.list.d/hashicorp.list"
+DIST="bookworm"
+
+# deps mínimos
+command -v curl >/dev/null || { echo "curl missing"; exit 1; }
+command -v gpg  >/dev/null || { echo "gpg missing";  exit 1; }
+
+# keyrings dir
+sudo install -m 0755 -d "$KEYRING_DIR"
+
+# instalar/actualizar keyring (sin rm)
+curl -fsSL https://apt.releases.hashicorp.com/gpg \
+ | sudo gpg --dearmor --yes -o "$KEYRING"
+sudo chmod 0644 "$KEYRING"
+
+# source list (overwrite idempotente)
+echo "deb [signed-by=$KEYRING] https://apt.releases.hashicorp.com $DIST main" \
+ | sudo tee "$LIST" >/dev/null
+
+# update
+#sudo apt update
+sudo apt update && sudo apt install vagrant
+

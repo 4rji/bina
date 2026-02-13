@@ -99,6 +99,7 @@ lolcatinst          Instala gem, ruby y lolcat
 
 
 ###------instaladores
+vagraninst          Para instalar vagrant en linux agregando apt list
 cargoinst           Instala cargo y tambien herramientas de la lista
 llainst             Cargo tool para ver ls con tablas, mejor formato
 webcheck            Para examinar website, funciona en docker, cool info de websites
