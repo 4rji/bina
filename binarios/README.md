@@ -21,6 +21,7 @@ ptysnoop.bt         Hace snoop in tty, sudo bpftrace -Bnone ptysnoop.bt 99999
 
 
 ###------CCDC
+dcusercreate        Crea usuario en el ccdcteam dominio, tener hosts 172.20.240.102 domain.local
 wazuhagent          Instala el agente en linux fedora/ubuntu
 wazuhinst           Instala wazuh. asistente. automatico
 wazuhinstdock       instala docker compose y wazuh en ubuntu 24

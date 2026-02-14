@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+LDAP_URI="ldap://172.20.240.102"
+BIND_DN="Administrator@ccdcteam.com"
+BASE_DN="DC=ccdcteam,DC=com"
+USERS_CN="CN=Users"
+LDAP_PASS="${LDAP_PASS:-'!Password123'}"     # override: LDAP_PASS='...' ./mkusers.sh amber 25
+DOMAIN="ccdcteam.com"
+
+PREFIX="${1:?Usage: $0 <prefix> [count] [start_num]}"
+COUNT="${2:-10}"
+START="${3:-1}"
+
+exists_sam() {
+  local sam="$1"
+  ldapsearch -x -H "$LDAP_URI" -D "$BIND_DN" -w "$LDAP_PASS" \
+    -b "$BASE_DN" "(sAMAccountName=$sam)" dn 2>/dev/null | grep -q '^dn: '
+}
+
+i="$START"
+created=0
+
+while (( created < COUNT )); do
+  sam=$(printf "%s%02d" "$PREFIX" "$i")
+  cn="$sam"
+  upn="${sam}@${DOMAIN}"
+  display="$sam"
+  dn="CN=${cn},${USERS_CN},${BASE_DN}"
+
+  if exists_sam "$sam"; then
+    echo "[-] exists: $sam (skipping)"
+    ((i++))
+    continue
+  fi
+
+  cat <<EOF | ldapadd -x -H "$LDAP_URI" -D "$BIND_DN" -w "$LDAP_PASS"
+dn: $dn
+objectClass: user
+sAMAccountName: $sam
+userPrincipalName: $upn
+displayName: $display
+EOF
+
+  echo "[+] created: $sam"
+  ((created++))
+  ((i++))
+done
