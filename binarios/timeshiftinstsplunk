@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-
 # Lista de paquetes a instalar
-paquetes=("timeshift" )
+paquetes=("timeshift")
 
 # Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
 paquete_instalado_apt() {
-    dpkg -l "$1" | grep -q '^ii'  
+    dpkg -l "$1" | grep -q '^ii'
 }
 
 # Función para verificar si un paquete está instalado (CentOS/RHEL)
@@ -37,6 +36,7 @@ for paquete in "${paquetes[@]}"; do
         "debian"|"ubuntu"|"kali")
             if ! paquete_instalado_apt "$paquete"; then
                 echo "Instalando el paquete $paquete..."
+                sudo apt-get update -y
                 sudo apt-get install -y "$paquete"
             fi
             ;;
@@ -59,11 +59,10 @@ for paquete in "${paquetes[@]}"; do
             fi
             ;;
         *)
+            echo "[!] OS no soportado: ${OS:-unknown}"
             ;;
     esac
 done
-
-
 
 CFG="/etc/timeshift/timeshift.json"
 
@@ -82,7 +81,7 @@ if ! sudo python3 -c 'import json; json.load(open("/etc/timeshift/timeshift.json
   sudo cp -a "$LATEST_BK" "$CFG"
 fi
 
-# 3) Aplica exclude minimal (CCDC)
+# 3) Aplica exclude minimal (CCDC) + excluye datos/logs de Splunk, pero deja /opt/splunk/etc
 sudo python3 - <<'PY'
 import json
 
@@ -103,17 +102,37 @@ data["exclude"] = [
     "/sys/**",
     "/run/**",
     "/home/**",
-     # 4rji-bina: excluye data/logs grandes
-    "/opt/4rji/**",
+
+    # Splunk: excluye data/logs grandes
+    "/opt/splunk/var/**",
+    "/opt/splunkforwarder/var/**",
 ]
 
 with open(cfg_path, "w", encoding="utf-8") as f:
     json.dump(data, f, indent=2, sort_keys=False)
     f.write("\n")
 
-print("[+] exclude aplicado OK")
+print("[+] exclude aplicado OK (incluye regla Splunk var/**)")
 PY
+
+# 4) Guarda un TAR del config de Splunk dentro de /etc/timeshift (queda dentro del snapshot)
+OUT_DIR="/etc/timeshift"
+TS="$(date +%Y%m%d-%H%M%S)"
+OUT_FILE="$OUT_DIR/splunk-etc-$TS.tar.gz"
+
+SPLUNK_ETC_DIRS=()
+[[ -d /opt/splunk/etc ]] && SPLUNK_ETC_DIRS+=("/opt/splunk/etc")
+[[ -d /opt/splunkforwarder/etc ]] && SPLUNK_ETC_DIRS+=("/opt/splunkforwarder/etc")
+
+if (( ${#SPLUNK_ETC_DIRS[@]} > 0 )); then
+  sudo tar -czf "$OUT_FILE" --absolute-names "${SPLUNK_ETC_DIRS[@]}"
+  sudo ln -sfn "$(basename "$OUT_FILE")" "$OUT_DIR/splunk-etc-latest.tar.gz"
+  echo "[+] Splunk config guardado: $OUT_FILE"
+else
+  echo "[i] No encontré /opt/splunk{,forwarder}/etc; no guardé tar de Splunk."
+fi
 
 echo "[+] Listo. Revisa:"
 echo "    sudo python3 -c 'import json; json.load(open(\"$CFG\")); print(\"JSON OK\")'"
 echo "    sudo grep -n '\"exclude\"' -n $CFG | head"
+echo "    ls -l /etc/timeshift/splunk-etc-*.tar.gz /etc/timeshift/splunk-etc-latest.tar.gz 2>/dev/null || true"

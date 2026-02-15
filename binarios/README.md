@@ -37,6 +37,7 @@ ttyinicio           Crea mensaje de inicio de tty para ver la ip del servidor de
 
 
 ###------linux
+timeshiftinst       Instala y configura timeshift solo con directorios basicos. 
 doasinst            Instala doas y con -i remueve sudo
 wallpaperinst       Instala wallpaper del grub de kali
 browshinst          Browsh para ver el browser en ssh terminal necesita firefox
