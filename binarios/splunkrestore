@@ -27,5 +27,5 @@ if [[ -x /opt/splunkforwarder/bin/splunk ]]; then
 fi
 
 echo "[+] Restore FULL completado."
-echo "    Splunk CLI: /opt/splunk/bin/splunk"
+echo "    Splunk CLI binary: /opt/splunk/bin/splunk"
 echo "    UF CLI    : /opt/splunkforwarder/bin/splunk"
