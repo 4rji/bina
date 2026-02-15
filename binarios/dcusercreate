@@ -5,12 +5,18 @@ LDAP_URI="ldap://172.20.240.102"
 BIND_DN="Administrator@ccdcteam.com"
 BASE_DN="DC=ccdcteam,DC=com"
 USERS_CN="CN=Users"
-LDAP_PASS="${LDAP_PASS:-'!Password123'}"     # override: LDAP_PASS='...' ./mkusers.sh amber 25
+
+# 🔴 FIX: SIN comillas dentro del valor
+LDAP_PASS="${LDAP_PASS:-!Password123}"
+
 DOMAIN="ccdcteam.com"
 
 PREFIX="${1:?Usage: $0 <prefix> [count] [start_num]}"
 COUNT="${2:-10}"
 START="${3:-1}"
+
+# Evita problemas con '!' en shells interactivos
+set +H 2>/dev/null || true
 
 exists_sam() {
   local sam="$1"
