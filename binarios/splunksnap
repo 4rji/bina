@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+OUT_DIR="/etc/timeshift"
+TS="$(date +%Y%m%d-%H%M%S)"
+OUT_FILE="$OUT_DIR/splunk-full-$TS.tar.gz"
+
+INCLUDES=()
+[[ -d /opt/splunk ]] && INCLUDES+=("/opt/splunk")
+[[ -d /opt/splunkforwarder ]] && INCLUDES+=("/opt/splunkforwarder")
+
+if (( ${#INCLUDES[@]} == 0 )); then
+  echo "[!] No existe /opt/splunk ni /opt/splunkforwarder"
+  exit 1
+fi
+
+sudo mkdir -p "$OUT_DIR"
+
+# Backup “full” pero sin /var (data/logs grandes)
+sudo tar -czf "$OUT_FILE" --absolute-names \
+  --exclude='/opt/splunk/var/**' \
+  --exclude='/opt/splunkforwarder/var/**' \
+  "${INCLUDES[@]}"
+
+sudo ln -sfn "$(basename "$OUT_FILE")" "$OUT_DIR/splunk-full-latest.tar.gz"
+
+echo "[+] Backup Splunk FULL (sin var) guardado:"
+echo "    $OUT_FILE"
+echo "[+] Latest:"
+echo "    $OUT_DIR/splunk-full-latest.tar.gz"

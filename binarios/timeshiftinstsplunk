@@ -2,7 +2,7 @@
 set -euo pipefail
 
 sudo dnf install -y oracle-epel-release-el9
-sudo dnf install -y timeshift rsync
+sudo dnf install -y timeshift rsync util-linux
 
 CFG="/etc/timeshift/timeshift.json"
 DEFAULT="/etc/timeshift/default.json"
@@ -18,7 +18,7 @@ if [[ ! -f "$CFG" ]]; then
   fi
 fi
 
-# 1) Si no hay backups, crea uno; si hay, usa el más reciente
+# 1) Backup del JSON (si no existe aún)
 LATEST_BK="$(ls -1t /etc/timeshift/timeshift.json.bak.* 2>/dev/null | head -n1 || true)"
 if [[ -z "${LATEST_BK}" ]]; then
   TS="$(date +%Y%m%d-%H%M%S)"
@@ -35,13 +35,33 @@ if ! sudo python3 -c 'import json; json.load(open("/etc/timeshift/timeshift.json
   sudo cp -a "$LATEST_BK" "$CFG"
 fi
 
-# 3) Aplica excludes + excluye Splunk var/** (pero deja /opt/splunk/etc)
-sudo python3 - <<'PY'
-import json
-cfg_path = "/etc/timeshift/timeshift.json"
+# 3) Fuerza destino LOCAL = filesystem montado en "/" (NO /boot)
+ROOT_SRC="$(findmnt -no SOURCE /)"
+ROOT_UUID="$(sudo blkid -s UUID -o value "$ROOT_SRC" 2>/dev/null || true)"
 
+if [[ -z "${ROOT_UUID}" ]]; then
+  echo "[!] No pude obtener UUID del root ($ROOT_SRC)."
+  echo "    Revisa: findmnt -no SOURCE / && sudo blkid <eso>"
+  exit 1
+fi
+
+echo "[+] Root SOURCE: $ROOT_SRC"
+echo "[+] Root UUID  : $ROOT_UUID"
+
+sudo mkdir -p /timeshift
+sudo chmod 700 /timeshift || true
+
+sudo python3 - <<PY
+import json
+cfg_path = "$CFG"
 with open(cfg_path, "r", encoding="utf-8") as f:
     data = json.load(f)
+
+data["backup_device_uuid"] = "$ROOT_UUID"
+data["backup_device"] = ""
+data["backup_directory"] = "/timeshift"
+data["snapshot_device"] = ""
+data["snapshot_device_uuid"] = ""
 
 data["exclude"] = [
     "/var/log/**",
@@ -63,9 +83,9 @@ data["exclude"] = [
 
 with open(cfg_path, "w", encoding="utf-8") as f:
     json.dump(data, f, indent=2, sort_keys=False)
-    f.write("\n")
+    f.write("\\n")
 
-print("[+] exclude aplicado OK (incluye regla Splunk var/**)")
+print("[+] Config local aplicada: backup_device_uuid(root) + excludes + /timeshift")
 PY
 
 # 4) Guarda un TAR del config de Splunk dentro de /etc/timeshift (queda dentro del snapshot)
@@ -84,8 +104,8 @@ if (( ${#SPLUNK_ETC_DIRS[@]} > 0 )); then
 else
   echo "[i] No encontré /opt/splunk{,forwarder}/etc; no guardé tar de Splunk."
 fi
-
-echo "[+] Listo. Revisa:"
-echo "    sudo python3 -c 'import json; json.load(open(\"$CFG\")); print(\"JSON OK\")'"
-echo "    sudo grep -n '\"exclude\"' -n $CFG | head"
-echo "    ls -l /etc/timeshift/splunk-etc-*.tar.gz /etc/timeshift/splunk-etc-latest.tar.gz 2>/dev/null || true"
+echo "to restart splunk config"
+echo "sudo tar -xzf /etc/timeshift/splunk-etc-latest.tar.gz -C /"
+echo "[+] Listo. Snapshot local se guardará en /timeshift/snapshots (dentro de /)."
+echo "    Crea uno con:"
+echo "    sudo timeshift --create --comments \"baseline local\" --tags D"

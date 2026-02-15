@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+TAR="/etc/timeshift/splunk-full-latest.tar.gz"
+[[ -f "$TAR" ]] || { echo "[!] No existe $TAR"; exit 1; }
+
+# Para no pisar algo “semi vivo”
+if systemctl list-unit-files | grep -qiE 'splunk|splunkd|splunkforwarder'; then
+  sudo systemctl stop splunk splunkforwarder Splunkd 2>/dev/null || true
+fi
+
+echo "[*] Extrayendo: $TAR"
+sudo tar -xzf "$TAR" -C /
+
+# Ownership típico (si existe usuario splunk)
+if id splunk &>/dev/null; then
+  [[ -d /opt/splunk ]] && sudo chown -R splunk:splunk /opt/splunk || true
+  [[ -d /opt/splunkforwarder ]] && sudo chown -R splunk:splunk /opt/splunkforwarder || true
+fi
+
+# Arranque (mejor esfuerzo)
+if [[ -x /opt/splunk/bin/splunk ]]; then
+  sudo -u splunk /opt/splunk/bin/splunk start --accept-license --answer-yes --no-prompt || true
+fi
+if [[ -x /opt/splunkforwarder/bin/splunk ]]; then
+  sudo -u splunk /opt/splunkforwarder/bin/splunk start --accept-license --answer-yes --no-prompt || true
+fi
+
+echo "[+] Restore FULL completado."
+echo "    Splunk CLI: /opt/splunk/bin/splunk"
+echo "    UF CLI    : /opt/splunkforwarder/bin/splunk"
