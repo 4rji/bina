@@ -65,16 +65,31 @@ done
 
 
 
-CFG="/etc/timeshift/timeshift.json"
 
-# 1) Encuentra el backup más reciente
-LATEST_BK="$(ls -1t /etc/timeshift/timeshift.json.bak.* 2>/dev/null | head -n1 || true)"
-if [[ -z "${LATEST_BK}" ]]; then
-  echo "No encontré backups /etc/timeshift/timeshift.json.bak.*"
-  exit 1
+CFG="/etc/timeshift/timeshift.json"
+DEFAULT="/etc/timeshift/default.json"
+
+# 0) Asegura config base
+if [[ ! -f "$CFG" ]]; then
+  if [[ -f "$DEFAULT" ]]; then
+    echo "[*] No existe $CFG. Creando desde $DEFAULT..."
+    sudo cp -a "$DEFAULT" "$CFG"
+  else
+    echo "[!] No existe $CFG ni $DEFAULT. Abre Timeshift una vez para generar config."
+    exit 1
+  fi
 fi
 
-echo "[+] Latest backup: $LATEST_BK"
+# 1) Si no hay backups, crea uno
+LATEST_BK="$(ls -1t /etc/timeshift/timeshift.json.bak.* 2>/dev/null | head -n1 || true)"
+if [[ -z "${LATEST_BK}" ]]; then
+  TS="$(date +%Y%m%d-%H%M%S)"
+  LATEST_BK="/etc/timeshift/timeshift.json.bak.$TS"
+  echo "[*] No hay backups. Creando: $LATEST_BK"
+  sudo cp -a "$CFG" "$LATEST_BK"
+else
+  echo "[+] Latest backup: $LATEST_BK"
+fi
 
 # 2) Si el JSON actual está roto, restaura backup
 if ! sudo python3 -c 'import json; json.load(open("/etc/timeshift/timeshift.json","r",encoding="utf-8"))' 2>/dev/null; then
@@ -82,28 +97,44 @@ if ! sudo python3 -c 'import json; json.load(open("/etc/timeshift/timeshift.json
   sudo cp -a "$LATEST_BK" "$CFG"
 fi
 
-# 3) Aplica exclude minimal (CCDC)
+# 3) Aplica excludes homelab (incluye /home)
 sudo python3 - <<'PY'
 import json
 
 cfg_path = "/etc/timeshift/timeshift.json"
-
 with open(cfg_path, "r", encoding="utf-8") as f:
     data = json.load(f)
 
 data["exclude"] = [
-    "/var/log/**",
-    "/var/cache/**",
-    "/var/tmp/**",
-    "/tmp/**",
-    "/media/**",
-    "/mnt/**",
+    # pseudo FS
     "/dev/**",
     "/proc/**",
     "/sys/**",
     "/run/**",
-    "/home/**",
-     # 4rji-bina: excluye data/logs grandes
+
+    # temporales/caches
+    "/tmp/**",
+    "/var/tmp/**",
+    "/var/cache/**",
+
+    # mounts externos (evita loops: smb/iscsi/usb)
+    "/mnt/**",
+    "/media/**",
+
+    # logs (si quieres guardarlos, quita esta línea)
+    "/var/log/**",
+
+    # homelab pesado (ajusta si quieres incluirlos)
+    "/var/lib/docker/**",
+    "/var/lib/containerd/**",
+    "/var/lib/libvirt/images/**",
+    "/var/lib/vz/**",
+    "/var/lib/lxc/**",
+    "/var/lib/incus/**",
+    "/srv/isos/**",
+    "/srv/images/**",
+
+    # tu repo/artefactos grandes
     "/opt/4rji/**",
 ]
 
@@ -111,9 +142,9 @@ with open(cfg_path, "w", encoding="utf-8") as f:
     json.dump(data, f, indent=2, sort_keys=False)
     f.write("\n")
 
-print("[+] exclude aplicado OK")
+print("[+] exclude aplicado OK (homelab)")
 PY
 
 echo "[+] Listo. Revisa:"
 echo "    sudo python3 -c 'import json; json.load(open(\"$CFG\")); print(\"JSON OK\")'"
-echo "    sudo grep -n '\"exclude\"' -n $CFG | head"
+echo "    sudo grep -n '\"exclude\"' -n $CFG | sed -n '1,140p'"
