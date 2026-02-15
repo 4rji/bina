@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+
+# Lista de paquetes a instalar
+paquetes=("timeshift" )
+
+# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
+paquete_instalado_apt() {
+    dpkg -l "$1" | grep -q '^ii'  
+}
+
+# Función para verificar si un paquete está instalado (CentOS/RHEL)
+paquete_instalado_yum() {
+    yum list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Fedora)
+paquete_instalado_dnf() {
+    dnf list installed "$1" &> /dev/null
+}
+
+# Función para verificar si un paquete está instalado (Arch Linux)
+paquete_instalado_pacman() {
+    pacman -Qi "$1" &> /dev/null
+}
+
+# Detectar el sistema operativo
+if [ -f /etc/os-release ]; then
+    . /etc/os-release
+    OS=$ID
+fi
+
+# Instalar paquetes basados en el sistema operativo
+for paquete in "${paquetes[@]}"; do
+    case $OS in
+        "debian"|"ubuntu"|"kali")
+            if ! paquete_instalado_apt "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo apt-get install -y "$paquete"
+            fi
+            ;;
+        "centos"|"rhel")
+            if ! paquete_instalado_yum "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo yum install -y "$paquete"
+            fi
+            ;;
+        "fedora")
+            if ! paquete_instalado_dnf "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo dnf install -y "$paquete"
+            fi
+            ;;
+        "arch")
+            if ! paquete_instalado_pacman "$paquete"; then
+                echo "Instalando el paquete $paquete..."
+                sudo pacman -S --noconfirm "$paquete"
+            fi
+            ;;
+        *)
+            ;;
+    esac
+done
+
+
+
+CFG="/etc/timeshift/timeshift.json"
+
+# 1) Encuentra el backup más reciente
+LATEST_BK="$(ls -1t /etc/timeshift/timeshift.json.bak.* 2>/dev/null | head -n1 || true)"
+if [[ -z "${LATEST_BK}" ]]; then
+  echo "No encontré backups /etc/timeshift/timeshift.json.bak.*"
+  exit 1
+fi
+
+echo "[+] Latest backup: $LATEST_BK"
+
+# 2) Si el JSON actual está roto, restaura backup
+if ! sudo python3 -c 'import json; json.load(open("/etc/timeshift/timeshift.json","r",encoding="utf-8"))' 2>/dev/null; then
+  echo "[!] JSON roto, restaurando backup..."
+  sudo cp -a "$LATEST_BK" "$CFG"
+fi
+
+# 3) Aplica exclude minimal (CCDC)
+sudo python3 - <<'PY'
+import json
+
+cfg_path = "/etc/timeshift/timeshift.json"
+
+with open(cfg_path, "r", encoding="utf-8") as f:
+    data = json.load(f)
+
+data["exclude"] = [
+    "/var/log/**",
+    "/var/cache/**",
+    "/var/tmp/**",
+    "/tmp/**",
+    "/media/**",
+    "/mnt/**",
+    "/dev/**",
+    "/proc/**",
+    "/sys/**",
+    "/run/**",
+    "/home/**",
+]
+
+with open(cfg_path, "w", encoding="utf-8") as f:
+    json.dump(data, f, indent=2, sort_keys=False)
+    f.write("\n")
+
+print("[+] exclude aplicado OK")
+PY
+
+echo "[+] Listo. Revisa:"
+echo "    sudo python3 -c 'import json; json.load(open(\"$CFG\")); print(\"JSON OK\")'"
+echo "    sudo grep -n '\"exclude\"' -n $CFG | head"
