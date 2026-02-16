@@ -1,0 +1,94 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ARCHIVE_DIR="/var/log/audit/archive"
+TS="$(date +%Y%m%d-%H%M%S)"
+
+RULES_URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/auditd_rules"
+RULES_FILE="auditd_rules"
+
+AUDIT_LOG="/var/log/audit/audit.log"
+ROTATE_GLOBS=(/var/log/audit/audit.log.*)
+
+say(){ echo "[*] $*"; }
+warn(){ echo "[!] $*" >&2; }
+
+say "Preparing archive dir: $ARCHIVE_DIR"
+sudo mkdir -p "$ARCHIVE_DIR"
+
+# 1) Rotate via auditd (preferred on OL/RHEL)
+say "Rotating audit logs (no stop/start on Oracle/RHEL9)"
+if sudo /sbin/service auditd rotate >/dev/null 2>&1; then
+  say "Rotated via: service auditd rotate"
+elif sudo systemctl kill -s HUP auditd >/dev/null 2>&1; then
+  say "Rotated via: systemctl kill -s HUP auditd"
+elif sudo kill -HUP "$(pidof auditd)" >/dev/null 2>&1; then
+  say "Rotated via: kill -HUP auditd"
+else
+  warn "Could not trigger auditd rotate via service/HUP. Continuing anyway."
+fi
+
+# Small delay so rotated files appear
+sleep 1
+
+# 2) Move current + rotated logs if present (without touching running file too aggressively)
+moved=0
+
+# Move rotated logs first
+for f in "${ROTATE_GLOBS[@]}"; do
+  [[ -e "$f" ]] || continue
+  base="$(basename "$f")"
+  sudo mv -f "$f" "$ARCHIVE_DIR/${base}.${TS}"
+  moved=1
+done
+
+# Copy (not move) current audit.log to archive, so we don't break active writes
+if [[ -e "$AUDIT_LOG" ]]; then
+  sudo cp -a "$AUDIT_LOG" "$ARCHIVE_DIR/$(basename "$AUDIT_LOG").${TS}"
+  moved=1
+fi
+
+if [[ "$moved" -eq 1 ]]; then
+  say "Compressing archived logs for TS=$TS"
+  sudo gzip -9 "$ARCHIVE_DIR"/*."${TS}" || true
+else
+  say "No logs found to archive"
+fi
+
+say "Done. Recent archive files:"
+sudo ls -lh "$ARCHIVE_DIR" | tail -n 25
+
+echo
+read -r -p "[?] Reload audit rules now? [Y/n]: " ans
+ans="${ans:-Y}"
+
+if [[ "$ans" =~ ^[Yy]$ ]]; then
+  if [[ ! -f "$RULES_FILE" ]]; then
+    say "Rules file not found. Downloading: $RULES_URL"
+    if command -v wget >/dev/null 2>&1; then
+      wget -qO "$RULES_FILE" "$RULES_URL"
+    elif command -v curl >/dev/null 2>&1; then
+      curl -fsSL "$RULES_URL" -o "$RULES_FILE"
+    else
+      warn "Neither wget nor curl found. Install one to download rules."
+      exit 1
+    fi
+  else
+    say "Using existing rules file: $RULES_FILE"
+  fi
+
+  # Prefer augenrules if present (OL/RHEL default)
+  if command -v augenrules >/dev/null 2>&1; then
+    say "Installing rules into /etc/audit/rules.d/99-local.rules and loading via augenrules"
+    sudo install -m 0640 -o root -g root "$RULES_FILE" /etc/audit/rules.d/99-local.rules
+    sudo augenrules --load
+  else
+    say "Loading rules via auditctl -R $RULES_FILE"
+    sudo auditctl -R "$RULES_FILE"
+  fi
+
+  say "Current loaded rules:"
+  sudo auditctl -l || true
+else
+  say "Skipped rules reload."
+fi

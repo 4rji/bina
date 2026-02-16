@@ -1,0 +1,209 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+WEBHOOK="http://10.0.4.220:5123/webhook"
+LOG="/var/log/audit/audit.log"
+HOST="$(uname -n)"
+
+command -v python3 >/dev/null 2>&1 || {
+  echo "alert_sender: python3 is required to JSON-encode audit.log lines safely" >&2
+  exit 1
+}
+
+# Dedupe simple en memoria: no reenviar alertas identicas en una ventana corta.
+declare -A SEEN
+DEDUP_WINDOW=5   # seconds
+
+# Cache para correlacionar type=PATH con el msg=audit(epoch:serial) del SYSCALL.
+# Esto permite incluir (y dedupear) por target file/dir cuando exista.
+declare -A PATH_BY_MSG
+declare -A TS_BY_MSG
+PATH_TTL=30      # seconds
+
+# Keys de auditd que queremos reenviar al webhook aunque no sean execve=59.
+# Nota: filtramos a registros type=SYSCALL para evitar duplicados (PATH/CWD/PROCTITLE).
+KEY_ALERTS=(delete perm_change owner_change sshd_config module_load priv_esc)
+
+# Rutas "normales" (permitidas)
+ALLOW_PREFIX=(/usr/bin/ /bin/ /usr/sbin/ /sbin/ /usr/local/bin/ /usr/local/sbin/)
+# Rutas típicas de dropper / staging (rojas)
+BAD_PREFIX=(/tmp/ /var/tmp/ /dev/shm/ /home/ /root/ /opt/ /srv/)
+
+is_allowed() {
+  local exe="$1"
+  for p in "${ALLOW_PREFIX[@]}"; do [[ "$exe" == "$p"* ]] && return 0; done
+  return 1
+}
+is_bad() {
+  local exe="$1"
+  for p in "${BAD_PREFIX[@]}"; do [[ "$exe" == "$p"* ]] && return 0; done
+  return 1
+}
+
+is_key_alert() {
+  local k="${1:-}"
+  [[ -n "$k" ]] || return 1
+  local i
+  for i in "${KEY_ALERTS[@]}"; do [[ "$k" == "$i" ]] && return 0; done
+  return 1
+}
+
+dedupe_allow() {
+  local dedupe_key="${1:-}"
+  [[ -n "$dedupe_key" ]] || return 0
+
+  local now last
+  now="$(date +%s)"
+  last="${SEEN[$dedupe_key]:-}"
+  if [[ -n "$last" ]] && (( now - last < DEDUP_WINDOW )); then
+    return 1
+  fi
+  SEEN["$dedupe_key"]="$now"
+  return 0
+}
+
+cache_path_line() {
+  local line="$1"
+  [[ "$line" == *"type=PATH"* ]] || return 0
+
+  local msg name now
+  msg=$(sed -n 's/.* msg=audit(\([^)]*\)).*/\1/p' <<<"$line")
+  [[ -n "${msg:-}" ]] || return 0
+
+  name=$(sed -n 's/.* name="\([^"]*\)".*/\1/p' <<<"$line")
+  [[ -n "${name:-}" ]] || return 0
+
+  now="$(date +%s)"
+  PATH_BY_MSG["$msg"]="$name"
+  TS_BY_MSG["$msg"]="$now"
+}
+
+lookup_path_for_msg() {
+  local msg="$1"
+  [[ -n "${msg:-}" ]] || return 0
+  printf '%s' "${PATH_BY_MSG[$msg]:-}"
+}
+
+cleanup_path_cache() {
+  local now k ts
+  now="$(date +%s)"
+  for k in "${!TS_BY_MSG[@]}"; do
+    ts="${TS_BY_MSG[$k]:-0}"
+    if (( now - ts > PATH_TTL )); then
+      unset "TS_BY_MSG[$k]" "PATH_BY_MSG[$k]"
+    fi
+  done
+}
+
+make_payload() {
+  # Use Python's JSON encoder so we correctly escape control characters from audit.log
+  # (e.g., 0x1d separators), which otherwise makes the JSON invalid.
+  ALERT="$1" \
+    HOST="$HOST" \
+    EXE="$2" COMM="$3" R_UID="$4" R_EUID="$5" R_AUID="$6" \
+    R_PID="$7" R_PPID="$8" TTY="$9" KEY="${10}" AUDIT="${11}" \
+    TEXT="${12}" RAW="${13}" \
+    python3 - <<'PY'
+import os, json
+data = {
+  "alert": os.environ.get("ALERT",""),
+  "host": os.environ.get("HOST",""),
+  "exe": os.environ.get("EXE",""),
+  "comm": os.environ.get("COMM",""),
+  "uid": os.environ.get("R_UID",""),
+  "euid": os.environ.get("R_EUID",""),
+  "auid": os.environ.get("R_AUID",""),
+  "pid": os.environ.get("R_PID",""),
+  "ppid": os.environ.get("R_PPID",""),
+  "tty": os.environ.get("TTY",""),
+  "key": os.environ.get("KEY",""),
+  "audit": os.environ.get("AUDIT",""),
+  "text": os.environ.get("TEXT",""),
+  "raw": os.environ.get("RAW",""),
+}
+print(json.dumps(data, separators=(",", ":")))
+PY
+}
+
+send_payload() {
+  local payload="$1"
+  if [[ "${DRY_RUN:-}" == "1" ]]; then
+    printf '%s\n' "$payload"
+    return 0
+  fi
+  curl -sS -m 2 -X POST "$WEBHOOK" \
+    -H 'Content-Type: application/json' \
+    -d "$payload" >/dev/null || true
+}
+
+process_line() {
+  local line="$1"
+
+  # Aprender targets de type=PATH para enriquecer el alert del SYSCALL correlacionado.
+  if [[ "$line" == *"type=PATH"* ]]; then
+    cache_path_line "$line"
+    return 0
+  fi
+
+  [[ "$line" == *"type=SYSCALL"* ]] || return 0
+
+  # Extraer campos del raw (aplica para AUDIT_KEY y para RED_EXEC).
+  local exe comm uid euid auid pid ppid tty key msg
+  exe=$(sed -n 's/.* exe="\([^"]*\)".*/\1/p' <<<"$line")
+  comm=$(sed -n 's/.* comm="\([^"]*\)".*/\1/p' <<<"$line")
+  uid=$(sed -n 's/.* uid=\([0-9]\+\).*/\1/p' <<<"$line")
+  euid=$(sed -n 's/.* euid=\([0-9]\+\).*/\1/p' <<<"$line")
+  auid=$(sed -n 's/.* auid=\([0-9]\+\).*/\1/p' <<<"$line")
+  pid=$(sed -n 's/.* pid=\([0-9]\+\).*/\1/p' <<<"$line")
+  ppid=$(sed -n 's/.* ppid=\([0-9]\+\).*/\1/p' <<<"$line")
+  tty=$(sed -n 's/.* tty=\([^ ]*\).*/\1/p' <<<"$line")
+  key=$(sed -n 's/.* key="\([^"]*\)".*/\1/p' <<<"$line")
+  msg=$(sed -n 's/.* msg=audit(\([^)]*\)).*/\1/p' <<<"$line")  # "epoch.serial"
+
+  # Limpiar cache vieja (barato: mapas chicos).
+  cleanup_path_cache
+
+  local target
+  target="$(lookup_path_for_msg "${msg:-}")"
+
+  # Drop noisy owner_change events caused by sudo internals
+  if [[ "${key:-}" == "owner_change" && "${exe:-}" == "/usr/bin/sudo" ]]; then
+    return 0
+  fi
+
+  # 1) Enviar alerts basadas en key (delete/perm_change/owner_change/sshd_config/module_load/priv_esc)
+  if [[ "$line" == *" success=yes"* ]] && is_key_alert "${key:-}"; then
+    local text payload
+    text="$HOST key=${key:-?} AUID=${auid:-?} UID=${uid:-?} EUID=${euid:-?} TTY=${tty:-?} exe=${exe:-?} comm=${comm:-?} pid=${pid:-?} audit=${msg:-?}"
+    if [[ -n "${target:-}" ]]; then
+      text="$text target=$target"
+    fi
+    payload="$(make_payload "AUDIT_KEY" "${exe:-}" "${comm:-}" "${uid:-}" "${euid:-}" "${auid:-}" "${pid:-}" "${ppid:-}" "${tty:-}" "${key:-}" "${msg:-}" "$text" "$line")"
+    # Dedupe: key|exe|comm|target (sin tty) para reducir spam por shells/pty distintos.
+    if dedupe_allow "${key:-}|${exe:-}|${comm:-}|${target:-}"; then
+      send_payload "$payload"
+    fi
+  fi
+
+  # 2) RED_EXEC: Solo SYSCALL + execve (x86_64: syscall=59) + success=yes
+  [[ "$line" == *"syscall=59"* ]] || return 0
+  [[ "$line" == *" success=yes"* ]] || return 0
+  [[ -n "${exe:-}" ]] || return 0
+
+  # Señal roja: root + (ruta mala o no permitida)
+  [[ "${euid:-}" == "0" || "${uid:-}" == "0" ]] || return 0
+  if is_bad "$exe" || ! is_allowed "$exe"; then
+    local text payload
+    text="$HOST AUID=${auid:-?} UID=${uid:-?} EUID=${euid:-?} TTY=${tty:-?} ran ${exe} (comm=${comm:-?} pid=${pid:-?} ppid=${ppid:-?} key=${key:-red_exec} audit=${msg:-?})"
+    payload="$(make_payload "RED_EXEC" "$exe" "${comm:-}" "${uid:-}" "${euid:-}" "${auid:-}" "${pid:-}" "${ppid:-}" "${tty:-}" "${key:-}" "${msg:-}" "$text" "$line")"
+    if dedupe_allow "${key:-red_exec}|${exe:-}|${comm:-}|${tty:-}"; then
+      send_payload "$payload"
+    fi
+  fi
+}
+
+if [[ "${1:-}" == "--stdin" ]]; then
+  while read -r line; do process_line "$line"; done
+else
+  tail -Fn0 "$LOG" | while read -r line; do process_line "$line"; done
+fi

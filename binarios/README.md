@@ -39,7 +39,8 @@ ttyinicio           Crea mensaje de inicio de tty para ver la ip del servidor de
 
 ###------linux
 auditd-test         Ejecuta tests para auditd
-cleanaudit          Limpia y almacena logs de auditd
+cleanaudit          Limpia y almacena logs de auditd, descarga las reglas
+cleanauditsplunk    Para oracle, limpia y almacena logs de auditd, descarga las reglas
 timeshiftinst       Instala y configura timeshift solo con directorios basicos. 
 doasinst            Instala doas y con -i remueve sudo
 wallpaperinst       Instala wallpaper del grub de kali
