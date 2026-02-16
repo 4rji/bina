@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Colors
+GREEN='\e[0;32m'
+BLUE='\e[0;34m'
+YELLOW='\e[0;33m'
+RESET='\e[0m'
+
+BIN_DIR="/opt/4rji/bin"
+REPO_URL="https://github.com/4rji/bina.git"
+TMP_BASE="/dev/shm"
+
+mktemp_dir() {
+  local tag="${1:-}"
+  if [[ -n "$tag" ]]; then
+    mktemp -d "${TMP_BASE}/tmp.${tag}.XXXXXX"
+  else
+    mktemp -d "${TMP_BASE}/tmp.XXXXXX"
+  fi
+}
+
+add_path_bashrc() {
+  local line='export PATH="$PATH:/opt/4rji/bin"'
+  local bashrc="$HOME/.bashrc"
+
+  [[ -f "$bashrc" ]] || touch "$bashrc"
+
+  if grep -Fqx "$line" "$bashrc"; then
+    echo -e "${BLUE}[*] PATH already present in ~/.bashrc${RESET}"
+  else
+    echo "$line" >> "$bashrc"
+    echo -e "${GREEN}[+] Added to ~/.bashrc:${RESET} $line"
+  fi
+
+  echo ""
+  echo -e "${YELLOW}To activate it now, run:${RESET}"
+  echo "  source ~/.bashrc"
+}
+
+download_binaries() {
+  echo -e "\n${BLUE}_________________________________________________________${RESET}\n"
+  echo -e "${BLUE}[*] Downloading binaries (bina → ${BIN_DIR})...${RESET}"
+
+  local tmpdir
+  tmpdir="$(mktemp_dir "bina")"
+
+  # cleanup safely (tmpdir is guaranteed to exist)
+  trap 'rm -rf "$tmpdir"' EXIT
+
+  git clone --depth 1 "$REPO_URL" "$tmpdir/bina"
+  sudo mkdir -p "$BIN_DIR"
+
+  if [[ -d "$tmpdir/bina/binarios" ]]; then
+    sudo cp -rf "$tmpdir/bina/binarios/"* "$BIN_DIR/"
+  else
+    echo -e "${YELLOW}[!] binarios/ directory not found in repo${RESET}" >&2
+    exit 1
+  fi
+
+  echo -e "${GREEN}[+] Binaries updated in ${BIN_DIR}${RESET}"
+}
+
+main() {
+  download_binaries
+  add_path_bashrc
+}
+
+main "$@"
