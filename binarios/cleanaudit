@@ -3,6 +3,8 @@ set -euo pipefail
 
 ARCHIVE_DIR="/var/log/audit/archive"
 TS="$(date +%Y%m%d-%H%M%S)"
+RULES_URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/auditd_rules"
+RULES_FILE="auditd_rules"
 
 echo "[*] Archiving audit logs at $TS"
 sudo mkdir -p "$ARCHIVE_DIR"
@@ -37,3 +39,31 @@ sudo systemctl start auditd
 
 echo "[*] Done. Archived logs in: $ARCHIVE_DIR"
 sudo ls -lh "$ARCHIVE_DIR" | tail -n 20
+
+echo
+read -r -p "[?] Reload audit rules now? [Y/n]: " ans
+ans="${ans:-Y}"
+
+if [[ "$ans" =~ ^[Yy]$ ]]; then
+  if [[ ! -f "$RULES_FILE" ]]; then
+    echo "[*] Rules file not found. Downloading: $RULES_URL"
+    if command -v wget >/dev/null 2>&1; then
+      wget -qO "$RULES_FILE" "$RULES_URL"
+    elif command -v curl >/dev/null 2>&1; then
+      curl -fsSL "$RULES_URL" -o "$RULES_FILE"
+    else
+      echo "[!] Neither wget nor curl found. Install one to download rules."
+      exit 1
+    fi
+  else
+    echo "[*] Using existing rules file: $RULES_FILE"
+  fi
+
+  echo "[*] Loading rules via auditctl -R $RULES_FILE"
+  sudo auditctl -R "$RULES_FILE"
+
+  echo "[*] Current loaded rules:"
+  sudo auditctl -l
+else
+  echo "[*] Skipped rules reload."
+fi
