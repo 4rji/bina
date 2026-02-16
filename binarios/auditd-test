@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Audit alert test pack (no user switching)
+# - Triggers: red_exec, priv_esc (root exec patterns), delete, perm_change, owner_change, sshd_config, module_load (optional)
+# - Restores: /etc/hosts perms+owner, /etc/ssh/sshd_config (revert from backup), removes temp artifacts
+#
+# Run: ./audit_alert_tests.sh
+
+TS="$(date +%Y%m%d-%H%M%S)"
+WORK="/tmp/audit-alert-tests-$TS"
+mkdir -p "$WORK"
+echo "[*] Workdir: $WORK"
+
+# Backups for restore
+HOSTS_BAK="$WORK/hosts.bak"
+SSHD_BAK="$WORK/sshd_config.bak"
+
+echo "[*] Backing up /etc/hosts and /etc/ssh/sshd_config"
+sudo cp -a /etc/hosts "$HOSTS_BAK"
+sudo cp -a /etc/ssh/sshd_config "$SSHD_BAK"
+
+# Helpers
+run() {
+  echo -e "\n=== $* ==="
+  shift
+  "$@"
+}
+
+cleanup() {
+  echo -e "\n[*] Restoring /etc/hosts and /etc/ssh/sshd_config"
+  sudo cp -a "$HOSTS_BAK" /etc/hosts || true
+  sudo cp -a "$SSHD_BAK" /etc/ssh/sshd_config || true
+
+  echo "[*] Cleaning up temp artifacts"
+  sudo rm -f /tmp/x /dev/shm/.x /tmp/secret /tmp/p 2>/dev/null || true
+  rm -f "$HOME/ls_test" 2>/dev/null || true
+  rm -rf "$WORK" 2>/dev/null || true
+}
+trap cleanup EXIT
+
+echo "[*] Starting tests..."
+
+# 1) Exec from /tmp (classic dropper path)
+run "Test 1: exec from /tmp as root (RED_EXEC)" \
+  sudo sh -c 'cp /bin/ls /tmp/x && /tmp/x >/dev/null'
+
+# 2) Exec from /dev/shm (classic in-memory-ish staging)
+run "Test 2: exec from /dev/shm as root (RED_EXEC)" \
+  sudo sh -c 'cp /bin/bash /dev/shm/.x && /dev/shm/.x -c "id >/dev/null"'
+
+# 3) Exec from /home as root
+run "Test 3: exec from /home as root (RED_EXEC)" \
+  bash -c 'cp /bin/ls "$HOME/ls_test"' \
+  && sudo sh -c '"$HOME/ls_test" >/dev/null'
+
+# 4) Living-off-the-land: python as root (should trip your priv_esc / heuristics depending on rules)
+run "Test 4: python executes a command as root (priv_esc / high-signal LoLBIN)" \
+  sudo python3 -c 'import os; os.system("id >/dev/null")'
+
+# 5) Delete activity (cover-up signal)
+run "Test 5: create+delete in /tmp (delete)" \
+  sudo sh -c 'touch /tmp/secret && rm -f /tmp/secret'
+
+# 6) Permission change on /etc/hosts (perm_change)
+run "Test 6: chmod /etc/hosts (perm_change)" \
+  sudo chmod 777 /etc/hosts
+
+# 7) Ownership change on /etc/hosts (owner_change)
+# Use current sudo user to restore will be handled by backup restore
+run "Test 7: chown /etc/hosts (owner_change)" \
+  sudo chown nobody:nogroup /etc/hosts
+
+# 8) Modify sshd_config (sshd_config)
+run "Test 8: append to /etc/ssh/sshd_config (sshd_config)" \
+  sudo sh -c 'echo "# audit alert test '"$TS"'" >> /etc/ssh/sshd_config'
+
+# 9) Simulate dropper script in /tmp and execute (RED_EXEC)
+run "Test 9: create+exec script in /tmp as root (RED_EXEC)" \
+  sudo sh -c 'printf "#!/bin/sh\nid >/dev/null\n" > /tmp/p && chmod +x /tmp/p && /tmp/p'
+
+# 10) Kernel module load attempt (module_load) - may fail; still generates audit if rule exists
+run "Test 10: modprobe attempt (module_load) (may fail, that’s fine)" \
+  sudo sh -c 'modprobe dummy 2>/dev/null || true'
+
+echo -e "\n[*] Done. Now check alerts/webhook and/or:"
+echo "    sudo ausearch -k red_exec --format text -ts recent"
+echo "    sudo ausearch -k priv_esc --format text -ts recent"
+echo "    sudo ausearch -k delete --format text -ts recent"
+echo "    sudo ausearch -k perm_change --format text -ts recent"
+echo "    sudo ausearch -k owner_change --format text -ts recent"
+echo "    sudo ausearch -k sshd_config --format text -ts recent"
+echo "    sudo ausearch -k module_load --format text -ts recent"
