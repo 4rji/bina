@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ARCHIVE_DIR="/var/log/audit/archive"
+TS="$(date +%Y%m%d-%H%M%S)"
+
+echo "[*] Archiving audit logs at $TS"
+sudo mkdir -p "$ARCHIVE_DIR"
+
+echo "[*] Stopping auditd"
+sudo systemctl stop auditd
+
+moved=0
+
+# Move current + rotated logs if present
+for f in /var/log/audit/audit.log /var/log/audit/audit.log.*; do
+  [[ -e "$f" ]] || continue
+  base="$(basename "$f")"
+  sudo mv "$f" "$ARCHIVE_DIR/${base}.${TS}"
+  moved=1
+done
+
+# Recreate empty audit.log so auditd can start cleanly
+sudo touch /var/log/audit/audit.log
+sudo chown root:root /var/log/audit/audit.log
+sudo chmod 0600 /var/log/audit/audit.log
+
+if [[ "$moved" -eq 1 ]]; then
+  echo "[*] Compressing archived logs"
+  sudo gzip -9 "$ARCHIVE_DIR"/*.${TS}
+else
+  echo "[*] No logs found to archive"
+fi
+
+echo "[*] Starting auditd"
+sudo systemctl start auditd
+
+echo "[*] Done. Archived logs in: $ARCHIVE_DIR"
+sudo ls -lh "$ARCHIVE_DIR" | tail -n 20
