@@ -1,12 +1,35 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-WEBHOOK="http://10.0.4.220:5123/webhook"
+usage() {
+  echo "Usage:"
+  echo "  $0 <server_ip> [port]            # tail audit.log (default)"
+  echo "  $0 <server_ip> [port] --stdin    # read lines from stdin"
+  exit 1
+}
+
+# --- args ---
+[[ $# -ge 1 ]] || usage
+SERVER_IP="$1"
+PORT="${2:-5123}"
+MODE="${3:-}"
+
+# allow: ./script 10.0.4.220 --stdin
+if [[ "${2:-}" == "--stdin" ]]; then
+  PORT="5123"
+  MODE="--stdin"
+fi
+
+WEBHOOK="http://${SERVER_IP}:${PORT}/webhook"
 LOG="/var/log/audit/audit.log"
 HOST="$(uname -n)"
 
 command -v python3 >/dev/null 2>&1 || {
   echo "alert_sender: python3 is required to JSON-encode audit.log lines safely" >&2
+  exit 1
+}
+command -v curl >/dev/null 2>&1 || {
+  echo "alert_sender: curl is required" >&2
   exit 1
 }
 
@@ -15,13 +38,11 @@ declare -A SEEN
 DEDUP_WINDOW=5   # seconds
 
 # Cache para correlacionar type=PATH con el msg=audit(epoch:serial) del SYSCALL.
-# Esto permite incluir (y dedupear) por target file/dir cuando exista.
 declare -A PATH_BY_MSG
 declare -A TS_BY_MSG
 PATH_TTL=30      # seconds
 
 # Keys de auditd que queremos reenviar al webhook aunque no sean execve=59.
-# Nota: filtramos a registros type=SYSCALL para evitar duplicados (PATH/CWD/PROCTITLE).
 KEY_ALERTS=(delete perm_change owner_change sshd_config module_load priv_esc)
 
 # Rutas "normales" (permitidas)
@@ -96,8 +117,6 @@ cleanup_path_cache() {
 }
 
 make_payload() {
-  # Use Python's JSON encoder so we correctly escape control characters from audit.log
-  # (e.g., 0x1d separators), which otherwise makes the JSON invalid.
   ALERT="$1" \
     HOST="$HOST" \
     EXE="$2" COMM="$3" R_UID="$4" R_EUID="$5" R_AUID="$6" \
@@ -147,7 +166,6 @@ process_line() {
 
   [[ "$line" == *"type=SYSCALL"* ]] || return 0
 
-  # Extraer campos del raw (aplica para AUDIT_KEY y para RED_EXEC).
   local exe comm uid euid auid pid ppid tty key msg
   exe=$(sed -n 's/.* exe="\([^"]*\)".*/\1/p' <<<"$line")
   comm=$(sed -n 's/.* comm="\([^"]*\)".*/\1/p' <<<"$line")
@@ -160,7 +178,6 @@ process_line() {
   key=$(sed -n 's/.* key="\([^"]*\)".*/\1/p' <<<"$line")
   msg=$(sed -n 's/.* msg=audit(\([^)]*\)).*/\1/p' <<<"$line")  # "epoch.serial"
 
-  # Limpiar cache vieja (barato: mapas chicos).
   cleanup_path_cache
 
   local target
@@ -171,7 +188,7 @@ process_line() {
     return 0
   fi
 
-  # 1) Enviar alerts basadas en key (delete/perm_change/owner_change/sshd_config/module_load/priv_esc)
+  # 1) Enviar alerts basadas en key
   if [[ "$line" == *" success=yes"* ]] && is_key_alert "${key:-}"; then
     local text payload
     text="$HOST key=${key:-?} AUID=${auid:-?} UID=${uid:-?} EUID=${euid:-?} TTY=${tty:-?} exe=${exe:-?} comm=${comm:-?} pid=${pid:-?} audit=${msg:-?}"
@@ -179,18 +196,16 @@ process_line() {
       text="$text target=$target"
     fi
     payload="$(make_payload "AUDIT_KEY" "${exe:-}" "${comm:-}" "${uid:-}" "${euid:-}" "${auid:-}" "${pid:-}" "${ppid:-}" "${tty:-}" "${key:-}" "${msg:-}" "$text" "$line")"
-    # Dedupe: key|exe|comm|target (sin tty) para reducir spam por shells/pty distintos.
     if dedupe_allow "${key:-}|${exe:-}|${comm:-}|${target:-}"; then
       send_payload "$payload"
     fi
   fi
 
-  # 2) RED_EXEC: Solo SYSCALL + execve (x86_64: syscall=59) + success=yes
+  # 2) RED_EXEC
   [[ "$line" == *"syscall=59"* ]] || return 0
   [[ "$line" == *" success=yes"* ]] || return 0
   [[ -n "${exe:-}" ]] || return 0
 
-  # Señal roja: root + (ruta mala o no permitida)
   [[ "${euid:-}" == "0" || "${uid:-}" == "0" ]] || return 0
   if is_bad "$exe" || ! is_allowed "$exe"; then
     local text payload
@@ -202,7 +217,13 @@ process_line() {
   fi
 }
 
-if [[ "${1:-}" == "--stdin" ]]; then
+# --- main ---
+# "sudo adentro": si no eres root, relanza el script con sudo preservando env
+if [[ "${EUID:-$(id -u)}" -ne 0 ]]; then
+  exec sudo -E -- "$0" "$@"
+fi
+
+if [[ "$MODE" == "--stdin" ]]; then
   while read -r line; do process_line "$line"; done
 else
   tail -Fn0 "$LOG" | while read -r line; do process_line "$line"; done
