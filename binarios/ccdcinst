@@ -57,3 +57,12 @@ main() {
 }
 
 main "$@"
+echo ""
+echo -e "${YELLOW}IMPORTANT:${RESET}"
+echo "Your PATH was updated in your shell configuration file."
+echo "This change does NOT affect the current terminal session."
+echo ""
+echo "To apply it now, run:"
+echo "  source ~/.bashrc"
+echo ""
+echo "Or simply open a new terminal."
