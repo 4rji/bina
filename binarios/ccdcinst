@@ -12,6 +12,15 @@ REPO_URL="https://github.com/4rji/bina.git"
 ALIAS_SCRIPT_URL="https://raw.githubusercontent.com/4rji/4rji/main/aliasbash.sh"
 TMP_BASE="/dev/shm"
 
+#autocompletition
+# autocomplete bash
+sudo apt install bash-completion   # debian/ubuntu
+# o
+sudo dnf install bash-completion   # rhel/fedora
+
+
+
+
 add_path_bashrc() {
   local line='export PATH="$PATH:/opt/4rji/bin"'
   local bashrc="$HOME/.bashrc"
