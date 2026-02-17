@@ -383,6 +383,8 @@ findme2             Para buscar binarios como zeek
 
 
 ###------ssh
+ssh-getkey          se descarga la llave para el script ssh-getpublic
+ssh-getpublic       Descarga la llave publica a la maquina.
 sshc                copia directorio o archivo por ssh, lo comprime y descomprime
 sshp                ssh proxy D 1080 en background, completo, bashfun bash function
 pingt               Hace traceroute con ping
