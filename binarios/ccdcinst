@@ -9,16 +9,6 @@ RESET='\e[0m'
 
 BIN_DIR="/opt/4rji/bin"
 REPO_URL="https://github.com/4rji/bina.git"
-TMP_BASE="/dev/shm"
-
-mktemp_dir() {
-  local tag="${1:-}"
-  if [[ -n "$tag" ]]; then
-    mktemp -d "${TMP_BASE}/tmp.${tag}.XXXXXX"
-  else
-    mktemp -d "${TMP_BASE}/tmp.XXXXXX"
-  fi
-}
 
 add_path_bashrc() {
   local line='export PATH="$PATH:/opt/4rji/bin"'
@@ -42,11 +32,11 @@ download_binaries() {
   echo -e "\n${BLUE}_________________________________________________________${RESET}\n"
   echo -e "${BLUE}[*] Downloading binaries (bina → ${BIN_DIR})...${RESET}"
 
-  local tmpdir
-  tmpdir="$(mktemp_dir "bina")"
+  local tmpdir=""
+  tmpdir="$(mktemp -d /dev/shm/tmp.bina.XXXXXX)"
 
-  # cleanup safely (tmpdir is guaranteed to exist)
-  trap 'rm -rf "$tmpdir"' EXIT
+  # cleanup safely
+  trap '[[ -n "${tmpdir:-}" && -d "${tmpdir:-}" ]] && rm -rf "$tmpdir"' EXIT
 
   git clone --depth 1 "$REPO_URL" "$tmpdir/bina"
   sudo mkdir -p "$BIN_DIR"
