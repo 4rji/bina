@@ -9,6 +9,8 @@ RESET='\e[0m'
 
 BIN_DIR="/opt/4rji/bin"
 REPO_URL="https://github.com/4rji/bina.git"
+ALIAS_SCRIPT_URL="https://raw.githubusercontent.com/4rji/4rji/main/aliasbash.sh"
+TMP_BASE="/dev/shm"
 
 add_path_bashrc() {
   local line='export PATH="$PATH:/opt/4rji/bin"'
@@ -23,8 +25,8 @@ add_path_bashrc() {
     echo -e "${GREEN}[+] Added to ~/.bashrc:${RESET} $line"
   fi
 
-  echo ""
-  echo -e "${YELLOW}To activate it now, run:${RESET}"
+  echo
+  echo -e "${YELLOW}To activate now:${RESET}"
   echo "  source ~/.bashrc"
 }
 
@@ -32,10 +34,8 @@ download_binaries() {
   echo -e "\n${BLUE}_________________________________________________________${RESET}\n"
   echo -e "${BLUE}[*] Downloading binaries (bina → ${BIN_DIR})...${RESET}"
 
-  local tmpdir=""
-  tmpdir="$(mktemp -d /dev/shm/tmp.bina.XXXXXX)"
-
-  # cleanup safely
+  local tmpdir
+  tmpdir="$(mktemp -d "${TMP_BASE}/tmp.bina.XXXXXX")"
   trap '[[ -n "${tmpdir:-}" && -d "${tmpdir:-}" ]] && rm -rf "$tmpdir"' EXIT
 
   git clone --depth 1 "$REPO_URL" "$tmpdir/bina"
@@ -51,18 +51,47 @@ download_binaries() {
   echo -e "${GREEN}[+] Binaries updated in ${BIN_DIR}${RESET}"
 }
 
+install_aliases_from_github() {
+  echo -e "\n${BLUE}_________________________________________________________${RESET}\n"
+  echo -e "${BLUE}[*] Installing bash aliases from GitHub...${RESET}"
+
+  local tmp_alias
+  tmp_alias="$(mktemp -p "$TMP_BASE" aliasbash.XXXXXX.sh)"
+
+  # keep existing trap behavior + cleanup this file too
+  trap '[[ -n "${tmp_alias:-}" && -f "${tmp_alias:-}" ]] && rm -f "$tmp_alias"; [[ -n "${tmpdir:-}" && -d "${tmpdir:-}" ]] && rm -rf "$tmpdir"' EXIT
+
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$ALIAS_SCRIPT_URL" -o "$tmp_alias"
+  elif command -v wget >/dev/null 2>&1; then
+    wget -qO "$tmp_alias" "$ALIAS_SCRIPT_URL"
+  else
+    echo -e "${YELLOW}[!] Need curl or wget to fetch alias script:${RESET} $ALIAS_SCRIPT_URL" >&2
+    exit 1
+  fi
+
+  chmod +x "$tmp_alias"
+
+  # Run it with bash explicitly (in case it has a different shebang)
+  bash "$tmp_alias"
+
+  echo -e "${GREEN}[+] Aliases installed via:${RESET} $ALIAS_SCRIPT_URL"
+}
+
 main() {
   download_binaries
   add_path_bashrc
+  install_aliases_from_github
+
+  echo
+  echo -e "${YELLOW}IMPORTANT:${RESET}"
+  echo "Changes were written to your shell config."
+  echo "They do NOT affect the current terminal session."
+  echo
+  echo "Apply now:"
+  echo "  source ~/.bashrc"
+  echo
+  echo "Or open a new terminal."
 }
 
 main "$@"
-echo ""
-echo -e "${YELLOW}IMPORTANT:${RESET}"
-echo "Your PATH was updated in your shell configuration file."
-echo "This change does NOT affect the current terminal session."
-echo ""
-echo "To apply it now, run:"
-echo "  source ~/.bashrc"
-echo ""
-echo "Or simply open a new terminal."
