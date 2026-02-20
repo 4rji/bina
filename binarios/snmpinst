@@ -2,8 +2,11 @@
 set -euo pipefail
 
 
-if [[ $EUID -ne 0 && -z "${SUDO_USER-}" ]]; then
-  echo "Run with sudo"
+if [[ $EUID -ne 0 ]]; then
+  if command -v sudo >/dev/null 2>&1; then
+    exec sudo --preserve-env=NMS_ALLOWED_CIDRS,SNMPV3_USER,SNMPV3_AUTH_PASS,SNMPV3_PRIV_PASS,SNMP_SYSLOCATION,SNMP_SYSCONTACT "$0" "$@"
+  fi
+  echo "This script requires root privileges and sudo is not installed." >&2
   exit 1
 fi
 
