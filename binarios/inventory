@@ -1,11 +1,116 @@
 #!/usr/bin/env bash
-
-
-#!/usr/bin/env bash
+set -u
 
 usage() {
-  echo "Usage: $0 [-w | -s | -e]"
+  echo "Usage: $0 [-w] [-s] [-e]"
+  echo "  -w  Show webmail component versions"
+  echo "  -s  Show Splunk version"
+  echo "  -e  Show e-commerce stack versions"
   exit 1
+}
+
+has_cmd() {
+  command -v "$1" >/dev/null 2>&1
+}
+
+first_cmd() {
+  local c
+  for c in "$@"; do
+    if has_cmd "$c"; then
+      echo "$c"
+      return 0
+    fi
+  done
+  return 1
+}
+
+show_apache_version() {
+  local apache_cmd
+  apache_cmd="$(first_cmd httpd apache2 apachectl 2>/dev/null || true)"
+  if [[ -n "${apache_cmd:-}" ]]; then
+    "$apache_cmd" -v 2>/dev/null | head -n1
+  else
+    echo "Apache not found"
+  fi
+}
+
+show_php_version() {
+  if has_cmd php; then
+    php -v 2>/dev/null | head -n1
+  else
+    echo "PHP not found"
+  fi
+}
+
+show_postfix_version() {
+  if has_cmd postconf; then
+    postconf -d 2>/dev/null | grep -m1 '^mail_version' || echo "Postfix version unavailable"
+  elif has_cmd postfix; then
+    postfix -v 2>&1 | head -n1
+  else
+    echo "Postfix not found"
+  fi
+}
+
+show_dovecot_version() {
+  if has_cmd dovecot; then
+    dovecot --version 2>/dev/null
+  else
+    echo "Dovecot not found"
+  fi
+}
+
+show_db_version() {
+  local db_cmd
+  db_cmd="$(first_cmd mysql mariadb 2>/dev/null || true)"
+  if [[ -n "${db_cmd:-}" ]]; then
+    "$db_cmd" --version 2>/dev/null | head -n1
+  else
+    echo "MySQL/MariaDB not found"
+  fi
+}
+
+show_splunk_version() {
+  local splunk_cmd
+  splunk_cmd="$(first_cmd splunk /opt/splunk/bin/splunk 2>/dev/null || true)"
+  if [[ -n "${splunk_cmd:-}" ]]; then
+    "$splunk_cmd" version 2>/dev/null || echo "Splunk found but version command failed"
+  else
+    echo "Splunk not found"
+  fi
+}
+
+get_primary_iface() {
+  local iface=""
+  if has_cmd ip; then
+    iface="$(ip route show default 2>/dev/null | awk '{print $5; exit}')"
+  fi
+  if [[ -z "$iface" && -r /proc/net/route ]]; then
+    iface="$(awk '$2=="00000000" && $1!="lo" {print $1; exit}' /proc/net/route)"
+  fi
+  if [[ -z "$iface" && -d /sys/class/net ]]; then
+    iface="$(ls -1 /sys/class/net 2>/dev/null | awk '$1!="lo"{print; exit}')"
+  fi
+  echo "$iface"
+}
+
+get_ipv4() {
+  local iface="$1"
+  local addr=""
+  if [[ -n "$iface" ]] && has_cmd ip; then
+    addr="$(ip -o -4 addr show dev "$iface" 2>/dev/null | awk '{print $4; exit}' | cut -d/ -f1)"
+  fi
+  if [[ -z "$addr" ]] && has_cmd hostname; then
+    addr="$(hostname -I 2>/dev/null | awk '{print $1}')"
+  fi
+  echo "$addr"
+}
+
+get_mac() {
+  local iface="$1"
+  if [[ -n "$iface" && -r "/sys/class/net/$iface/address" ]]; then
+    cat "/sys/class/net/$iface/address"
+  fi
 }
 
 [[ $# -eq 0 ]] && usage
@@ -14,23 +119,19 @@ while getopts "wse" opt; do
   case "$opt" in
     w)
       echo "[WEBMAIL]"
-      command -v httpd >/dev/null && httpd -v
-      command -v php >/dev/null && php -v | head -n1
-      command -v postfix >/dev/null && postconf -d | grep mail_version
-      command -v dovecot >/dev/null && dovecot --version
+      show_apache_version
+      show_php_version
+      show_postfix_version
+      show_dovecot_version
       ;;
     s)
       echo "[SPLUNK]"
-      if [[ -x /opt/splunk/bin/splunk ]]; then
-        /opt/splunk/bin/splunk version
-      else
-        echo "Splunk not found"
-      fi
+      show_splunk_version
       ;;
     e)
       echo "[ECOM]"
-      command -v httpd >/dev/null && httpd -v
-      command -v mysql >/dev/null && mysql --version
+      show_apache_version
+      show_db_version
       ;;
     *)
       usage
@@ -38,55 +139,59 @@ while getopts "wse" opt; do
   esac
 done
 
-
-
 # ---- Colors ----
-BOLD="\e[1m"
-BLUE="\e[34m"
-RESET="\e[0m"
+if [[ -t 1 ]] && has_cmd tput && [[ "$(tput colors 2>/dev/null || echo 0)" -ge 8 ]]; then
+  BOLD="$(tput bold)"
+  BLUE="$(tput setaf 4)"
+  RESET="$(tput sgr0)"
+else
+  BOLD=""
+  BLUE=""
+  RESET=""
+fi
 
 # ---- Hostname ----
-HOSTNAME=$(hostname)
+HOSTNAME="$(hostname 2>/dev/null || uname -n)"
 
 # ---- Primary interface (default route) ----
-IFACE=$(ip route show default 2>/dev/null | awk '{print $5}' | head -n1)
+IFACE="$(get_primary_iface)"
 
 # ---- IP Address ----
-IP_ADDRESS=$(ip -o -4 addr show "$IFACE" 2>/dev/null | awk '{print $4}' | cut -d/ -f1)
+IP_ADDRESS="$(get_ipv4 "$IFACE")"
 
 # ---- MAC Address ----
-MAC_ADDRESS=$(cat /sys/class/net/"$IFACE"/address 2>/dev/null)
+MAC_ADDRESS="$(get_mac "$IFACE")"
 
 # ---- OS Info ----
-if [ -f /etc/os-release ]; then
+if [[ -f /etc/os-release ]]; then
+  # shellcheck disable=SC1091
   . /etc/os-release
-  OS_NAME="$NAME"
-  OS_VERSION="$VERSION"
+  OS_LABEL="${PRETTY_NAME:-${NAME:-Linux}}"
 else
-  OS_NAME=$(uname -s)
-  OS_VERSION=$(uname -r)
+  OS_LABEL="$(uname -s) $(uname -r)"
 fi
 
 # ---- Output ----
-clear
+if [[ -t 1 ]] && has_cmd clear; then
+  clear
+fi
 echo -e "${BOLD}Business Memorandum${RESET}"
 echo -e "${BLUE}Date:${RESET} $(date +"%B %d, %Y")"
 echo -e "${BLUE}Subject:${RESET} Local System Operating System Inventory"
 echo -e "${BLUE}Purpose:${RESET} Network / System Documentation"
 echo
 
-printf "${BOLD}%-15s %-20s %-16s %-20s %-25s${RESET}\n" \
-  "DEVICE" "HOSTNAME" "IP ADDRESS" "MAC ADDRESS" "OS VERSION"
+printf "%s\n" "${BOLD}$(printf "%-15s %-20s %-16s %-20s %-25s" "DEVICE" "HOSTNAME" "IP ADDRESS" "MAC ADDRESS" "OS VERSION")${RESET}"
 printf "%-15s %-20s %-16s %-20s %-25s\n" \
   "---------------" "--------------------" "----------------" "--------------------" "-------------------------"
 
 printf "%-15s %-20s %-16s %-20s %-25s\n" \
-  "$IFACE" "$HOSTNAME" "${IP_ADDRESS:-N/A}" "${MAC_ADDRESS:-N/A}" "$OS_NAME $OS_VERSION"
+  "${IFACE:-N/A}" "${HOSTNAME:-N/A}" "${IP_ADDRESS:-N/A}" "${MAC_ADDRESS:-N/A}" "${OS_LABEL:-N/A}"
 
 echo
 echo -e "${BOLD}Raw /etc/os-release:${RESET}"
 
-if [ -f /etc/os-release ]; then
+if [[ -f /etc/os-release ]]; then
   echo "------------------------------"
   cat /etc/os-release
   echo "------------------------------"
