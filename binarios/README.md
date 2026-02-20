@@ -38,6 +38,7 @@ ttyinicio           Crea mensaje de inicio de tty para ver la ip del servidor de
 
 
 ###------linux
+diskspace           Muestra el spacio disponible en linux
 auditd-test         Ejecuta tests para auditd
 cleanaudit          Limpia y almacena logs de auditd, descarga las reglas
 cleanauditsplunk    Para oracle, limpia y almacena logs de auditd, descarga las reglas

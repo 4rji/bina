@@ -1,4 +1,16 @@
 #!/usr/bin/env bash
+read -r -p "Deseas verificar sudo? [Y/n]: " verify_sudo
+if [[ ! "$verify_sudo" =~ ^[nN]$ ]]; then
+    rpm -q --changelog sudo | head -n 80
+fi
+
+echo ""
+read -r -p "Deseas parcharlo? [Y/n]: " patch_sudo
+if [[ "$patch_sudo" =~ ^[nN]$ ]]; then
+    echo "Operacion cancelada."
+    exit 0
+fi
+
 echo "doas alternative"
 # List of packages to install
 packages=("build-essential" "libpam0g-dev" "libssl-dev" "libselinux1-dev" "libtool" "pkg-config" "libaudit-dev" "libbsd-dev" "autoconf" "automake")
