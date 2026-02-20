@@ -825,6 +825,5 @@ sships              Agrega Ips o subnets a allow or deny hosts
 sshlist             Modifica la lista de /etc/hosts allow deny para asegurar la red ssh
 updatecentos7       Para actualizar centos7
 updatecentos7-2     otra version
-blockicmp           bloquea en firewall cmd
 itcpd               Enmascara ssh o cualquier puerto con tcpd, version ssh nmap -sV -sC
 sitescrapy          Scrapy para bajar paginas web completas con crawl y scrapy

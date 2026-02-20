@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-read -r -p "Deseas verificar sudo? [Y/n]: " verify_sudo
+read -r -p "Do you want to verify sudo? [Y/n]: " verify_sudo
 if [[ ! "$verify_sudo" =~ ^[nN]$ ]]; then
     rpm -q --changelog sudo | head -n 80
 fi
 
 echo ""
-read -r -p "Deseas parcharlo? [Y/n]: " patch_sudo
+read -r -p "Do you want to patch it? [Y/n]: " patch_sudo
 if [[ "$patch_sudo" =~ ^[nN]$ ]]; then
-    echo "Operacion cancelada."
+    echo "Operation canceled."
     exit 0
 fi
 
