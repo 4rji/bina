@@ -2,17 +2,104 @@
 set -euo pipefail
 
 URL="https://raw.githubusercontent.com/4rji/bina/refs/heads/main/binarios/id_ed25519.pub"
-TARGET_USER="metro"
+TARGET_USER="${1:-${TARGET_USER:-${SUDO_USER:-$USER}}}"
 
-HOME_DIR="$(getent passwd "$TARGET_USER" | cut -d: -f6)"
+get_home_dir() {
+  local user="$1"
+  local home=""
+
+  if command -v getent >/dev/null 2>&1; then
+    getent passwd "$user" | cut -d: -f6
+    return
+  fi
+
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    home="$(dscl . -read "/Users/$user" NFSHomeDirectory 2>/dev/null | awk '{print $2}' || true)"
+    if [[ -n "$home" ]]; then
+      printf '%s\n' "$home"
+      return
+    fi
+
+    home="$(dscacheutil -q user -a name "$user" 2>/dev/null | awk '/dir:/ {print $2; exit}' || true)"
+    if [[ -n "$home" ]]; then
+      printf '%s\n' "$home"
+      return
+    fi
+  fi
+
+  home="$(eval "printf '%s\n' ~$user" 2>/dev/null || true)"
+  if [[ -n "$home" && "$home" != "~$user" ]]; then
+    printf '%s\n' "$home"
+    return
+  fi
+
+  return 1
+}
+
+run_as_target() {
+  if [[ "$(id -un)" == "$TARGET_USER" ]]; then
+    "$@"
+    return
+  fi
+
+  if ! command -v sudo >/dev/null 2>&1; then
+    echo "Error: sudo es requerido para operar como '$TARGET_USER'." >&2
+    exit 1
+  fi
+
+  sudo -u "$TARGET_USER" "$@"
+}
+
+download_key() {
+  if command -v curl >/dev/null 2>&1; then
+    curl -fsSL "$URL"
+    return
+  fi
+
+  if command -v wget >/dev/null 2>&1; then
+    wget -O- "$URL"
+    return
+  fi
+
+  echo "Error: necesitas 'curl' o 'wget' para descargar la llave pública." >&2
+  exit 1
+}
+
+HOME_DIR="$(get_home_dir "$TARGET_USER")"
+if [[ -z "$HOME_DIR" || ! -d "$HOME_DIR" ]]; then
+  echo "Error: no se pudo resolver el home del usuario '$TARGET_USER'." >&2
+  exit 1
+fi
+
 SSH_DIR="$HOME_DIR/.ssh"
 AUTH_KEYS="$SSH_DIR/authorized_keys"
 
-sudo -u "$TARGET_USER" mkdir -p "$SSH_DIR"
-sudo -u "$TARGET_USER" chmod 700 "$SSH_DIR"
+if ! RAW_KEY="$(download_key 2>&1)"; then
+  echo "Error: no se pudo descargar la llave pública desde $URL" >&2
+  echo "$RAW_KEY" >&2
+  exit 1
+fi
 
-# descarga + escritura en una sola shell
-sudo sh -c "wget -qO- '$URL' >> '$AUTH_KEYS'"
+PUB_KEY="$(printf '%s\n' "$RAW_KEY" | tr -d '\r' | awk 'NF { print; exit }')"
+if [[ -z "$PUB_KEY" ]]; then
+  echo "Error: la descarga devolvió una llave vacía." >&2
+  exit 1
+fi
 
-sudo chown "$TARGET_USER:$TARGET_USER" "$AUTH_KEYS"
-sudo chmod 600 "$AUTH_KEYS"
+if [[ ! "$PUB_KEY" =~ ^ssh-(ed25519|rsa|ecdsa) ]]; then
+  echo "Error: la llave descargada no parece una llave pública SSH válida." >&2
+  exit 1
+fi
+
+run_as_target mkdir -p "$SSH_DIR"
+run_as_target chmod 700 "$SSH_DIR"
+run_as_target touch "$AUTH_KEYS"
+run_as_target chmod 600 "$AUTH_KEYS"
+
+if run_as_target grep -qxF "$PUB_KEY" "$AUTH_KEYS"; then
+  echo "La llave pública ya existe en $AUTH_KEYS"
+  exit 0
+fi
+
+run_as_target sh -c 'printf "%s\n" "$1" >> "$2"' sh "$PUB_KEY" "$AUTH_KEYS"
+echo "Llave pública agregada en $AUTH_KEYS para el usuario $TARGET_USER"
