@@ -12,7 +12,14 @@ fi
 
 run(){ echo "${CYA}$ $*${RST}"; "$@"; }
 
-[[ ${EUID:-$(id -u)} -eq 0 ]] || { echo "${RED}[!] Run as root${RST}"; exit 1; }
+if [[ ${EUID:-$(id -u)} -ne 0 ]]; then
+  if command -v sudo >/dev/null 2>&1; then
+    script_path="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd -P)/$(basename -- "${BASH_SOURCE[0]}")"
+    exec sudo -- "$script_path" "$@"
+  fi
+  echo "${RED}[!] This script needs root and sudo is not available.${RST}"
+  exit 1
+fi
 
 echo "${BLD}1) Command:${RST} chmod 700 /home/<user> && chown <user>:<user> /home/<user>"
 echo "${BLD}2) Discovery:${RST} getent passwd (field 6 = home directory)"
@@ -52,6 +59,5 @@ echo "${BLD}3) Non-compliant homes:${RST} $( [[ "$issues" -eq 0 ]] && echo "None
 echo
 echo "${BLD}4) Evidence (one server):${RST} showing permissions"
 run ls -ld /home/* 2>/dev/null || true
-
 
 

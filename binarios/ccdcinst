@@ -80,16 +80,24 @@ done
 
 
 add_path_bashrc() {
-  local line='export PATH="$PATH:/opt/4rji/bin"'
+  local line_bin='export PATH="$PATH:/opt/4rji/bin"'
+  local line_clamav='export PATH="/usr/local/clamav/bin:$PATH"'
   local bashrc="$HOME/.bashrc"
 
   [[ -f "$bashrc" ]] || touch "$bashrc"
 
-  if grep -Fqx "$line" "$bashrc"; then
-    echo -e "${BLUE}[*] PATH already present in ~/.bashrc${RESET}"
+  if grep -Fqx "$line_bin" "$bashrc"; then
+    echo -e "${BLUE}[*] PATH already present in ~/.bashrc:${RESET} $line_bin"
   else
-    echo "$line" >> "$bashrc"
-    echo -e "${GREEN}[+] Added to ~/.bashrc:${RESET} $line"
+    echo "$line_bin" >> "$bashrc"
+    echo -e "${GREEN}[+] Added to ~/.bashrc:${RESET} $line_bin"
+  fi
+
+  if grep -Fqx "$line_clamav" "$bashrc"; then
+    echo -e "${BLUE}[*] PATH already present in ~/.bashrc:${RESET} $line_clamav"
+  else
+    echo "$line_clamav" >> "$bashrc"
+    echo -e "${GREEN}[+] Added to ~/.bashrc:${RESET} $line_clamav"
   fi
 
   echo
