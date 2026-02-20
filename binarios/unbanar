@@ -29,5 +29,5 @@ fi
 echo "Do you want to restart the Artillery service? (y/n)"
 read answer
 if [ "$answer" = "y" ]; then
-    sudo restartarti
+    sudo python3 /var/artillery/restart_server.py
 fi

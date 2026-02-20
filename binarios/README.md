@@ -21,6 +21,7 @@ ptysnoop.bt         Hace snoop in tty, sudo bpftrace -Bnone ptysnoop.bt 99999
 
 
 ###------CCDC
+ipv6b               Bloquea ipv6 en linux. 
 ccdcinst            Instala los scripts en la bash de herrabin.
 dcusercreate        Crea usuario en el ccdcteam dominio, tener hosts 172.20.240.102 domain.local
 wazuhagent          Instala el agente en linux fedora/ubuntu
@@ -380,7 +381,7 @@ todooo              Busca en dentro de los scripts palabras que cohincidan, mas 
 buspal              Buscador de palabras en un directorio, con grep -q buspal {directorio}
 comentadas 			Copia al portapapales las lineas no comentadas, -c para solo verlas sin copiar
 findme              Usa el comando find para buscar archivos
-findme2             Para buscar binarios como zeek
+findbin             Para buscar binarios como zeek
 
 
 ###------ssh
