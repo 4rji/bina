@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SPLUNK_HOME="${SPLUNK_HOME:-/opt/splunk}"
+SPLUNK_BIN="${SPLUNK_HOME}/bin/splunk"
+SPLUNK_USER="${SPLUNK_USER:-splunk}"
+KVSTORE_PORT="${KVSTORE_PORT:-8191}"
+
+log(){ echo "[*] $*"; }
+ok(){ echo "[+] $*"; }
+warn(){ echo "[!] $*"; }
+
+need_root(){
+  [[ "${EUID:-$(id -u)}" -eq 0 ]] || { echo "Run as root (sudo)." >&2; exit 1; }
+}
+
+wait_port_free() {
+  local port="$1" timeout="${2:-30}"
+  local t=0
+  while ss -lntp 2>/dev/null | grep -qE "[:.]${port}\b"; do
+    ((t++))
+    [[ "$t" -ge "$timeout" ]] && return 1
+    sleep 1
+  done
+  return 0
+}
+
+stop_splunk_anyway() {
+  if [[ -x "$SPLUNK_BIN" ]]; then
+    log "Stopping Splunk (best effort)..."
+    "$SPLUNK_BIN" stop >/dev/null 2>&1 || true
+  fi
+
+  if pgrep -f "splunkd" >/dev/null 2>&1; then
+    warn "splunkd still running, killing..."
+    pkill -f splunkd || true
+  fi
+
+  if pgrep -f "${SPLUNK_HOME//\//\\/}.*mongod" >/dev/null 2>&1; then
+    warn "Splunk kvstore mongod still running, killing..."
+    pkill -f "${SPLUNK_HOME}.*mongod" || true
+  fi
+}
+
+stop_mongod_if_needed() {
+  local owner proc pid svc
+  proc="$(ss -lntp 2>/dev/null | awk -v p=":${KVSTORE_PORT}" '$0 ~ p {print $0}' | head -n1 || true)"
+  [[ -n "$proc" ]] || { ok "Port ${KVSTORE_PORT} is free."; return 0; }
+
+  pid="$(echo "$proc" | sed -n 's/.*pid=\([0-9]\+\),.*/\1/p' | head -n1)"
+  [[ -n "$pid" ]] || { warn "Port ${KVSTORE_PORT} busy but PID not found. Output: $proc"; return 1; }
+
+  owner="$(ps -o user= -p "$pid" 2>/dev/null | awk '{print $1}' || true)"
+  svc="$(ps -o comm= -p "$pid" 2>/dev/null | awk '{print $1}' || true)"
+
+  warn "Port ${KVSTORE_PORT} is bound by PID=${pid} user=${owner} cmd=${svc}"
+
+  # If it's mongod, try to stop service first
+  if [[ "$svc" == "mongod" || "$svc" == "mongos" ]]; then
+    log "Stopping mongod service (best effort)..."
+    systemctl stop mongod 2>/dev/null || true
+    systemctl stop mongodb 2>/dev/null || true
+  fi
+
+  if ! wait_port_free "$KVSTORE_PORT" 10; then
+    warn "Port ${KVSTORE_PORT} still busy; killing PID ${pid}..."
+    kill "$pid" 2>/dev/null || true
+    sleep 2
+    if ! wait_port_free "$KVSTORE_PORT" 10; then
+      warn "Still busy; SIGKILL PID ${pid}..."
+      kill -9 "$pid" 2>/dev/null || true
+    fi
+  fi
+
+  wait_port_free "$KVSTORE_PORT" 10 || { echo "Port ${KVSTORE_PORT} still not free." >&2; exit 1; }
+  ok "Port ${KVSTORE_PORT} is now free."
+}
+
+ensure_splunk_user() {
+  id "$SPLUNK_USER" >/dev/null 2>&1 || { echo "User '$SPLUNK_USER' does not exist." >&2; exit 1; }
+}
+
+fix_permissions() {
+  log "Chowning ${SPLUNK_HOME} to ${SPLUNK_USER}:${SPLUNK_USER}..."
+  chown -R "${SPLUNK_USER}:${SPLUNK_USER}" "$SPLUNK_HOME"
+  ok "Permissions updated."
+}
+
+start_splunk_as_user() {
+  log "Starting Splunk as ${SPLUNK_USER}..."
+  sudo -u "$SPLUNK_USER" "$SPLUNK_BIN" start --accept-license --answer-yes >/dev/null
+  ok "Splunk started."
+}
+
+verify() {
+  log "Verifying splunkd user + ports..."
+  ps -eo user,pid,cmd | grep -E "[s]plunkd" || true
+  ss -lntp | grep -E '(:8000|:8089|:9997|:8191)\b' || true
+  ok "Done."
+}
+
+main(){
+  need_root
+  [[ -d "$SPLUNK_HOME" ]] || { echo "SPLUNK_HOME not found: $SPLUNK_HOME" >&2; exit 1; }
+  [[ -x "$SPLUNK_BIN" ]] || { echo "splunk binary not found: $SPLUNK_BIN" >&2; exit 1; }
+  ensure_splunk_user
+
+  stop_splunk_anyway
+  stop_mongod_if_needed
+  fix_permissions
+  start_splunk_as_user
+  verify
+}
+
+main "$@"

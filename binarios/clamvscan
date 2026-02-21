@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+EXCL='^/sys|^/proc|^/dev'
+QUAR="/quarantine"
+LOG_DIR="/var/log/clamav"
+TS="$(date -u +%Y%m%dT%H%M%SZ)"
+LOG="${LOG_DIR}/manual_scan_${TS}.log"
+HOST="$(hostname -f 2>/dev/null || hostname)"
+
+# Force root
+if [[ "$EUID" -ne 0 ]]; then
+  echo "[*] Re-running with sudo..."
+  exec sudo bash "$0" "$@"
+fi
+
+mkdir -p "$LOG_DIR" "$QUAR"
+
+echo "======================================================"
+echo "ClamAV Incident Response Scan"
+echo "Host: $HOST"
+echo "Time (UTC): $(date -u)"
+echo
+echo "Log directory: $LOG_DIR"
+echo "Current log file: $LOG"
+echo "Quarantine directory: $QUAR"
+echo "======================================================"
+echo
+
+echo "[*] Existing ClamAV scan logs:"
+ls -lah "$LOG_DIR"/manual_scan_* 2>/dev/null || echo "No previous scan logs found."
+echo
+
+echo "[*] Starting scan..."
+echo "[*] This may take a while..."
+echo
+
+spinner() {
+  local pid=$1
+  local spin='-\|/'
+  local i=0
+  while kill -0 "$pid" 2>/dev/null; do
+    i=$(( (i+1) %4 ))
+    printf "\r[+] Scan in progress... %c" "${spin:$i:1}"
+    sleep 0.2
+  done
+  printf "\r[+] Scan completed.           \n"
+}
+
+clamscan -r / \
+  --infected \
+  --exclude-dir="$EXCL" \
+  --move="$QUAR" \
+  --log="$LOG" &
+
+PID=$!
+spinner $PID
+wait $PID || true
+
+echo
+echo "================ IR SUMMARY ================"
+
+INFECTED_COUNT=$(grep -c ' FOUND$' "$LOG" 2>/dev/null || echo 0)
+
+echo "Total infected files detected: $INFECTED_COUNT"
+echo
+
+if [[ "$INFECTED_COUNT" -gt 0 ]]; then
+  echo "Infected files:"
+  grep ' FOUND$' "$LOG"
+else
+  echo "No infected files detected."
+fi
+
+echo
+echo "Quarantine contents:"
+ls -lah "$QUAR"
+
+echo
+echo "Scan statistics:"
+grep -E 'Scanned files:|Infected files:|Time:|Data scanned:|Data read:' "$LOG" || true
+
+echo "============================================"
+echo "[*] IR scan finished."

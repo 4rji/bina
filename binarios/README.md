@@ -15,30 +15,33 @@ decloaktools        Post-detection investigation checklist for decloak analysis
 decloak.py          File decloaking tool to identify possible rootkit-based content hiding
 processdecloak      Busca procesos ocultos en linux
 tlscheck            TLS cert check using SHA256 Useful for detecting TLS interception - MITM.
-
 ptysnoop.bt         Hace snoop in tty, sudo bpftrace -Bnone ptysnoop.bt 99999
 
 
 
 ###------CCDC
+clamvscan           Escanea y crea logs de clamvscan
 ipv6b               Bloquea ipv6 en linux. 
 ccdcinst            Instala los scripts en la bash de herrabin.
 dcusercreate        Crea usuario en el ccdcteam dominio, tener hosts 172.20.240.102 domain.local
 wazuhagent          Instala el agente en linux fedora/ubuntu
 wazuhinst           Instala wazuh. asistente. automatico
 wazuhinstdock       instala docker compose y wazuh en ubuntu 24
-nopasss             Agrega NOPASS al usuario y lo quita del grupo sudo
 crondir             Hace un dir y cat a los cron del sistema
+fwinst              Agrega servicios y puertos a firewall-cmd
+grubp               Crea una copia de grub, boot, efi y la guarda en /var/lib/os-system, restaura tambien
+
+
+###---OTROS---CCDC
 pingpublic          Hace ping a direcciones CCDC publicas y ssh
 portopenfake        script basico para abrir puertos en linux, con -t para detener
-frpinst             Instala frp y descarga dotfiles
-frpstart            Agregar a crontab para que frp inicio automaticamente. 
-
-fwinst              Agrega servicios y puertos a firewall-cmd
 ttyinicio           Crea mensaje de inicio de tty para ver la ip del servidor debian
 
 
+
 ###------linux
+frpinst             Instala frp y descarga dotfiles
+frpstart            Agregar a crontab para que frp inicio automaticamente. 
 diskspace           Muestra el spacio disponible en linux
 auditd-test         Ejecuta tests para auditd
 cleanaudit          Limpia y almacena logs de auditd, descarga las reglas
@@ -82,6 +85,7 @@ wgetraw             Descarga HTTP minimo que hace GET via TCP - /dev/tcp
 #Windows
 clamWinst.ps1       Instala clamv en windows muestra la ruta al final de los archivos
 bannerWin.ps1       Banner para windows server 
+
 
 
 ###------Arch linux

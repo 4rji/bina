@@ -5,39 +5,80 @@ ARCHIVE_DIR="/var/log/audit/archive"
 TS="$(date +%Y%m%d-%H%M%S)"
 RULES_URL="https://raw.githubusercontent.com/4rji/dotfiles/refs/heads/main/auditd_rules"
 RULES_FILE="auditd_rules"
+AUDIT_LOG="/var/log/audit/audit.log"
+ROTATE_GLOBS=(/var/log/audit/audit.log.*)
 
-echo "[*] Archiving audit logs at $TS"
+say(){ echo "[*] $*"; }
+warn(){ echo "[!] $*" >&2; }
+
+say "Archiving audit logs at $TS"
 sudo mkdir -p "$ARCHIVE_DIR"
 
-echo "[*] Stopping auditd"
-sudo systemctl stop auditd
+stopped=0
+
+say "Stopping auditd (if allowed by systemd)"
+if sudo systemctl stop auditd >/dev/null 2>&1; then
+  stopped=1
+  say "auditd stopped via systemctl"
+else
+  warn "Could not stop auditd via systemctl; using rotate/HUP fallback."
+  if command -v service >/dev/null 2>&1 && sudo service auditd rotate >/dev/null 2>&1; then
+    say "Rotated via: service auditd rotate"
+  elif sudo systemctl kill -s HUP auditd >/dev/null 2>&1; then
+    say "Rotated via: systemctl kill -s HUP auditd"
+  elif pid="$(pidof auditd 2>/dev/null)" && [[ -n "$pid" ]] && sudo kill -HUP "$pid" >/dev/null 2>&1; then
+    say "Rotated via: kill -HUP auditd"
+  else
+    warn "Could not rotate auditd logs via service/HUP. Continuing anyway."
+  fi
+fi
+
+sleep 1
 
 moved=0
 
-# Move current + rotated logs if present
-for f in /var/log/audit/audit.log /var/log/audit/audit.log.*; do
-  [[ -e "$f" ]] || continue
-  base="$(basename "$f")"
-  sudo mv "$f" "$ARCHIVE_DIR/${base}.${TS}"
-  moved=1
-done
+if [[ "$stopped" -eq 1 ]]; then
+  # Full stop path: move current + rotated logs, then recreate audit.log
+  for f in "$AUDIT_LOG" "${ROTATE_GLOBS[@]}"; do
+    [[ -e "$f" ]] || continue
+    base="$(basename "$f")"
+    sudo mv -f "$f" "$ARCHIVE_DIR/${base}.${TS}"
+    moved=1
+  done
 
-# Recreate empty audit.log so auditd can start cleanly
-sudo touch /var/log/audit/audit.log
-sudo chown root:root /var/log/audit/audit.log
-sudo chmod 0600 /var/log/audit/audit.log
-
-if [[ "$moved" -eq 1 ]]; then
-  echo "[*] Compressing archived logs"
-  sudo gzip -9 "$ARCHIVE_DIR"/*.${TS}
+  sudo touch "$AUDIT_LOG"
+  sudo chown root:root "$AUDIT_LOG"
+  sudo chmod 0600 "$AUDIT_LOG"
 else
-  echo "[*] No logs found to archive"
+  # No-stop path: move rotated logs, copy current audit.log
+  for f in "${ROTATE_GLOBS[@]}"; do
+    [[ -e "$f" ]] || continue
+    base="$(basename "$f")"
+    sudo mv -f "$f" "$ARCHIVE_DIR/${base}.${TS}"
+    moved=1
+  done
+
+  if [[ -e "$AUDIT_LOG" ]]; then
+    sudo cp -a "$AUDIT_LOG" "$ARCHIVE_DIR/$(basename "$AUDIT_LOG").${TS}"
+    moved=1
+  fi
 fi
 
-echo "[*] Starting auditd"
-sudo systemctl start auditd
+if [[ "$moved" -eq 1 ]]; then
+  say "Compressing archived logs"
+  sudo gzip -9 "$ARCHIVE_DIR"/*."${TS}" || true
+else
+  say "No logs found to archive"
+fi
 
-echo "[*] Done. Archived logs in: $ARCHIVE_DIR"
+if [[ "$stopped" -eq 1 ]]; then
+  say "Starting auditd"
+  sudo systemctl start auditd
+else
+  say "auditd was not stopped; skipping start"
+fi
+
+say "Done. Archived logs in: $ARCHIVE_DIR"
 sudo ls -lh "$ARCHIVE_DIR" | tail -n 20
 
 echo
@@ -46,24 +87,30 @@ ans="${ans:-Y}"
 
 if [[ "$ans" =~ ^[Yy]$ ]]; then
   if [[ ! -f "$RULES_FILE" ]]; then
-    echo "[*] Rules file not found. Downloading: $RULES_URL"
+    say "Rules file not found. Downloading: $RULES_URL"
     if command -v wget >/dev/null 2>&1; then
       wget -qO "$RULES_FILE" "$RULES_URL"
     elif command -v curl >/dev/null 2>&1; then
       curl -fsSL "$RULES_URL" -o "$RULES_FILE"
     else
-      echo "[!] Neither wget nor curl found. Install one to download rules."
+      warn "Neither wget nor curl found. Install one to download rules."
       exit 1
     fi
   else
-    echo "[*] Using existing rules file: $RULES_FILE"
+    say "Using existing rules file: $RULES_FILE"
   fi
 
-  echo "[*] Loading rules via auditctl -R $RULES_FILE"
-  sudo auditctl -R "$RULES_FILE"
+  if command -v augenrules >/dev/null 2>&1; then
+    say "Installing rules into /etc/audit/rules.d/99-local.rules and loading via augenrules"
+    sudo install -m 0640 -o root -g root "$RULES_FILE" /etc/audit/rules.d/99-local.rules
+    sudo augenrules --load
+  else
+    say "Loading rules via auditctl -R $RULES_FILE"
+    sudo auditctl -R "$RULES_FILE"
+  fi
 
-  echo "[*] Current loaded rules:"
-  sudo auditctl -l
+  say "Current loaded rules:"
+  sudo auditctl -l || true
 else
-  echo "[*] Skipped rules reload."
+  say "Skipped rules reload."
 fi
