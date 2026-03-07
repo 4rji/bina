@@ -241,9 +241,8 @@ pgaa                pega y ejecuta scripts -g go -b para bash para mac
 pga                 pega y ejecuta scripts -g go -b para bash para Arch
 firefoxephemeral    Cambia idioma, Crea dockerfile, y tambien el contenedor para firefox
 abrireph-ext-file   Extrae un archivo bajado en el docker container, hace toddo el proceso
-afire               Script para linux para abrir ephemeral firefox cambia idioma
-afirec              Script para linux para abrir ephemeral firefox, no idiomas, webrtc proteccion
-afirem              Este es para abrir el firefox ephemeral. tambien puede ser una app en automator 
+firef               Script para linux para abrir ephemeral firefox cambia idioma (primero firefoxephemeral)
+firefm              Este es para abrir el firefox ephemeral. (primero instalar firefoxephemeral)
 binariosgo          Descarga los binarios go, que estan comprimidos (antes comprimidos)
 webc                Convierte todas las imagens png a webp en mac
 gocomm              compila un binario en go, muestra como hacerlo tambien
