@@ -305,7 +305,7 @@ wgcomm              Algunos comandos de wireguard
 pingtime            Ping para verificar si host esta online o no cada 5 segundos o -t #
 sshbaner            de neofinst2 - crea un mensaje de bienvenida de ssh Despues logearse
 portmonitor         Monitorea cuando un puerto se abre, puerto abierto o cerrado. 
-
+picoduckytool       Para formatear raspberri pico, se necesito el github en el mio
 
 ###------Repositorios
 fixme               corre fix-4rji para solucionar repositorios despuies de la instalacion             
