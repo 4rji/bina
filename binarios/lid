@@ -1,39 +1,32 @@
 #!/usr/bin/env bash
 
-# Función para mostrar el mensaje de ayuda y preguntar si desea continuar
-show_help_and_confirm() {
-    echo
-    echo "El comando que este script ejecuta es:"
-    echo "sudo nano /etc/systemd/logind.conf"
-    echo
-    echo "Presione Enter para continuar o 'c' para salir."
+set -e
 
-    # Preguntar al usuario si desea continuar
-    read -p "Deseas continuar [c/S] " response
+CONFIG="/etc/systemd/logind.conf"
+echo $CONFIG
 
-    # Convertir la respuesta a minúsculas
-    response=$(echo "$response" | tr '[:upper:]' '[:lower:]')
+echo ""
+echo "📝 Agregando configuración para ignorar lid..."
+sudo tee -a "$CONFIG" > /dev/null <<EOF
 
-    # Si la respuesta es 'c', salir del script
-    if [ "$response" == "c" ]; then
-        echo "Saliendo del script."
-        exit 0
-    fi
-}
+# Ignorar cierre de lid (no suspender/hibernar)
+HandleLidSwitch=ignore
+HandleLidSwitchExternalPower=ignore
+HandleLidSwitchDocked=ignore
+EOF
 
-# Verificar si se pasó el argumento -h
-if [ "$1" == "-h" ]; then
-    show_help_and_confirm
-fi
+echo ""
+echo "📄 Configuración actual del archivo:"
+tail -5 "$CONFIG"
 
+echo ""
+echo "¿Reiniciar el servicio ahora? (S para sí, Enter para no)"
+read -n1 input
+echo
 
-sudo nano /etc/systemd/logind.conf
-
-echo "Restart the service now? (Press S for yes, Enter for no)"
-read -k1 input
 if [[ $input == "S" || $input == "s" ]]; then
     sudo systemctl restart systemd-logind
-    echo "systemd-logind service restarted."
+    echo "✅ Servicio reiniciado. Cambios aplicados."
 else
-    echo "You chose not to restart the service. Changes will take effect on next reboot."
+    echo "⚠️  Cambios aplicarán en el próximo reinicio."
 fi
