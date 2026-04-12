@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -e
+
+echo "🔍 Verificando pipx..."
+if ! command -v pipx &> /dev/null; then
+    echo "📦 Instalando pipx..."
+    pip install pipx --break-system-packages
+    pipx ensurepath
+fi
+
+echo "🚀 Instalando markitdown..."
+pipx install markitdown
+
+echo "✅ Listo! Prueba con:"
+echo "   markitdown archivo.pdf"
+echo "   markitdown 'https://www.youtube.com/watch?v=VIDEO_ID'"

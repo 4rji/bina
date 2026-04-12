@@ -142,7 +142,8 @@ nv-agent            binario en comprimidos, el agente de nvidia para gpu monitor
 nvidiakali          Instala nvidia en kali, baja el driver  
 mesloinst           Instala las fuentes meslo - font meslo
 mesloinst2          Para instalar manualmente las fuentes (nixos) pero funciona otras - font
-servidorvideo       Crea en docker alpine como servidor, monta una carpeta para ver videos que hay en ella.                                     
+servidorvideo       Crea en docker alpine como servidor, monta una carpeta para ver videos que hay en ella.
+markitdowninst      Convirte pdf o otro a md para llm, global de python se instala                                    
 smbserverinst       Instala smb server en debian con usuario nalasmb o anonimo
 smbserver           smb termporar usando impact en python3
 googlessh           Instala la authenticacion de google para ssh                                               
