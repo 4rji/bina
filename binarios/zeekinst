@@ -2,15 +2,15 @@
 # Instala Zeek en Debian 12/13 + servicio systemd
 set -euo pipefail
 
-#--- instalar gpg
-sudo apt install -y gpg
+#--- instalar dependencias
+sudo apt install -y gpg curl
 
 #--- detectar versión
 . /etc/os-release
 case "${VERSION_CODENAME:-}" in
   trixie) DIST="Debian_13" ;;
   bookworm) DIST="Debian_12" ;;
-  *) echo "Solo soporta Debian 12/13 (detectado: ${VERSION_CODENAME:-unknown})"; exit 1 ;;
+  *) echo "Only Debian 12/13 supported (detected: ${VERSION_CODENAME:-unknown})"; exit 1 ;;
 esac
 
 #--- repo Zeek
@@ -26,9 +26,28 @@ sudo apt install -y --no-install-recommends zeek
 echo 'export PATH="$PATH:/opt/zeek/bin"' | sudo tee /etc/profile.d/zeek.sh
 sudo chmod 644 /etc/profile.d/zeek.sh
 
-#--- interfaz por default
-IFACE="$(ip -o -4 route show to default | awk '{print $5}' | head -n1)"
-[ -z "$IFACE" ] && { echo "No se detectó interfaz. Edita /opt/zeek/etc/node.cfg manualmente."; exit 1; }
+#--- select interface
+mapfile -t IFACES < <(ip -o link show up | awk -F': ' '{print $2}' | grep -v '^lo$')
+
+if [ ${#IFACES[@]} -eq 0 ]; then
+  echo "No active interfaces found. Edit /opt/zeek/etc/node.cfg manually."; exit 1
+elif [ ${#IFACES[@]} -eq 1 ]; then
+  IFACE="${IFACES[0]}"
+  echo "Using interface: ${IFACE}"
+else
+  echo ""
+  echo "Multiple interfaces detected:"
+  for i in "${!IFACES[@]}"; do
+    printf "  %d) %s\n" "$((i+1))" "${IFACES[$i]}"
+  done
+  echo ""
+  read -rp "Select interface [1-${#IFACES[@]}]: " choice
+  if [[ "$choice" -ge 1 && "$choice" -le ${#IFACES[@]} ]] 2>/dev/null; then
+    IFACE="${IFACES[$((choice-1))]}"
+  else
+    echo "Invalid selection."; exit 1
+  fi
+fi
 
 #--- node.cfg standalone
 cat <<EOF | sudo tee /opt/zeek/etc/node.cfg
@@ -38,8 +57,13 @@ host=localhost
 interface=${IFACE}
 EOF
 
-#--- primer deploy
-sudo /opt/zeek/bin/zeekctl deploy || true
+#--- habilitar SSH logging y detección de fuerza bruta
+sudo tee -a /opt/zeek/share/zeek/site/local.zeek > /dev/null <<'ZEEKEOF'
+
+# SSH protocol logging and brute-force detection
+@load base/protocols/ssh
+@load policy/protocols/ssh/detect-bruteforcing
+ZEEKEOF
 
 #--- servicio systemd
 cat <<'EOF' | sudo tee /etc/systemd/system/zeek.service
@@ -62,13 +86,24 @@ EOF
 
 sudo systemctl daemon-reload
 sudo systemctl enable --now zeek
-source /etc/profile.d/zeek.sh
 
-echo -e "\n\e[92m✅ Zeek instalado y corriendo en interfaz:\e[0m  \e[96m${IFACE}\e[0m\n"
-echo -e "\e[93mConfig:\e[0m  \e[96m/opt/zeek/etc/node.cfg\e[0m\n"
-echo -e "\e[93mLogs:\e[0m    \e[96m/opt/zeek/spool/zeek (live)\e[0m"
-echo -e "         \e[96m/opt/zeek/logs/<timestamp>/ (rotados)\e[0m\n"
+echo -e "\n\e[92m✅ Zeek installed and running on interface:\e[0m  \e[96m${IFACE}\e[0m\n"
 
-echo -e "         \e[96msource /etc/profile.d/zeek.sh \e[0m\n"
-echo -e "\n\e[92m✅ Execute: sudo systemctl stop zeek && sudo systemctl restart zeek\e[0m"
-zeek -v
+echo -e "\e[93m── Config files ────────────────────────────────────────\e[0m"
+echo -e "  Node/interface:   \e[96m/opt/zeek/etc/node.cfg\e[0m"
+echo -e "  Networks:         \e[96m/opt/zeek/etc/networks.cfg\e[0m"
+echo -e "  Scripts/plugins:  \e[96m/opt/zeek/share/zeek/site/local.zeek\e[0m"
+echo -e "  zeekctl settings: \e[96m/opt/zeek/etc/zeekctl.cfg\e[0m"
+
+echo -e "\n\e[93m── Logs ────────────────────────────────────────────────\e[0m"
+echo -e "  Live:             \e[96m/opt/zeek/spool/zeek/\e[0m"
+echo -e "  Rotated:          \e[96m/opt/zeek/logs/<timestamp>/\e[0m"
+
+echo -e "\n\e[93m── Useful commands ─────────────────────────────────────\e[0m"
+echo -e "  sudo /opt/zeek/bin/zeekctl status"
+echo -e "  sudo /opt/zeek/bin/zeekctl deploy    # apply config changes"
+echo -e "  sudo systemctl restart zeek"
+
+echo -e "\n\e[93mTo use zeek in this terminal:\e[0m  \e[96msource /etc/profile.d/zeek.sh\e[0m\n"
+
+/opt/zeek/bin/zeek -v
