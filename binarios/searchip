@@ -1,0 +1,207 @@
+#!/usr/bin/env bash
+# ============================================================
+#  buscar_ip.sh — Search for an IP address across the system
+#  Usage: ./buscar_ip.sh <IP>
+# ============================================================
+
+# ── Argument check ─────────────────────────────────────────
+if [ -z "$1" ]; then
+    echo "Usage: $0 <IP_ADDRESS>"
+    echo "Example: $0 146.70.195.87"
+    exit 1
+fi
+
+IP="$1"
+
+# Validate IP format
+if ! echo "$IP" | grep -qE '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+    echo "Error: '$IP' does not look like a valid IPv4 address."
+    exit 1
+fi
+
+# ── Re-run with sudo if not root ───────────────────────────
+if [ "$EUID" -ne 0 ]; then
+    echo "[*] Restarting with sudo for full access..."
+    exec sudo bash "$0" "$IP"
+fi
+
+# ── Colors ─────────────────────────────────────────────────
+BOLD="\e[1m"
+RED="\e[31m"
+GRN="\e[32m"
+YLW="\e[33m"
+CYN="\e[36m"
+DIM="\e[2m"
+RST="\e[0m"
+
+found=0
+
+# ── Helpers ────────────────────────────────────────────────
+banner() {
+    echo -e "${BOLD}${CYN}"
+    echo "╔══════════════════════════════════════════════════╗"
+    printf "║  Searching for IP: %-30s║\n" "$IP"
+    echo "╚══════════════════════════════════════════════════╝"
+    echo -e "${RST}"
+}
+
+section() {
+    echo -e "\n${BOLD}${YLW}▶ $1${RST}"
+}
+
+hit() {
+    echo -e "  ${RED}[✔]${RST} ${BOLD}$1${RST}"
+    found=$((found + 1))
+}
+
+miss() {
+    echo -e "  ${DIM}✗${RST}"
+}
+
+show_result() {
+    echo "$1" | head -20 | sed 's/^/      /'
+}
+
+check_file() {
+    local label="$1"
+    local file="$2"
+    printf "  %-38s" "$label"
+    if [ -f "$file" ] && [ -r "$file" ]; then
+        local res
+        res=$(grep -n "$IP" "$file" 2>/dev/null)
+        if [ -n "$res" ]; then
+            hit "$file"
+            show_result "$res"
+        else
+            miss
+        fi
+    else
+        miss
+    fi
+}
+
+check_dir() {
+    local label="$1"
+    local dir="$2"
+    printf "  %-38s" "$label"
+    if [ -d "$dir" ]; then
+        local res
+        res=$(grep -rn "$IP" "$dir" 2>/dev/null)
+        if [ -n "$res" ]; then
+            hit "$dir"
+            show_result "$res"
+        else
+            miss
+        fi
+    else
+        miss
+    fi
+}
+
+# ─── Start ─────────────────────────────────────────────────
+banner
+
+# ── 1. Active connections ──────────────────────────────────
+section "Active network connections"
+printf "  %-38s" "ss (socket statistics)"
+res=$(ss -tunp 2>/dev/null | grep "$IP")
+[ -n "$res" ] && { hit "Active connection found (ss)"; show_result "$res"; } || miss
+
+printf "  %-38s" "netstat"
+if command -v netstat &>/dev/null; then
+    res=$(netstat -tunp 2>/dev/null | grep "$IP")
+    [ -n "$res" ] && { hit "Active connection found (netstat)"; show_result "$res"; } || miss
+else
+    miss
+fi
+
+# ── 2. ARP table ───────────────────────────────────────────
+section "ARP table"
+printf "  %-38s" "arp cache"
+res=$(arp -n 2>/dev/null | grep "$IP")
+[ -n "$res" ] && { hit "Found in ARP cache"; show_result "$res"; } || miss
+
+# ── 3. Routing table ───────────────────────────────────────
+section "Routing table"
+printf "  %-38s" "ip route"
+res=$(ip route show 2>/dev/null | grep "$IP")
+[ -n "$res" ] && { hit "Found in routing table"; show_result "$res"; } || miss
+
+# ── 4. Firewall ────────────────────────────────────────────
+section "Firewall rules"
+printf "  %-38s" "iptables"
+if command -v iptables &>/dev/null; then
+    res=$(iptables -L -n 2>/dev/null | grep "$IP")
+    [ -n "$res" ] && { hit "Found in iptables"; show_result "$res"; } || miss
+else
+    miss
+fi
+
+printf "  %-38s" "nftables"
+if command -v nft &>/dev/null; then
+    res=$(nft list ruleset 2>/dev/null | grep "$IP")
+    [ -n "$res" ] && { hit "Found in nftables"; show_result "$res"; } || miss
+else
+    miss
+fi
+
+# ── 5. System logs ─────────────────────────────────────────
+section "System logs"
+check_file "auth.log"                "/var/log/auth.log"
+check_file "syslog"                  "/var/log/syslog"
+check_file "messages"                "/var/log/messages"
+check_file "kern.log"                "/var/log/kern.log"
+check_file "ufw.log"                 "/var/log/ufw.log"
+check_file "fail2ban.log"            "/var/log/fail2ban.log"
+
+# ── 6. Journald ────────────────────────────────────────────
+section "systemd journal"
+printf "  %-38s" "journalctl"
+if command -v journalctl &>/dev/null; then
+    res=$(journalctl --no-pager -q 2>/dev/null | grep "$IP" | tail -20)
+    [ -n "$res" ] && { hit "Found in journald"; show_result "$res"; } || miss
+else
+    miss
+fi
+
+# ── 7. Web server logs ─────────────────────────────────────
+section "Web server logs"
+check_dir  "Apache2 /var/log/apache2"      "/var/log/apache2"
+check_dir  "Apache/httpd /var/log/httpd"   "/var/log/httpd"
+check_dir  "Nginx /var/log/nginx"          "/var/log/nginx"
+
+# ── 8. SSH known_hosts ─────────────────────────────────────
+section "SSH known_hosts"
+for f in /root/.ssh/known_hosts /home/*/.ssh/known_hosts; do
+    [ -f "$f" ] && check_file "$f" "$f"
+done
+
+# ── 9. Network configuration ───────────────────────────────
+section "Network configuration"
+check_file "/etc/hosts"                    "/etc/hosts"
+check_file "/etc/resolv.conf"              "/etc/resolv.conf"
+check_dir  "NetworkManager"                "/etc/NetworkManager"
+check_dir  "systemd-network"               "/etc/systemd/network"
+check_dir  "/etc/network"                  "/etc/network"
+
+# ── 10. Shell history ──────────────────────────────────────
+section "Shell history"
+for f in /root/.bash_history /root/.zsh_history /home/*/.bash_history /home/*/.zsh_history; do
+    [ -f "$f" ] && check_file "$(basename "$f") @ $(dirname "$f")" "$f"
+done
+
+# ── 11. Crontabs ───────────────────────────────────────────
+section "Crontabs"
+check_dir  "/etc/cron.d"                   "/etc/cron.d"
+check_file "root crontab"                  "/var/spool/cron/crontabs/root"
+
+# ─── Summary ───────────────────────────────────────────────
+echo ""
+echo -e "${BOLD}${CYN}╔══════════════════════════════════════════════════╗"
+if [ "$found" -gt 0 ]; then
+    printf "${CYN}║  ${RED}⚠  Matches found: %-31s${CYN}║\n" "$found"
+else
+    echo -e "║  ${GRN}✔  No traces of $IP found.$(printf '%*s' $((19 - ${#IP})) '')${CYN}║"
+fi
+echo -e "╚══════════════════════════════════════════════════╝${RST}"
+echo ""

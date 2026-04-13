@@ -40,6 +40,7 @@ ttyinicio           Crea mensaje de inicio de tty para ver la ip del servidor de
 
 
 ###------linux
+searchip            Busca una IP en toda la maquina para ver si se utilizo alguna vez
 frpinst             Instala frp y descarga dotfiles
 frpstart            Agregar a crontab para que frp inicio automaticamente. 
 diskspace           Muestra el spacio disponible en linux
