@@ -1,0 +1,158 @@
+#!/usr/bin/env bash
+
+# Dynamic mount paths
+RPI_MOUNT=$(findmnt -rn -o TARGET | grep "RPI-RP2" | head -1)
+CIRCUITPY=$(findmnt -rn -o TARGET | grep "CIRCUITPY" | head -1)
+
+WIFI_SSID="PicoDuckyHotspot"
+WIFI_PASS="12341234"
+
+# ── Helpers ───────────────────────────────────────────────
+get_rpi() {
+    findmnt -rn -o TARGET | grep "RPI-RP2" | head -1
+}
+
+get_circuitpy() {
+    findmnt -rn -o TARGET | grep "CIRCUITPY" | head -1
+}
+
+wait_for_mount() {
+    local LABEL="$1"
+    local TIMEOUT=30
+    local COUNT=0
+    echo ""
+    echo "Waiting for $LABEL to appear..."
+    while [ -z "$(findmnt -rn -o TARGET | grep "$LABEL")" ]; do
+        sleep 1
+        COUNT=$((COUNT + 1))
+        echo -ne "  ${COUNT}s...\r"
+        if [ $COUNT -ge $TIMEOUT ]; then
+            echo ""
+            echo "ERROR: $LABEL did not appear after ${TIMEOUT}s."
+            exit 1
+        fi
+    done
+    echo ""
+    echo "$LABEL detected at: $(findmnt -rn -o TARGET | grep "$LABEL" | head -1)"
+}
+
+# ── Actions ───────────────────────────────────────────────
+do_flash() {
+    echo ""
+    echo "Select your Pico model:"
+    echo "  1) Raspberry Pi Pico"
+    echo "  2) Raspberry Pi Pico 2"
+    echo "  3) Raspberry Pi Pico W"
+    echo "  4) Raspberry Pi Pico 2W"
+    echo ""
+    read -p "Enter option (1-4): " OPTION
+
+    case $OPTION in
+        1) UF2="adafruit-circuitpython-raspberry_pi_pico-en_US-10.0.3.uf2" ;;
+        2) UF2="adafruit-circuitpython-raspberry_pi_pico2-en_US-10.0.3.uf2" ;;
+        3) UF2="adafruit-circuitpython-raspberry_pi_pico_w-en_US-10.0.3.uf2" ;;
+        4) UF2="adafruit-circuitpython-raspberry_pi_pico2_w-en_US-10.0.3.uf2" ;;
+        *) echo "Invalid option."; return ;;
+    esac
+
+    if [ ! -f "$UF2" ]; then
+        echo "ERROR: '$UF2' not found in current directory."
+        return
+    fi
+
+    RPI_MOUNT=$(get_rpi)
+    if [ -z "$RPI_MOUNT" ]; then
+        echo "ERROR: RPI-RP2 not found. Hold BOOTSEL while plugging in the Pico."
+        return
+    fi
+
+    echo "Flashing $UF2 to $RPI_MOUNT ..."
+    cp "$UF2" "$RPI_MOUNT"
+    echo "Done! Pico is rebooting..."
+}
+
+do_copy() {
+    CIRCUITPY=$(get_circuitpy)
+    if [ -z "$CIRCUITPY" ]; then
+        echo "CIRCUITPY not found. Waiting..."
+        wait_for_mount "CIRCUITPY"
+        CIRCUITPY=$(get_circuitpy)
+    fi
+
+    echo ""
+    echo "Copying files to $CIRCUITPY ..."
+    echo ""
+
+    echo "  → lib/"
+    cp -r lib "$CIRCUITPY"
+
+    echo "  → .py files"
+    cp boot.py code.py duckyinpython.py pins.py secrets.py webapp.py wsgiserver.py "$CIRCUITPY"
+
+    echo "  → payload.dd + secrets.py"
+    cp payload.dd secrets.py "$CIRCUITPY"
+
+    echo ""
+    echo "✅ All files copied!"
+    echo ""
+    echo "=============================="
+    echo "  Next Steps"
+    echo "=============================="
+    echo "1. Unplug the Pico W"
+    echo "2. Remove jumper (GP0 to GND)"
+    echo "3. Plug back in — payload will run"
+    echo ""
+    echo "=============================="
+    echo "  WiFi Hotspot Info"
+    echo "=============================="
+    echo "  Network : $WIFI_SSID"
+    echo "  Password: $WIFI_PASS"
+    echo "  URL     : http://192.168.4.1"
+    echo "=============================="
+}
+
+do_nuke() {
+    if [ ! -f "universal_flash_nuke.uf2" ]; then
+        echo "ERROR: 'universal_flash_nuke.uf2' not found in current directory."
+        return
+    fi
+
+    RPI_MOUNT=$(get_rpi)
+    if [ -z "$RPI_MOUNT" ]; then
+        echo "ERROR: RPI-RP2 not found. Hold BOOTSEL while plugging in the Pico."
+        return
+    fi
+
+    echo "⚠️  This will ERASE ALL data on the Pico!"
+    read -p "Are you sure? (yes/no): " CONFIRM
+    if [ "$CONFIRM" != "yes" ]; then
+        echo "Aborted."
+        return
+    fi
+
+    echo "Nuking flash at $RPI_MOUNT ..."
+    cp universal_flash_nuke.uf2 "$RPI_MOUNT"
+    echo "Done! Pico memory erased. Now run option 1 to flash CircuitPython."
+}
+
+# ── Main Menu ─────────────────────────────────────────────
+while true; do
+    echo ""
+    echo "=============================="
+    echo "     Pico-Ducky Manager"
+    echo "=============================="
+    echo "  1) Flash CircuitPython"
+    echo "  2) Copy files to CIRCUITPY"
+    echo "  3) Nuke flash (erase all)"
+    echo "  4) Exit"
+    echo "=============================="
+    read -p "Select option: " CHOICE
+
+    case $CHOICE in
+        1) do_flash ;;
+        2) do_copy ;;
+        3) do_nuke ;;
+        4) echo "Bye!"; exit 0 ;;
+        *) echo "Invalid option." ;;
+    esac
+done

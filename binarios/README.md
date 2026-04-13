@@ -72,7 +72,7 @@ coll                Muestra comandos con colores con batcat y un tmp archivo
 apache9000          Modifica la configuracion de apache para correr en el puerto 80 y otro puerto
 pwdc                Copia el directorio actual con pwd y xclip
 grubp               Crea una copia de grub, boot, efi y la guarda en /var/lib/os-system, restaura tambien
-
+mk                  Crea markitdown de los archivos ./mk file
 
 ###------descargar_cosas
 wgett               Descarga archivos con wget, carpeta completa reescribiendo o no
@@ -142,7 +142,8 @@ nv-agent            binario en comprimidos, el agente de nvidia para gpu monitor
 nvidiakali          Instala nvidia en kali, baja el driver  
 mesloinst           Instala las fuentes meslo - font meslo
 mesloinst2          Para instalar manualmente las fuentes (nixos) pero funciona otras - font
-servidorvideo       Crea en docker alpine como servidor, monta una carpeta para ver videos que hay en ella.                                     
+servidorvideo       Crea en docker alpine como servidor, monta una carpeta para ver videos que hay en ella.
+markitdowninst      Convirte pdf o otro a md para llm, global de python se instala                                    
 smbserverinst       Instala smb server en debian con usuario nalasmb o anonimo
 smbserver           smb termporar usando impact en python3
 googlessh           Instala la authenticacion de google para ssh                                               
@@ -305,7 +306,7 @@ wgcomm              Algunos comandos de wireguard
 pingtime            Ping para verificar si host esta online o no cada 5 segundos o -t #
 sshbaner            de neofinst2 - crea un mensaje de bienvenida de ssh Despues logearse
 portmonitor         Monitorea cuando un puerto se abre, puerto abierto o cerrado. 
-
+picoduckytool       Para formatear raspberri pico, se necesito el github en el mio
 
 ###------Repositorios
 fixme               corre fix-4rji para solucionar repositorios despuies de la instalacion             
