@@ -72,7 +72,7 @@ coll                Muestra comandos con colores con batcat y un tmp archivo
 apache9000          Modifica la configuracion de apache para correr en el puerto 80 y otro puerto
 pwdc                Copia el directorio actual con pwd y xclip
 grubp               Crea una copia de grub, boot, efi y la guarda en /var/lib/os-system, restaura tambien
-
+mk                  Crea markitdown de los archivos ./mk file
 
 ###------descargar_cosas
 wgett               Descarga archivos con wget, carpeta completa reescribiendo o no

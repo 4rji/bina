@@ -1,0 +1,23 @@
+from fastapi import FastAPI
+from pathlib import Path
+import sqlite3, uvicorn
+
+DB_PATH = str(Path.home() / ".local/share/bluehood/bluehood.db")
+
+app = FastAPI()
+
+@app.get("/api/devices")
+def get_devices():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    rows = conn.execute("""
+        SELECT mac, vendor, friendly_name, device_type, bt_type,
+               total_sightings, first_seen, last_seen, watched, ignored
+        FROM devices
+        ORDER BY last_seen DESC
+    """).fetchall()
+    conn.close()
+    return [dict(row) for row in rows]
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=7777)

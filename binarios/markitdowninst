@@ -6,6 +6,7 @@ echo "🔍 Verificando pipx..."
 if ! command -v pipx &> /dev/null; then
     echo "📦 Instalando pipx..."
     pip install pipx --break-system-packages
+    pip install -U "markitdown[all]" --break-system-packages
     pipx ensurepath
 fi
 
