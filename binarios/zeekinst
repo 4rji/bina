@@ -60,6 +60,9 @@ EOF
 #--- habilitar SSH logging y detección de fuerza bruta
 sudo tee -a /opt/zeek/share/zeek/site/local.zeek > /dev/null <<'ZEEKEOF'
 
+sudo sed -i 's/^MailTo.*/MailTo =/' /opt/zeek/etc/zeekctl.cfg
+
+
 # SSH protocol logging and brute-force detection
 @load base/protocols/ssh
 @load policy/protocols/ssh/detect-bruteforcing
@@ -84,6 +87,8 @@ Restart=on-failure
 WantedBy=multi-user.target
 EOF
 
+
+
 sudo systemctl daemon-reload
 sudo systemctl enable --now zeek
 
@@ -107,3 +112,4 @@ echo -e "  sudo systemctl restart zeek"
 echo -e "\n\e[93mTo use zeek in this terminal:\e[0m  \e[96msource /etc/profile.d/zeek.sh\e[0m\n"
 
 /opt/zeek/bin/zeek -v
+

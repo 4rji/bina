@@ -4,15 +4,15 @@ set -euo pipefail
 BIN_FILE="/opt/4rji/bin/remotehealth"
 SERVICE_FILE="/etc/systemd/system/remotehealth.service"
 
-NODE_PATH="${1:-}"
-
-if [[ -z "$NODE_PATH" ]]; then
-  echo "[!] Debes indicar la ruta absoluta de node."
-  echo "    Ejecuta: command -v node"
-  echo "    y luego corre este script así:"
-  echo "       $0 /ruta/completa/a/node"
-  exit 1
+# Instalar nodejs si no está disponible
+if ! command -v node &>/dev/null; then
+  echo "[*] node no encontrado, instalando nodejs..."
+  sudo apt-get update -qq
+  sudo apt-get install -y nodejs
 fi
+
+NODE_PATH="$(command -v node)"
+echo "[*] Usando node: $NODE_PATH"
 
 if [[ ! -x "$NODE_PATH" ]]; then
   echo "[!] No es ejecutable: $NODE_PATH"
