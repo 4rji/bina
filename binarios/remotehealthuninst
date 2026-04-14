@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SERVICE_FILE="/etc/systemd/system/remotehealth.service"
+
+echo "[*] Deteniendo y deshabilitando servicio remotehealth ..."
+sudo systemctl disable --now remotehealth 2>/dev/null || true
+
+echo "[*] Eliminando archivo de servicio: $SERVICE_FILE ..."
+sudo rm -f "$SERVICE_FILE"
+
+echo "[*] Recargando systemd ..."
+sudo systemctl daemon-reload
+sudo systemctl reset-failed 2>/dev/null || true
+
+echo "[*] Listo. remotehealth desinstalado."
