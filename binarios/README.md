@@ -40,6 +40,7 @@ ttyinicio           Crea mensaje de inicio de tty para ver la ip del servidor de
 
 
 ###------linux
+quartz              Script para manejar obsidian y quartz
 searchip            Busca una IP en toda la maquina para ver si se utilizo alguna vez
 frpinst             Instala frp y descarga dotfiles
 frpstart            Agregar a crontab para que frp inicio automaticamente. 
