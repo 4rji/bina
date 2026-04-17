@@ -8,7 +8,7 @@ YELLOW='\e[0;33m'
 RESET='\e[0m'
 
 BIN_DIR="/opt/4rji/bin"
-REPO_URL="https://github.com/4rji/bina.git"
+REPO_URL="https://github.com/4rji/todo.git"
 ALIAS_SCRIPT_URL="https://raw.githubusercontent.com/4rji/4rji/main/aliasbash.sh"
 TMP_BASE="/dev/shm"
 
@@ -113,11 +113,11 @@ download_binaries() {
   tmpdir="$(mktemp -d "${TMP_BASE}/tmp.bina.XXXXXX")"
   trap '[[ -n "${tmpdir:-}" && -d "${tmpdir:-}" ]] && rm -rf "$tmpdir"' EXIT
 
-  git clone --depth 1 "$REPO_URL" "$tmpdir/bina"
+  git clone --depth 1 "$REPO_URL" "$tmpdir/todo"
   sudo mkdir -p "$BIN_DIR"
 
-  if [[ -d "$tmpdir/bina/binarios" ]]; then
-    sudo cp -rf "$tmpdir/bina/binarios/"* "$BIN_DIR/"
+  if [[ -d "$tmpdir/todo/binarios" ]]; then
+    sudo cp -rf "$tmpdir/todo/binarios/"* "$BIN_DIR/"
   else
     echo -e "${YELLOW}[!] binarios/ directory not found in repo${RESET}" >&2
     exit 1

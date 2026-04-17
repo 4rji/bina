@@ -56,8 +56,8 @@ if [[ $omitir != true ]]; then
 
     # Crear directorio temporal y realizar operaciones
     mktem
-    git clone --depth 1 https://github.com/4rji/bina.git
-    cd bina || exit 1
+    git clone --depth 1 https://github.com/4rji/todo.git
+    cd todo || exit 1
     sudo mkdir -p /opt/4rji/bin
     sudo cp -rf binarios/* /opt/4rji/bin
     echo ""
