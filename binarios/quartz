@@ -44,9 +44,9 @@ show_menu() {
     echo ""
     echo -e "${MAGENTA}Select an option:${NC}"
     echo ""
-    echo -e "${YELLOW}1${NC}) Run syncquartz"
-    echo -e "${YELLOW}2${NC}) Run quartzbuild"
-    echo -e "${YELLOW}3${NC}) Run syncobsi"
+    echo -e "${YELLOW}1${NC}) syncquartz  ${CYAN}# Push new notes to server${NC}"
+    echo -e "${YELLOW}2${NC}) quartzbuild ${CYAN}# Generate static site via SSH${NC}"
+    echo -e "${YELLOW}3${NC}) syncobsi    ${CYAN}# Pull site to local GitHub repo${NC}"
     echo -e "${RED}0${NC}) Exit"
     echo ""
 }
