@@ -1,89 +1,126 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-# Lista de paquetes a instalar
-paquetes=("docker.io" "docker-compose")
+# ==== Configuración de Kasm =================================================
+# Para bumpear: mirá https://kasm.com/downloads y actualizá VERSION + SHA256.
+KASM_VERSION="1.17.0"
+KASM_HASH="7f020d"
+KASM_TARBALL="kasm_release_${KASM_VERSION}.${KASM_HASH}.tar.gz"
+KASM_URL="https://kasm-static-content.s3.amazonaws.com/${KASM_TARBALL}"
+KASM_SHA256="22a293ea52b2adb7f3f72a2de8e9be799f443b9da040e066df403478da77f62d"
+# ============================================================================
 
-# Función para verificar si un paquete está instalado (Debian/Ubuntu/Kali)
-paquete_instalado_apt() {
-    dpkg -l "$1" | grep -q '^ii'  
-}
+# Paquetes base: Docker Engine + Compose V2 (V1 está EOL desde junio 2023).
+paquetes_apt=("docker.io" "docker-compose")
+paquetes_rhel=("docker" "docker-compose-plugin")
+paquetes_arch=("docker" "docker-compose")
 
-# Función para verificar si un paquete está instalado (CentOS/RHEL)
-paquete_instalado_yum() {
-    yum list installed "$1" &> /dev/null
-}
-
-# Función para verificar si un paquete está instalado (Fedora)
-paquete_instalado_dnf() {
-    dnf list installed "$1" &> /dev/null
-}
-
-# Función para verificar si un paquete está instalado (Arch Linux)
-paquete_instalado_pacman() {
-    pacman -Qi "$1" &> /dev/null
-}
+paquete_instalado_apt()    { dpkg -s "$1" &>/dev/null; }
+paquete_instalado_yum()    { yum list installed "$1" &>/dev/null; }
+paquete_instalado_dnf()    { dnf list installed "$1" &>/dev/null; }
+paquete_instalado_pacman() { pacman -Qi "$1" &>/dev/null; }
 
 # Detectar el sistema operativo
-if [ -f /etc/os-release ]; then
-    . /etc/os-release
-    OS=$ID
+if [ ! -f /etc/os-release ]; then
+    echo "Error: no se puede detectar el OS (/etc/os-release no existe)." >&2
+    exit 1
 fi
+. /etc/os-release
+OS="${ID:-unknown}"
 
-# Instalar paquetes basados en el sistema operativo
-for paquete in "${paquetes[@]}"; do
-    case $OS in
-        "debian"|"ubuntu"|"kali")
-            if ! paquete_instalado_apt "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo apt-get install -y "$paquete"
-            fi
+install_packages() {
+    local pkgs=("$@")
+    case "$OS" in
+        debian|ubuntu|kali)
+            for p in "${pkgs[@]}"; do
+                if ! paquete_instalado_apt "$p"; then
+                    echo "Instalando $p..."
+                    sudo apt-get update -qq
+                    sudo apt-get install -y "$p"
+                fi
+            done
             ;;
-        "centos"|"rhel")
-            if ! paquete_instalado_yum "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo yum install -y "$paquete"
-            fi
+        centos|rhel)
+            for p in "${pkgs[@]}"; do
+                if ! paquete_instalado_yum "$p"; then
+                    echo "Instalando $p..."
+                    sudo yum install -y "$p"
+                fi
+            done
             ;;
-        "fedora")
-            if ! paquete_instalado_dnf "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo dnf install -y "$paquete"
-            fi
+        fedora)
+            for p in "${pkgs[@]}"; do
+                if ! paquete_instalado_dnf "$p"; then
+                    echo "Instalando $p..."
+                    sudo dnf install -y "$p"
+                fi
+            done
             ;;
-        "arch")
-            if ! paquete_instalado_pacman "$paquete"; then
-                echo "Instalando el paquete $paquete..."
-                sudo pacman -S --noconfirm "$paquete"
-            fi
+        arch)
+            for p in "${pkgs[@]}"; do
+                if ! paquete_instalado_pacman "$p"; then
+                    echo "Instalando $p..."
+                    sudo pacman -S --noconfirm "$p"
+                fi
+            done
             ;;
         *)
+            echo "Error: OS '$OS' no soportado." >&2
+            exit 1
             ;;
     esac
-done
+}
 
+case "$OS" in
+    debian|ubuntu|kali) install_packages "${paquetes_apt[@]}" ;;
+    centos|rhel|fedora) install_packages "${paquetes_rhel[@]}" ;;
+    arch)               install_packages "${paquetes_arch[@]}" ;;
+    *)
+        echo "Error: OS '$OS' no soportado." >&2
+        exit 1
+        ;;
+esac
 
+# ==== Swap ==================================================================
+read -rp "¿Cuántos GB de RAM desea asignar al swap? (4, 6, 8...): " ram_gb
 
-# Pedir al usuario cuántos GB de RAM desea
-read -p "Cuanto de GB de RAM desea ( 4, 6, 8...) : " ram_gb
+if ! [[ "$ram_gb" =~ ^[0-9]+$ ]] || [ "$ram_gb" -le 0 ]; then
+    echo "Error: ingresá un entero positivo." >&2
+    exit 1
+fi
 
-# Calcular el tamaño del archivo de swap en MB
 swap_size_mb=$((ram_gb * 1024))
+swap_file="/mnt/${ram_gb}GiB.swap"
 
-# Crear un archivo de swap del tamaño calculado
-sudo dd if=/dev/zero bs=1M count="$swap_size_mb" of=/mnt/"$ram_gb"GiB.swap
-sudo chmod 600 /mnt/"$ram_gb"GiB.swap
-sudo mkswap /mnt/"$ram_gb"GiB.swap
-sudo swapon /mnt/"$ram_gb"GiB.swap
+if [ -f "$swap_file" ]; then
+    echo "El swap '$swap_file' ya existe, lo salteo."
+else
+    echo "Creando swap de ${ram_gb}GiB en $swap_file..."
+    # fallocate es órdenes de magnitud más rápido que dd en ext4/xfs.
+    if ! sudo fallocate -l "${swap_size_mb}M" "$swap_file" 2>/dev/null; then
+        echo "fallocate no soportado, fallback a dd..."
+        sudo dd if=/dev/zero bs=1M count="$swap_size_mb" of="$swap_file" status=progress
+    fi
+    sudo chmod 600 "$swap_file"
+    sudo mkswap "$swap_file"
+    sudo swapon "$swap_file"
+fi
 
-# Hacer que el archivo de swap esté disponible en el arranque
-echo "/mnt/$ram_gb GiB.swap swap swap defaults 0 0" | sudo tee -a /etc/fstab
+# Idempotencia: solo agregar a fstab si no está.
+if ! grep -qF "$swap_file" /etc/fstab; then
+    echo "$swap_file swap swap defaults 0 0" | sudo tee -a /etc/fstab >/dev/null
+fi
 
-# Descargar e instalar Kasm
+# ==== Kasm ==================================================================
 cd /tmp
-curl -O https://kasm-static-content.s3.amazonaws.com/kasm_release_1.15.0.06fdc8.tar.gz
-tar -xf kasm_release_1.15.0.06fdc8.tar.gz
+
+if [ ! -f "$KASM_TARBALL" ]; then
+    echo "Descargando Kasm ${KASM_VERSION}..."
+    curl -fLO "$KASM_URL"
+fi
+
+echo "Verificando SHA256..."
+echo "${KASM_SHA256}  ${KASM_TARBALL}" | sha256sum -c -
+
+tar -xf "$KASM_TARBALL"
 sudo bash kasm_release/install.sh
-
-
-
-
