@@ -1,5 +1,14 @@
 #!/usr/bin/env bash
 
+# ====== COLORS ======
+C1="\033[38;2;255;100;150m"
+C2="\033[38;2;255;150;100m"
+C3="\033[38;2;200;150;255m"
+C4="\033[38;2;100;200;255m"
+C5="\033[38;2;100;255;200m"
+C6="\033[38;2;255;200;100m"
+RESET="\033[0m"
+
 # ====== CONFIG ======
 LOCAL_NOTES="$HOME/github/Obsidian-Notes/"
 REMOTE_HOST="debian-server"
@@ -10,12 +19,15 @@ LOCAL_WEBSITE="$HOME/github/Obsidian-Notes-website/"
 
 # ====== FUNCIONES ======
 sync_notes() {
+  printf "${C1}📤 Syncing notes to server...${RESET}\n"
   rsync -av --delete --exclude=".*" \
     "$LOCAL_NOTES" \
     "$REMOTE_HOST:$REMOTE_CONTENT_DIR"
+  printf "${C1}✓ Notes synced${RESET}\n"
 }
 
 build_quartz() {
+  printf "${C2}🔨 Building Quartz...${RESET}\n"
   ssh "$REMOTE_HOST" '
     export NVM_DIR="$HOME/.nvm" &&
     . "$NVM_DIR/nvm.sh" &&
@@ -23,49 +35,121 @@ build_quartz() {
     cd '"$REMOTE_QUARTZ_DIR"' &&
     npx quartz build
   '
+  printf "${C2}✓ Quartz built${RESET}\n"
 }
 
 sync_website() {
+  printf "${C3}📥 Syncing website to local...${RESET}\n"
   rsync -av --delete \
     --exclude=".git" \
     --exclude=".gitignore" \
     --exclude=".gitattributes" \
     "$REMOTE_HOST:$REMOTE_PUBLIC_DIR" \
     "$LOCAL_WEBSITE"
+  printf "${C3}✓ Website synced${RESET}\n"
+}
+
+clean_website() {
+  printf "${C6}🧹 Cleaning website (removing Quartz references)...${RESET}\n"
+  cd "$LOCAL_WEBSITE" || exit 1
+
+  find . -type f -name "*.html" | while read file; do
+    if [ -f "$file" ]; then
+      sed -i '' 's/<p>Created with.*Quartz.*<\/p>/<p>Created with Notes<\/p>/g' "$file"
+      sed -i '' 's|<li><a href="https://github.com/jackyzha0/quartz">GitHub</a></li>||g' "$file"
+      sed -i '' 's|<li><a href="https://discord.gg/cRFFHYye7t">Discord Community</a></li>||g' "$file"
+      sed -i '' 's/Quartz 4/Notes/g' "$file"
+      printf "${C6}  ✅ $file${RESET}\n"
+    fi
+  done
+
+  printf "${C6}✨ Quartz references removed${RESET}\n"
+}
+
+apply_theme() {
+  printf "${C3}🎨 Applying cyberpunk theme...${RESET}\n"
+  cd "$LOCAL_WEBSITE" || exit 1
+
+  node << 'EOF'
+const fs = require('fs');
+const path = require('path');
+
+function findHtmlFiles(dir, files = []) {
+  const items = fs.readdirSync(dir);
+
+  items.forEach(item => {
+    const fullPath = path.join(dir, item);
+    const stat = fs.statSync(fullPath);
+
+    if (stat.isDirectory() && !item.startsWith('.')) {
+      findHtmlFiles(fullPath, files);
+    } else if (item.endsWith('.html')) {
+      files.push(fullPath);
+    }
+  });
+
+  return files;
+}
+
+function applyTheme(filePath) {
+  let content = fs.readFileSync(filePath, 'utf-8');
+
+  content = content.replace(/<link rel="stylesheet" href="[^"]*cyberpunk\.css"[^>]*>\n?/g, '');
+  content = content.replace(/<link rel="stylesheet" href="\/cyberpunk\.css"[^>]*>\n?/g, '');
+  content = content.replace('</head>', '<link rel="stylesheet" href="/cyberpunk.css">\n</head>');
+
+  fs.writeFileSync(filePath, content, 'utf-8');
+  return true;
+}
+
+const htmlFiles = findHtmlFiles('.');
+let applied = 0;
+
+htmlFiles.forEach(file => {
+  if (applyTheme(file)) {
+    console.log(`\x1b[38;2;200;150;255m  ✅ ${file}\x1b[0m`);
+    applied++;
+  }
+});
+
+console.log(`\n\x1b[38;2;200;150;255m✨ Theme applied: ${applied}/${htmlFiles.length} files\x1b[0m\n`);
+EOF
 }
 
 run_all() {
+  printf "${C4}🚀 Running ALL operations...${RESET}\n"
   sync_notes
   build_quartz
   sync_website
+  clean_website
+  apply_theme
+  printf "${C4}✓ All done${RESET}\n"
 }
 
-# ====== CHECK GUM ======
-if ! command -v gum >/dev/null 2>&1; then
-  read -rp "gum no está instalado. ¿Continuar con menú básico? (y/n): " yn
-  [[ "$yn" != "y" ]] && exit 1
+# ====== MENU LOOP ======
+while true; do
+  printf "\n${C5}╭─ QUARTZ SYNC ─╮${RESET}\n"
+  printf "${C4}1)${RESET} Run ALL\n"
+  printf "${C1}2)${RESET} Sync notes → server\n"
+  printf "${C2}3)${RESET} Build Quartz\n"
+  printf "${C3}4)${RESET} Sync website → local\n"
+  printf "${C6}5)${RESET} Clean website\n"
+  printf "${C3}6)${RESET} Apply theme\n"
+  printf "${C6}0)${RESET} Exit\n"
+  printf "${C5}╰─────────────────╯${RESET}\n"
+  read -rn 1 -p "$(printf "${C5}Select:${RESET} ")" opt
+  echo
+  opt=${opt:-1}
 
-  echo "1) Sync notes -> server"
-  echo "2) Build Quartz"
-  echo "3) Sync website -> local"
-  echo "4) Run ALL"
-  echo "0) Exit"
-  read -rp "Select: " opt
-else
-  opt=$(gum choose \
-    "Sync notes -> server" \
-    "Build Quartz" \
-    "Sync website -> local" \
-    "Run ALL" \
-    "Exit")
-fi
-
-# ====== EXEC ======
-case $opt in
-  1|"Sync notes -> server") sync_notes ;;
-  2|"Build Quartz") build_quartz ;;
-  3|"Sync website -> local") sync_website ;;
-  4|"Run ALL") run_all ;;
-  0|"Exit") exit 0 ;;
-  *) echo "Invalid option" ;;
-esac
+  # ====== EXEC ======
+  case $opt in
+    1|"Run ALL") run_all ;;
+    2|"Sync notes -> server") sync_notes ;;
+    3|"Build Quartz") build_quartz ;;
+    4|"Sync website -> local") sync_website ;;
+    5|"Clean website") clean_website ;;
+    6|"Apply theme") apply_theme ;;
+    0|"Exit") printf "${C6}👋 Bye!${RESET}\n"; exit 0 ;;
+    *) printf "${C6}❌ Invalid option${RESET}\n" ;;
+  esac
+done
