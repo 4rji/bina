@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Colors
+BLUE="\033[1;34m"
+YELLOW="\033[1;33m"
+CYAN="\033[1;36m"
+GREEN="\033[1;32m"
+RED="\033[1;31m"
+RESET="\033[0m"
+
+echo -e "${CYAN}=== Network Commands Preview ===${RESET}\n"
+
+echo -e "${BLUE}fping${RESET}"
+echo -e "  ${YELLOW}fping -e dns.google${RESET}"
+echo -e "  ${YELLOW}fping -e dns.google -e one.one.one.one -e x.com${RESET}"
+echo -e "  ${YELLOW}fping -a -q -e -g 10.0.4.24 10.0.4.180${RESET}"
+echo -e "  ${YELLOW}fping -a -q -e -g 10.0.4.0/24${RESET}"
+echo -e "  ${YELLOW}fping -a -q -e -g 10.0.4.0/24 -s${RESET}"
+echo -e "  ${YELLOW}fping -c 100 -p 1000 10.0.4.24${RESET}"
+echo -e "  ${YELLOW}fping -q -c 100 -p 10 10.0.4.24 10.0.4.83${RESET}"
+echo -e "  ${YELLOW}fping -b 1472 -m 10.0.4.83${RESET}"
+echo -e "  ${YELLOW}fping -b 1473 -m 10.0.4.83${RESET}\n"
+
+echo -e "${BLUE}gping${RESET}"
+echo -e "  ${YELLOW}gping dns.google${RESET}"
+echo -e "  ${YELLOW}gping dns.google x.com 10.0.4.83${RESET}\n"
+
+echo -e "${BLUE}traceroute${RESET}"
+echo -e "  ${YELLOW}traceroute -n 10.0.4.83${RESET}"
+echo -e "  ${YELLOW}traceroute -n 10.0.4.83 1492${RESET}\n"
+
+echo -e "${BLUE}mtr${RESET}"
+echo -e "  ${YELLOW}mtr 1.1.1.1${RESET}"
+echo -e "  ${YELLOW}sudo mtr 1.1.1.1${RESET}"
+echo -e "  ${YELLOW}sudo mtr -bzwr 1.1.1.1${RESET}\n"
+
+echo -e "${BLUE}trippy (trip)${RESET}"
+echo -e "  ${YELLOW}sudo trip 1.1.1.1 10.0.4.83${RESET}"
+echo -e "  ${YELLOW}sudo trip mic2.4rji.com -r google -G /opt/4rji/GeoLite2-City.mmdb -e${RESET}\n"
+
+echo -e "${CYAN}================================${RESET}\n"
+
+read -rp "$(echo -e "${GREEN}Install required tools? (s = yes / any other key = exit): ${RESET}")" choice
+
+if [[ "$choice" == "s" || "$choice" == "S" ]]; then
+  echo -e "\n${CYAN}Installing tools...${RESET}\n"
+
+  if command -v apt >/dev/null 2>&1; then
+    sudo apt update
+    sudo apt install -y fping traceroute mtr trippy iputils-tracepath
+  fi
+
+  if command -v brew >/dev/null 2>&1; then
+    brew install gping || true
+  fi
+
+  echo -e "\n${GREEN}Done.${RESET}"
+else
+  echo -e "\n${RED}Aborted.${RESET}"
+fi
