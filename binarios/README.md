@@ -113,6 +113,7 @@ lolcatinst          Instala gem, ruby y lolcat
 
 
 ###------instaladores
+networktools        herramientas de network como ping, fping, instala y muestra
 vagraninst          Para instalar vagrant en linux agregando apt list
 cargoinst           Instala cargo y tambien herramientas de la lista
 llainst             Cargo tool para ver ls con tablas, mejor formato

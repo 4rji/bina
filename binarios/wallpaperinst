@@ -1,10 +1,65 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-sudo cp ~/.config/Wallpaper/grub-16x9/01/00/grub-4x3.png /boot/grub/themes/kali/grub-4x3.png
-sudo cp ~/.config/Wallpaper/grub-16x9/01/00/grub-4x3.png /boot/grub/themes/kali/grub-16x9.png
-sudo cp ~/.config/Wallpaper/grub-16x9/01/_background.png /usr/share/images/desktop-base/desktop-grub.png
-sudo chttr +i /boot/grub/themes/kali/grub-4x3.png
-sudo chttr +i /boot/grub/themes/kali/grub-16x9.png
-sudo chttr +i /usr/share/images/desktop-base/desktop-grub.png
+if [[ $EUID -ne 0 ]]; then
+  echo -e "\033[1;33mNecesito permisos de root, relanzando con sudo...\033[0m"
+  exec sudo -E bash "$(readlink -f "$0")" "$@"
+fi
 
-sudo update-grub
+# Bajo sudo, $HOME es /root. Resolvemos el home del usuario real.
+REAL_USER="${SUDO_USER:-$USER}"
+REAL_HOME="$(getent passwd "$REAL_USER" | cut -d: -f6)"
+if [[ -z "${REAL_HOME:-}" || ! -d "$REAL_HOME" ]]; then
+  echo -e "\033[1;31mNo pude resolver el home de '$REAL_USER'.\033[0m"
+  exit 1
+fi
+
+WP_DIR="$REAL_HOME/.config/Wallpaper"
+SRC_4X3="$WP_DIR/grub-16x9/01/00/grub-4x3.png"
+SRC_16X9="$WP_DIR/grub-16x9/01/00/grub-16x9.png"
+SRC_BG="$WP_DIR/grub-16x9/01/_background.png"
+
+# Fallback: si no hay 16x9 en 01/00, probamos 03/ y 02/ (layouts históricos)
+if [[ ! -f "$SRC_16X9" ]]; then
+  for alt in "$WP_DIR/grub-16x9/03/grub-16x9.png" "$WP_DIR/grub-16x9/02/grub-16x9.png"; do
+    [[ -f "$alt" ]] && SRC_16X9="$alt" && break
+  done
+fi
+
+DST_4X3="/boot/grub/themes/kali/grub-4x3.png"
+DST_16X9="/boot/grub/themes/kali/grub-16x9.png"
+DST_BG_LINK="/usr/share/images/desktop-base/desktop-grub.png"
+# Resolvemos el symlink chain al archivo real (ej: kali-grub.png)
+DST_BG="$(readlink -f "$DST_BG_LINK" 2>/dev/null || echo "$DST_BG_LINK")"
+
+if [[ ! -f "$SRC_4X3" ]]; then
+  echo -e "\033[1;31mFalta: $SRC_4X3\033[0m"
+  exit 1
+fi
+if [[ ! -f "$SRC_BG" ]]; then
+  echo -e "\033[1;31mFalta: $SRC_BG\033[0m"
+  exit 1
+fi
+
+# Último fallback: si tampoco hay en 02/03, usamos el 4x3 para los dos slots
+if [[ ! -f "$SRC_16X9" ]]; then
+  echo -e "\033[1;33mNo hay grub-16x9.png en ningún layout, uso grub-4x3.png para ambos.\033[0m"
+  SRC_16X9="$SRC_4X3"
+fi
+
+# Quitar +i por si el script ya corrió antes (si no, chattr -i no falla)
+for f in "$DST_4X3" "$DST_16X9" "$DST_BG"; do
+  [[ -f "$f" ]] && chattr -i "$f" 2>/dev/null || true
+done
+
+cp "$SRC_4X3"  "$DST_4X3"
+cp "$SRC_16X9" "$DST_16X9"
+cp "$SRC_BG"   "$DST_BG"
+
+chattr +i "$DST_4X3"
+chattr +i "$DST_16X9"
+chattr +i "$DST_BG"
+
+update-grub
+
+echo -e "\033[1;32mListo. Wallpapers de GRUB actualizados.\033[0m"
