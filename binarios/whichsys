@@ -1,42 +1,25 @@
-#!/usr/bin/env python3
-#coding: utf-8
+#!/usr/bin/env bash
 
-import re, sys, subprocess
+if [[ $# -ne 1 ]]; then
+    echo -e "\n[!] Uso: $0 <direccion-ip>\n"
+    exit 1
+fi
 
-# python3 wichSystem.py 10.10.10.188 
+ip_address="$1"
 
-if len(sys.argv) != 2:
-    print("\n[!] Uso: python3 " + sys.argv[0] + " <direccion-ip>\n")
-    sys.exit(1)
+ttl=$(ping -c 1 "$ip_address" 2>/dev/null | grep -oiE 'ttl=[0-9]+' | cut -d= -f2)
 
-def get_ttl(ip_address):
+if [[ -z "$ttl" ]]; then
+    echo -e "\n[!] No se pudo obtener TTL de $ip_address\n"
+    exit 1
+fi
 
-    proc = subprocess.Popen(["/usr/bin/ping -c 1 %s" % ip_address, ""], stdout=subprocess.PIPE, shell=True)
-    (out,err) = proc.communicate()
+if [[ $ttl -le 64 ]]; then
+    os_name="Linux"
+elif [[ $ttl -le 128 ]]; then
+    os_name="Windows"
+else
+    os_name="Not Found"
+fi
 
-    out = out.split()
-    out = out[12].decode('utf-8')
-
-    ttl_value = re.findall(r"\d{1,3}", out)[0]
-
-    return ttl_value
-
-def get_os(ttl):
-
-    ttl = int(ttl)
-
-    if ttl >= 0 and ttl <= 64:
-        return "Linux"
-    elif ttl >= 65 and ttl <= 128:
-        return "Windows"
-    else:
-        return "Not Found"
-
-if __name__ == '__main__':
-
-    ip_address = sys.argv[1]
-
-    ttl = get_ttl(ip_address)
-
-    os_name = get_os(ttl)
-    print("\n%s (ttl -> %s): %s\n" % (ip_address, ttl, os_name))
+echo -e "\n$ip_address (ttl -> $ttl): $os_name\n"
