@@ -21,7 +21,7 @@ run_cmd() {
     echo -e "${RED}Failed with code: $code${NC}"
   fi
   echo
-  read -r -p "Press Enter to continue..."
+  sleep 1
 }
 
 show_menu() {
@@ -32,39 +32,51 @@ show_menu() {
   echo "Repo: $(basename "$(pwd)")"
   echo "Path: $(pwd)"
   echo
-  echo -e "${CYAN}1)${NC} git status"
-  echo -e "${CYAN}2)${NC} git add ."
-  echo -e "${CYAN}3)${NC} git commit -m \"${commit_msg}\""
-  echo -e "${CYAN}4)${NC} git push"
-  echo -e "${CYAN}5)${NC} git pull"
-  echo -e "${CYAN}6)${NC} git fetch"
-  echo -e "${CYAN}7)${NC} Quick flow (pull → add → commit → push)"
-  echo -e "${CYAN}8)${NC} Show branches"
-  echo -e "${CYAN}9)${NC} Exit"
+  echo -e "${CYAN}1)${NC} git add . && git commit -m \"${commit_msg}\" && git push"
+  echo -e "${CYAN}2)${NC} git status"
+  echo -e "${CYAN}3)${NC} git fetch && git pull"
+  echo -e "${CYAN}q)${NC} Exit"
   echo
   echo -e "Commit message fixed: ${GREEN}${commit_msg}${NC}"
+  echo -e "Select with one key. No Enter needed."
 }
 
 git rev-parse --is-inside-work-tree >/dev/null 2>&1 || { echo -e "${RED}Not a git repo${NC}"; exit 1; }
 
 while true; do
   show_menu
-  read -r -p "Choose option: " opt
+  read -rsn1 opt
+  echo
 
   case "$opt" in
-    1) run_cmd git status ;;
-    2) run_cmd git add . ;;
-    3) run_cmd git commit -m "$commit_msg" ;;
-    4) run_cmd git push ;;
-    5) run_cmd git pull ;;
-    6) run_cmd git fetch ;;
-    7)
-      echo -e "\n${CYAN}Running full flow...${NC}"
-      git pull && git add . && git commit -m "$commit_msg" && git push
-      read -r -p "Press Enter..."
+    1)
+      echo -e "\n${CYAN}Running commit flow...${NC}"
+      git add . && git commit -m "$commit_msg" && git push
+      code=$?
+      echo
+      if [ $code -eq 0 ]; then
+        echo -e "${GREEN}OK${NC}"
+      else
+        echo -e "${RED}Failed with code: $code${NC}"
+      fi
+      echo
+      sleep 1
       ;;
-    8) run_cmd git branch -a ;;
-    9) echo -e "${YELLOW}Bye${NC}"; exit 0 ;;
+    2) run_cmd git status ;;
+    3)
+      echo -e "\n${CYAN}Running fetch + pull...${NC}"
+      git fetch && git pull
+      code=$?
+      echo
+      if [ $code -eq 0 ]; then
+        echo -e "${GREEN}OK${NC}"
+      else
+        echo -e "${RED}Failed with code: $code${NC}"
+      fi
+      echo
+      sleep 1
+      ;;
+    q|Q) echo -e "${YELLOW}Bye${NC}"; exit 0 ;;
     *) echo -e "${RED}Invalid${NC}"; sleep 1 ;;
   esac
 done
