@@ -218,7 +218,7 @@ nixbus              Para buscar programas en linea de comando y tambien corregir
 
 
 ###------utilidades 
-ghcom               Menu rapido de git (tecla directa): 1 add+commit+push, 2 status, 3 fetch+pull
+gitc                Menu rapido de github para gh
 videocapture        Captures HTTP traffic from an IPCam, extracts frames from the pcap, and reconstructs into video
 zipcomm             Comandos basicos de zip
 vmdig               Para manejar Digital ocean API
