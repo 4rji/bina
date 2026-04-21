@@ -1,20 +1,160 @@
 #!/usr/bin/env bash
 
-while true; do
-    # Obtener la lista de procesos
-    old_process=$(ps -eo user,command)
-    
-    # Esperar un segundo antes de obtener una nueva lista de procesos
-    sleep 1
-    
-    new_process=$(ps -eo user,command)
-    
-    # Comparar las listas de procesos y resaltar las diferencias
-    diff_output=$(diff <(echo "$old_process") <(echo "$new_process") | grep "[\>\<]" | grep -vE "command|diff|kworker")
-    
-    # Imprimir las diferencias resaltadas en rojo y otros mensajes en verde
-    if [ -n "$diff_output" ]; then
-        echo -e "\033[1;31mCambios en los procesos:\033[0m"
-        echo "$diff_output"
+set -u
+
+export LC_ALL=C
+
+INTERVAL="${NEWPROCESS_INTERVAL:-1}"
+SHOW_ENDED="${NEWPROCESS_SHOW_ENDED:-1}"
+IGNORE_RE="${NEWPROCESS_IGNORE_RE-(^|[[:space:]])diff([[:space:]]|$)|kworker}"
+
+RED='\033[1;31m'
+GREEN='\033[1;32m'
+YELLOW='\033[1;33m'
+RESET='\033[0m'
+
+usage() {
+    cat <<'EOF'
+Usage: newprocess
+
+Optional variables:
+  NEWPROCESS_INTERVAL=0.2     Seconds between snapshots. Default: 1
+  NEWPROCESS_SHOW_ENDED=0     Do not show terminated processes. Default: 1
+  NEWPROCESS_IGNORE_RE=''     Command regex to ignore. Default: diff|kworker
+
+Note: this script uses ps-based polling. It cannot guarantee detection of
+processes that start and exit between two snapshots.
+EOF
+}
+
+if [ "${1:-}" = "-h" ] || [ "${1:-}" = "--help" ]; then
+    usage
+    exit 0
+fi
+
+make_tmp() {
+    mktemp "${TMPDIR:-/tmp}/newprocess.XXXXXX"
+}
+
+snapshot() {
+    local raw has_lstart status
+
+    raw=$(make_tmp) || return 1
+    if ps -eo pid=,ppid=,user=,lstart=,command= >"$raw" 2>/dev/null; then
+        has_lstart=1
+    elif ps -eo pid=,ppid=,user=,command= >"$raw" 2>/dev/null; then
+        has_lstart=0
+    else
+        rm -f "$raw"
+        return 1
     fi
+
+    awk -v self="$$" -v ignore_re="$IGNORE_RE" -v has_lstart="$has_lstart" '
+        {
+            line = $0
+            pid = $1
+            ppid = $2
+            user = $3
+
+            if (has_lstart == 1) {
+                start = $4 " " $5 " " $6 " " $7 " " $8
+                key = pid "|" start
+                cmd = line
+                sub(/^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]+[^[:space:]]+[[:space:]]*/, "", cmd)
+                display = "PID=" pid "\tPPID=" ppid "\tUSER=" user "\tSTART=" start "\tCMD=" cmd
+            } else {
+                start = ""
+                key = pid
+                cmd = line
+                sub(/^[[:space:]]*[0-9]+[[:space:]]+[0-9]+[[:space:]]+[^[:space:]]+[[:space:]]*/, "", cmd)
+                display = "PID=" pid "\tPPID=" ppid "\tUSER=" user "\tCMD=" cmd
+            }
+
+            if (pid == self) next
+            if (ppid == self) next
+            if (cmd ~ /(^|\/)ps[[:space:]].*-eo[[:space:]]/) next
+            if (ignore_re != "" && cmd ~ ignore_re) next
+
+            printf "%s\t%s\n", key, display
+        }
+    ' "$raw" | sort
+    status=$?
+    rm -f "$raw"
+    return "$status"
+}
+
+snapshot_keys() {
+    cut -f1 "$1" | sort
+}
+
+print_matches() {
+    awk '
+        NR == FNR {
+            wanted[$1] = 1
+            next
+        }
+        ($1 in wanted) {
+            line = $0
+            sub(/^[^\t]+\t/, "", line)
+            print line
+        }
+    ' "$1" "$2"
+}
+
+old_process=$(make_tmp) || exit 1
+new_process=$(make_tmp) || exit 1
+old_keys=$(make_tmp) || exit 1
+new_keys=$(make_tmp) || exit 1
+started_process=$(make_tmp) || exit 1
+ended_process=$(make_tmp) || exit 1
+
+cleanup() {
+    rm -f "$old_process" "$new_process" "$old_keys" "$new_keys" "$started_process" "$ended_process"
+}
+trap cleanup EXIT
+trap 'cleanup; exit 130' INT
+trap 'cleanup; exit 143' TERM
+
+if ! snapshot >"$old_process"; then
+    printf "%bError:%b could not run ps with the expected format.\n" "$RED" "$RESET" >&2
+    exit 1
+fi
+
+printf "%bProcess monitor started.%b Interval: %ss\n" "$GREEN" "$RESET" "$INTERVAL"
+printf "%bWarning:%b cannot guarantee detection of processes that start and exit between snapshots.\n" "$YELLOW" "$RESET"
+
+while true; do
+    sleep "$INTERVAL"
+
+    if ! snapshot >"$new_process"; then
+        printf "%bError:%b failed to read processes; retrying...\n" "$RED" "$RESET" >&2
+        continue
+    fi
+
+    snapshot_keys "$old_process" >"$old_keys"
+    snapshot_keys "$new_process" >"$new_keys"
+
+    comm -13 "$old_keys" "$new_keys" >"$started_process"
+    comm -23 "$old_keys" "$new_keys" >"$ended_process"
+
+    if [ -s "$started_process" ] || { [ "$SHOW_ENDED" != "0" ] && [ -s "$ended_process" ]; }; then
+        printf "\n%bProcess changes:%b %s\n" "$RED" "$RESET" "$(date '+%Y-%m-%d %H:%M:%S')"
+
+        if [ -s "$started_process" ]; then
+            printf "%bStarted:%b\n" "$GREEN" "$RESET"
+            print_matches "$started_process" "$new_process" | sed 's/^/  + /'
+        fi
+
+        if [ "$SHOW_ENDED" != "0" ] && [ -s "$ended_process" ]; then
+            printf "%bEnded:%b\n" "$YELLOW" "$RESET"
+            print_matches "$ended_process" "$old_process" | sed 's/^/  - /'
+        fi
+    fi
+
+    : >"$started_process"
+    : >"$ended_process"
+
+    tmp_process="$old_process"
+    old_process="$new_process"
+    new_process="$tmp_process"
 done
