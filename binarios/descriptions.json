@@ -569,8 +569,8 @@
         "short_desc": "Escucha en 0.0.0.0:1235 para recibir archivos via netcat.",
         "detailed_desc": "Este binario inicia un listener en 0.0.0.0:1235 y muestra las interfaces IPv4 disponibles. Indica como enviar un archivo desde otro host con: nc -q 0 <listener-ip> 1235 < archivo. Util para recibir archivos rapidamente con netcat hasta que el usuario presione Ctrl+C."
     },
-    "backde-legacy": {
-        "name": "backde-legacy",
+    "backde": {
+        "name": "backde",
         "short_desc": "Monitor interactivo de conexiones activas y actividad de procesos.",
         "detailed_desc": "Este binario en Go lista procesos con conexiones de red activas (TCP establecidas y sockets UDP), excluye navegadores comunes, y permite seleccionar un proceso por índice, PID o nombre. Luego muestra una vista de actividad en tiempo real con usuario, estado, padre, comando ejecutado, uso de CPU y memoria, hilos, file descriptors, cambios de contexto, contadores de I/O y endpoints remotos con resolución reversa cuando aplica. Acepta refresco configurable (por defecto 10 segundos, por ejemplo `-2` o `--refresh 2`), se relanza con `sudo` automáticamente si no tiene privilegios, registra escaneos en `backde.log`, y desde la vista interactiva permite volver al menú, salir o terminar el proceso seleccionado."
     }
