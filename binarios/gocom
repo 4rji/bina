@@ -50,6 +50,12 @@ get_bin_name() {
 
 BIN_NAME="$(get_bin_name "$TARGET")"
 
+show_recent_files_on_exit() {
+  echo
+  echo -e "${BOLD}${CYAN}Last 3 entries from ls -ltrh:${RESET}"
+  ls -ltrh | tail -n 3
+}
+
 print_header() {
   clear 2>/dev/null || true
   echo -e "${BOLD}${TITLE}========================================${RESET}"
@@ -171,6 +177,8 @@ if [[ ! -t 0 ]]; then
   echo "Run it like this: ./script.sh or bash script.sh"
   exit 1
 fi
+
+trap show_recent_files_on_exit EXIT
 
 while true; do
   show_menu
