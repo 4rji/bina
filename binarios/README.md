@@ -250,7 +250,8 @@ firef               Script para linux para abrir ephemeral firefox cambia idioma
 firefm              Este es para abrir el firefox ephemeral. (primero instalar firefoxephemeral)
 binariosgo          Descarga los binarios go, que estan comprimidos (antes comprimidos)
 webc                Convierte todas las imagens png a webp en mac
-gocomm              compila un binario en go, muestra como hacerlo tambien
+gocom               Compila el binario go con varias opciones en el mismo tambien upx
+gocomm              Muestra comandos para un binario en go, muestra como hacerlo tambien
 nets                Comprueba el acceso a subnets en la variable allowips como wireguard.
 qemuagent           Habilita en proxmox los qemu agentes a todas las VMs
 miniserver          Abre un mini server http para subir o descargar, con authenticacion
