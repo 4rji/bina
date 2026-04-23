@@ -756,6 +756,7 @@ deploy              * -Despliega una máquina vulnerable en Dockerlabs desde una
 
 
 ###------ Github 
+ghcom               hace comandos de cli de github y gh
 netstat-cargo-jsonm netstat en formato json para mac
 netstat-cargo-json  netstat en formato json
 netstat-cargom      netstat en formato normal cargo para mac
