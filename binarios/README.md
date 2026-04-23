@@ -312,6 +312,7 @@ pingtime            Ping para verificar si host esta online o no cada 5 segundos
 sshbaner            de neofinst2 - crea un mensaje de bienvenida de ssh Despues logearse
 portmonitor         Monitorea cuando un puerto se abre, puerto abierto o cerrado. 
 picoduckytool       Para formatear raspberri pico, se necesito el github en el mio
+dor                 Disables automatic lock, screensaver, and sleep, then restores the previous state on demand
 
 ###------Repositorios
 fixme               corre fix-4rji para solucionar repositorios despuies de la instalacion             
