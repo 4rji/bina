@@ -4,6 +4,15 @@
         "short_desc": "Realiza fuerza bruta contra el panel de administración de Joomla.",
         "detailed_desc": "Este script automatiza un ataque de fuerza bruta contra el login del panel de administración de Joomla. Utiliza múltiples hilos para probar combinaciones de usuario y contraseñas desde un archivo wordlist (por defecto 'cain.txt'). Extrae automáticamente los campos ocultos del formulario antes de enviar los datos vía POST. Para usarlo, edita el script con la URL del objetivo, el usuario y el archivo de contraseñas, luego ejecuta: python3 script.py."
     },
+    "gocom": {
+        "name": "gocom",
+        "short_desc": "Interactive Go build menu for compiling and packaging Go binaries.",
+        "detailed_desc": [
+            "This Bash script provides a colorized interactive menu for common Go build tasks such as native builds, optional UPX compression, module initialization, and dependency downloads.",
+            "It also supports Linux amd64 cross-compilation, vendoring dependencies, vendor-based builds, and Windows amd64 output using trimmed and stripped build flags.",
+            "The script derives the binary name from the selected target, shows the current build context in the header, and returns to the menu after each action."
+        ]
+    },
     "pythonnc": {
         "name": "pythonnc",
         "short_desc": "Netcat replacement written in Python.",
