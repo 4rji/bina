@@ -39,11 +39,11 @@ fi
 
 # Mostrar los tipos de hashes en el archivo
 echo -e "\033[34mDetecting hash types in the file: $hash_file\033[0m"
-if command -v hashcat >/dev/null 2>&1; then
-    hashcat --identify "$hash_file"
-else
-    echo -e "\033[33mhashcat no esta instalado o no esta en el PATH. Se omite --identify.\033[0m"
+if ! command -v hashcat >/dev/null 2>&1; then
+    echo -e "\033[31mhashcat no esta instalado o no esta en el PATH.\033[0m"
+    exit 1
 fi
+hashcat --identify "$hash_file"
 
 # Mostrar modos de hash y ejemplos
 echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
