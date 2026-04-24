@@ -591,5 +591,14 @@
             "It can later restore the saved desktop and display power configuration, including DPMS and screensaver values when available.",
             "It also provides a direct suspend action, using `a` to disable, `d` to restore, and `dd` to suspend immediately."
         ]
+    },
+    "https-bloq-boots": {
+        "name": "https-bloq-boots",
+        "short_desc": "Blocks HTTPS source IPs listed in ips.txt using iptables.",
+        "detailed_desc": [
+            "This Bash script reads IP addresses from an `ips.txt` file and validates each IPv4 entry before applying firewall rules.",
+            "For every valid IP, it adds an iptables TARPIT rule for TCP port 443 and then a DROP rule to block the source completely.",
+            "Invalid or malformed IPs are skipped and reported in the terminal so the input list can be corrected easily."
+        ]
     }
 }

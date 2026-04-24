@@ -277,7 +277,7 @@ clipa_archivo       copia el contenido del archivo al portapapeles
 pas                 Copia el contenido del portapapeles en la variable $htcon
 calibresend         Envia por ssh archivos a calibre
 certgenerator       Crea certificados de cloudflare, para cert y cer key
-https-bloq-boots    Detecta IPs al puerto 443 en ips.txt y las bloquea o ralentiza automáticamente vía firewall.
+https-bloq-boots    Reads IPs from ips.txt and blocks HTTPS traffic with iptables TARPIT and DROP rules.
 adio                borra un archivo con scrub                                                         
 adios               borra toda una carpeta con scrub                                                   
 herrabin            actualiza los binarios, funciones, alias y 2-4rji.sh,   -o para omitir binarios 
