@@ -25,9 +25,25 @@ if [ -z "$1" ]; then
     exit 1
 fi
 
+hash_file="$1"
+auto_mode=""
+
+if [ ! -f "$hash_file" ]; then
+    echo -e "\033[31mEl archivo $hash_file no existe.\033[0m"
+    exit 1
+fi
+
+if [[ "$hash_file" == *.hc22000 ]]; then
+    auto_mode="5"
+fi
+
 # Mostrar los tipos de hashes en el archivo
-echo -e "\033[34mDetecting hash types in the file: $1\033[0m"
-hashcat --identify $1
+echo -e "\033[34mDetecting hash types in the file: $hash_file\033[0m"
+if command -v hashcat >/dev/null 2>&1; then
+    hashcat --identify "$hash_file"
+else
+    echo -e "\033[33mhashcat no esta instalado o no esta en el PATH. Se omite --identify.\033[0m"
+fi
 
 # Mostrar modos de hash y ejemplos
 echo -e "\n\033[1;32m_________________________________________________________\033[0m\n"
@@ -41,8 +57,8 @@ echo -e "\033[35m3. SHA-256 (Mode: 1400)"
 echo "   Example: 5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8 (password)"
 echo -e "\033[36m4. NTLM (Mode: 1000)"
 echo "   Example: 8846f7eaee8fb117ad06bdd830b7586c (password)"
-echo -e "\033[32m5. WPA/WPA2 (Mode: 22000)"
-echo "   Example: [HASH]:[ESSID] (WPA/WPA2 format)"
+echo -e "\033[32m5. WPA/WPA2 / hc22000 (Mode: 22000)"
+echo "   Example: archivo.hc22000 o [HASH]:[ESSID] (WPA/WPA2 format)"
 echo -e "\033[37m6. bcrypt (Mode: 3200)"
 echo "   Example: \$2a\$12\$KIXQz7kc6fw6tvVxZk3qPOmQVxDJZ4D5Z7U5IsBdxQ6AKeFgPphG6 (password)"
 echo -e "\033[31m7. Unix Crypt (Mode: 500)"
@@ -56,8 +72,13 @@ echo "   Example: \$6\$saltsalt\$svn8UoSVnopIENZKK9fgmvbWe/oIjhq6Bp48wB/oS4TTZEW
 echo -e "\n\033[1;37m_________________________________________________________\033[0m\n"
 
 # Obtener entrada del usuario para el modo
-read -n2 -p "Enter the mode number: " mode
-echo ""
+if [ -n "$auto_mode" ]; then
+    mode="$auto_mode"
+    echo -e "\033[32mArchivo .hc22000 detectado. Se usara automaticamente el modo 22000.\033[0m"
+else
+    read -n2 -p "Enter the mode number: " mode
+    echo ""
+fi
 echo "_________________________________________________________"
 echo ""
 
@@ -71,16 +92,16 @@ hashcat_command=""
 
 # Determinar el comando a ejecutar según el modo seleccionado
 case $mode in
-    1) hashcat_command="hashcat -w 3 -m 0 \"$1\" /usr/share/wordlists/4rji/*" ;;
-    2) hashcat_command="hashcat -w 3 -m 100 \"$1\" /usr/share/wordlists/4rji/*" ;;
-    3) hashcat_command="hashcat -w 3 -m 1400 \"$1\" /usr/share/wordlists/4rji/*" ;;
-    4) hashcat_command="hashcat -w 3 -m 1000 \"$1\" /usr/share/wordlists/4rji/*" ;;
-    5) hashcat_command="hashcat -w 3 -m 22000 \"$1\" /usr/share/wordlists/4rji/*" ;;
-    6) hashcat_command="hashcat -w 3 -m 3200 \"$1\" /usr/share/wordlists/4rji/*" ;;
-    7) hashcat_command="hashcat -w 3 -m 500 \"$1\" /usr/share/wordlists/4rji/*" ;;
-    8) hashcat_command="hashcat -w 3 -m 300 \"$1\" /usr/share/wordlists/4rji/*" ;;
-    9) hashcat_command="hashcat -w 3 -m 18200 \"$1\" /usr/share/wordlists/4rji/*" ;;
-    10) hashcat_command="hashcat -w 3 -m 1800 \"$1\" /usr/share/wordlists/4rji/*" ;;
+    1) hashcat_command="hashcat -w 3 -m 0 \"$hash_file\" /usr/share/wordlists/4rji/*" ;;
+    2) hashcat_command="hashcat -w 3 -m 100 \"$hash_file\" /usr/share/wordlists/4rji/*" ;;
+    3) hashcat_command="hashcat -w 3 -m 1400 \"$hash_file\" /usr/share/wordlists/4rji/*" ;;
+    4) hashcat_command="hashcat -w 3 -m 1000 \"$hash_file\" /usr/share/wordlists/4rji/*" ;;
+    5) hashcat_command="hashcat -w 3 -m 22000 \"$hash_file\" /usr/share/wordlists/4rji/*" ;;
+    6) hashcat_command="hashcat -w 3 -m 3200 \"$hash_file\" /usr/share/wordlists/4rji/*" ;;
+    7) hashcat_command="hashcat -w 3 -m 500 \"$hash_file\" /usr/share/wordlists/4rji/*" ;;
+    8) hashcat_command="hashcat -w 3 -m 300 \"$hash_file\" /usr/share/wordlists/4rji/*" ;;
+    9) hashcat_command="hashcat -w 3 -m 18200 \"$hash_file\" /usr/share/wordlists/4rji/*" ;;
+    10) hashcat_command="hashcat -w 3 -m 1800 \"$hash_file\" /usr/share/wordlists/4rji/*" ;;
     *) echo -e "\033[31mInvalid mode number. Exiting.\033[0m"
        exit 1 ;;
 esac

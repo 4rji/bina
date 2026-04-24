@@ -1,8 +1,135 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-STATE_DIR="${XDG_STATE_HOME:-$HOME/.local/state}/keepawake"
+resolve_state_base() {
+  if [ -n "${XDG_STATE_HOME:-}" ]; then
+    printf '%s\n' "$XDG_STATE_HOME"
+    return
+  fi
+
+  if [ -n "${SUDO_USER:-}" ] && [ "$SUDO_USER" != "root" ] && command -v getent >/dev/null 2>&1; then
+    local sudo_home
+    sudo_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
+    if [ -n "$sudo_home" ]; then
+      printf '%s\n' "$sudo_home/.local/state"
+      return
+    fi
+  fi
+
+  printf '%s\n' "$HOME/.local/state"
+}
+
+write_state() {
+  printf '%s=%s\n' "$1" "$2" >> "$STATE_FILE"
+}
+
+unit_var_name() {
+  local name="$1"
+  name="${name//-/_}"
+  name="${name//./_}"
+  printf '%s\n' "${name^^}"
+}
+
+is_unit_masked() {
+  [ "$(readlink -f "/etc/systemd/system/$1" 2>/dev/null || true)" = "/dev/null" ]
+}
+
+save_unit_mask_state() {
+  local unit="$1"
+  local var_name="UNIT_$(unit_var_name "$unit")_MASKED"
+
+  if is_unit_masked "$unit"; then
+    write_state "$var_name" "1"
+  else
+    write_state "$var_name" "0"
+  fi
+}
+
+load_state() {
+  local line key value
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    [ -z "$line" ] && continue
+
+    case "$line" in
+      \#*)
+        continue
+        ;;
+    esac
+
+    case "$line" in
+      *=*)
+        key="${line%%=*}"
+        value="${line#*=}"
+        ;;
+      *)
+        continue
+        ;;
+    esac
+
+    if [[ "$value" == \"*\" && "$value" == *\" ]]; then
+      value="${value:1:${#value}-2}"
+    fi
+
+    case "$key" in
+      GNOME_IDLE_DELAY|GNOME_LOCK_ENABLED|GNOME_IDLE_ACTIVATION|XSET_PRESENT|XSET_TIMEOUT|XSET_CYCLE|XSET_DPMS_STATUS|XSET_STANDBY|XSET_SUSPEND|XSET_OFF|UNIT_[A-Za-z0-9_]*)
+        printf -v "$key" '%s' "$value"
+        ;;
+    esac
+  done < "$STATE_FILE"
+}
+
+restore_unit_mask_state() {
+  local unit="$1"
+  local var_name="UNIT_$(unit_var_name "$unit")_MASKED"
+  local legacy_var="UNIT_${unit//[-.]/_}"
+  local state="${!var_name:-${!legacy_var:-}}"
+
+  case "$state" in
+    1|masked)
+      sudo systemctl mask "$unit" >/dev/null 2>&1 || true
+      ;;
+    0|enabled|disabled|static|indirect|generated|"")
+      sudo systemctl unmask "$unit" >/dev/null 2>&1 || true
+      ;;
+  esac
+}
+
+suspend_now() {
+  local unit status=0
+  local masked_units=()
+
+  for unit in "${SYSTEMD_SLEEP_UNITS[@]}"; do
+    if is_unit_masked "$unit"; then
+      masked_units+=("$unit")
+    fi
+  done
+
+  if [ "${#masked_units[@]}" -gt 0 ]; then
+    sudo systemctl unmask "${masked_units[@]}"
+  fi
+
+  if systemctl suspend; then
+    status=0
+  else
+    status=$?
+  fi
+
+  if [ "${#masked_units[@]}" -gt 0 ]; then
+    sudo systemctl mask "${masked_units[@]}" || true
+  fi
+
+  return "$status"
+}
+
+STATE_DIR="$(resolve_state_base)/keepawake"
 STATE_FILE="$STATE_DIR/state.conf"
+SYSTEMD_SLEEP_UNITS=(
+  sleep.target
+  suspend.target
+  hibernate.target
+  hybrid-sleep.target
+)
 
 mkdir -p "$STATE_DIR"
 
@@ -12,25 +139,29 @@ save_state() {
 
   if command -v gsettings >/dev/null 2>&1; then
     gsettings writable org.gnome.desktop.session idle-delay >/dev/null 2>&1 &&
-      echo "GNOME_IDLE_DELAY=$(gsettings get org.gnome.desktop.session idle-delay)" >> "$STATE_FILE"
+      write_state "GNOME_IDLE_DELAY" "$(gsettings get org.gnome.desktop.session idle-delay)"
 
     gsettings writable org.gnome.desktop.screensaver lock-enabled >/dev/null 2>&1 &&
-      echo "GNOME_LOCK_ENABLED=$(gsettings get org.gnome.desktop.screensaver lock-enabled)" >> "$STATE_FILE"
+      write_state "GNOME_LOCK_ENABLED" "$(gsettings get org.gnome.desktop.screensaver lock-enabled)"
 
     gsettings writable org.gnome.desktop.screensaver idle-activation-enabled >/dev/null 2>&1 &&
-      echo "GNOME_IDLE_ACTIVATION=$(gsettings get org.gnome.desktop.screensaver idle-activation-enabled)" >> "$STATE_FILE"
+      write_state "GNOME_IDLE_ACTIVATION" "$(gsettings get org.gnome.desktop.screensaver idle-activation-enabled)"
   fi
 
   if command -v xset >/dev/null 2>&1 && [ -n "${DISPLAY:-}" ]; then
     {
-      echo "XSET_PRESENT=1"
+      write_state "XSET_PRESENT" "1"
       xset q | awk '
         /timeout:/ {print "XSET_TIMEOUT=" $2; print "XSET_CYCLE=" $4}
-        /DPMS is/ {print "XSET_DPMS_STATUS=\"" $3 "\""}
+        /DPMS is/ {print "XSET_DPMS_STATUS=" $3}
         /Standby:/ {print "XSET_STANDBY=" $2; print "XSET_SUSPEND=" $4; print "XSET_OFF=" $6}
       '
     } >> "$STATE_FILE"
   fi
+
+  for unit in "${SYSTEMD_SLEEP_UNITS[@]}"; do
+    save_unit_mask_state "$unit"
+  done
 }
 
 apply_disable() {
@@ -60,8 +191,7 @@ restore_state() {
     exit 1
   fi
 
-  # shellcheck disable=SC1090
-  source "$STATE_FILE"
+  load_state
 
   echo "Restaurando configuración previa..."
 
@@ -87,7 +217,9 @@ restore_state() {
     fi
   fi
 
-  sudo systemctl unmask sleep.target suspend.target hibernate.target hybrid-sleep.target || true
+  for unit in "${SYSTEMD_SLEEP_UNITS[@]}"; do
+    restore_unit_mask_state "$unit"
+  done
 
   echo "Configuración restaurada."
 }
@@ -100,7 +232,7 @@ case "${1:-}" in
     restore_state
     ;;
   dd)
-    systemctl suspend
+    suspend_now
     ;;
   *)
     echo "Uso:"
