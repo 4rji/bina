@@ -1,0 +1,250 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+if [[ -t 1 ]]; then
+  C_RESET=$'\033[0m'
+  C_BOLD=$'\033[1m'
+  C_GREEN=$'\033[32m'
+  C_YELLOW=$'\033[33m'
+  C_BLUE=$'\033[34m'
+else
+  C_RESET=""
+  C_BOLD=""
+  C_GREEN=""
+  C_YELLOW=""
+  C_BLUE=""
+fi
+
+usage() {
+  printf "%sUsage:%s\n" "$C_BOLD$C_BLUE" "$C_RESET"
+  printf "  ./start_ap.sh -a <ap_interface> [-w <wan_interface>] [-s <ssid>] [-c <channel>]\n\n"
+
+  printf "%sRecommended for Internet sharing:%s\n" "$C_BOLD$C_GREEN" "$C_RESET"
+  printf "  sudo ./start_ap.sh -a wlan0 -w wlan1\n\n"
+
+  printf "%sExamples:%s\n" "$C_BOLD$C_BLUE" "$C_RESET"
+  printf "  ./start_ap.sh -a wlan0\n"
+  printf "  ./start_ap.sh -a wlan0 -w wlan1\n"
+  printf "  ./start_ap.sh -a wlan2 -w wlan1 -s MyOpenAP -c 11\n\n"
+
+  printf "%sArguments:%s\n" "$C_BOLD$C_BLUE" "$C_RESET"
+  printf "  -a  Wireless interface that will become the Access Point.\n"
+  printf "  -w  Interface that already has Internet access and will be shared.\n"
+  printf "  -s  Open Wi-Fi name. Default: eduroam2\n"
+  printf "  -c  Wi-Fi channel. Default: 6\n\n"
+
+  printf "%sNotes:%s\n" "$C_BOLD$C_YELLOW" "$C_RESET"
+  printf "  - Creates an open Access Point with no password.\n"
+  printf "  - The script always starts DHCP on the AP interface.\n"
+  printf "  - If -w is provided, the script also enables NAT for Internet sharing.\n"
+  printf "  - Only the AP interface is reconfigured.\n"
+  printf "  - Your Internet connection stays up as long as it uses a different interface.\n"
+  printf "  - Requires hostapd and dnsmasq. Internet sharing also requires iptables.\n"
+}
+
+if [[ ${1:-} == "-h" || ${1:-} == "--help" ]]; then
+  usage
+  exit 0
+fi
+
+if [[ $# -eq 0 ]]; then
+  usage
+  exit 0
+fi
+
+if [[ $EUID -ne 0 ]]; then
+  exec sudo -- "$0" "$@"
+fi
+
+if [[ $# -gt 0 && ${1:-} != -* ]]; then
+  echo "This script requires flags. See --help for usage." >&2
+  usage
+  exit 1
+fi
+
+AP_IFACE=""
+WAN_IFACE=""
+SSID="eduroam2"
+CHANNEL="6"
+AP_ADDR="10.55.0.1"
+AP_CIDR="24"
+AP_SUBNET="10.55.0.0/24"
+DHCP_START="10.55.0.10"
+DHCP_END="10.55.0.100"
+HOSTAPD_CONF=""
+DNSMASQ_CONF=""
+HOSTAPD_PID=""
+DNSMASQ_PID=""
+NM_MANAGED_CHANGED=0
+IP_FORWARD_OLD=""
+IPTABLES_NAT_ADDED=0
+IPTABLES_FWD1_ADDED=0
+IPTABLES_FWD2_ADDED=0
+
+while getopts ":a:w:s:c:h" opt; do
+  case "$opt" in
+    a) AP_IFACE="$OPTARG" ;;
+    w) WAN_IFACE="$OPTARG" ;;
+    s) SSID="$OPTARG" ;;
+    c) CHANNEL="$OPTARG" ;;
+    h)
+      usage
+      exit 0
+      ;;
+    :)
+      echo "Option -$OPTARG requires a value." >&2
+      usage
+      exit 1
+      ;;
+    \?)
+      echo "Unknown option: -$OPTARG" >&2
+      usage
+      exit 1
+      ;;
+  esac
+done
+
+if [[ -z "$AP_IFACE" ]]; then
+  echo "AP interface is required." >&2
+  usage
+  exit 1
+fi
+
+HOSTAPD_CONF="$(mktemp /tmp/hostapd-${AP_IFACE}-XXXX.conf)"
+
+cleanup() {
+  set +e
+
+  if [[ -n "$HOSTAPD_PID" ]]; then
+    kill "$HOSTAPD_PID" 2>/dev/null || true
+    wait "$HOSTAPD_PID" 2>/dev/null || true
+  fi
+
+  if [[ -n "$DNSMASQ_PID" ]]; then
+    kill "$DNSMASQ_PID" 2>/dev/null || true
+    wait "$DNSMASQ_PID" 2>/dev/null || true
+  fi
+
+  if [[ $IPTABLES_NAT_ADDED -eq 1 ]]; then
+    iptables -t nat -D POSTROUTING -s "$AP_SUBNET" -o "$WAN_IFACE" -j MASQUERADE 2>/dev/null || true
+  fi
+
+  if [[ $IPTABLES_FWD1_ADDED -eq 1 ]]; then
+    iptables -D FORWARD -i "$WAN_IFACE" -o "$AP_IFACE" -m state --state RELATED,ESTABLISHED -j ACCEPT 2>/dev/null || true
+  fi
+
+  if [[ $IPTABLES_FWD2_ADDED -eq 1 ]]; then
+    iptables -D FORWARD -i "$AP_IFACE" -o "$WAN_IFACE" -j ACCEPT 2>/dev/null || true
+  fi
+
+  if [[ -n "$IP_FORWARD_OLD" ]]; then
+    sysctl -w "net.ipv4.ip_forward=$IP_FORWARD_OLD" >/dev/null 2>&1 || true
+  fi
+
+  if [[ $NM_MANAGED_CHANGED -eq 1 ]] && command -v nmcli >/dev/null 2>&1; then
+    nmcli device set "$AP_IFACE" managed yes >/dev/null 2>&1 || true
+  fi
+
+  rm -f "$HOSTAPD_CONF"
+  rm -f "$DNSMASQ_CONF"
+}
+trap cleanup EXIT INT TERM
+
+require_cmd() {
+  local cmd="$1"
+  local pkg_hint="$2"
+
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "Missing command '$cmd'. Install it with: apt install -y $pkg_hint" >&2
+    exit 1
+  fi
+}
+
+require_iface() {
+  local iface="$1"
+  if ! ip link show "$iface" >/dev/null 2>&1; then
+    echo "Interface '$iface' does not exist." >&2
+    exit 1
+  fi
+}
+
+require_cmd hostapd hostapd
+require_cmd dnsmasq dnsmasq
+require_cmd ip iproute2
+
+if ! [[ "$CHANNEL" =~ ^[0-9]+$ ]]; then
+  echo "Channel must be numeric." >&2
+  exit 1
+fi
+
+require_iface "$AP_IFACE"
+
+if [[ -n "$WAN_IFACE" ]]; then
+  require_cmd iptables iptables
+  require_cmd sysctl procps
+  require_iface "$WAN_IFACE"
+
+  if [[ "$AP_IFACE" == "$WAN_IFACE" ]]; then
+    echo "AP interface and WAN interface must be different." >&2
+    exit 1
+  fi
+fi
+
+cat > "$HOSTAPD_CONF" <<EOF
+interface=$AP_IFACE
+driver=nl80211
+ssid=$SSID
+hw_mode=g
+channel=$CHANNEL
+auth_algs=1
+ignore_broadcast_ssid=0
+EOF
+
+echo "Preparing AP interface $AP_IFACE..."
+if command -v nmcli >/dev/null 2>&1; then
+  nmcli device disconnect "$AP_IFACE" >/dev/null 2>&1 || true
+  nmcli device set "$AP_IFACE" managed no >/dev/null 2>&1 || true
+  NM_MANAGED_CHANGED=1
+fi
+
+ip link set "$AP_IFACE" down
+ip addr flush dev "$AP_IFACE"
+ip addr add "${AP_ADDR}/${AP_CIDR}" dev "$AP_IFACE"
+ip link set "$AP_IFACE" up
+
+echo "Starting DHCP on $AP_IFACE..."
+DNSMASQ_CONF="$(mktemp /tmp/dnsmasq-${AP_IFACE}-XXXX.conf)"
+cat > "$DNSMASQ_CONF" <<EOF
+interface=$AP_IFACE
+bind-dynamic
+port=0
+dhcp-range=$DHCP_START,$DHCP_END,255.255.255.0,12h
+dhcp-authoritative
+dhcp-option=3,$AP_ADDR
+dhcp-option=6,1.1.1.1,8.8.8.8
+log-dhcp
+EOF
+
+dnsmasq --conf-file="$DNSMASQ_CONF" --no-daemon --log-facility=- &
+DNSMASQ_PID="$!"
+
+if [[ -n "$WAN_IFACE" ]]; then
+  echo "Configuring NAT from $WAN_IFACE to $AP_IFACE..."
+  IP_FORWARD_OLD="$(cat /proc/sys/net/ipv4/ip_forward)"
+  sysctl -w net.ipv4.ip_forward=1 >/dev/null
+
+  iptables -t nat -A POSTROUTING -s "$AP_SUBNET" -o "$WAN_IFACE" -j MASQUERADE
+  IPTABLES_NAT_ADDED=1
+  iptables -A FORWARD -i "$WAN_IFACE" -o "$AP_IFACE" -m state --state RELATED,ESTABLISHED -j ACCEPT
+  IPTABLES_FWD1_ADDED=1
+  iptables -A FORWARD -i "$AP_IFACE" -o "$WAN_IFACE" -j ACCEPT
+  IPTABLES_FWD2_ADDED=1
+
+fi
+
+echo "Starting open AP '$SSID' on $AP_IFACE, channel $CHANNEL..."
+hostapd "$HOSTAPD_CONF" &
+HOSTAPD_PID="$!"
+
+wait "$HOSTAPD_PID"

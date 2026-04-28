@@ -600,5 +600,14 @@
             "For every valid IP, it adds an iptables TARPIT rule for TCP port 443 and then a DROP rule to block the source completely.",
             "Invalid or malformed IPs are skipped and reported in the terminal so the input list can be corrected easily."
         ]
+    },
+    "wifiAP": {
+        "name": "wifiAP",
+        "short_desc": "Creates an open Wi-Fi access point with DHCP and optional NAT sharing.",
+        "detailed_desc": [
+            "This Bash script turns a selected wireless interface into an open Wi-Fi access point using hostapd.",
+            "It starts dnsmasq DHCP for connected clients and can share Internet access from a separate WAN interface with NAT.",
+            "On exit, it cleans up temporary configs, forwarding rules, IP forwarding, and NetworkManager interface state."
+        ]
     }
 }
