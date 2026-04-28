@@ -18,7 +18,7 @@ fi
 
 usage() {
   printf "%sUsage:%s\n" "$C_BOLD$C_BLUE" "$C_RESET"
-  printf "  ./start_ap.sh -a <ap_interface> [-w <wan_interface>] [-s <ssid>] [-c <channel>]\n\n"
+  printf "  ./start_ap.sh -a <ap_interface> [-w <wan_interface>] [-s <ssid>] [-c <channel>] [-C <country>] [-2]\n\n"
 
   printf "%sRecommended for Internet sharing:%s\n" "$C_BOLD$C_GREEN" "$C_RESET"
   printf "  sudo ./start_ap.sh -a wlan0 -w wlan1\n\n"
@@ -26,16 +26,24 @@ usage() {
   printf "%sExamples:%s\n" "$C_BOLD$C_BLUE" "$C_RESET"
   printf "  ./start_ap.sh -a wlan0\n"
   printf "  ./start_ap.sh -a wlan0 -w wlan1\n"
-  printf "  ./start_ap.sh -a wlan2 -w wlan1 -s MyOpenAP -c 11\n\n"
+  printf "  ./start_ap.sh -a wlan2 -w wlan1 -s MyOpenAP -c 11\n"
+  printf "  ./start_ap.sh -a wlan0 -w wlan1 -2          # legacy 2.4GHz only (max compat)\n"
+  printf "  ./start_ap.sh -a wlan0 -w wlan1 -C AR       # set country code\n"
+  printf "  ./start_ap.sh -a wlan0 -w wlan1 -p hunter22 # WPA2 password\n\n"
 
   printf "%sArguments:%s\n" "$C_BOLD$C_BLUE" "$C_RESET"
   printf "  -a  Wireless interface that will become the Access Point.\n"
   printf "  -w  Interface that already has Internet access and will be shared.\n"
   printf "  -s  Open Wi-Fi name. Default: eduroam2\n"
-  printf "  -c  Wi-Fi channel. Default: 6\n\n"
+  printf "  -c  Wi-Fi channel (1, 6, 11 recommended). Default: 6\n"
+  printf "  -C  Country code (regulatory domain). Default: US\n"
+  printf "  -p  WPA2-PSK password (8-63 chars). If omitted, AP is open.\n"
+  printf "  -2  Force legacy 2.4GHz mode (802.11g only, no 802.11n).\n"
+  printf "      Use for very old/picky devices (some IoT, old Hak5 gear).\n\n"
 
   printf "%sNotes:%s\n" "$C_BOLD$C_YELLOW" "$C_RESET"
   printf "  - Creates an open Access Point with no password.\n"
+  printf "  - Default mode: 2.4GHz + 802.11n + WMM (best compatibility for modern devices).\n"
   printf "  - The script always starts DHCP on the AP interface.\n"
   printf "  - If -w is provided, the script also enables NAT for Internet sharing.\n"
   printf "  - Only the AP interface is reconfigured.\n"
@@ -67,6 +75,9 @@ AP_IFACE=""
 WAN_IFACE=""
 SSID="eduroam2"
 CHANNEL="6"
+COUNTRY="US"
+LEGACY_MODE=0
+PASSWORD=""
 AP_ADDR="10.55.0.1"
 AP_CIDR="24"
 AP_SUBNET="10.55.0.0/24"
@@ -81,13 +92,17 @@ IP_FORWARD_OLD=""
 IPTABLES_NAT_ADDED=0
 IPTABLES_FWD1_ADDED=0
 IPTABLES_FWD2_ADDED=0
+IPTABLES_MSS_ADDED=0
 
-while getopts ":a:w:s:c:h" opt; do
+while getopts ":a:w:s:c:C:p:2h" opt; do
   case "$opt" in
     a) AP_IFACE="$OPTARG" ;;
     w) WAN_IFACE="$OPTARG" ;;
     s) SSID="$OPTARG" ;;
     c) CHANNEL="$OPTARG" ;;
+    C) COUNTRY="$OPTARG" ;;
+    p) PASSWORD="$OPTARG" ;;
+    2) LEGACY_MODE=1 ;;
     h)
       usage
       exit 0
@@ -109,6 +124,13 @@ if [[ -z "$AP_IFACE" ]]; then
   echo "AP interface is required." >&2
   usage
   exit 1
+fi
+
+if [[ -n "$PASSWORD" ]]; then
+  if (( ${#PASSWORD} < 8 || ${#PASSWORD} > 63 )); then
+    echo "Password must be between 8 and 63 characters." >&2
+    exit 1
+  fi
 fi
 
 HOSTAPD_CONF="$(mktemp /tmp/hostapd-${AP_IFACE}-XXXX.conf)"
@@ -136,6 +158,10 @@ cleanup() {
 
   if [[ $IPTABLES_FWD2_ADDED -eq 1 ]]; then
     iptables -D FORWARD -i "$AP_IFACE" -o "$WAN_IFACE" -j ACCEPT 2>/dev/null || true
+  fi
+
+  if [[ $IPTABLES_MSS_ADDED -eq 1 ]]; then
+    iptables -t mangle -D FORWARD -o "$WAN_IFACE" -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu 2>/dev/null || true
   fi
 
   if [[ -n "$IP_FORWARD_OLD" ]]; then
@@ -195,11 +221,37 @@ cat > "$HOSTAPD_CONF" <<EOF
 interface=$AP_IFACE
 driver=nl80211
 ssid=$SSID
+country_code=$COUNTRY
+ieee80211d=1
 hw_mode=g
 channel=$CHANNEL
-auth_algs=1
+beacon_int=100
+dtim_period=2
 ignore_broadcast_ssid=0
+macaddr_acl=0
+disassoc_low_ack=0
 EOF
+
+if [[ -n "$PASSWORD" ]]; then
+  cat >> "$HOSTAPD_CONF" <<EOF
+auth_algs=1
+wpa=2
+wpa_passphrase=$PASSWORD
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=TKIP CCMP
+rsn_pairwise=CCMP
+EOF
+else
+  echo "auth_algs=1" >> "$HOSTAPD_CONF"
+fi
+
+if [[ $LEGACY_MODE -eq 0 ]]; then
+  cat >> "$HOSTAPD_CONF" <<EOF
+wmm_enabled=1
+ieee80211n=1
+ht_capab=[HT20][SHORT-GI-20][DSSS_CCK-40]
+EOF
+fi
 
 echo "Preparing AP interface $AP_IFACE..."
 if command -v nmcli >/dev/null 2>&1; then
@@ -208,7 +260,18 @@ if command -v nmcli >/dev/null 2>&1; then
   NM_MANAGED_CHANGED=1
 fi
 
+if command -v rfkill >/dev/null 2>&1; then
+  rfkill unblock wifi >/dev/null 2>&1 || true
+  rfkill unblock all >/dev/null 2>&1 || true
+fi
+
+pkill -f "wpa_supplicant.*${AP_IFACE}" 2>/dev/null || true
+
 ip link set "$AP_IFACE" down
+if command -v iw >/dev/null 2>&1; then
+  iw reg set "$COUNTRY" >/dev/null 2>&1 || true
+  iw dev "$AP_IFACE" set type managed >/dev/null 2>&1 || true
+fi
 ip addr flush dev "$AP_IFACE"
 ip addr add "${AP_ADDR}/${AP_CIDR}" dev "$AP_IFACE"
 ip link set "$AP_IFACE" up
@@ -218,11 +281,15 @@ DNSMASQ_CONF="$(mktemp /tmp/dnsmasq-${AP_IFACE}-XXXX.conf)"
 cat > "$DNSMASQ_CONF" <<EOF
 interface=$AP_IFACE
 bind-dynamic
-port=0
+domain-needed
+bogus-priv
+no-resolv
+server=1.1.1.1
+server=8.8.8.8
 dhcp-range=$DHCP_START,$DHCP_END,255.255.255.0,12h
 dhcp-authoritative
 dhcp-option=3,$AP_ADDR
-dhcp-option=6,1.1.1.1,8.8.8.8
+dhcp-option=6,$AP_ADDR
 log-dhcp
 EOF
 
@@ -240,10 +307,16 @@ if [[ -n "$WAN_IFACE" ]]; then
   IPTABLES_FWD1_ADDED=1
   iptables -A FORWARD -i "$AP_IFACE" -o "$WAN_IFACE" -j ACCEPT
   IPTABLES_FWD2_ADDED=1
+  iptables -t mangle -A FORWARD -o "$WAN_IFACE" -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+  IPTABLES_MSS_ADDED=1
 
 fi
 
-echo "Starting open AP '$SSID' on $AP_IFACE, channel $CHANNEL..."
+if [[ -n "$PASSWORD" ]]; then
+  echo "Starting WPA2 AP '$SSID' on $AP_IFACE, channel $CHANNEL..."
+else
+  echo "Starting open AP '$SSID' on $AP_IFACE, channel $CHANNEL..."
+fi
 hostapd "$HOSTAPD_CONF" &
 HOSTAPD_PID="$!"
 
