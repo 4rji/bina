@@ -80,6 +80,7 @@ mk                  Crea markitdown de los archivos ./mk file
 wgett               Descarga archivos con wget, carpeta completa reescribiendo o no
 wgetf               Descarga (FUNCTION) - HTTP minimo que hace GET via TCP - /dev/tcp, http only
 wgetraw             Descarga HTTP minimo que hace GET via TCP - /dev/tcp
+bajar               Downloads MP3 audio, best video, or streams a URL with mpv via yt-dlp.
 
 
 
