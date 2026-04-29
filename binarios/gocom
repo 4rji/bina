@@ -57,7 +57,6 @@ show_recent_files_on_exit() {
 }
 
 print_header() {
-  clear 2>/dev/null || true
   echo -e "${BOLD}${TITLE}========================================${RESET}"
   echo -e "${BOLD}${TITLE_ACCENT}          Go Build Menu Cool            ${RESET}"
   echo -e "${BOLD}${TITLE}========================================${RESET}"
@@ -171,6 +170,12 @@ show_menu() {
   echo -ne "${BOLD}${PROMPT}Choose an option [1-8, q]: ${RESET}"
 }
 
+print_command_separator() {
+  echo
+  echo -e "${DIM}************************************************${RESET}"
+  echo
+}
+
 # Verify it is running in an interactive terminal
 if [[ ! -t 0 ]]; then
   echo "This script requires an interactive terminal."
@@ -186,14 +191,14 @@ while true; do
   echo
 
   case "${choice}" in
-    1) step_3 ;;
-    2) step_4 ;;
-    3) step_1 ;;
-    4) step_2 ;;
-    5) step_5 ;;
-    6) step_6 ;;
-    7) step_7 ;;
-    8) step_8 ;;
+    1) step_3; print_command_separator ;;
+    2) step_4; print_command_separator ;;
+    3) step_1; print_command_separator ;;
+    4) step_2; print_command_separator ;;
+    5) step_5; print_command_separator ;;
+    6) step_6; print_command_separator ;;
+    7) step_7; print_command_separator ;;
+    8) step_8; print_command_separator ;;
     q|Q) echo -e "${CYAN}Bye.${RESET}"; exit 0 ;;
     *) echo -e "${RED}Invalid option.${RESET}" ;;
   esac
