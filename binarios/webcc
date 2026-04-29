@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BASE="/Users/bellaquita/github/documentation/img"
+
+cd "$BASE"
+
+DIR="$(find . -type d | sed 's#^\./##' | fzf --prompt="Elige carpeta: ")"
+
+[ -z "$DIR" ] && exit 0
+
+TARGET="$BASE/$DIR"
+
+echo "Ejecutando webc en: $TARGET"
+webc "$TARGET"
+
+echo "Borrando PNG/JPEG/AI dentro de: $TARGET"
+find "$TARGET" -maxdepth 1 -type f \( \
+  -iname "*.png" -o \
+  -iname "*.jpg" -o \
+  -iname "*.jpeg" -o \
+  -iname "*.ai" \
+\) -delete
+
+echo "Listo. Se conservaron los .webp"
