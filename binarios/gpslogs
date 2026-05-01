@@ -1,13 +1,11 @@
 #!/usr/bin/env bash
 set -u
 
-# ====== Config ======
-IFACE="${1:-wlan1}"
-OUTDIR="$HOME/wifi-gps-logs"
-OUTFILE="$OUTDIR/wifi_gps_$(date +%F_%H-%M-%S).csv"
+DB="$HOME/wifi-gps.db"
 INTERVAL="${INTERVAL:-5}"
+AWK_SCRIPT=""
 
-# ====== Colores (solo si stdout es terminal) ======
+# Colores
 if [ -t 1 ]; then
   R=$'\033[0;31m'; G=$'\033[0;32m'; Y=$'\033[0;33m'
   C=$'\033[0;36m'; BOLD=$'\033[1m'; DIM=$'\033[2m'; NC=$'\033[0m'
@@ -15,33 +13,49 @@ else
   R=""; G=""; Y=""; C=""; BOLD=""; DIM=""; NC=""
 fi
 
-# ====== Contadores ======
-TOTAL_RECORDS=0
+# Stats
 TOTAL_SCANS=0
-GPS_FIX_COUNT=0
-GPS_NOFIX_COUNT=0
+TOTAL_ROWS=0
+FIX_COUNT=0
+SQL_ERRORS=0
+SESSION_ID=""
 
-# ====== Resumen al salir ======
 cleanup() {
+  [ -n "$AWK_SCRIPT" ] && rm -f "$AWK_SCRIPT"
   echo
   echo
   echo "${BOLD}${C}=== Resumen ===${NC}"
-  echo "Escaneos realizados:  $TOTAL_SCANS"
-  echo "Filas guardadas:      $TOTAL_RECORDS"
-  echo "Con fix GPS:          ${G}$GPS_FIX_COUNT${NC}"
-  echo "Sin fix:              ${Y}$GPS_NOFIX_COUNT${NC}"
-  echo "Archivo: $OUTFILE"
+  echo "Sesión:           $SESSION_ID"
+  echo "Escaneos:         $TOTAL_SCANS"
+  echo "Filas insertadas: $TOTAL_ROWS"
+  echo "Con fix GPS:      ${G}$FIX_COUNT${NC} ciclos"
+  [ "$SQL_ERRORS" -gt 0 ] && echo "Errores SQL:      ${R}$SQL_ERRORS${NC}"
+  echo
+  echo "${BOLD}DB:${NC} $DB"
+  if [ -f "$DB" ]; then
+    DB_SIZE=$(du -h "$DB" 2>/dev/null | cut -f1)
+    DB_TOTAL=$(sqlite3 "$DB" "SELECT COUNT(*) FROM observations" 2>/dev/null)
+    echo "Tamaño:           $DB_SIZE"
+    echo "Filas totales:    $DB_TOTAL"
+  fi
+  echo
+  echo "${BOLD}Consultas útiles:${NC}"
+  echo "  ${DIM}# Resumen de esta sesión${NC}"
+  echo "  sqlite3 -header -column $DB \"SELECT COUNT(*) AS filas, COUNT(DISTINCT bssid) AS aps FROM observations WHERE session_id='$SESSION_ID';\""
+  echo "  ${DIM}# Top 10 SSIDs${NC}"
+  echo "  sqlite3 -header -column $DB \"SELECT ssid, COUNT(*) c FROM observations WHERE ssid!='' GROUP BY ssid ORDER BY c DESC LIMIT 10;\""
+  echo "  ${DIM}# Exportar APs con coordenadas a CSV${NC}"
+  echo "  sqlite3 -header -csv $DB \"SELECT bssid, ssid, AVG(lat) lat, AVG(lon) lon, MAX(signal_dbm) sig FROM observations WHERE lat IS NOT NULL GROUP BY bssid;\" > aps.csv"
   exit 0
 }
 trap cleanup INT TERM
 
-# ====== Pre-flight ======
-echo "${BOLD}${C}=== WiFi + GPS Logger ===${NC}"
+echo "${BOLD}${C}=== WiFi + GPS Logger (SQLite) ===${NC}"
 echo
 
 # Dependencias
 missing=0
-for cmd in gpspipe jq iw awk; do
+for cmd in gpspipe jq iw awk sqlite3; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
     echo "${R}[FALTA]${NC} $cmd"
     missing=1
@@ -49,105 +63,158 @@ for cmd in gpspipe jq iw awk; do
 done
 if [ "$missing" -eq 1 ]; then
   echo
-  echo "Instala lo necesario:  sudo pacman -S gpsd jq iw"
+  echo "Instala:  sudo pacman -S gpsd jq iw sqlite"
   exit 1
 fi
 
-# Interfaz
-if ! ip link show "$IFACE" >/dev/null 2>&1; then
-  echo "${R}[ERROR]${NC} La interfaz '$IFACE' no existe"
-  echo "Interfaces Wi-Fi disponibles:"
-  iw dev 2>/dev/null | awk '$1=="Interface"{print "  - "$2}'
+# Listar interfaces Wi-Fi y dejar elegir
+echo "${BOLD}Interfaces Wi-Fi disponibles:${NC}"
+mapfile -t IFACES < <(iw dev 2>/dev/null | awk '$1=="Interface"{print $2}')
+if [ "${#IFACES[@]}" -eq 0 ]; then
+  echo "${R}[ERROR]${NC} No se encontraron interfaces Wi-Fi"
   exit 1
 fi
-echo "${G}[OK]${NC} Interfaz: $IFACE"
+for i in "${!IFACES[@]}"; do
+  iface="${IFACES[$i]}"
+  type=$(iw dev "$iface" info 2>/dev/null | awk '/type/{print $2; exit}')
+  state=$(ip link show "$iface" 2>/dev/null | awk -F'state ' 'NR==1{split($2,a," "); print a[1]}')
+  printf "  ${BOLD}%d)${NC} %-12s ${DIM}(%s, %s)${NC}\n" \
+    "$((i+1))" "$iface" "${type:-?}" "${state:-?}"
+done
+echo
+read -r -p "Elige número [1]: " choice
+choice="${choice:-1}"
+if ! [[ "$choice" =~ ^[0-9]+$ ]] || [ "$choice" -lt 1 ] || [ "$choice" -gt "${#IFACES[@]}" ]; then
+  echo "${R}[ERROR]${NC} Selección inválida"
+  exit 1
+fi
+IFACE="${IFACES[$((choice-1))]}"
+echo "${G}[OK]${NC} Interfaz: ${BOLD}$IFACE${NC}"
+echo
 
-# gpsd corriendo
+# Pre-autenticar sudo para no interrumpir el loop
+echo "Necesitas sudo para escanear:"
+sudo -v || exit 1
+echo
+
+# gpsd
 if systemctl is-active --quiet gpsd 2>/dev/null || pgrep -x gpsd >/dev/null 2>&1; then
   echo "${G}[OK]${NC} gpsd activo"
 else
   echo "${Y}[WARN]${NC} gpsd no parece estar corriendo"
-  echo "        sudo systemctl start gpsd.socket"
 fi
+
+# Init DB
+sqlite3 "$DB" <<'SQL' || { echo "${R}[ERROR]${NC} No se pudo inicializar DB"; exit 1; }
+CREATE TABLE IF NOT EXISTS observations (
+  id           INTEGER PRIMARY KEY AUTOINCREMENT,
+  session_id   TEXT NOT NULL,
+  timestamp    TEXT NOT NULL,
+  lat          REAL,
+  lon          REAL,
+  alt          REAL,
+  fix_mode     INTEGER,
+  sats_used    INTEGER,
+  sats_seen    INTEGER,
+  snr_max      REAL,
+  hdop         REAL,
+  bssid        TEXT NOT NULL,
+  ssid         TEXT,
+  signal_dbm   REAL,
+  freq_mhz     INTEGER,
+  channel      INTEGER
+);
+CREATE INDEX IF NOT EXISTS idx_obs_session ON observations(session_id);
+CREATE INDEX IF NOT EXISTS idx_obs_bssid   ON observations(bssid);
+CREATE INDEX IF NOT EXISTS idx_obs_ssid    ON observations(ssid);
+CREATE INDEX IF NOT EXISTS idx_obs_ts      ON observations(timestamp);
+PRAGMA journal_mode = WAL;
+SQL
+
+SESSION_ID="session_$(date +%Y%m%d_%H%M%S)"
+echo "${G}[OK]${NC} DB:      $DB"
+echo "${G}[OK]${NC} Session: $SESSION_ID"
+echo
 
 # Sondeo inicial GPS
-echo
-echo "${BOLD}Sondeo inicial de GPS (5s)...${NC}"
-GPS_TEST=$(timeout 5 gpspipe -w -n 30 2>/dev/null || true)
-
-if [ -z "$GPS_TEST" ]; then
-  echo "${R}[ERROR]${NC} No llegan datos desde gpsd"
-  echo "        Revisa: ls /dev/tty{USB,ACM}*  y  /etc/default/gpsd"
-  echo
-  read -r -p "Continuar de todos modos (las filas saldrán sin lat/lon)? [s/N] " ans
-  [[ "$ans" =~ ^[sS]$ ]] || exit 1
-else
+echo "${BOLD}Sondeo GPS (3s)...${NC}"
+GPS_TEST=$(timeout 3 gpspipe -w -n 15 2>/dev/null || true)
+if [ -n "$GPS_TEST" ]; then
   TPV=$(echo "$GPS_TEST" | jq -rc 'select(.class=="TPV")' 2>/dev/null | tail -n 1)
-  SKY=$(echo "$GPS_TEST" | jq -rc 'select(.class=="SKY")' 2>/dev/null | tail -n 1)
-
-  if [ -n "$TPV" ]; then
-    MODE_T=$(echo "$TPV" | jq -r '.mode // 0')
-    LAT_T=$(echo "$TPV"  | jq -r '.lat  // "—"')
-    LON_T=$(echo "$TPV"  | jq -r '.lon  // "—"')
-    case "$MODE_T" in
-      3) echo "${G}[OK]${NC}    Fix 3D: $LAT_T, $LON_T" ;;
-      2) echo "${Y}[OK]${NC}    Fix 2D: $LAT_T, $LON_T" ;;
-      *) echo "${Y}[WARN]${NC} Sin fix todavía (mode=$MODE_T) — prueba con cielo despejado" ;;
-    esac
-  else
-    echo "${Y}[WARN]${NC} Llegan datos de gpsd pero aún no hay TPV"
-  fi
-
-  if [ -n "$SKY" ]; then
-    NSAT=$(echo "$SKY" | jq -r '.satellites | length // 0' 2>/dev/null)
-    USED=$(echo "$SKY" | jq -r '[.satellites[]? | select(.used==true)] | length' 2>/dev/null)
-    echo "        Satélites: ${USED:-0} usados / ${NSAT:-0} vistos"
-  fi
+  MODE_T=$(echo "$TPV" | jq -r '.mode // 0' 2>/dev/null)
+  case "$MODE_T" in
+    3) LAT_T=$(echo "$TPV" | jq -r '.lat')
+       LON_T=$(echo "$TPV" | jq -r '.lon')
+       echo "${G}[OK]${NC}    Fix 3D listo: $LAT_T, $LON_T" ;;
+    2) echo "${Y}[OK]${NC}    Fix 2D" ;;
+    *) echo "${Y}[WARN]${NC} Aún sin fix (filas se guardan sin coords hasta que fije)" ;;
+  esac
+else
+  echo "${R}[WARN]${NC} No llegan datos de gpsd"
 fi
 
-# ====== Init salida ======
-mkdir -p "$OUTDIR"
-echo "timestamp,lat,lon,mode,sats_used,sats_seen,bssid,ssid,signal_dbm,freq_mhz,channel" > "$OUTFILE"
+# Script awk para parsear iw scan -> SQL
+AWK_SCRIPT=$(mktemp)
+cat > "$AWK_SCRIPT" <<'AWKEOF'
+function sq(s) {
+  gsub(/'/, "''", s)
+  return "'" s "'"
+}
+function vn(x) {
+  if (x == "") return "NULL"
+  return x
+}
+function emit() {
+  if (bssid != "") {
+    printf "INSERT INTO observations (session_id,timestamp,lat,lon,alt,fix_mode,sats_used,sats_seen,snr_max,hdop,bssid,ssid,signal_dbm,freq_mhz,channel) VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s);\n", \
+      sq(session), sq(ts), vn(lat), vn(lon), vn(alt), vn(mode), \
+      vn(used), vn(seen), vn(snr), vn(hdop), \
+      sq(bssid), sq(ssid), vn(signal), vn(freq), vn(channel)
+    n++
+  }
+}
+BEGIN { print "BEGIN;" }
+/^BSS / {
+  emit()
+  bssid=$2; gsub(/\(.*/, "", bssid)
+  ssid=""; signal=""; freq=""; channel=""
+}
+/^[ \t]*SSID:/             { ssid=$0; sub(/^[ \t]*SSID:[ \t]*/, "", ssid) }
+/^[ \t]*signal:/           { signal=$2; gsub(/[^0-9.-]/,"",signal) }
+/^[ \t]*freq:/             { freq=$2; gsub(/[^0-9]/,"",freq) }
+/^[ \t]*DS Parameter set:/ { channel=$5 }
+END {
+  emit()
+  print "COMMIT;"
+  printf "%d", (n+0) > "/dev/stderr"
+}
+AWKEOF
 
 echo
-echo "Salida CSV: ${BOLD}$OUTFILE${NC}"
-echo "Intervalo:  ${INTERVAL}s"
-echo "Ctrl+C para detener."
+echo "Intervalo: ${INTERVAL}s   Ctrl+C para detener."
 echo
-printf "${DIM}%-8s  %-6s  %-24s  %-9s  %-9s  %s${NC}\n" \
+printf "${BOLD}%-8s  %-6s  %-22s  %-7s  %-9s  %s${NC}\n" \
   "Hora" "Fix" "Coordenadas" "Sats U/V" "Wi-Fi" "Total"
-printf "${DIM}%-8s  %-6s  %-24s  %-9s  %-9s  %s${NC}\n" \
-  "--------" "------" "------------------------" "---------" "---------" "-----"
+printf "${DIM}%-8s  %-6s  %-22s  %-7s  %-9s  %s${NC}\n" \
+  "--------" "------" "----------------------" "-------" "---------" "-----"
 
-# ====== Lector GPS ======
-# Devuelve: lat,lon,mode,sats_used,sats_seen
 get_gps() {
-  local data tpv tpv_any sky lat lon mode used seen
+  local data tpv sky mode lat lon alt used seen snr hdop
   data=$(timeout 3 gpspipe -w -n 15 2>/dev/null || true)
-  if [ -z "$data" ]; then echo ",,0,,"; return; fi
-
-  tpv=$(echo "$data" | jq -rc 'select(.class=="TPV") | select(.lat!=null and .lon!=null)' 2>/dev/null | tail -n 1)
+  if [ -z "$data" ]; then echo "0|||||||"; return; fi
+  tpv=$(echo "$data" | jq -rc 'select(.class=="TPV")' 2>/dev/null | tail -n 1)
   sky=$(echo "$data" | jq -rc 'select(.class=="SKY")' 2>/dev/null | tail -n 1)
-
-  if [ -n "$tpv" ]; then
-    lat=$(echo "$tpv"  | jq -r '.lat')
-    lon=$(echo "$tpv"  | jq -r '.lon')
-    mode=$(echo "$tpv" | jq -r '.mode // 0')
-  else
-    tpv_any=$(echo "$data" | jq -rc 'select(.class=="TPV")' 2>/dev/null | tail -n 1)
-    lat=""; lon=""
-    mode=$(echo "$tpv_any" | jq -r '.mode // 0' 2>/dev/null)
-    [ -z "$mode" ] && mode=0
-  fi
-
+  mode=$(echo "$tpv"  | jq -r '.mode  // 0')
+  lat=$(echo  "$tpv"  | jq -r '.lat   // ""')
+  lon=$(echo  "$tpv"  | jq -r '.lon   // ""')
+  alt=$(echo  "$tpv"  | jq -r '.altMSL // .alt // ""')
   if [ -n "$sky" ]; then
-    seen=$(echo "$sky" | jq -r '.satellites | length // 0')
-    used=$(echo "$sky" | jq -r '[.satellites[]? | select(.used==true)] | length')
-  else
-    seen=""; used=""
+    used=$(echo "$sky" | jq -r '[.satellites[]?|select(.used==true)]|length')
+    seen=$(echo "$sky" | jq -r '.satellites|length // 0')
+    snr=$(echo  "$sky" | jq -r '[.satellites[]?.ss // 0]|max // 0')
+    hdop=$(echo "$sky" | jq -r '.hdop // ""')
   fi
-
-  echo "$lat,$lon,$mode,$used,$seen"
+  echo "${mode}|${lat}|${lon}|${alt}|${used:-}|${seen:-}|${snr:-}|${hdop:-}"
 }
 
 fix_label() {
@@ -158,49 +225,36 @@ fix_label() {
   esac
 }
 
-# ====== Loop principal ======
+# Loop principal
 while true; do
   TS="$(date --iso-8601=seconds)"
-  GPS_DATA="$(get_gps)"
-  LAT="$(echo  "$GPS_DATA" | cut -d, -f1)"
-  LON="$(echo  "$GPS_DATA" | cut -d, -f2)"
-  MODE="$(echo "$GPS_DATA" | cut -d, -f3)"
-  USED="$(echo "$GPS_DATA" | cut -d, -f4)"
-  SEEN="$(echo "$GPS_DATA" | cut -d, -f5)"
+  GPS=$(get_gps)
+  IFS='|' read -r MODE LAT LON ALT USED SEEN SNR HDOP <<<"$GPS"
 
   if [ "$MODE" = "2" ] || [ "$MODE" = "3" ]; then
-    GPS_FIX_COUNT=$((GPS_FIX_COUNT+1))
-  else
-    GPS_NOFIX_COUNT=$((GPS_NOFIX_COUNT+1))
+    FIX_COUNT=$((FIX_COUNT+1))
   fi
 
-  SCAN_OUT=$(sudo iw dev "$IFACE" scan 2>/dev/null || true)
+  SCAN=$(sudo iw dev "$IFACE" scan 2>/dev/null || true)
 
-  ROWS_THIS_SCAN=$(echo "$SCAN_OUT" | awk \
-    -v ts="$TS" -v lat="$LAT" -v lon="$LON" -v mode="$MODE" \
-    -v used="$USED" -v seen="$SEEN" -v outfile="$OUTFILE" '
-    function clean(s) { gsub(/"/, "\"\"", s); return "\"" s "\"" }
-    function emit() {
-      if (bssid != "") {
-        print ts "," lat "," lon "," mode "," used "," seen "," bssid "," clean(ssid) "," signal "," freq "," channel >> outfile
-        n++
-      }
-    }
-    /^BSS / {
-      emit()
-      bssid=$2; gsub(/\(.*/, "", bssid)
-      ssid=""; signal=""; freq=""; channel=""
-    }
-    /^[ \t]*SSID:/             { ssid=$0; sub(/^[ \t]*SSID:[ \t]*/, "", ssid) }
-    /^[ \t]*signal:/            { signal=$2 }
-    /^[ \t]*freq:/              { freq=$2 }
-    /^[ \t]*DS Parameter set:/  { channel=$5 }
-    END { emit(); print (n+0) }
-  ')
-  ROWS_THIS_SCAN=$(echo "$ROWS_THIS_SCAN" | tr -dc '0-9')
-  ROWS_THIS_SCAN="${ROWS_THIS_SCAN:-0}"
+  SQL_FILE=$(mktemp)
+  ERR_FILE=$(mktemp)
+  echo "$SCAN" | awk \
+    -v session="$SESSION_ID" -v ts="$TS" \
+    -v lat="${LAT:-}" -v lon="${LON:-}" -v alt="${ALT:-}" \
+    -v mode="${MODE:-}" -v used="${USED:-}" -v seen="${SEEN:-}" \
+    -v snr="${SNR:-}" -v hdop="${HDOP:-}" \
+    -f "$AWK_SCRIPT" > "$SQL_FILE" 2>"$ERR_FILE"
 
-  TOTAL_RECORDS=$((TOTAL_RECORDS + ROWS_THIS_SCAN))
+  ROWS=$(tr -dc '0-9' < "$ERR_FILE")
+  ROWS="${ROWS:-0}"
+
+  if sqlite3 "$DB" < "$SQL_FILE" 2>/dev/null; then
+    TOTAL_ROWS=$((TOTAL_ROWS + ROWS))
+  else
+    SQL_ERRORS=$((SQL_ERRORS+1))
+  fi
+  rm -f "$SQL_FILE" "$ERR_FILE"
   TOTAL_SCANS=$((TOTAL_SCANS + 1))
 
   if [ -n "$LAT" ] && [ -n "$LON" ]; then
@@ -208,11 +262,11 @@ while true; do
   else
     COORD="—"
   fi
-  SATS="${USED:-?}/${SEEN:-?}"
   HMS="${TS#*T}"; HMS="${HMS:0:8}"
 
-  printf "%-8s  %s  %-24s  %-9s  %3d nets   ${DIM}%d${NC}\n" \
-    "$HMS" "$(fix_label "$MODE")" "$COORD" "$SATS" "$ROWS_THIS_SCAN" "$TOTAL_RECORDS"
+  printf "%-8s  %s  %-22s  %3s/%-3s  %3d nets   ${DIM}%d${NC}\n" \
+    "$HMS" "$(fix_label "$MODE")" "$COORD" \
+    "${USED:-?}" "${SEEN:-?}" "$ROWS" "$TOTAL_ROWS"
 
   sleep "$INTERVAL"
 done
