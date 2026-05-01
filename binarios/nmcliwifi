@@ -29,7 +29,7 @@ echo -e "${GREEN}sudo nmcli device wifi connect WIFINAME --ask${RESET}"
 echo
 
 echo -e "${BLUE}Paso 6:${RESET} ${YELLOW}O conectá directo pasando SSID y contraseña:${RESET}"
-echo -e "${GREEN}sudo nmcli device wifi connect "eduroam2" password 12341234${RESET}"
+echo -e "${GREEN}sudo nmcli device wifi connect \"eduroam2\" password 12341234${RESET}"
 echo
 
 echo -e "${BLUE}Paso 7:${RESET} ${YELLOW}Luego modifica el archivo:${RESET}"
