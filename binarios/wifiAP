@@ -18,22 +18,22 @@ fi
 
 usage() {
   printf "%sUsage:%s\n" "$C_BOLD$C_BLUE" "$C_RESET"
-  printf "  ./start_ap.sh -a <ap_interface> [-w <wan_interface>] [-s <ssid>] [-c <channel>] [-C <country>] [-2]\n\n"
+  printf "  ./wifiAP -AP <ap_interface> [-i <internet_interface>] [-s <ssid>] [-c <channel>] [-C <country>] [-2]\n\n"
 
   printf "%sRecommended for Internet sharing:%s\n" "$C_BOLD$C_GREEN" "$C_RESET"
-  printf "  sudo ./start_ap.sh -a wlan0 -w wlan1\n\n"
+  printf "  sudo ./wifiAP -AP wlan0 -i wlan1\n\n"
 
   printf "%sExamples:%s\n" "$C_BOLD$C_BLUE" "$C_RESET"
-  printf "  ./start_ap.sh -a wlan0\n"
-  printf "  ./start_ap.sh -a wlan0 -w wlan1\n"
-  printf "  ./start_ap.sh -a wlan2 -w wlan1 -s MyOpenAP -c 11\n"
-  printf "  ./start_ap.sh -a wlan0 -w wlan1 -2          # legacy 2.4GHz only (max compat)\n"
-  printf "  ./start_ap.sh -a wlan0 -w wlan1 -C AR       # set country code\n"
-  printf "  ./start_ap.sh -a wlan0 -w wlan1 -p hunter22 # WPA2 password\n\n"
+  printf "  ./wifiAP -AP wlan0\n"
+  printf "  ./wifiAP -AP wlan0 -i wlan1\n"
+  printf "  ./wifiAP -AP wlan2 -i wlan1 -s MyOpenAP -c 11\n"
+  printf "  ./wifiAP -AP wlan0 -i wlan1 -2          # legacy 2.4GHz only (max compat)\n"
+  printf "  ./wifiAP -AP wlan0 -i wlan1 -C AR       # set country code\n"
+  printf "  ./wifiAP -AP wlan0 -i wlan1 -p hunter22 # WPA2 password\n\n"
 
   printf "%sArguments:%s\n" "$C_BOLD$C_BLUE" "$C_RESET"
-  printf "  -a  Wireless interface that will become the Access Point.\n"
-  printf "  -w  Interface that already has Internet access and will be shared.\n"
+  printf "  -AP Wireless interface that will become the Access Point.\n"
+  printf "  -i  Interface that already has Internet access and will be shared.\n"
   printf "  -s  Open Wi-Fi name. Default: eduroam2\n"
   printf "  -c  Wi-Fi channel (1, 6, 11 recommended). Default: 6\n"
   printf "  -C  Country code (regulatory domain). Default: US\n"
@@ -45,7 +45,7 @@ usage() {
   printf "  - Creates an open Access Point with no password.\n"
   printf "  - Default mode: 2.4GHz + 802.11n + WMM (best compatibility for modern devices).\n"
   printf "  - The script always starts DHCP on the AP interface.\n"
-  printf "  - If -w is provided, the script also enables NAT for Internet sharing.\n"
+  printf "  - If -i is provided, the script also enables NAT for Internet sharing.\n"
   printf "  - Only the AP interface is reconfigured.\n"
   printf "  - Your Internet connection stays up as long as it uses a different interface.\n"
   printf "  - Requires hostapd and dnsmasq. Internet sharing also requires iptables.\n"
@@ -94,26 +94,72 @@ IPTABLES_FWD1_ADDED=0
 IPTABLES_FWD2_ADDED=0
 IPTABLES_MSS_ADDED=0
 
-while getopts ":a:w:s:c:C:p:2h" opt; do
-  case "$opt" in
-    a) AP_IFACE="$OPTARG" ;;
-    w) WAN_IFACE="$OPTARG" ;;
-    s) SSID="$OPTARG" ;;
-    c) CHANNEL="$OPTARG" ;;
-    C) COUNTRY="$OPTARG" ;;
-    p) PASSWORD="$OPTARG" ;;
-    2) LEGACY_MODE=1 ;;
-    h)
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -AP)
+      if [[ $# -lt 2 ]]; then
+        echo "Option -AP requires a value." >&2
+        usage
+        exit 1
+      fi
+      AP_IFACE="$2"
+      shift 2
+      ;;
+    -i)
+      if [[ $# -lt 2 ]]; then
+        echo "Option -i requires a value." >&2
+        usage
+        exit 1
+      fi
+      WAN_IFACE="$2"
+      shift 2
+      ;;
+    -s)
+      if [[ $# -lt 2 ]]; then
+        echo "Option -s requires a value." >&2
+        usage
+        exit 1
+      fi
+      SSID="$2"
+      shift 2
+      ;;
+    -c)
+      if [[ $# -lt 2 ]]; then
+        echo "Option -c requires a value." >&2
+        usage
+        exit 1
+      fi
+      CHANNEL="$2"
+      shift 2
+      ;;
+    -C)
+      if [[ $# -lt 2 ]]; then
+        echo "Option -C requires a value." >&2
+        usage
+        exit 1
+      fi
+      COUNTRY="$2"
+      shift 2
+      ;;
+    -p)
+      if [[ $# -lt 2 ]]; then
+        echo "Option -p requires a value." >&2
+        usage
+        exit 1
+      fi
+      PASSWORD="$2"
+      shift 2
+      ;;
+    -2)
+      LEGACY_MODE=1
+      shift
+      ;;
+    -h|--help)
       usage
       exit 0
       ;;
-    :)
-      echo "Option -$OPTARG requires a value." >&2
-      usage
-      exit 1
-      ;;
-    \?)
-      echo "Unknown option: -$OPTARG" >&2
+    *)
+      echo "Unknown option: $1" >&2
       usage
       exit 1
       ;;
