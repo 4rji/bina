@@ -69,12 +69,17 @@ source $ZSH/oh-my-zsh.sh
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh
 EOF
 
+msg "Cambiando shell por defecto a zsh"
+ZSH_BIN="$(command -v zsh)"
+if chsh -s "$ZSH_BIN"; then
+  echo "[+] Ejecutado: chsh -s $ZSH_BIN"
+else
+  warn "chsh falló. Ejecutá manualmente: chsh -s $ZSH_BIN"
+fi
+
 msg "Listo"
 echo "Corre:"
 echo "  exec zsh"
 echo
 echo "Luego:"
 echo "  p10k configure"
-echo
-echo "Si quieres zsh por defecto:"
-echo "  chsh -s \$(which zsh)"
