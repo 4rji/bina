@@ -1,0 +1,144 @@
+#!/usr/bin/env python3
+import argparse
+import csv
+import sqlite3
+import struct
+import sys
+from collections import defaultdict
+
+
+def format_mac(data):
+    return ":".join(f"{byte:02X}" for byte in data)
+
+
+def decode_ssid(data):
+    if len(data) == 0 or all(byte == 0 for byte in data):
+        return "<hidden>"
+
+    for encoding in ("utf-8", "latin-1"):
+        try:
+            text = data.decode(encoding)
+            break
+        except UnicodeDecodeError:
+            continue
+    else:
+        text = data.hex()
+
+    return "".join(char if char.isprintable() else f"\\x{ord(char):02x}" for char in text) or "<hidden>"
+
+
+def iter_information_elements(packet, offset):
+    while offset + 2 <= len(packet):
+        element_id = packet[offset]
+        length = packet[offset + 1]
+        offset += 2
+
+        if offset + length > len(packet):
+            break
+
+        yield element_id, packet[offset : offset + length]
+        offset += length
+
+
+def parse_advertised_network(packet):
+    if len(packet) < 4:
+        return None
+
+    radiotap_length = struct.unpack_from("<H", packet, 2)[0]
+    frame_offset = radiotap_length
+
+    if radiotap_length < 4 or frame_offset + 24 > len(packet):
+        return None
+
+    frame_control = packet[frame_offset]
+    frame_type = (frame_control & 0x0C) >> 2
+    frame_subtype = (frame_control & 0xF0) >> 4
+
+    # Only AP-advertised frames: beacon and probe response.
+    if frame_type != 0 or frame_subtype not in (8, 5):
+        return None
+
+    fixed_parameters_length = 12
+    ie_offset = frame_offset + 24 + fixed_parameters_length
+    if ie_offset > len(packet):
+        return None
+
+    ssid = None
+    for element_id, value in iter_information_elements(packet, ie_offset):
+        if element_id == 0:
+            ssid = decode_ssid(value)
+            break
+
+    if ssid is None:
+        return None
+
+    bssid = format_mac(packet[frame_offset + 16 : frame_offset + 22])
+    return ssid, bssid
+
+
+def new_stats():
+    return {
+        "packets": 0,
+        "latitudes": [],
+        "longitudes": [],
+        "signals": [],
+        "frequencies": set(),
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser(description="Busca un SSID dentro de una base Kismet .kismet.")
+    parser.add_argument("database", help="Archivo .kismet")
+    parser.add_argument("ssid", help='SSID a buscar, por ejemplo "nido"')
+    args = parser.parse_args()
+
+    conn = sqlite3.connect(args.database)
+    conn.row_factory = sqlite3.Row
+
+    grouped = defaultdict(new_stats)
+    for row in conn.execute("SELECT lat, lon, signal, frequency, packet FROM packets"):
+        parsed = parse_advertised_network(row["packet"])
+        if parsed is None:
+            continue
+
+        ssid, bssid = parsed
+        if ssid != args.ssid:
+            continue
+
+        stats = grouped[bssid]
+        stats["packets"] += 1
+
+        lat = row["lat"]
+        lon = row["lon"]
+        if lat is not None and lon is not None and (lat != 0 or lon != 0):
+            stats["latitudes"].append(lat)
+            stats["longitudes"].append(lon)
+
+        if row["signal"] is not None:
+            stats["signals"].append(row["signal"])
+
+        if row["frequency"] is not None:
+            frequency = row["frequency"] / 1000 if row["frequency"] > 100000 else row["frequency"]
+            stats["frequencies"].add(int(round(frequency)))
+
+    writer = csv.writer(sys.stdout)
+    writer.writerow(["ssid", "bssid", "packets", "avg_lat", "avg_lon", "best_signal_dbm", "frequencies_mhz"])
+
+    for bssid, stats in sorted(grouped.items(), key=lambda item: (-item[1]["packets"], item[0])):
+        latitudes = stats["latitudes"]
+        longitudes = stats["longitudes"]
+        writer.writerow(
+            [
+                args.ssid,
+                bssid,
+                stats["packets"],
+                f"{sum(latitudes) / len(latitudes):.9f}" if latitudes else "",
+                f"{sum(longitudes) / len(longitudes):.9f}" if longitudes else "",
+                max(stats["signals"]) if stats["signals"] else "",
+                ";".join(str(frequency) for frequency in sorted(stats["frequencies"])),
+            ]
+        )
+
+
+if __name__ == "__main__":
+    main()

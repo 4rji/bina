@@ -661,6 +661,17 @@
             "When stopped, it prints a final summary with the output file path."
         ]
     },
+    "kismet_db": {
+        "name": "kismet_db",
+        "short_desc": "Extracts SSID matches from Kismet databases and summarizes BSSID GPS data as CSV.",
+        "detailed_desc": [
+            "Reads packets from a Kismet .kismet SQLite database and searches for one SSID.",
+            "",
+            "It parses beacon and probe response frames, groups matches by BSSID, and counts matching packets.",
+            "",
+            "CSV output includes SSID, BSSID, packet count, average latitude and longitude, best signal, and observed frequencies."
+        ]
+    },
     "gpstest": {
         "name": "gpstest",
         "short_desc": "Monitors gpsd GPS fix quality, satellites, SNR, and HDOP live.",
