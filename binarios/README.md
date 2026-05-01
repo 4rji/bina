@@ -100,6 +100,7 @@ rx6800              Instala el archivo de configuracion en Arch para que funcion
 wifiinterfaces      Arregla wifi en kali, terminal grafica texto, debian wifi GUI gui
 wifiAP              Starts an open Wi-Fi access point with DHCP and optional NAT sharing.
 gpslogs             Logs Wi-Fi scan results with GPS coordinates to timestamped CSV files.
+gpstest             Monitors gpsd GPS fix quality, satellites, SNR, and HDOP live.
 wifikali            Crea wifi redes para kali nuevos system-connections
 wifiraspi           agrega una red wifi en raspberry zero probada
 refresh_wifi.sh     script para reiniciar wifi en raspberry 

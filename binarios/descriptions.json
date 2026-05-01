@@ -636,5 +636,17 @@
             "During the loop, it scans at the configured INTERVAL and shows scan totals, saved rows, and GPS fix status.",
             "When stopped, it prints a final summary with the output file path."
         ]
+    },
+    "gpstest": {
+        "name": "gpstest",
+        "short_desc": "Monitors gpsd GPS fix quality, satellites, SNR, and HDOP live.",
+        "detailed_desc": [
+            "Monitors live GPS data from gpsd using gpspipe and jq.",
+            "",
+            "Checks gpsd status, then prints a repeating table with fix mode, coordinates, satellites used/seen, max SNR, and HDOP.",
+            "Default interval: 2 seconds, override with INTERVAL.",
+            "",
+            "On Ctrl+C, it summarizes elapsed time, sample count, fix count, best fix, max satellites used, and max SNR."
+        ]
     }
 }
