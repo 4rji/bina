@@ -76,19 +76,31 @@ install_angryoxide() {
 }
 
 choose_interface() {
-    mapfile -t interfaces < <(ip -o link show | awk -F': ' '{print $2}')
+    mapfile -t interfaces < <(ip -o link show | awk -F': ' '{split($2, iface, "@"); print iface[1]}')
+    menu_options=()
 
     if [ "${#interfaces[@]}" -eq 0 ]; then
         echo "${RED}No network interfaces found.${RESET}"
         return 1
     fi
 
+    for interface in "${interfaces[@]}"; do
+        ip_addr=$(ip -o -4 addr show dev "$interface" 2>/dev/null | awk '{print $4}' | paste -sd ',' -)
+
+        if [ -n "$ip_addr" ]; then
+            menu_options+=("${interface}  ${GREEN}${ip_addr}${RESET}")
+        else
+            menu_options+=("${interface}")
+        fi
+    done
+
     echo "${BOLD}${CYAN}Available Wi-Fi interfaces:${RESET}"
     echo "${BLUE}GPS flag:${RESET} use ${BOLD}-g${RESET} or ${BOLD}--gps${RESET} to add ${BOLD}--gpsd ${GPSD_ENDPOINT}${RESET}"
     echo
 
-    select interface in "${interfaces[@]}"; do
-        if [ -n "${interface:-}" ]; then
+    select menu_option in "${menu_options[@]}"; do
+        if [[ "$REPLY" =~ ^[0-9]+$ ]] && [ -n "${menu_option:-}" ] && [ -n "${interfaces[$((REPLY - 1))]:-}" ]; then
+            interface=${interfaces[$((REPLY - 1))]}
             break
         fi
 
@@ -97,6 +109,11 @@ choose_interface() {
 
     echo
     echo "${GREEN}Selected interface:${RESET} ${BOLD}${interface}${RESET}"
+
+    selected_ip=$(ip -o -4 addr show dev "$interface" 2>/dev/null | awk '{print $4}' | paste -sd ',' -)
+    if [ -n "$selected_ip" ]; then
+        echo "${GREEN}Interface IP:${RESET} ${BOLD}${selected_ip}${RESET}"
+    fi
 
     cmd=(sudo "$HOME/.angry/angryoxide" -i "$interface")
     if [ "$USE_GPSD" -eq 1 ]; then
