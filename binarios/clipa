@@ -1,19 +1,38 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-# Verificar si se proporciona un nombre de archivo como argumento
 if [ $# -eq 0 ]; then
   echo "Uso: $0 <nombre_del_archivo>"
   exit 1
 fi
 
-# Verificar si el archivo existe
 if [ ! -e "$1" ]; then
   echo "El archivo '$1' no existe."
   exit 1
 fi
 
-# Copiar el contenido del archivo al portapapeles
-/usr/bin/cat "$1" | xclip -sel clip
+case "$(uname -s)" in
+  Darwin)
+    copy_cmd="pbcopy"
+    ;;
+  Linux)
+    if [ -n "${WAYLAND_DISPLAY:-}" ] && command -v wl-copy >/dev/null 2>&1; then
+      copy_cmd="wl-copy"
+    elif command -v xclip >/dev/null 2>&1; then
+      copy_cmd="xclip -sel clip"
+    elif command -v xsel >/dev/null 2>&1; then
+      copy_cmd="xsel --clipboard --input"
+    else
+      echo "No hay clipboard tool. Instalá xclip, xsel o wl-clipboard." >&2
+      exit 1
+    fi
+    ;;
+  *)
+    echo "OS no soportado: $(uname -s)" >&2
+    exit 1
+    ;;
+esac
 
-# Confirmar que se copió el contenido
-echo "El contenido del archivo '$1' se ha copiado al portapapeles."
+sed 's/\x1B\[[0-9;]*[a-zA-Z]//g' "$1" | eval "$copy_cmd"
+
+echo "Contenido de '$1' copiado al portapapeles (sin ANSI)."

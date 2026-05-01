@@ -228,7 +228,7 @@ gitc                Menu rapido de github para gh
 videocapture        Captures HTTP traffic from an IPCam, extracts frames from the pcap, and reconstructs into video
 zipcomm             Comandos basicos de zip
 vmdig               Para manejar Digital ocean API
-clipam              Copia un archivo al clibboard clipam #archivo
+clipa               Copia archivo al clipboard sin ANSI (detecta Linux/Mac). Uso: clipa <archivo>
 ccdclabprogram      Programa que hice para vcenter para manejar apps
 cleanipsm           Limpia Ips, dominios, urls de un archivo y hace sort uniq
 sshterminal         sshx para compartir una terminal en la pagina web, remota, remoto
@@ -426,7 +426,7 @@ sshmoni             Este busca conexiones activas ssh, muestra procesos PID y lu
 
 ###------Network
 wificonect          Usa el comando nmcli para conectar una red wifi en kali
-mine                Solo muesta las Ips y su nombre de la interface
+mine                Muestra IPs y nombre de interfaz (detecta Linux/Mac). -i agrega CIDR, gateway y DNS
 conexiones          Muestra nmcli conexiones nmcli -p device show y show --active red ethernet speed
 minet               Alias de ifconfig | grep "inet " | grep -v 127.0.0.1
 mired               copia eth0 al portapapeles y muestra todas las ips del equipo                      
