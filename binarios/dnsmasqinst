@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+CONFIG_FILE="/etc/dnsmasq.d/test-dns.conf"
+
+echo "[1/8] Detectando IP principal..."
+
+DNS_IP="$(ip -4 route get 1.1.1.1 | awk '{for (i=1;i<=NF;i++) if ($i=="src") {print $(i+1); exit}}')"
+DNS_IFACE="$(ip -4 route get 1.1.1.1 | awk '{for (i=1;i<=NF;i++) if ($i=="dev") {print $(i+1); exit}}')"
+
+if [ -z "${DNS_IP:-}" ] || [ -z "${DNS_IFACE:-}" ]; then
+  echo "No pude detectar IP/interfaz automáticamente."
+  ip -br addr
+  ip route
+  exit 1
+fi
+
+echo "IP detectada: $DNS_IP"
+echo "Interfaz detectada: $DNS_IFACE"
+
+echo "[2/8] Instalando dnsmasq..."
+sudo apt update
+sudo apt install -y dnsmasq dnsutils iproute2 tcpdump
+
+echo "[3/8] Deteniendo dnsmasq si estaba corriendo..."
+sudo systemctl stop dnsmasq 2>/dev/null || true
+
+echo "[4/8] Revisando puerto 53..."
+sudo ss -lunpt | grep ':53' || true
+
+echo "[5/8] Respaldando config previa si existe..."
+if [ -f "$CONFIG_FILE" ]; then
+  sudo cp "$CONFIG_FILE" "${CONFIG_FILE}.bak.$(date +%Y%m%d-%H%M%S)"
+fi
+
+echo "[6/8] Escribiendo config..."
+sudo tee "$CONFIG_FILE" > /dev/null <<EOF
+# DNS de prueba autoconfigurado
+interface=$DNS_IFACE
+listen-address=$DNS_IP
+bind-interfaces
+
+no-resolv
+server=1.1.1.1
+server=8.8.8.8
+
+log-queries
+EOF
+
+echo "[7/8] Validando config..."
+sudo dnsmasq --test --conf-file="$CONFIG_FILE"
+
+echo "[8/8] Reiniciando dnsmasq..."
+sudo systemctl restart dnsmasq
+sudo systemctl enable dnsmasq >/dev/null
+
+echo
+echo "Listo."
+echo "Servidor DNS:"
+echo "  $DNS_IP:53"
+echo
+echo "Desde el cliente prueba:"
+echo "  dig @$DNS_IP google.com"
+echo
+echo "Ver logs:"
+echo "  sudo journalctl -u dnsmasq -f"
+echo
+echo "Ver paquetes:"
+echo "  sudo tcpdump -ni $DNS_IFACE port 53"

@@ -158,6 +158,7 @@ smbserver           smb termporar usando impact en python3
 googlessh           Instala la authenticacion de google para ssh                                               
 unboundinst         Instala unbound debian dns server
 resolvedinst        Instala y configura resolved, con quad9 dns 
+dnsmasqinst         Installs and configures dnsmasq as a test DNS resolver on the detected interface.
 suricatainst        Instala suricata, largo proceso
 hyperinst           Instala hyperland con waybar y wofi en arch
 todoinst            instala todo, descarga imagenes tambien.
