@@ -8,12 +8,16 @@ if [[ -t 1 ]]; then
   C_GREEN=$'\033[32m'
   C_YELLOW=$'\033[33m'
   C_BLUE=$'\033[34m'
+  C_CYAN=$'\033[36m'
+  C_DIM=$'\033[2m'
 else
   C_RESET=""
   C_BOLD=""
   C_GREEN=""
   C_YELLOW=""
   C_BLUE=""
+  C_CYAN=""
+  C_DIM=""
 fi
 
 usage() {
@@ -24,12 +28,12 @@ usage() {
   printf "  sudo ./wifiAP -AP wlan0 -i wlan1\n\n"
 
   printf "%sExamples:%s\n" "$C_BOLD$C_BLUE" "$C_RESET"
-  printf "  ./wifiAP -AP wlan0\n"
-  printf "  ./wifiAP -AP wlan0 -i wlan1\n"
-  printf "  ./wifiAP -AP wlan2 -i wlan1 -s MyOpenAP -c 11\n"
-  printf "  ./wifiAP -AP wlan0 -i wlan1 -2          # legacy 2.4GHz only (max compat)\n"
-  printf "  ./wifiAP -AP wlan0 -i wlan1 -C AR       # set country code\n"
-  printf "  ./wifiAP -AP wlan0 -i wlan1 -p hunter22 # WPA2 password\n\n"
+  printf "  ./wifiAP -AP wlan0                             %s# create simple eduroam2 network without password%s\n" "$C_CYAN" "$C_RESET"
+  printf "  ./wifiAP -AP wlan0 -i wlan1                    %s# same simple network but with Internet%s\n" "$C_CYAN" "$C_RESET"
+  printf "  ./wifiAP -AP wlan2 -i wlan1 -s MyOpenAP -c 11  %s# create MyOpenAP network on channel 11%s\n" "$C_CYAN" "$C_RESET"
+  printf "  ./wifiAP -AP wlan0 -i wlan1 -2                 %s# legacy 2.4GHz only (max compat)%s\n" "$C_CYAN" "$C_RESET"
+  printf "  ./wifiAP -AP wlan0 -i wlan1 -C AR              %s# set country code%s\n" "$C_CYAN" "$C_RESET"
+  printf "  ./wifiAP -AP wlan0 -i wlan1 -p 12341234        %s# create network with WPA2 password%s\n\n" "$C_CYAN" "$C_RESET"
 
   printf "%sArguments:%s\n" "$C_BOLD$C_BLUE" "$C_RESET"
   printf "  -AP Wireless interface that will become the Access Point.\n"
@@ -88,6 +92,7 @@ DNSMASQ_CONF=""
 HOSTAPD_PID=""
 DNSMASQ_PID=""
 NM_MANAGED_CHANGED=0
+NM_PREV_CONN=""
 IP_FORWARD_OLD=""
 IPTABLES_NAT_ADDED=0
 IPTABLES_FWD1_ADDED=0
@@ -214,8 +219,28 @@ cleanup() {
     sysctl -w "net.ipv4.ip_forward=$IP_FORWARD_OLD" >/dev/null 2>&1 || true
   fi
 
+  ip link set "$AP_IFACE" down >/dev/null 2>&1 || true
+  ip addr del "${AP_ADDR}/${AP_CIDR}" dev "$AP_IFACE" >/dev/null 2>&1 || true
+
+  if command -v iw >/dev/null 2>&1; then
+    iw dev "$AP_IFACE" set type managed >/dev/null 2>&1 || true
+  fi
+  ip link set "$AP_IFACE" up >/dev/null 2>&1 || true
+
   if [[ $NM_MANAGED_CHANGED -eq 1 ]] && command -v nmcli >/dev/null 2>&1; then
     nmcli device set "$AP_IFACE" managed yes >/dev/null 2>&1 || true
+    for _ in 1 2 3 4 5; do
+      state="$(nmcli -t -f DEVICE,STATE device 2>/dev/null | awk -F: -v d="$AP_IFACE" '$1==d{print $2}')"
+      [[ "$state" != "unmanaged" && -n "$state" ]] && break
+      sleep 1
+    done
+    if [[ -n "$NM_PREV_CONN" ]]; then
+      nmcli connection up "$NM_PREV_CONN" ifname "$AP_IFACE" >/dev/null 2>&1 \
+        || nmcli connection up "$NM_PREV_CONN" >/dev/null 2>&1 \
+        || nmcli device connect "$AP_IFACE" >/dev/null 2>&1 || true
+    else
+      nmcli device connect "$AP_IFACE" >/dev/null 2>&1 || true
+    fi
   fi
 
   rm -f "$HOSTAPD_CONF"
@@ -301,6 +326,10 @@ fi
 
 echo "Preparing AP interface $AP_IFACE..."
 if command -v nmcli >/dev/null 2>&1; then
+  NM_PREV_CONN="$(nmcli -t -f NAME,DEVICE connection show --active 2>/dev/null | awk -F: -v d="$AP_IFACE" '$2==d{print $1; exit}')"
+  if [[ -n "$NM_PREV_CONN" ]]; then
+    echo "Saved previous NM connection on $AP_IFACE: $NM_PREV_CONN"
+  fi
   nmcli device disconnect "$AP_IFACE" >/dev/null 2>&1 || true
   nmcli device set "$AP_IFACE" managed no >/dev/null 2>&1 || true
   NM_MANAGED_CHANGED=1
