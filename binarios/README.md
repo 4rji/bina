@@ -255,6 +255,7 @@ firef               Script para linux para abrir ephemeral firefox cambia idioma
 firefm              Este es para abrir el firefox ephemeral. (primero instalar firefoxephemeral)
 binariosgo          Descarga los binarios go, que estan comprimidos (antes comprimidos)
 webc                Convierte todas las imagens png a webp en mac
+webcc               Converts selected documentation image folders to WebP and deletes original PNG/JPEG/AI files.
 gocom               Compila el binario go con varias opciones en el mismo tambien upx
 gocomm              Muestra comandos para un binario en go, muestra como hacerlo tambien
 nets                Comprueba el acceso a subnets en la variable allowips como wireguard.

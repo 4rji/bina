@@ -28,6 +28,18 @@
         "short_desc": "Monitorea una página web y detecta cambios visibles.",
         "detailed_desc": "Este script en Go usa 'lynx -dump' para obtener el contenido visible de una URL, lo limpia de texto ruidoso (como fechas o IDs) y lo compara con una versión anterior guardada localmente en /opt/4rji/web-saved/websave. Si detecta cambios, los reporta por consola y los guarda, registrando cada evento en webtrack.log. Uso: ./websave <url>"
     },
+    "webcc": {
+        "name": "webcc",
+        "short_desc": "Converts selected documentation image folders to WebP and deletes original PNG/JPEG/AI files.",
+        "detailed_desc": [
+            "Opens the documentation image directory and lets you choose a folder with fzf.",
+            "",
+            "Base path: /Users/bellaquita/github/documentation/img.",
+            "Runs webc against the selected folder to create WebP images.",
+            "",
+            "After conversion, it deletes PNG, JPG, JPEG, and AI files in that folder so the WebP files remain."
+        ]
+    },
     "zipcheck": {
         "name": "zipcheck",
         "short_desc": "Muestra las principales ciudades de EE.UU. y permite consultar información de un ZIP.",
