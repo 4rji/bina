@@ -99,6 +99,7 @@ mackarch            Cambia la MAC de arch linux
 rx6800              Instala el archivo de configuracion en Arch para que funcione la GPU
 wifiinterfaces      Arregla wifi en kali, terminal grafica texto, debian wifi GUI gui
 wifiAP              Starts an open Wi-Fi access point with DHCP and optional NAT sharing.
+fixwifiwlan         Resets a Wi-Fi card back to managed mode and reconnects it to NetworkManager.
 gpslogs             Logs Wi-Fi scan results with GPS coordinates to timestamped CSV files.
 gpstest             Monitors gpsd GPS fix quality, satellites, SNR, and HDOP live.
 wifikali            Crea wifi redes para kali nuevos system-connections

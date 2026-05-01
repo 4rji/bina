@@ -619,6 +619,18 @@
             "On exit, it cleans up temporary configs, forwarding rules, IP forwarding, and NetworkManager interface state."
         ]
     },
+    "fixwifiwlan": {
+        "name": "fixwifiwlan",
+        "short_desc": "Resets a Wi-Fi card back to managed mode and reconnects it to NetworkManager.",
+        "detailed_desc": [
+            "Resets a selected wireless interface when Wi-Fi gets stuck after monitor-mode work.",
+            "",
+            "Default interface: wlan1, or pass another interface as the first argument.",
+            "Removes leftover monitor interfaces, switches the card back to managed mode, and brings it up again.",
+            "",
+            "If NetworkManager is active, it marks the interface as managed again before printing the final status."
+        ]
+    },
     "gpslogs": {
         "name": "gpslogs",
         "short_desc": "Logs Wi-Fi scan results with GPS coordinates to timestamped CSV files.",

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Guárdalo como ~/bin/wifi-reset
+IFACE="${1:-wlan1}"
+
+echo "Reseteando $IFACE..."
+
+# Borrar interfaces monitor que pudieran haber quedado
+for mon in $(iw dev | awk '/Interface/ && /mon/{print $2}'); do
+  echo "  Borrando interfaz monitor: $mon"
+  sudo iw dev "$mon" del 2>/dev/null
+done
+
+sudo ip link set "$IFACE" down 2>/dev/null
+sudo iw dev "$IFACE" set type managed 2>/dev/null
+sudo ip link set "$IFACE" up
+
+# Re-asociar a NetworkManager si está
+if systemctl is-active --quiet NetworkManager; then
+  sudo nmcli device set "$IFACE" managed yes 2>/dev/null
+fi
+
+echo "Listo. Estado:"
+iw dev "$IFACE" info | grep -E 'type|Interface'
+ip link show "$IFACE" | head -1
