@@ -22,7 +22,7 @@ ptysnoop.bt         Hace snoop in tty, sudo bpftrace -Bnone ptysnoop.bt 99999
 ###------CCDC
 clamvscan           Escanea y crea logs de clamvscan
 ipv6b               Bloquea ipv6 en linux. 
-ccdcinst            Instala los scripts en la bash de herrabin.
+ccdcinst            Instala los scripts en la bash de todobin.
 dcusercreate        Crea usuario en el ccdcteam dominio, tener hosts 172.20.240.102 domain.local
 wazuhagent          Instala el agente en linux fedora/ubuntu
 wazuhinst           Instala wazuh. asistente. automatico
@@ -285,8 +285,8 @@ certgenerator       Crea certificados de cloudflare, para cert y cer key
 https-bloq-boots    Reads IPs from ips.txt and blocks HTTPS traffic with iptables TARPIT and DROP rules.
 adio                borra un archivo con scrub                                                         
 adios               borra toda una carpeta con scrub                                                   
-herrabin            actualiza los binarios, funciones, alias y 2-4rji.sh,   -o para omitir binarios 
-herrabinp           para pacman, existe para yum, y para dnf, y apt es la normal de arriba herrabin
+todobin             actualiza los binarios, funciones, alias y 2-4rji.sh,   -o para omitir binarios 
+herrabinp           para pacman, existe para yum, y para dnf, y apt es la normal de arriba todobin
 herralias           Actualiza los binarios descargando solo alias
 zipsend             Comprime y envia una carpeta por airsend -f
 zipsendm            Comprime y envia una carpeta por airsend -f
