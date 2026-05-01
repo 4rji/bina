@@ -8,15 +8,23 @@ YELLOW="\e[33m"
 BLUE="\e[34m"
 RESET="\e[0m"
 
-echo -e "${BLUE}Paso 1:${RESET} ${YELLOW}Agrega primero tu conexión con:${RESET}"
+echo -e "${BLUE}Paso 1:${RESET} ${YELLOW}Escanea de nuevo las redes Wi-Fi disponibles:${RESET}"
+echo -e "${GREEN}nmcli device wifi rescan${RESET}"
+echo
+
+echo -e "${BLUE}Paso 2:${RESET} ${YELLOW}Lista las redes Wi-Fi detectadas:${RESET}"
+echo -e "${GREEN}nmcli device wifi list${RESET}"
+echo
+
+echo -e "${BLUE}Paso 3:${RESET} ${YELLOW}Agrega primero tu conexión con:${RESET}"
 echo -e "${GREEN}sudo nmcli device wifi connect WIFINAME --ask${RESET}"
 echo
 
-echo -e "${BLUE}Paso 2:${RESET} ${YELLOW}Luego modifica el archivo:${RESET}"
+echo -e "${BLUE}Paso 4:${RESET} ${YELLOW}Luego modifica el archivo:${RESET}"
 echo -e "${GREEN}sudo nano /etc/NetworkManager/system-connections/WIFINAME.nmconnection${RESET}"
 echo
 
-echo -e "${BLUE}Paso 3:${RESET} ${YELLOW}Agrega la línea debajo de [wifi-security]:${RESET}"
+echo -e "${BLUE}Paso 5:${RESET} ${YELLOW}Agrega la línea debajo de [wifi-security]:${RESET}"
 echo -e "${GREEN}psk=WIFIPASSWORD${RESET}"
 echo -e "${GREEN}#only this two lines. (key-mgmt=wpa-psk) delete everything else on wifi-security${RESET}"
 echo
@@ -24,20 +32,18 @@ echo
 echo -e "${YELLOW}Recuerda reemplazar ${GREEN}WIFINAME${YELLOW} y ${GREEN}WIFIPASSWORD${YELLOW} con el nombre de tu red${RESET}"
 echo
 
-echo -e "${BLUE}Paso 4:${RESET} ${YELLOW}Guarda los cambios y reinicia NetworkManager para aplicar la configuración:${RESET}"
+echo -e "${BLUE}Paso 6:${RESET} ${YELLOW}Guarda los cambios y reinicia NetworkManager para aplicar la configuración:${RESET}"
 echo -e "${GREEN}sudo systemctl restart NetworkManager${RESET}"
 echo
 
-echo -e "${BLUE}Paso 5:${RESET} ${YELLOW}Si configuraste una IP estática en /etc/systemd/network/usb0.network:${RESET}"
+echo -e "${BLUE}Paso 7:${RESET} ${YELLOW}Si configuraste una IP estática en /etc/systemd/network/usb0.network:${RESET}"
 echo -e "${GREEN}sudo systemctl restart systemd-networkd${RESET}"
 echo
 
-echo -e "${BLUE}Paso 6:${RESET} ${YELLOW}Limpia cualquier IP previa de la interfaz usb0:${RESET}"
+echo -e "${BLUE}Paso 8:${RESET} ${YELLOW}Limpia cualquier IP previa de la interfaz usb0:${RESET}"
 echo -e "${GREEN}sudo ip addr flush dev usb0${RESET}"
 echo
 
-echo -e "${BLUE}Paso 7:${RESET} ${YELLOW}Reinicia la interfaz usb0:${RESET}"
+echo -e "${BLUE}Paso 9:${RESET} ${YELLOW}Reinicia la interfaz usb0:${RESET}"
 echo -e "${GREEN}sudo ip link set usb0 down && sudo ip link set usb0 up${RESET}"
 echo
-
-❯ nmcli dev wifi list
