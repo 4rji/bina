@@ -1,8 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+
+
+
 show_info=0
 [[ "${1:-}" == "-i" ]] && show_info=1
+(( show_info )) || printf "\033[2mIp info: \033[0m\033[1;36m -i\033[0m\033[2m for subnet, default route and DNS\033[0m\n"
 
 echo ""
 
@@ -57,6 +61,6 @@ case "$(uname -s)" in
     ;;
 esac
 
-(( show_info )) || printf "\033[2mtip: run \033[0m\033[1;36mmine -i\033[0m\033[2m for subnet, default route and DNS\033[0m\n"
+
 
 echo ""
