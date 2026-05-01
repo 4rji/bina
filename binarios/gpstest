@@ -1,0 +1,153 @@
+#!/usr/bin/env bash
+set -u
+
+INTERVAL="${INTERVAL:-2}"
+
+if [ -t 1 ]; then
+  R=$'\033[0;31m'; G=$'\033[0;32m'; Y=$'\033[0;33m'
+  C=$'\033[0;36m'; B=$'\033[0;34m'; BOLD=$'\033[1m'
+  DIM=$'\033[2m'; NC=$'\033[0m'
+else
+  R=""; G=""; Y=""; C=""; B=""; BOLD=""; DIM=""; NC=""
+fi
+
+# ====== Stats ======
+SAMPLES=0
+FIX_COUNT=0
+BEST_MODE=0
+BEST_USED=0
+BEST_SNR=0
+START_TS=$(date +%s)
+
+cleanup() {
+  local elapsed=$(( $(date +%s) - START_TS ))
+  echo
+  echo
+  echo "${BOLD}${C}=== Resumen ===${NC}"
+  echo "Tiempo:           ${elapsed}s"
+  echo "Muestras:         $SAMPLES"
+  echo "Con fix (2D/3D):  ${G}$FIX_COUNT${NC}"
+  case "$BEST_MODE" in
+    3) echo "Mejor fix:        ${G}3D${NC}" ;;
+    2) echo "Mejor fix:        ${Y}2D${NC}" ;;
+    *) echo "Mejor fix:        ${R}ninguno${NC}" ;;
+  esac
+  echo "Máx sats usados:  $BEST_USED"
+  echo "Máx SNR visto:    ${BEST_SNR} dB-Hz"
+  exit 0
+}
+trap cleanup INT TERM
+
+# ====== Pre-flight ======
+echo "${BOLD}${C}=== Monitor GPS ===${NC}"
+echo
+
+for cmd in gpspipe jq; do
+  if ! command -v "$cmd" >/dev/null 2>&1; then
+    echo "${R}[FALTA]${NC} $cmd  →  sudo pacman -S gpsd jq"
+    exit 1
+  fi
+done
+
+if systemctl is-active --quiet gpsd 2>/dev/null || pgrep -x gpsd >/dev/null 2>&1; then
+  echo "${G}[OK]${NC} gpsd activo"
+else
+  echo "${Y}[WARN]${NC} gpsd no parece estar corriendo"
+  echo "        sudo systemctl start gpsd.socket"
+fi
+
+echo
+echo "Intervalo: ${INTERVAL}s   Ctrl+C para detener."
+echo
+printf "${BOLD}%-8s  %-6s  %-22s  %-7s  %-9s  %-10s${NC}\n" \
+  "Hora" "Fix" "Coordenadas" "Sats U/V" "SNR máx" "Precisión"
+printf "${DIM}%-8s  %-6s  %-22s  %-7s  %-9s  %-10s${NC}\n" \
+  "--------" "------" "----------------------" "-------" "---------" "----------"
+
+# ====== Lectura GPS ======
+# Devuelve: mode|lat|lon|alt|used|seen|max_snr|hdop|speed
+get_gps() {
+  local data tpv sky
+  data=$(timeout 3 gpspipe -w -n 20 2>/dev/null || true)
+  if [ -z "$data" ]; then echo "0||||||||"; return; fi
+
+  tpv=$(echo "$data" | jq -rc 'select(.class=="TPV")' 2>/dev/null | tail -n 1)
+  sky=$(echo "$data" | jq -rc 'select(.class=="SKY")' 2>/dev/null | tail -n 1)
+
+  local mode lat lon alt speed hdop used seen max_snr
+  mode=$(echo "$tpv" | jq -r '.mode  // 0')
+  lat=$(echo  "$tpv" | jq -r '.lat   // ""')
+  lon=$(echo  "$tpv" | jq -r '.lon   // ""')
+  alt=$(echo  "$tpv" | jq -r '.altMSL // .alt // ""')
+  speed=$(echo "$tpv" | jq -r '.speed // ""')
+
+  if [ -n "$sky" ]; then
+    used=$(echo "$sky" | jq -r '[.satellites[]? | select(.used==true)] | length')
+    seen=$(echo "$sky" | jq -r '.satellites | length // 0')
+    max_snr=$(echo "$sky" | jq -r '[.satellites[]?.ss // 0] | max // 0')
+    hdop=$(echo "$sky" | jq -r '.hdop // ""')
+  else
+    used=""; seen=""; max_snr=""; hdop=""
+  fi
+
+  echo "${mode}|${lat}|${lon}|${alt}|${used}|${seen}|${max_snr}|${hdop}|${speed}"
+}
+
+fix_label() {
+  case "$1" in
+    3) echo "${G}3D${NC}  " ;;
+    2) echo "${Y}2D${NC}  " ;;
+    1) echo "${R}NONE${NC}" ;;
+    *) echo "${R}??${NC}  " ;;
+  esac
+}
+
+snr_color() {
+  local s="${1:-0}"
+  s="${s%.*}"
+  if   [ "${s:-0}" -ge 35 ] 2>/dev/null; then echo "${G}${1}${NC}"
+  elif [ "${s:-0}" -ge 25 ] 2>/dev/null; then echo "${Y}${1}${NC}"
+  else                                          echo "${R}${1}${NC}"
+  fi
+}
+
+# ====== Loop ======
+while true; do
+  GPS=$(get_gps)
+  IFS='|' read -r MODE LAT LON ALT USED SEEN SNR HDOP SPEED <<<"$GPS"
+
+  SAMPLES=$((SAMPLES+1))
+  if [ "$MODE" = "2" ] || [ "$MODE" = "3" ]; then
+    FIX_COUNT=$((FIX_COUNT+1))
+  fi
+  [ "${MODE:-0}" -gt "${BEST_MODE:-0}" ] 2>/dev/null && BEST_MODE="$MODE"
+  [ "${USED:-0}" -gt "${BEST_USED:-0}" ] 2>/dev/null && BEST_USED="$USED"
+  SNR_INT="${SNR%.*}"
+  [ "${SNR_INT:-0}" -gt "${BEST_SNR:-0}" ] 2>/dev/null && BEST_SNR="$SNR_INT"
+
+  if [ -n "$LAT" ] && [ -n "$LON" ]; then
+    COORD=$(printf "%.5f, %.5f" "$LAT" "$LON" 2>/dev/null || echo "$LAT, $LON")
+  else
+    COORD="—"
+  fi
+
+  HDOP_STR="—"
+  if [ -n "$HDOP" ]; then
+    HDOP_NUM="${HDOP%.*}"
+    if   [ "${HDOP_NUM:-99}" -le 2 ]  2>/dev/null; then HDOP_STR="${G}${HDOP}${NC}"
+    elif [ "${HDOP_NUM:-99}" -le 5 ]  2>/dev/null; then HDOP_STR="${Y}${HDOP}${NC}"
+    else                                                HDOP_STR="${R}${HDOP}${NC}"
+    fi
+  fi
+
+  HMS=$(date +%H:%M:%S)
+  printf "%-8s  %s  %-22s  %3s/%-3s  %-9s  %-10b\n" \
+    "$HMS" \
+    "$(fix_label "$MODE")" \
+    "$COORD" \
+    "${USED:-?}" "${SEEN:-?}" \
+    "$(snr_color "${SNR:-0}")" \
+    "$HDOP_STR"
+
+  sleep "$INTERVAL"
+done

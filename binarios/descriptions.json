@@ -618,5 +618,23 @@
             "It starts dnsmasq DHCP for connected clients and can share Internet access from a separate WAN interface with NAT.",
             "On exit, it cleans up temporary configs, forwarding rules, IP forwarding, and NetworkManager interface state."
         ]
+    },
+    "gpslogs": {
+        "name": "gpslogs",
+        "short_desc": "Logs Wi-Fi scan results with GPS coordinates to timestamped CSV files.",
+        "detailed_desc": [
+            "Logs nearby Wi-Fi networks together with live GPS data.",
+            "",
+            "Default interface: wlan1.",
+            "Output folder: $HOME/wifi-gps-logs.",
+            "",
+            "Before recording, it checks gpspipe, jq, iw, and awk.",
+            "It also verifies the wireless interface, checks gpsd, and performs an initial GPS probe.",
+            "",
+            "Each CSV row includes timestamp, latitude, longitude, GPS fix mode, satellite counts, BSSID, SSID, signal strength, frequency, and channel.",
+            "",
+            "During the loop, it scans at the configured INTERVAL and shows scan totals, saved rows, and GPS fix status.",
+            "When stopped, it prints a final summary with the output file path."
+        ]
     }
 }
