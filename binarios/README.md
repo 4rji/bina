@@ -609,7 +609,7 @@ capas               Verifica permisos de getcap, setgid para escalar priv
 scados              Un ataque ddos con scapy, pruebas exitosas, hpyng3 manda mas.
 dnscat2             Dns tunnel, aun no probado/ https://github.com/iagox86/dnscat2.git
 recon               Hace un reconocimiento con autorecon  --dirbuster.tool gobuster rustscan scan
-angrywifi           Descarga el angry, primero con -i para instalar y luego solo 
+angrywifi           Downloads AngryOxide with -i and launches it with an interface menu; use -g for GPSD support.
 autorecon           Ejecuta e instala autorecon con -i, funciona mejor recon, de arriba, lo mismo 
 pentestfm           Pentester framework con dockers
 4rjiincl            Listo de vulnerabilities con IPs, file inclusion.
