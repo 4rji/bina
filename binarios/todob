@@ -107,6 +107,9 @@ descargar_bina() {
     cd todo || exit 1
     sudo mkdir -p "$bin_dir"
     sudo cp -a binarios/* "$bin_dir"
+    if [[ -f binarios/.todoignore ]]; then
+        sudo cp -a binarios/.todoignore "$bin_dir"
+    fi
     echo ""
     echo -e "\033[1;34mbinarios actualizados\033[0m"
     cd || exit 1
