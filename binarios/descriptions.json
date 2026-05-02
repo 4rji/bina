@@ -279,11 +279,6 @@
         "short_desc": "Instala lazydocker y sus dependencias.",
         "detailed_desc": "sudo apt-get update && sudo apt-get install -y golang-go\ngit clone https://github.com/jesseduffield/lazydocker.git\ncd lazydocker\ngo install"
     },
-    "todo.bash": {
-        "name": "todo.bash",
-        "short_desc": "Busca tareas en un archivo de texto.",
-        "detailed_desc": "cat ~/.todo.txt | grep <palabra>"
-    },
     "proceso": {
         "name": "proceso",
         "short_desc": "Muestra información detallada de los procesos del sistema.",
