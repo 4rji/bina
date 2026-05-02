@@ -50,10 +50,14 @@ get_bin_name() {
 
 BIN_NAME="$(get_bin_name "$TARGET")"
 
-show_recent_files_on_exit() {
+show_compiled_binary() {
   echo
-  echo -e "${BOLD}${CYAN}Last 3 entries from ls -ltrh:${RESET}"
-  ls -ltrh | tail -n 3
+  echo -e "${BOLD}${CYAN}Compiled binary:${RESET}"
+  if [[ -e "${BIN_NAME}" ]]; then
+    ls -lh "${BIN_NAME}"
+  else
+    echo -e "${YELLOW}${BIN_NAME} was not found.${RESET}"
+  fi
 }
 
 print_header() {
@@ -61,7 +65,7 @@ print_header() {
   echo -e "${BOLD}${TITLE_ACCENT}          Go Build Menu Cool            ${RESET}"
   echo -e "${BOLD}${TITLE}========================================${RESET}"
   echo -e "${LABEL}Target${RESET}      ${GRAY}:${RESET} ${VALUE}${TARGET}${RESET}"
-  echo -e "${LABEL}Module name${RESET} ${GRAY}:${RESET} ${VALUE}${MODULE_NAME:-<not set>}${RESET}"
+  echo -e "${LABEL}Module name${RESET} ${GRAY}:${RESET} ${VALUE}${MODULE_NAME:-<auto>}${RESET}"
   echo -e "${LABEL}Binary name${RESET} ${GRAY}:${RESET} ${VALUE}${BIN_NAME}${RESET}"
   echo
 }
@@ -72,21 +76,111 @@ run_cmd() {
   echo -e "${GREEN}OK${RESET}"
 }
 
-step_1() {
-  echo -e "${BOLD}=== Step 1: Initialize Go module ===${RESET}"
-  if [[ -f go.mod ]]; then
-    echo -e "${YELLOW}go.mod already exists, skipping this step.${RESET}"
+run_cmd_in_dir() {
+  local dir="$1"
+  shift
+
+  echo -e "${YELLOW}$ cd ${dir} && $*${RESET}"
+  (
+    cd "$dir"
+    "$@"
+  )
+  echo -e "${GREEN}OK${RESET}"
+}
+
+find_go_mod_dir() {
+  local dir="$PWD"
+
+  while [[ "$dir" != "/" ]]; do
+    if [[ -f "$dir/go.mod" ]]; then
+      printf '%s\n' "$dir"
+      return 0
+    fi
+    dir="$(dirname "$dir")"
+  done
+
+  return 1
+}
+
+get_module_root() {
+  local git_root
+
+  if git_root="$(git rev-parse --show-toplevel 2>/dev/null)"; then
+    printf '%s\n' "$git_root"
     return
   fi
 
-  if [[ -z "${MODULE_NAME}" ]]; then
-    echo -e "${RED}MODULE_NAME was not provided.${RESET}"
-    echo -e "${DIM}Usage: ./script [file.go|.] [module/name]${RESET}"
-    echo -e "${DIM}Example: ./script . github.com/user/project${RESET}"
+  printf '%s\n' "$PWD"
+}
+
+module_name_from_remote() {
+  local dir="$1"
+  local remote
+
+  remote="$(git -C "$dir" config --get remote.origin.url 2>/dev/null || true)"
+  [[ -n "$remote" ]] || return 1
+
+  remote="${remote%.git}"
+
+  case "$remote" in
+    git@*:*)
+      remote="${remote#git@}"
+      remote="${remote/:/\/}"
+      ;;
+    ssh://git@*)
+      remote="${remote#ssh://git@}"
+      ;;
+    https://*)
+      remote="${remote#https://}"
+      ;;
+    http://*)
+      remote="${remote#http://}"
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+
+  printf '%s\n' "$remote"
+}
+
+get_module_name() {
+  local module_dir="$1"
+
+  if [[ -n "$MODULE_NAME" ]]; then
+    printf '%s\n' "$MODULE_NAME"
+    return
+  fi
+
+  if module_name_from_remote "$module_dir"; then
+    return
+  fi
+
+  basename "$module_dir"
+}
+
+step_1() {
+  echo -e "${BOLD}=== Step 1: Initialize Go module at repo root ===${RESET}"
+  local existing_mod_dir
+  if existing_mod_dir="$(find_go_mod_dir)"; then
+    echo -e "${YELLOW}go.mod already exists in ${existing_mod_dir}, skipping this step.${RESET}"
+    return
+  fi
+
+  local module_dir module_name
+  module_dir="$(get_module_root)"
+  module_name="$(get_module_name "$module_dir")"
+
+  if [[ -z "${module_name}" ]]; then
+    echo -e "${RED}Could not detect MODULE_NAME.${RESET}"
+    echo -e "${DIM}Usage: ./gocom [file.go|.] [module/name]${RESET}"
+    echo -e "${DIM}Example: ./gocom . github.com/user/project${RESET}"
     return 1
   fi
 
-  run_cmd go mod init "${MODULE_NAME}"
+  echo -e "${LABEL}Module root${RESET} ${GRAY}:${RESET} ${VALUE}${module_dir}${RESET}"
+  echo -e "${LABEL}Module name${RESET} ${GRAY}:${RESET} ${VALUE}${module_name}${RESET}"
+  run_cmd_in_dir "$module_dir" go mod init "${module_name}"
 }
 
 step_2() {
@@ -98,6 +192,7 @@ step_2() {
 step_3() {
   echo -e "${BOLD}=== Step 3: Build (native, optimized) ===${RESET}"
   run_cmd go build -trimpath -ldflags "-s -w" -o "${BIN_NAME}" "${TARGET}"
+  show_compiled_binary
 }
 
 step_4() {
@@ -140,10 +235,8 @@ step_8() {
 }
 
 step_all() {
-  if [[ ! -f go.mod && -n "${MODULE_NAME}" ]]; then
+  if ! find_go_mod_dir >/dev/null 2>&1; then
     step_1
-  elif [[ ! -f go.mod && -z "${MODULE_NAME}" ]]; then
-    echo -e "${YELLOW}No go.mod found and MODULE_NAME was not provided, skipping Step 1.${RESET}"
   fi
 
   step_2
@@ -159,7 +252,7 @@ show_menu() {
   print_header
   echo -e "${MENU_NUM}1)${RESET} ${OPT_GREEN}Build (native, optimized)${RESET}"
   echo -e "${MENU_NUM}2)${RESET} ${OPT_GREEN}Optional UPX compression${RESET}"
-  echo -e "${MENU_NUM}3)${RESET} ${OPT_RED}Initialize Go module${RESET}"
+  echo -e "${MENU_NUM}3)${RESET} ${OPT_RED}Initialize Go module at repo root${RESET}"
   echo -e "${MENU_NUM}4)${RESET} ${OPT_RED}Download dependencies${RESET}"
   echo -e "${MENU_NUM}5)${RESET} ${OPT_GREEN_ALT}Cross-compile Linux amd64${RESET}"
   echo -e "${MENU_NUM}6)${RESET} ${MENU_TEXT}Vendor dependencies${RESET}"
@@ -182,8 +275,6 @@ if [[ ! -t 0 ]]; then
   echo "Run it like this: ./script.sh or bash script.sh"
   exit 1
 fi
-
-trap show_recent_files_on_exit EXIT
 
 while true; do
   show_menu

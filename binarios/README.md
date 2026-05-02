@@ -258,7 +258,7 @@ firefm              Este es para abrir el firefox ephemeral. (primero instalar f
 binariosgo          Descarga los binarios go, que estan comprimidos (antes comprimidos)
 webc                Convierte todas las imagens png a webp en mac
 webcc               Converts selected documentation image folders to WebP and deletes original PNG/JPEG/AI files.
-gocom               Compila el binario go con varias opciones en el mismo tambien upx
+gocom               Compila binarios Go; inicia go.mod en el root del repo y opciones como upx
 gocomm              Muestra comandos para un binario en go, muestra como hacerlo tambien
 nets                Comprueba el acceso a subnets en la variable allowips como wireguard.
 qemuagent           Habilita en proxmox los qemu agentes a todas las VMs
@@ -405,6 +405,7 @@ findbin             Para buscar binarios como zeek
 ###------ssh
 ssh-getkey          se descarga la llave para el script ssh-getpublic
 ssh-getpublic       Descarga la llave publica a la maquina.
+ssh_fzf             Wrapper que ejecuta ssh_fzf_amd en Linux amd64 y ssh_fzfm en macOS arm64.
 sshc                copia directorio o archivo por ssh, lo comprime y descomprime
 sshp                ssh proxy D 1080 en background, completo, bashfun bash function
 pingt               Hace traceroute con ping
