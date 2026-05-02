@@ -10,13 +10,42 @@ amarillo='\e[0;33m'
 mostrarPreguntas=false
 mostrarBina=false
 borrarBinarios=false
+bin_dir="/opt/4rji/bin"
+platform="$(uname -s)"
+arch="$(uname -m)"
+
+case "$platform" in
+    Linux)
+        tmp_base="/dev/shm"
+        actualizador="todou"
+        if [[ "$arch" != "x86_64" && "$arch" != "amd64" ]]; then
+            echo -e "${amarillo}Arquitectura Linux no principal: ${arch}. El binario todo incluido puede no ser compatible.${reset}"
+        fi
+        ;;
+    Darwin)
+        tmp_base="${TMPDIR:-/tmp}"
+        actualizador="todoum"
+        if [[ "$arch" != "arm64" && "$arch" != "aarch64" ]]; then
+            echo -e "${amarillo}Arquitectura macOS no principal: ${arch}. El binario todo incluido puede no ser compatible.${reset}"
+        fi
+        ;;
+    *)
+        tmp_base="${TMPDIR:-/tmp}"
+        actualizador=""
+        echo -e "${amarillo}Sistema no reconocido: ${platform} ${arch}. Usando temporal en ${tmp_base}.${reset}"
+        ;;
+esac
+
+if [[ ! -d "$tmp_base" ]]; then
+    tmp_base="/tmp"
+fi
 
 # Función para mostrar el uso del script
 mostrar_uso() {
     echo "Uso: $0 [-p] [-a] [-c]"
     echo "  -p    Mostrar únicamente las preguntas interactivas."
     echo "  -a    Ejecutar todo el script (descargar bina y mostrar preguntas)."
-    echo "  -c    Preguntar y, de confirmarse, borrar todos los archivos de /opt/4rji/bin/*."
+    echo "  -c    Preguntar y, de confirmarse, borrar todos los archivos de ${bin_dir}/*."
     exit 1
 }
 
@@ -46,12 +75,25 @@ shift $((OPTIND -1))
 # Función para crear directorios temporales
 mktem() {
     if [ -n "$1" ]; then
-        new_dir=$(mktemp -d /dev/shm/tmp."$1".XXXXXX)
+        new_dir=$(mktemp -d "${tmp_base}/tmp.$1.XXXXXX")
     else
-        new_dir=$(mktemp -d /dev/shm/tmp.XXXXXX)
+        new_dir=$(mktemp -d "${tmp_base}/tmp.XXXXXX")
     fi
 
     cd "$new_dir" || return
+}
+
+descargar_y_ejecutar() {
+    local url="$1"
+
+    if command -v wget >/dev/null 2>&1; then
+        wget -O - "$url" | bash
+    elif command -v curl >/dev/null 2>&1; then
+        curl -fsSL "$url" | bash
+    else
+        echo "No se encontro wget ni curl para descargar: $url" >&2
+        return 1
+    fi
 }
 
 # Función para descargar y configurar bina
@@ -63,25 +105,40 @@ descargar_bina() {
     mktem
     git clone --depth 1 https://github.com/4rji/todo.git
     cd todo || exit 1
-    sudo mkdir -p /opt/4rji/bin
-    sudo cp -rf binarios/* /opt/4rji/bin
+    sudo mkdir -p "$bin_dir"
+    sudo cp -a binarios/* "$bin_dir"
     echo ""
     echo -e "\033[1;34mbinarios actualizados\033[0m"
-    # todou  # Asegúrate de definir o eliminar esta función si no está en uso
     cd || exit 1
     echo ""
 }
 
 # Función para borrar todos los archivos en /opt/4rji/bin/*
 borrar_archivos() {
-    read -n1 -p "$(echo -e ${amarillo}'¿Quieres borrar todos los archivos de /opt/4rji/bin/*? (y/N): '${reset})" respuesta_borrar
+    read -n1 -p "$(echo -e "${amarillo}¿Quieres borrar todos los archivos de ${bin_dir}/*? (y/N): ${reset}")" respuesta_borrar
     echo ""
     respuesta_borrar=$(echo "$respuesta_borrar" | tr '[:upper:]' '[:lower:]')
     if [[ "$respuesta_borrar" == "y" ]]; then
-        sudo rm -rf /opt/4rji/bin/*
-        echo -e "${verde}Archivos borrados con éxito en /opt/4rji/bin/*${reset}"
+        sudo rm -rf "${bin_dir:?}"/*
+        echo -e "${verde}Archivos borrados con éxito en ${bin_dir}/*${reset}"
     else
         echo "Operación cancelada."
+    fi
+}
+
+actualizar_database() {
+    if [[ -z "$actualizador" ]]; then
+        echo "No hay actualizador definido para ${platform} ${arch}."
+        return 0
+    fi
+
+    if [[ -x "${bin_dir}/${actualizador}" ]]; then
+        "${bin_dir}/${actualizador}"
+    elif command -v "$actualizador" >/dev/null 2>&1; then
+        "$actualizador"
+    else
+        echo "No se encontro ${actualizador}; no se pudo actualizar ~/.todo.txt." >&2
+        return 1
     fi
 }
 
@@ -103,14 +160,14 @@ if [[ $mostrarPreguntas == true || $mostrarBina == true ]]; then
     echo ""
 
     # Preguntar al usuario si desea agregar la ruta al PATH
-    read -p "¿Deseas agregar /opt/4rji/bin a tu PATH? (y/n): " -n 1 -r
+    read -p "¿Deseas agregar ${bin_dir} a tu PATH? (y/n): " -n 1 -r
     echo    # Mueve a una nueva línea
 
     # Por defecto, si el usuario presiona Enter, considera 'n'
     if [[ $REPLY =~ ^[Yy]$ ]]; then
-        # Agregar el directorio /opt/4rji/bin al PATH en ~/.zshrc
-        echo 'export PATH=$PATH:/opt/4rji/bin' >> ~/.zshrc
-        echo "El directorio /opt/4rji/bin ha sido agregado a tu PATH en ~/.zshrc."
+        # Agregar el directorio de binarios al PATH en ~/.zshrc
+        echo "export PATH=\$PATH:${bin_dir}" >> ~/.zshrc
+        echo "El directorio ${bin_dir} ha sido agregado a tu PATH en ~/.zshrc."
     else
         echo "No se realizaron cambios en PATH."
     fi
@@ -132,8 +189,7 @@ if [[ $mostrarPreguntas == true || $mostrarBina == true ]]; then
     # Verifica la respuesta
     if [ "$respuesta" == "s" ]; then
         echo -e "${verde}Instalando todos los alias... ${reset}"
-        wget -O - https://raw.githubusercontent.com/4rji/4rji/main/alias.sh | bash 
-        # source alias.sh  # Ejecuta el script descargado si es necesario
+        descargar_y_ejecutar https://raw.githubusercontent.com/4rji/4rji/main/alias.sh
     else
         echo ""
     fi
@@ -160,12 +216,10 @@ if [[ $mostrarPreguntas == true || $mostrarBina == true ]]; then
 
     # Verifica la respuesta
     if [ "$respuesta" == "s" ]; then
-        wget -O - https://raw.githubusercontent.com/4rji/4rji/main/2-4rji.sh | bash   
-        # source 2-4rji.sh  # Ejecuta el script descargado si es necesario
+        descargar_y_ejecutar https://raw.githubusercontent.com/4rji/4rji/main/2-4rji.sh
     else
         echo ""
     fi
 
-    # todou  # Asegúrate de definir o eliminar esta función si no está en uso
 fi
-todou
+actualizar_database
