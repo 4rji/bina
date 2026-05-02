@@ -288,6 +288,7 @@ certgenerator       Crea certificados de cloudflare, para cert y cer key
 https-bloq-boots    Reads IPs from ips.txt and blocks HTTPS traffic with iptables TARPIT and DROP rules.
 adio                borra un archivo con scrub                                                         
 adios               borra toda una carpeta con scrub                                                   
+todo                Wrapper que ejecuta todo_amd en Linux amd64 y todom en macOS arm64
 todobin             actualiza los binarios, funciones, alias y 2-4rji.sh,   -o para omitir binarios 
 herrabinp           para pacman, existe para yum, y para dnf, y apt es la normal de arriba todobin
 herralias           Actualiza los binarios descargando solo alias
