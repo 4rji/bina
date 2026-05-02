@@ -429,6 +429,7 @@ sshmoni             Este busca conexiones activas ssh, muestra procesos PID y lu
 wificonect          Usa el comando nmcli para conectar una red wifi en kali
 mine                Muestra IPs y nombre de interfaz (detecta Linux/Mac). -i agrega CIDR, gateway y DNS
 conexiones          Muestra nmcli conexiones nmcli -p device show y show --active red ethernet speed
+locip               Ejecuta desde /opt/4rji/bin el binario Go correcto: locip-amd en Linux o locipm en Mac ARM.
 minet               Alias de ifconfig | grep "inet " | grep -v 127.0.0.1
 mired               copia eth0 al portapapeles y muestra todas las ips del equipo                      
 miwl                copia wlan0 al portapapeles  

@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+BIN_DIR="/opt/4rji/bin"
+OS="$(uname -s)"
+ARCH="$(uname -m)"
+
+die() {
+    echo "locip: $*" >&2
+    exit 1
+}
+
+run_first_available() {
+    local candidate
+
+    for candidate in "$@"; do
+        if [[ -x "$BIN_DIR/$candidate" ]]; then
+            exec "$BIN_DIR/$candidate" "${LOCIP_ARGS[@]}"
+        fi
+    done
+
+    die "no encontre binario ejecutable en $BIN_DIR para $OS $ARCH. Esperaba uno de: $*"
+}
+
+LOCIP_ARGS=("$@")
+
+case "$OS:$ARCH" in
+    Linux:x86_64|Linux:amd64)
+        run_first_available locip-amd
+        ;;
+    Darwin:arm64|Darwin:aarch64)
+        run_first_available locipm
+        ;;
+    *)
+        die "sistema no soportado: $OS $ARCH"
+        ;;
+esac
