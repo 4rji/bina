@@ -22,7 +22,7 @@ ptysnoop.bt         Hace snoop in tty, sudo bpftrace -Bnone ptysnoop.bt 99999
 ###------CCDC
 clamvscan           Escanea y crea logs de clamvscan
 ipv6b               Bloquea ipv6 en linux. 
-ccdcinst            Instala los scripts en la bash de todobin.
+ccdcinst            Instala los scripts en la bash de todob.
 dcusercreate        Crea usuario en el ccdcteam dominio, tener hosts 172.20.240.102 domain.local
 wazuhagent          Instala el agente en linux fedora/ubuntu
 wazuhinst           Instala wazuh. asistente. automatico
@@ -289,8 +289,8 @@ https-bloq-boots    Reads IPs from ips.txt and blocks HTTPS traffic with iptable
 adio                borra un archivo con scrub                                                         
 adios               borra toda una carpeta con scrub                                                   
 todo                Wrapper que ejecuta todo_amd en Linux amd64 y todom en macOS arm64
-todobin             actualiza los binarios, funciones, alias y 2-4rji.sh,   -o para omitir binarios 
-herrabinp           para pacman, existe para yum, y para dnf, y apt es la normal de arriba todobin
+todob               actualiza los binarios, funciones, alias y 2-4rji.sh,   -o para omitir binarios 
+herrabinp           para pacman, existe para yum, y para dnf, y apt es la normal de arriba todob
 herralias           Actualiza los binarios descargando solo alias
 zipsend             Comprime y envia una carpeta por airsend -f
 zipsendm            Comprime y envia una carpeta por airsend -f
